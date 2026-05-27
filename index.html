@@ -5159,6 +5159,7 @@ function doPesan(){
 
   // expose untuk debug
   window.vpGetBalance = getBal;
+  try { window.curVar = curVar; window.totalNeeded = totalNeeded; } catch(_){}
 })();
 </script>
 
@@ -5441,10 +5442,26 @@ function doPesan(){
 
     // ── SALDO FLOW ──
     try {
-      if (typeof curVar !== 'function'){ alert('Produk tidak valid'); return; }
-      var c = curVar(); if (!c){ alert('Produk tidak valid'); return; }
+      // Inline lookup (jangan andalkan curVar — ada di IIFE lain)
+      var _p = null, _v = null;
+      try {
+        if (typeof window.curVar === 'function'){
+          var _c = window.curVar(); if (_c){ _p = _c.p; _v = _c.v; }
+        }
+      } catch(_e){}
+      if (!_p || !_v){
+        try {
+          var _prods = (typeof getProducts==='function') ? getProducts() : [];
+          _p = _prods.find(function(x){ return x.id === selProdId; }) || null;
+          _v = _p ? _p.variants[selVarIdx] : null;
+        } catch(_e){}
+      }
+      if (!_p || !_v){ alert('Produk tidak valid'); return; }
+      var c = { p: _p, v: _v };
       var need = (typeof qty==='number' && qty>0) ? qty : 1;
-      var total = (typeof totalNeeded==='function') ? totalNeeded() : (c.v.p * need);
+      var total = (typeof window.totalNeeded==='function')
+        ? window.totalNeeded()
+        : ((c.v.p||0) * need);
       var bal = getBal();
       if (bal < total){
         var kurang = total - bal;
