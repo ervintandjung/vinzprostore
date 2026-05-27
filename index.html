@@ -5379,6 +5379,156 @@ function doPesan(){
     };
   }
 })();
+
+/* ═══ FIX: SALDO PESAN flow — potong saldo + tampilkan key di success overlay ═══ */
+<\/script>
+<script>
+(function(){
+  function rp(n){ return 'Rp '+(Number(n)||0).toLocaleString('id-ID'); }
+  function getBal(){
+    try { if (typeof window.vpGetBalance==='function') return window.vpGetBalance()||0; } catch(e){}
+    try {
+      var u = (typeof currentUser!=='undefined' && currentUser) ? currentUser : null;
+      if (!u) return 0;
+      var m = JSON.parse(localStorage.getItem('vp_bal_map')||'{}');
+      return Number(m[u.email]||0);
+    } catch(e){ return 0; }
+  }
+  async function setBal(v){
+    try { if (typeof window.vpSetBalance==='function'){ await window.vpSetBalance(v); return; } } catch(e){}
+    try {
+      var u = (typeof currentUser!=='undefined' && currentUser) ? currentUser : null;
+      if (!u) return;
+      var m = JSON.parse(localStorage.getItem('vp_bal_map')||'{}');
+      m[u.email] = Math.max(0, Number(v)||0);
+      localStorage.setItem('vp_bal_map', JSON.stringify(m));
+      try { if (typeof window.vpReloadBalance==='function') window.vpReloadBalance(); } catch(_){}
+    } catch(e){}
+  }
+
+  // Mirror local selectedPayMethod → window so wrappers can read it
+  if (typeof window.selectPayMethod === 'function'){
+    var _osel = window.selectPayMethod;
+    window.selectPayMethod = function(m){
+      var r = _osel.apply(this, arguments);
+      window.selectedPayMethod = m;
+      return r;
+    };
+  }
+  if (typeof window.resetPayMethod === 'function'){
+    var _orst = window.resetPayMethod;
+    window.resetPayMethod = function(){
+      var r = _orst.apply(this, arguments);
+      window.selectedPayMethod = null;
+      return r;
+    };
+  }
+
+  // Final doPesan wrapper — handle SALDO path end-to-end
+  var _odp = window.doPesan;
+  window.doPesan = function(){
+    var method = window.selectedPayMethod;
+    // fallback: detect from DOM if window var not set
+    if (!method){
+      try {
+        var act = document.querySelector('.pm-card[style*="0 0 14px"]');
+        if (act) method = act.dataset.method;
+      } catch(e){}
+    }
+    if (method !== 'saldo'){
+      return (typeof _odp === 'function') ? _odp.apply(this, arguments) : null;
+    }
+
+    // ── SALDO FLOW ──
+    try {
+      if (typeof curVar !== 'function'){ alert('Produk tidak valid'); return; }
+      var c = curVar(); if (!c){ alert('Produk tidak valid'); return; }
+      var need = (typeof qty==='number' && qty>0) ? qty : 1;
+      var total = (typeof totalNeeded==='function') ? totalNeeded() : (c.v.p * need);
+      var bal = getBal();
+      if (bal < total){
+        var kurang = total - bal;
+        try { showNotif('❌ Saldo tidak cukup! Saldo '+rp(bal)+', butuh '+rp(total)+' (kurang '+rp(kurang)+'). Top up di Pengaturan.'); }
+        catch(e){ alert('Saldo kurang '+rp(kurang)); }
+        try { setTimeout(function(){ if (typeof showPengaturan==='function') showPengaturan(); }, 700); } catch(e){}
+        return;
+      }
+      if (!confirm('Bayar '+rp(total)+' pakai saldo?\nSaldo: '+rp(bal)+'\nSisa: '+rp(bal-total))) return;
+
+      // Ambil & tandai key sold via assignKeys (sama seperti QRIS)
+      var email = (typeof currentUser!=='undefined' && currentUser) ? currentUser.email : 'guest';
+      var keys = [];
+      try {
+        if (typeof assignKeys === 'function'){
+          keys = assignKeys(c.p.id, c.v.n, need, email) || [];
+        }
+      } catch(e){ console.warn(e); }
+      if (!keys.length){
+        try { showNotif('❌ Stok key habis untuk varian ini'); } catch(e){ alert('Stok habis'); }
+        return;
+      }
+
+      // Update sold counter produk
+      try {
+        var prods = getProducts();
+        var idx = prods.findIndex(function(x){ return x.id===c.p.id; });
+        if (idx!==-1){ prods[idx].sold = (prods[idx].sold||0) + keys.length; setProducts(prods); if (typeof renderProducts==='function') renderProducts(); }
+      } catch(e){}
+
+      // Potong saldo
+      Promise.resolve(setBal(bal - total)).then(function(){
+        try { if (typeof window.vpReloadBalance==='function') window.vpReloadBalance(); } catch(_){}
+
+        // Catat transaksi (riwayat per email)
+        try {
+          var orderId = 'S'+Date.now().toString(36).toUpperCase();
+          var time = new Date().toLocaleString('id-ID',{timeZone:'Asia/Makassar'});
+          var lsKey = 'vp_riw_' + email;
+          var cur = JSON.parse(localStorage.getItem(lsKey)||'[]');
+          keys.forEach(function(k,i){
+            var trx = {
+              id:'#'+orderId+(keys.length>1?('-'+(i+1)):''),
+              prod:c.p.name+' '+(c.v.n||''),
+              productName:c.p.name, variantName:c.v.n||'',
+              img:c.p.img||'', emoji:c.p.emoji||'📦',
+              price:c.v.p, qty:1, key:k,
+              status:'sukses', method:'SALDO',
+              time:time, ts:Date.now()
+            };
+            cur.unshift(trx);
+            try { if (window._sb && window._sb.from && email!=='guest') window._sb.from('transactions').insert({ email:email, trx_id:trx.id, data:trx }).then(function(){}); } catch(_){}
+            try { if (typeof window.__pushAllTrx==='function' && email!=='guest') window.__pushAllTrx(Object.assign({}, trx, {email:email})); } catch(_){}
+          });
+          localStorage.setItem(lsKey, JSON.stringify(cur.slice(0,200)));
+        } catch(e){}
+
+        // Tutup fullscreen produk
+        try {
+          var fs = document.getElementById('prodFullscreen');
+          if (fs && fs.classList.contains('open') && typeof closeProdFullscreen==='function') closeProdFullscreen();
+        } catch(e){}
+
+        // Tampilkan halaman sukses + key (sama seperti QRIS)
+        try {
+          var list = document.getElementById('successKeyList');
+          var ov = document.getElementById('successOverlay');
+          if (list && ov){
+            list.innerHTML = keys.map(function(k,i){
+              return '<div style="padding:6px 0;border-bottom:1px solid var(--border);">'+(i+1)+'. '+k+'</div>';
+            }).join('');
+            ov.classList.add('open');
+          }
+        } catch(e){}
+
+        try { showNotif('✅ Sukses! Saldo dipotong '+rp(total)); } catch(e){}
+        try { if (typeof resetPayMethod==='function') resetPayMethod(); } catch(e){}
+      });
+    } catch(err){
+      console.error('[saldo doPesan]', err);
+      try { showNotif('❌ Gagal proses saldo: '+(err.message||err)); } catch(e){ alert('Gagal: '+err); }
+    }
+  };
+})();
 </script>
 
 
