@@ -5162,6 +5162,226 @@ function doPesan(){
 })();
 </script>
 
+
+<!-- ═══ VINZ PATCH FINAL (Turnstile strict + QRIS/Saldo manual stock + saldo msg) ═══ -->
+<script>
+(function(){
+  /* ---------- 1) TURNSTILE: strict block + preserve fields ---------- */
+  function tsTokenOf(id){
+    try {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      const v = el.querySelector('[name="cf-turnstile-response"]');
+      return v && v.value ? v.value : null;
+    } catch(e){ return null; }
+  }
+  function setBtnDisabled(btnId, disabled, lockedLabel, normalLabel){
+    const b = document.getElementById(btnId);
+    if (!b) return;
+    b.disabled = !!disabled;
+    b.style.opacity = disabled ? '.55' : '';
+    b.style.cursor  = disabled ? 'not-allowed' : 'pointer';
+    if (disabled){ b.dataset._lbl = b.dataset._lbl || b.textContent; b.textContent = lockedLabel; }
+    else if (b.dataset._lbl){ b.textContent = b.dataset._lbl; delete b.dataset._lbl; }
+  }
+  function syncTsButtons(){
+    setBtnDisabled('btnLogin',    !tsTokenOf('ts-login'),    '🛡️ CENTANG CLOUDFLARE DULU', 'MASUK SEKARANG');
+    setBtnDisabled('btnRegister', !tsTokenOf('ts-register'), '🛡️ CENTANG CLOUDFLARE DULU', 'DAFTAR SEKARANG');
+  }
+  setInterval(syncTsButtons, 600);
+  setTimeout(syncTsButtons, 300);
+
+  // Wrap doLogin / doRegister to enforce token AND preserve input on failure
+  function wrap(fnName){
+    const orig = window[fnName];
+    if (typeof orig !== 'function' || orig.__vpWrapped) return;
+    const isLogin = fnName === 'doLogin';
+    const tsId = isLogin ? 'ts-login' : 'ts-register';
+    const fields = isLogin
+      ? ['loginEmail','loginPass']
+      : ['regName','regEmail','regPass'];
+    const wrapped = async function(){
+      if (!tsTokenOf(tsId)){
+        try { showNotif('🛡️ Centang verifikasi Cloudflare dulu sebelum '+(isLogin?'login':'daftar')+'!'); }
+        catch(e){ alert('Centang Cloudflare dulu!'); }
+        syncTsButtons();
+        return;
+      }
+      // simpan nilai field untuk dipulihkan kalau terjadi reset/error
+      const snap = {};
+      fields.forEach(id => { const el = document.getElementById(id); if (el) snap[id] = el.value; });
+      try {
+        return await orig.apply(this, arguments);
+      } finally {
+        // pulihkan input bila kosong (form gagal/turnstile reset)
+        setTimeout(()=>{
+          fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && !el.value && snap[id]) el.value = snap[id];
+          });
+        }, 30);
+        syncTsButtons();
+      }
+    };
+    wrapped.__vpWrapped = true;
+    window[fnName] = wrapped;
+  }
+  function tryWrapAuth(){ wrap('doLogin'); wrap('doRegister'); }
+  tryWrapAuth();
+  setInterval(tryWrapAuth, 1500);
+
+  /* ---------- 2) STOK MANUAL: tambahkan QRIS & SALDO toggle (mirip WA) ---------- */
+  const Q_KEY = 'vinz_qris_stock';
+  const S_KEY = 'vinz_saldo_stock';
+  function _g(K){ try{ return JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){ return {}; } }
+  function _s(K,o){ try{ localStorage.setItem(K, JSON.stringify(o)); }catch(e){} }
+  function _k(p,v){ return p+'::'+v; }
+  window._qrisManualAvail  = (p,v)=>{ const o=_g(Q_KEY); const k=_k(p,v); return o[k]===undefined?true:!!o[k]; };
+  window._qrisManualSet    = (p,v,b)=>{ const o=_g(Q_KEY); o[_k(p,v)]=!!b; _s(Q_KEY,o); };
+  window._saldoManualAvail = (p,v)=>{ const o=_g(S_KEY); const k=_k(p,v); return o[k]===undefined?true:!!o[k]; };
+  window._saldoManualSet   = (p,v,b)=>{ const o=_g(S_KEY); o[_k(p,v)]=!!b; _s(S_KEY,o); };
+
+  function _cur(){
+    try {
+      const p = getProducts().find(x=>x.id===selProdId);
+      if (!p) return null;
+      const v = p.variants[selVarIdx]; if (!v) return null;
+      return {p,v};
+    } catch(e){ return null; }
+  }
+
+  // Hook block payment method untuk QRIS & SALDO juga
+  const _origSel = window.selectPayMethod;
+  if (typeof _origSel === 'function'){
+    window.selectPayMethod = function(m){
+      const c = _cur();
+      if (c){
+        if (m === 'qris' && !window._qrisManualAvail(c.p.id, c.v.n)){
+          try { showNotif('❌ QRIS ditandai HABIS oleh admin. Pilih metode lain.'); } catch(e){}
+          return;
+        }
+        if (m === 'saldo' && !window._saldoManualAvail(c.p.id, c.v.n)){
+          try { showNotif('❌ Pembayaran SALDO dimatikan admin untuk varian ini.'); } catch(e){}
+          return;
+        }
+      }
+      return _origSel.apply(this, arguments);
+    };
+  }
+
+  // Hook refresh availability — tambahkan flag manual ke QRIS & SALDO
+  const _origRA = window.refreshPayMethodAvailability;
+  window.refreshPayMethodAvailability = function(){
+    if (typeof _origRA === 'function') try { _origRA.apply(this, arguments); } catch(e){}
+    const c = _cur(); if (!c) return;
+    const qOk = window._qrisManualAvail(c.p.id, c.v.n);
+    const sOk = window._saldoManualAvail(c.p.id, c.v.n);
+    const cardQ = document.querySelector('.pm-card[data-method="qris"]');
+    const cardS = document.querySelector('.pm-card[data-method="saldo"]');
+    function force(card, ok, label){
+      if (!card) return;
+      let b = card.querySelector('.pm-stat-badge');
+      if (!b){
+        b = document.createElement('div'); b.className='pm-stat-badge';
+        b.style.cssText='margin-left:auto;font-size:9px;font-weight:800;padding:3px 7px;border-radius:6px;letter-spacing:.5px;';
+        card.appendChild(b);
+      }
+      card.dataset.disabled='1'; card.style.opacity='.55'; card.style.cursor='not-allowed';
+      b.style.background='rgba(255,68,85,.18)'; b.style.color='#ff4757'; b.style.border='1px solid #ff4757';
+      b.textContent = label;
+    }
+    if (!qOk) force(cardQ, false, 'HABIS');
+    if (!sOk) force(cardS, false, 'OFF');
+    try {
+      if (window.selectedPayMethod==='qris'  && !qOk && typeof resetPayMethod==='function') resetPayMethod();
+      if (window.selectedPayMethod==='saldo' && !sOk && typeof resetPayMethod==='function') resetPayMethod();
+    } catch(e){}
+  };
+
+  // Inject baris QRIS & SALDO toggle di Admin Key Manager (di samping WA toggle)
+  function ensureExtraToggles(){
+    const waRow = document.getElementById('kmWaToggle');
+    if (!waRow) return;
+    const pidEl = document.getElementById('kmProd');
+    const vnEl  = document.getElementById('kmVar');
+    const pid = pidEl ? parseInt(pidEl.value) : 0;
+    const vn  = vnEl ? vnEl.value : '';
+    if (!pid || !vn) return;
+
+    function rowFor(id, label, isOk, onLbl, offLbl, toggleFn){
+      let r = document.getElementById(id);
+      if (!r){
+        r = document.createElement('div');
+        r.id = id;
+        r.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 14px;margin:10px 0;background:linear-gradient(135deg,#0a1f2e,#0d2638);border:1.5px solid var(--accent2);border-radius:10px;flex-wrap:wrap;';
+        waRow.parentNode.insertBefore(r, waRow.nextSibling);
+      }
+      r.innerHTML =
+        '<span style="font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;color:var(--accent2);">'+label+'</span>'+
+        '<span style="font-size:10px;font-weight:900;padding:5px 11px;border-radius:6px;font-family:Orbitron,sans-serif;'+
+          (isOk?'background:var(--success);color:#000;':'background:var(--danger);color:#fff;')+'">'+
+          (isOk?'TERSEDIA':'HABIS')+'</span>'+
+        '<button onclick="'+toggleFn+'()" style="margin-left:auto;background:'+(isOk?'#ff4757':'#00ff88')+';color:'+(isOk?'#fff':'#000')+';border:none;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;cursor:pointer;">'+
+          (isOk?offLbl:onLbl)+'</button>';
+    }
+    rowFor('kmQrisToggle', '💳 STOK QRIS (manual):',
+      window._qrisManualAvail(pid, vn),
+      'TANDAI QRIS READY', 'TANDAI QRIS HABIS', 'kmToggleQris');
+    rowFor('kmSaldoToggle', '💎 STOK SALDO (manual):',
+      window._saldoManualAvail(pid, vn),
+      'TANDAI SALDO READY', 'TANDAI SALDO OFF', 'kmToggleSaldo');
+  }
+  window.kmToggleQris = function(){
+    const pid = parseInt(document.getElementById('kmProd').value);
+    const vn  = document.getElementById('kmVar').value;
+    if (!pid || !vn) return;
+    const cur = window._qrisManualAvail(pid, vn);
+    window._qrisManualSet(pid, vn, !cur);
+    try { showNotif(!cur?'✅ QRIS ditandai TERSEDIA':'⚠️ QRIS ditandai HABIS'); } catch(e){}
+    ensureExtraToggles();
+    try { refreshPayMethodAvailability(); } catch(e){}
+    try { const p = getProducts().find(x=>x.id===selProdId); if (p && typeof renderFsVars==='function') renderFsVars(p); } catch(e){}
+  };
+  window.kmToggleSaldo = function(){
+    const pid = parseInt(document.getElementById('kmProd').value);
+    const vn  = document.getElementById('kmVar').value;
+    if (!pid || !vn) return;
+    const cur = window._saldoManualAvail(pid, vn);
+    window._saldoManualSet(pid, vn, !cur);
+    try { showNotif(!cur?'✅ SALDO ditandai TERSEDIA':'⚠️ SALDO dimatikan'); } catch(e){}
+    ensureExtraToggles();
+    try { refreshPayMethodAvailability(); } catch(e){}
+  };
+  setInterval(ensureExtraToggles, 1500);
+
+  /* ---------- 3) Pesan SALDO KURANG yang lebih informatif ---------- */
+  const _origDoPesan = window.doPesan;
+  if (typeof _origDoPesan === 'function'){
+    window.doPesan = function(){
+      try {
+        if (window.selectedPayMethod === 'saldo'){
+          const bal = (typeof window.vpGetBalance==='function') ? window.vpGetBalance() : 0;
+          const total = (typeof totalNeeded==='function') ? totalNeeded() : 0;
+          if (total > 0 && bal < total){
+            const rp = (n)=>'Rp '+(n||0).toLocaleString('id-ID');
+            const kurang = total - bal;
+            try {
+              showNotif('❌ Saldo tidak cukup! Saldo kamu '+rp(bal)+', butuh '+rp(total)+' (kurang '+rp(kurang)+'). Top up dulu di Pengaturan.');
+            } catch(e){
+              alert('Saldo tidak cukup!\nSaldo: '+rp(bal)+'\nButuh: '+rp(total)+'\nKurang: '+rp(kurang)+'\n\nSilakan top up di menu Pengaturan.');
+            }
+            try { setTimeout(()=>{ if (typeof showPengaturan==='function') showPengaturan(); }, 600); } catch(e){}
+            return;
+          }
+        }
+      } catch(e){}
+      return _origDoPesan.apply(this, arguments);
+    };
+  }
+})();
+</script>
+
+
 </body>
 </html>
 
