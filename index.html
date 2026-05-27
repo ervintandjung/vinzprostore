@@ -5442,7 +5442,7 @@ function doPesan(){
 
     // ── SALDO FLOW ──
     try {
-      // Inline lookup (jangan andalkan curVar — ada di IIFE lain)
+      // Resolve produk aktif dengan beberapa fallback (global var, id longgar, lalu teks di layar)
       var _p = null, _v = null;
       try {
         if (typeof window.curVar === 'function'){
@@ -5452,11 +5452,33 @@ function doPesan(){
       if (!_p || !_v){
         try {
           var _prods = (typeof getProducts==='function') ? getProducts() : [];
-          _p = _prods.find(function(x){ return x.id === selProdId; }) || null;
-          _v = _p ? _p.variants[selVarIdx] : null;
+          var _pid = (typeof selProdId !== 'undefined') ? selProdId : null;
+          var _vidx = (typeof selVarIdx !== 'undefined') ? selVarIdx : 0;
+          _p = _prods.find(function(x){ return x.id === _pid || String(x.id) === String(_pid); }) || null;
+          _v = (_p && _p.variants) ? _p.variants[_vidx] : null;
+
+          if ((!_p || !_v) && _prods.length){
+            var title = ((document.getElementById('fsHeaderTitle')||{}).textContent || (document.getElementById('fsTitle')||{}).textContent || '').trim().toLowerCase();
+            var item = ((document.getElementById('fsOItem')||{}).textContent || '').trim().toLowerCase();
+            _p = _prods.find(function(x){
+              var nm = String(x.name||'').trim().toLowerCase();
+              return nm && (title === nm || item.indexOf(nm) === 0 || item.indexOf(nm) !== -1);
+            }) || _p;
+            if (_p && _p.variants){
+              _v = _p.variants.find(function(v){
+                var vn = String(v.n||'').trim().toLowerCase();
+                return vn && item.indexOf(vn) !== -1;
+              }) || _p.variants[_vidx] || _p.variants[0];
+            }
+          }
+          if (_p){ try { selProdId = _p.id; } catch(_x){} }
+          if (_p && _v && _p.variants){ try { selVarIdx = Math.max(0, _p.variants.indexOf(_v)); } catch(_x){} }
         } catch(_e){}
       }
-      if (!_p || !_v){ alert('Produk tidak valid'); return; }
+      if (!_p || !_v){
+        try { showNotif('❌ Produk belum terbaca. Tutup lalu buka produk lagi.'); } catch(_e){ alert('Produk belum terbaca. Tutup lalu buka produk lagi.'); }
+        return;
+      }
       var c = { p: _p, v: _v };
       var need = (typeof qty==='number' && qty>0) ? qty : 1;
       var total = (typeof window.totalNeeded==='function')
