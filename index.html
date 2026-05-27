@@ -222,7 +222,7 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 .auth-err{font-size:12px;color:var(--danger);text-align:center;margin-bottom:8px;display:none;}
 
 /* ADMIN PANEL */
-#adminPanel{display:none;position:fixed;inset:0;background:#07111f;z-index:400;overflow-y:auto;}
+#adminPanel{display:none;position:fixed;inset:0;background:#07111f;z-index:400;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
 #adminPanel.open{display:block;}
 #settingsPanel{display:none;position:fixed;inset:0;background:var(--primary);z-index:400;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;}
 #settingsPanel.open{display:block;animation:fsSlideIn .3s ease;}
@@ -2250,6 +2250,7 @@ function openAdmin() {
   if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showNotif('❌ Akses ditolak!'); return; }
   document.getElementById('adminPanel').classList.add('open');
   try { hideBuyNotif(); } catch(e){}
+  document.body.style.overflow = 'hidden';
   document.getElementById('apWa').value = waNum;
   document.getElementById('apTicker').value = document.getElementById('tickerTxt').textContent || '';
   renderApProds();
@@ -2309,7 +2310,7 @@ function apBannerRemove(i){
   showNotif('🗑️ Banner dihapus');
 }
 
-function closeAdmin() { document.getElementById('adminPanel').classList.remove('open'); }
+function closeAdmin() { document.getElementById('adminPanel').classList.remove('open'); document.body.style.overflow=''; }
 
 function renderApProds() {
   const prods = getProducts();
@@ -4618,45 +4619,74 @@ function doPesan(){
   }
 
   // ---------- BALANCE STORAGE ----------
+  // Fallback storage saat kolom users.balance belum ada di Supabase
+  // (atau koneksi DB gagal). Disimpan per-email di localStorage.
+  const BAL_MAP_KEY = 'vp_bal_map';
+  function _balMap(){ try { return JSON.parse(localStorage.getItem(BAL_MAP_KEY)||'{}'); } catch(e){ return {}; } }
+  function _saveBalMap(m){ try { localStorage.setItem(BAL_MAP_KEY, JSON.stringify(m)); } catch(e){} }
+  function _localGetBal(email){ if(!email) return 0; return parseInt(_balMap()[email]||0)||0; }
+  function _localSetBal(email, n){ if(!email) return; const m=_balMap(); m[email]=Math.max(0,parseInt(n)||0); _saveBalMap(m); }
+  function _isMissingColErr(err){
+    if (!err) return false;
+    const s = (err.message||err.toString()||'').toLowerCase();
+    return s.includes('balance') && (s.includes('does not exist') || s.includes('column') || err.code==='42703' || err.code==='PGRST204');
+  }
+  let _balColAvailable = null; // null=unknown, true/false
   function getBal(){
     const u = getCU(); if (!u) return 0;
-    return parseInt(u.balance||0) || 0;
+    const v = parseInt(u.balance||0)||0;
+    if (v) return v;
+    return _localGetBal(u.email);
   }
   async function setBal(n, opts){
     const u = getCU(); if (!u) return;
     u.balance = Math.max(0, parseInt(n)||0);
     saveCU(u);
-    try {
-      if (window._sb && _sb.from){
-        await _sb.from('users').update({ balance: u.balance }).eq('email', u.email);
-      }
-    } catch(e){}
+    _localSetBal(u.email, u.balance);
+    if (_balColAvailable !== false && window._sb && _sb.from){
+      try {
+        const r = await _sb.from('users').update({ balance: u.balance }).eq('email', u.email);
+        if (r.error && _isMissingColErr(r.error)) _balColAvailable = false;
+      } catch(e){}
+    }
     paintBal();
     if (!opts || !opts.silent) try { window.dispatchEvent(new Event('vp:balance')); } catch(e){}
   }
   async function addBalByEmail(email, delta){
-    if (!window._sb || !_sb.from) throw new Error('Database tidak tersedia');
-    const { data, error } = await _sb.from('users').select('balance').eq('email', email).maybeSingle();
-    if (error) throw new Error(error.message || 'Gagal akses database');
-    const cur = data ? (parseInt(data.balance||0)||0) : 0;
-    const nv  = Math.max(0, cur + parseInt(delta||0));
-    if (data){
-      const up = await _sb.from('users').update({ balance: nv }).eq('email', email);
-      if (up.error) throw new Error(up.error.message);
-    } else {
-      const ins = await _sb.from('users').upsert({ email: email, balance: nv }, { onConflict: 'email' });
-      if (ins.error) throw new Error(ins.error.message);
+    if (!email) throw new Error('Email kosong');
+    let cur = _localGetBal(email);
+    let dbOk = false;
+    if (_balColAvailable !== false && window._sb && _sb.from){
+      try {
+        const sel = await _sb.from('users').select('balance').eq('email', email).maybeSingle();
+        if (sel.error && _isMissingColErr(sel.error)) { _balColAvailable = false; }
+        else if (!sel.error) { dbOk = true; if (sel.data) cur = parseInt(sel.data.balance||0)||0; }
+      } catch(e){}
+    }
+    const nv = Math.max(0, cur + parseInt(delta||0));
+    _localSetBal(email, nv);
+    if (dbOk && _balColAvailable !== false){
+      try {
+        const up = await _sb.from('users').upsert({ email, balance: nv }, { onConflict: 'email' });
+        if (up.error && _isMissingColErr(up.error)) _balColAvailable = false;
+      } catch(e){}
     }
     const u = getCU();
     if (u && u.email === email){ u.balance = nv; saveCU(u); paintBal(); }
+    try { window.dispatchEvent(new Event('vp:balance')); } catch(_){}
     return nv;
   }
   async function reloadBalFromDB(){
-    const u = getCU(); if (!u || !window._sb || !_sb.from) return;
+    const u = getCU(); if (!u) return;
+    const loc = _localGetBal(u.email);
+    if (loc && !u.balance){ u.balance = loc; saveCU(u); paintBal(); }
+    if (!window._sb || !_sb.from || _balColAvailable === false) return;
     try {
-      const { data } = await _sb.from('users').select('balance').eq('email', u.email).single();
-      if (data && typeof data.balance !== 'undefined'){
+      const { data, error } = await _sb.from('users').select('balance').eq('email', u.email).maybeSingle();
+      if (error){ if (_isMissingColErr(error)) _balColAvailable = false; return; }
+      if (data && typeof data.balance !== 'undefined' && data.balance !== null){
         u.balance = parseInt(data.balance||0)||0;
+        _localSetBal(u.email, u.balance);
         saveCU(u);
         paintBal();
       }
@@ -4735,6 +4765,8 @@ function doPesan(){
     const wa = (function(){ try { return localStorage.getItem('vp_wa')||'6285954741269'; } catch(e){ return '6285954741269'; } })();
     const orderId = 'TOP-'+Date.now().toString(36).toUpperCase();
     pushTopup({ id:orderId, email:u.email, amount:amt, method:'WA', status:'menunggu', ts:Date.now(), time:new Date().toLocaleString('id-ID',{timeZone:'Asia/Makassar'}) });
+    // langsung catat di riwayat user (status MENUNGGU)
+    try { _topupToRiwayat({ id:orderId, email:u.email, amount:amt, status:'menunggu', ts:Date.now() }); } catch(_){}
     const msg = encodeURIComponent(
       '*TOP UP SALDO VINZPRO*\n'+
       'ID: #'+orderId+'\n'+
@@ -4744,7 +4776,40 @@ function doPesan(){
       'Mohon konfirmasi nomor rekening / e-wallet tujuan.'
     );
     window.open('https://wa.me/'+wa+'?text='+msg, '_blank');
+    try { showNotif && showNotif('✅ Top up #'+orderId+' tercatat di riwayat'); } catch(_){}
   };
+
+  // ---------- TOP UP → RIWAYAT BRIDGE ----------
+  function _topupToRiwayat(t){
+    if (!t || !t.email) return;
+    const lsKey = 'vp_riw_'+t.email;
+    let cur = [];
+    try { cur = JSON.parse(localStorage.getItem(lsKey)||'[]'); } catch(e){ cur=[]; }
+    const id = '#'+t.id;
+    const stMap = { sukses:'sukses', ditolak:'batal', batal:'batal', menunggu:'menunggu', kadaluwarsa:'kadaluwarsa' };
+    const st = stMap[(t.status||'menunggu').toLowerCase()] || 'menunggu';
+    const time = t.time || new Date().toLocaleString('id-ID');
+    const trxData = {
+      id, prod:'Top Up Saldo', productName:'Top Up Saldo', variantName: rp(t.amount),
+      img:'', emoji:'💎', price: t.amount, qty: 1, key: '',
+      status: st, method: 'WA', isTopup: true,
+      time, ts: t.ts || Date.now()
+    };
+    const i = cur.findIndex(x=>x.id===id);
+    if (i>=0) cur[i] = { ...cur[i], ...trxData };
+    else cur.unshift(trxData);
+    try { localStorage.setItem(lsKey, JSON.stringify(cur.slice(0,200))); } catch(_){}
+    try {
+      const all = JSON.parse(localStorage.getItem('vp_all_trx')||'[]');
+      const ai = all.findIndex(x=>x.id===id && (x.email||'')===t.email);
+      const allRow = { ...trxData, email: t.email };
+      if (ai>=0) all[ai] = { ...all[ai], ...allRow };
+      else all.unshift(allRow);
+      localStorage.setItem('vp_all_trx', JSON.stringify(all.slice(0,500)));
+    } catch(_){}
+    try { if (typeof window.renderRiwayat==='function') window.renderRiwayat(); } catch(_){}
+  }
+  window._vpTopupToRiwayat = _topupToRiwayat;
 
   // ---------- TOP UP STORAGE (Supabase) ----------
   /* SQL — jalankan sekali di Supabase SQL Editor:
@@ -5020,6 +5085,7 @@ function doPesan(){
     try {
       await addBalByEmail(t.email, t.amount);
       await updateTopupStatus(id, 'sukses');
+      try { _topupToRiwayat({ ...t, status:'sukses' }); } catch(_){}
       alert('✅ Saldo ditambahkan');
     } catch(e){ alert('❌ '+e.message); }
   };
@@ -5027,10 +5093,21 @@ function doPesan(){
     const t = _topupCache.find(x=>x.id===id); if (!t) return;
     if (!confirm('Tolak permintaan #'+t.id+'?')) return;
     await updateTopupStatus(id, 'ditolak');
+    try { _topupToRiwayat({ ...t, status:'ditolak' }); } catch(_){}
   };
   window.apTopupDelete = async function(id){
+    const t = _topupCache.find(x=>x.id===id);
     if (!confirm('Hapus permintaan?')) return;
     await deleteTopupDB(id);
+    if (t){
+      try {
+        const lsKey='vp_riw_'+t.email;
+        const arr=JSON.parse(localStorage.getItem(lsKey)||'[]').filter(x=>x.id!=='#'+id);
+        localStorage.setItem(lsKey, JSON.stringify(arr));
+        const all=JSON.parse(localStorage.getItem('vp_all_trx')||'[]').filter(x=>!(x.id==='#'+id && (x.email||'')===t.email));
+        localStorage.setItem('vp_all_trx', JSON.stringify(all));
+      } catch(_){}
+    }
   };
 
   // ---------- REFRESH SALDO CARD AVAIL ----------
