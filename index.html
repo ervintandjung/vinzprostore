@@ -3753,6 +3753,17 @@ function doPesan(){
 .riw-b-kadaluwarsa{background:rgba(150,150,150,.15);color:#aaa;border:1px solid #888;}
 .riw-b-wa{background:rgba(37,211,102,.15);color:#25D366;border:1px solid #25D366;}
 .riw-b-qris{background:rgba(26,111,255,.18);color:#1a6fff;border:1px solid #1a6fff;}
+.riw-b-saldo{background:rgba(247,181,0,.15);color:#f7b500;border:1px solid #f7b500;}
+/* SALDO LOADING OVERLAY */
+#saldoLoadOv{display:none;position:fixed;inset:0;background:rgba(2,8,15,.88);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;}
+#saldoLoadOv.show{display:flex;}
+.sl-box{background:linear-gradient(160deg,#0a1628,#071122);border:1px solid #1a6fff;border-radius:16px;padding:28px 34px;text-align:center;box-shadow:0 0 40px rgba(26,111,255,.4);max-width:280px;}
+.sl-spin{width:54px;height:54px;border:4px solid rgba(26,111,255,.2);border-top-color:#1a6fff;border-radius:50%;margin:0 auto 16px;animation:slspin .8s linear infinite;}
+@keyframes slspin{to{transform:rotate(360deg);}}
+.sl-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#fff;letter-spacing:1.2px;margin-bottom:6px;}
+.sl-sub{font-size:11px;color:#7faedf;letter-spacing:.5px;}
+.sl-dots::after{content:'';animation:sldots 1.2s steps(4,end) infinite;}
+@keyframes sldots{0%{content:'';}25%{content:'.';}50%{content:'..';}75%{content:'...';}100%{content:'';}}
 .riw-divider{height:1px;background:var(--border);margin:12px 0;}
 .riw-keybox{background:#02080f;border:1px dashed var(--accent);border-radius:9px;padding:10px;}
 .riw-keylabel{font-size:10px;color:var(--accent2);font-weight:900;letter-spacing:.8px;margin-bottom:6px;font-family:'Orbitron',sans-serif;}
@@ -3899,6 +3910,7 @@ function doPesan(){
                     : st==='kadaluwarsa' ? '<span class="riw-badge riw-b-kadaluwarsa">KADALUWARSA</span>'
                                     : '<span class="riw-badge riw-b-menunggu">MENUNGGU</span>';
       const mtBadge = mt==='WA' ? '<span class="riw-badge riw-b-wa">WA</span>'
+                    : mt==='SALDO' ? '<span class="riw-badge riw-b-saldo">SALDO</span>'
                                 : '<span class="riw-badge riw-b-qris">QRIS</span>';
       const thumb = t.img ? `<img src="${t.img}" onerror="this.parentNode.innerHTML='${(t.emoji||'📦').replace(/'/g,'')}'">` : (t.emoji||'📦');
       const totalRp = rp((t.price||0) * (t.qty||1));
@@ -4120,7 +4132,7 @@ function doPesan(){
                     : st==='batal'  ? '<span class="riw-badge riw-b-batal">BATAL</span>'
                     : st==='kadaluwarsa' ? '<span class="riw-badge riw-b-kadaluwarsa">KADALUWARSA</span>'
                                     : '<span class="riw-badge riw-b-menunggu">MENUNGGU</span>';
-      const mtBadge = mt==='WA' ? '<span class="riw-badge riw-b-wa">WA</span>' : '<span class="riw-badge riw-b-qris">QRIS</span>';
+      const mtBadge = mt==='WA' ? '<span class="riw-badge riw-b-wa">WA</span>' : mt==='SALDO' ? '<span class="riw-badge riw-b-saldo">SALDO</span>' : '<span class="riw-badge riw-b-qris">QRIS</span>';
       const safeId = (t.id||'').replace(/'/g,"\\'");
       const safeEm = (t.email||'').replace(/'/g,"\\'");
       return `<div class="atrx-item">
@@ -5603,6 +5615,23 @@ function doPesan(){
       }
       if (!confirm('Bayar '+rp(total)+' pakai saldo?\nSaldo: '+rp(bal)+'\nSisa: '+rp(bal-total))) return;
 
+      // ── LOADING OVERLAY (animasi memproses pembayaran) ──
+      var _ov = document.getElementById('saldoLoadOv');
+      if (!_ov){
+        _ov = document.createElement('div');
+        _ov.id = 'saldoLoadOv';
+        _ov.innerHTML = '<div class="sl-box"><div class="sl-spin"></div><div class="sl-title">MEMPROSES PEMBAYARAN</div><div class="sl-sub">Memotong saldo<span class="sl-dots"></span></div></div>';
+        document.body.appendChild(_ov);
+      }
+      _ov.querySelector('.sl-title').textContent = 'MEMPROSES PEMBAYARAN';
+      _ov.querySelector('.sl-sub').innerHTML = 'Memotong saldo<span class="sl-dots"></span>';
+      _ov.classList.add('show');
+
+      setTimeout(function(){
+        try { _ov.querySelector('.sl-sub').innerHTML = 'Mengambil key<span class="sl-dots"></span>'; } catch(_){}
+      }, 900);
+
+      setTimeout(function(){
       // Ambil & tandai key sold via assignKeys (sama seperti QRIS)
       var email = (typeof currentUser!=='undefined' && currentUser) ? currentUser.email : 'guest';
       var keys = [];
@@ -5612,6 +5641,7 @@ function doPesan(){
         }
       } catch(e){ console.warn(e); }
       if (!keys.length){
+        try { _ov.classList.remove('show'); } catch(_){}
         try { showNotif('❌ Stok key habis untuk varian ini'); } catch(e){ alert('Stok habis'); }
         return;
       }
@@ -5656,31 +5686,36 @@ function doPesan(){
           if (fs && fs.classList.contains('open') && typeof closeProdFullscreen==='function') closeProdFullscreen();
         } catch(e){}
 
-        // Tampilkan halaman PAYMENT SUCCESS
-        try {
-          var trxId = 'VPS' + Date.now().toString().slice(-10);
-          if (typeof window.showPaymentSuccess === 'function'){
-            window.showPaymentSuccess({
-              trxId: trxId,
-              productName: c.p.name || '',
-              variantName: c.v.n || '',
-              img: c.p.img || '',
-              keys: keys
-            });
-          } else {
-            var list = document.getElementById('successKeyList');
-            var ov = document.getElementById('successOverlay');
-            if (list && ov){
-              list.innerHTML = keys.map(function(k,i){ return '<div>'+(i+1)+'. '+k+'</div>'; }).join('');
-              ov.style.display='block';
+        // Tampilkan halaman PAYMENT SUCCESS (setelah loading selesai)
+        try { _ov.querySelector('.sl-sub').innerHTML = 'Berhasil! ✓'; } catch(_){}
+        setTimeout(function(){
+          try { _ov.classList.remove('show'); } catch(_){}
+          try {
+            var trxId = 'VPS' + Date.now().toString().slice(-10);
+            if (typeof window.showPaymentSuccess === 'function'){
+              window.showPaymentSuccess({
+                trxId: trxId,
+                productName: c.p.name || '',
+                variantName: c.v.n || '',
+                img: c.p.img || '',
+                keys: keys
+              });
+            } else {
+              var list = document.getElementById('successKeyList');
+              var ov2 = document.getElementById('successOverlay');
+              if (list && ov2){
+                list.innerHTML = keys.map(function(k,i){ return '<div>'+(i+1)+'. '+k+'</div>'; }).join('');
+                ov2.style.display='block';
+              }
             }
-          }
-        } catch(e){}
-
-        try { showNotif('✅ Sukses! Saldo dipotong '+rp(total)); } catch(e){}
-        try { if (typeof resetPayMethod==='function') resetPayMethod(); } catch(e){}
+          } catch(e){}
+          try { showNotif('✅ Sukses! Saldo dipotong '+rp(total)); } catch(e){}
+          try { if (typeof resetPayMethod==='function') resetPayMethod(); } catch(e){}
+        }, 500);
       });
+      }, 1600); // end setTimeout loading wrapper
     } catch(err){
+      try { var _e=document.getElementById('saldoLoadOv'); if(_e) _e.classList.remove('show'); } catch(_){}
       console.error('[saldo doPesan]', err);
       try { showNotif('❌ Gagal proses saldo: '+(err.message||err)); } catch(e){ alert('Gagal: '+err); }
     }
