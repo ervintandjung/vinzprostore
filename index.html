@@ -4636,12 +4636,17 @@ function doPesan(){
   }
   async function addBalByEmail(email, delta){
     if (!window._sb || !_sb.from) throw new Error('Database tidak tersedia');
-    const { data, error } = await _sb.from('users').select('balance').eq('email', email).single();
-    if (error || !data) throw new Error('User tidak ditemukan');
-    const cur = parseInt(data.balance||0)||0;
+    const { data, error } = await _sb.from('users').select('balance').eq('email', email).maybeSingle();
+    if (error) throw new Error(error.message || 'Gagal akses database');
+    const cur = data ? (parseInt(data.balance||0)||0) : 0;
     const nv  = Math.max(0, cur + parseInt(delta||0));
-    const up = await _sb.from('users').update({ balance: nv }).eq('email', email);
-    if (up.error) throw new Error(up.error.message);
+    if (data){
+      const up = await _sb.from('users').update({ balance: nv }).eq('email', email);
+      if (up.error) throw new Error(up.error.message);
+    } else {
+      const ins = await _sb.from('users').upsert({ email: email, balance: nv }, { onConflict: 'email' });
+      if (ins.error) throw new Error(ins.error.message);
+    }
     const u = getCU();
     if (u && u.email === email){ u.balance = nv; saveCU(u); paintBal(); }
     return nv;
