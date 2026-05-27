@@ -656,6 +656,7 @@ renderBannerSlider();
     <div class="tab" onclick="setTab('mlbb',this)">MLBB</div>
     <div class="tab" onclick="setTab('8 ball',this)">8 BALL</div>
     <div class="tab" onclick="setTab('pc',this)">PC</div>
+    <div class="tab" onclick="setTab('apk premium',this)">APK PREMIUM</div>
   </div>
 </div>
 
@@ -919,6 +920,7 @@ renderBannerSlider();
         <option value="mlbb">MLBB</option>
         <option value="8 ball">8 Ball</option>
         <option value="pc">PC</option>
+        <option value="apk premium">Apk Premium</option>
         <option value="__custom">✏️ Lainnya (tulis manual)…</option>
       </select>
       <input class="ap-input" id="npCatCustom" placeholder="Tulis kategori (mis: tiktok, youtube)" style="display:none;text-transform:lowercase;">
@@ -2005,7 +2007,7 @@ function renderProducts() {
   const products = getProducts();
   const search = document.getElementById('searchInput').value.toLowerCase();
   const filtered = products.filter(p => {
-    const tabOk = currentTab === 'semua' || p.cat.includes(currentTab);
+    const tabOk = currentTab === 'semua' || p.cat.includes(currentTab) || (currentTab === 'apk premium' && p.name.toLowerCase().includes('premium'));
     const srchOk = p.name.toLowerCase().includes(search);
     return tabOk && srchOk;
   });
@@ -3318,7 +3320,7 @@ function doPesan(){
         // recompute filtered list to match indices
         var search = (document.getElementById('searchInput')||{value:''}).value.toLowerCase();
         var filtered = prods.filter(function(p){
-          var tabOk = (typeof currentTab === 'undefined' || currentTab === 'semua' || p.cat.indexOf(currentTab) !== -1);
+          var tabOk = (typeof currentTab === 'undefined' || currentTab === 'semua' || p.cat.indexOf(currentTab) !== -1 || (currentTab === 'apk premium' && p.name.toLowerCase().indexOf('premium') !== -1));
           var srchOk = p.name.toLowerCase().indexOf(search) !== -1;
           return tabOk && srchOk;
         });
