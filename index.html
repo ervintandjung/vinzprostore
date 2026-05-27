@@ -1134,6 +1134,7 @@ async function sendOTPEmail(toEmail, toName, code, subject) {
 const SUPABASE_URL = 'https://qlozoubmribwcnyvlcad.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_xwRLcjiBK4__KArgsCS8NQ_Xg8QF142';
 const _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+window._sb = _sb;
 
 const ADMIN_EMAIL = 'alpintandjung@gmail.com';
 let currentUser = null;
