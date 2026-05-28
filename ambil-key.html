@@ -3,493 +3,403 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-<title>VINZPRO — Ambil Key Manual</title>
+<title>VINZPRO — Ambil Key</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#05060d; --bg2:#0b0f1f; --card:#0e1430; --line:#1d2752;
-    --txt:#e7ecff; --mut:#7d8bb8; --accent:#37e1ff; --accent2:#7d5cff;
-    --ok:#27e3a4; --err:#ff5577; --warn:#ffcc4d;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:'Rajdhani',system-ui,sans-serif;min-height:100%}
-  body{background:radial-gradient(circle at 15% 10%, rgba(55,225,255,.10), transparent 40%),radial-gradient(circle at 85% 90%, rgba(125,92,255,.10), transparent 40%),var(--bg);min-height:100vh;}
-  .wrap{max-width:760px;margin:0 auto;padding:24px 16px 80px}
-  .brand{text-align:center;margin:14px 0 28px;font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:3px;font-size:24px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 24px rgba(55,225,255,.25);}
-  .brand small{display:block;font-family:'Rajdhani';font-weight:600;letter-spacing:2px;color:var(--mut);font-size:11px;margin-top:6px;background:none;-webkit-text-fill-color:var(--mut)}
-  .card{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.4), inset 0 0 0 1px rgba(55,225,255,.05);}
-  .label{display:block;font-weight:600;letter-spacing:1px;color:var(--mut);font-size:12px;text-transform:uppercase;margin:14px 0 6px}
-  select,input,textarea{width:100%;background:#070b1c;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none;transition:border .15s, box-shadow .15s;}
-  select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(55,225,255,.18)}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media (max-width:520px){.row{grid-template-columns:1fr}}
-  .stock{margin-top:14px;padding:12px 14px;border-radius:10px;background:rgba(55,225,255,.06);border:1px dashed rgba(55,225,255,.25);font-weight:600;color:var(--accent);text-align:center;letter-spacing:1px;}
-  .btn{margin-top:18px;width:100%;padding:16px;border:0;border-radius:12px;cursor:pointer;font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:3px;font-size:15px;color:#001019;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 8px 28px rgba(55,225,255,.35);transition:transform .1s, box-shadow .15s, filter .15s;}
-  .btn:hover{filter:brightness(1.08)} .btn:active{transform:translateY(1px)}
-  .btn[disabled]{opacity:.55;cursor:not-allowed;filter:grayscale(.4)}
-  .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line);box-shadow:none}
-  .result{margin-top:18px;padding:16px;border-radius:12px;background:linear-gradient(180deg,#08210f,#06170d);border:1px solid #1d6a3a;}
-  .result.err{background:linear-gradient(180deg,#240910,#180609);border-color:#7a1f2e}
-  .result .ttl{font-family:'Orbitron';letter-spacing:2px;font-weight:700;color:var(--ok);font-size:13px;margin-bottom:8px}
-  .result.err .ttl{color:var(--err)}
-  .keybox{font-family:'JetBrains Mono','Courier New',monospace;background:#000;color:#9ef7c4;padding:12px;border-radius:8px;border:1px solid #103a22;word-break:break-all;font-size:14px;user-select:all;}
-  .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-  .pill{display:inline-block;padding:4px 10px;border-radius:99px;font-size:11px;letter-spacing:1px;background:rgba(125,92,255,.15);color:#b6a4ff;border:1px solid rgba(125,92,255,.35);font-weight:700;}
-  .hist{margin-top:24px}
-  .hist h3{font-family:'Orbitron';letter-spacing:2px;font-size:12px;color:var(--mut);margin:0 0 8px}
-  .hist .item{background:#070b1c;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13px}
-  .hist .item .k{font-family:'JetBrains Mono',monospace;color:#9ef7c4;word-break:break-all;font-size:12px;margin-top:4px}
-  .hist .item .meta{color:var(--mut);font-size:11px;display:flex;justify-content:space-between;gap:8px}
-  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0c1430;border:1px solid var(--accent);color:var(--accent);padding:10px 18px;border-radius:99px;font-weight:700;letter-spacing:1px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:9999;}
-  .toast.show{opacity:1}
-  .ov{position:fixed;inset:0;background:rgba(2,4,12,.88);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
-  .ov.show{opacity:1;pointer-events:auto}
-  .auth{width:100%;max-width:380px;background:linear-gradient(180deg,#0c1230,#070b1c);border:1px solid var(--accent);border-radius:18px;padding:28px 22px;box-shadow:0 0 50px rgba(55,225,255,.25), inset 0 0 0 1px rgba(125,92,255,.15);transform:scale(.92);transition:transform .2s;}
-  .ov.show .auth{transform:scale(1)}
-  .auth h2{margin:0 0 6px;text-align:center;font-family:'Orbitron';font-weight:900;letter-spacing:3px;font-size:16px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;color:transparent;}
-  .auth p{margin:0 0 18px;text-align:center;color:var(--mut);font-size:12px;letter-spacing:1px}
-  .pwwrap{position:relative}
-  .pwwrap input{padding-right:44px}
-  .eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:0;color:var(--mut);font-size:18px;cursor:pointer;padding:6px}
-  .errmsg{color:var(--err);font-size:12px;margin-top:8px;min-height:16px;text-align:center;letter-spacing:1px}
-  .shake{animation:shake .35s}
-  @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
-  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:12px;color:var(--mut)}
-  .topbar a{color:var(--accent);text-decoration:none;cursor:pointer}
-  .pending-box{text-align:center;padding:24px 18px;}
-  .pending-box .spin{display:inline-block;width:42px;height:42px;border:3px solid rgba(55,225,255,.2);border-top-color:var(--accent);border-radius:50%;animation:rot 1s linear infinite;margin-bottom:14px;}
-  @keyframes rot{to{transform:rotate(360deg)}}
-  .face-modal video{width:100%;max-height:300px;background:#000;border-radius:10px;border:1px solid var(--line);transform:scaleX(-1);}
-  .face-modal canvas{display:none}
-  .face-modal .preview{width:100%;max-height:300px;border-radius:10px;border:1px solid var(--ok);transform:scaleX(-1);}
-  .device-info{font-size:11px;color:var(--mut);text-align:center;margin-top:6px;letter-spacing:.5px}
-  .device-info b{color:var(--accent2)}
+:root{--bg:#05060d;--bg2:#0b0f1f;--card:#0e1430;--line:#1d2752;
+  --txt:#e7ecff;--mut:#7d8bb8;--accent:#37e1ff;--accent2:#7d5cff;
+  --ok:#27e3a4;--err:#ff5577;--warn:#ffcc4d;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;min-height:100vh}
+body{background:radial-gradient(circle at 15% 10%,rgba(55,225,255,.10),transparent 40%),radial-gradient(circle at 85% 90%,rgba(125,92,255,.10),transparent 40%),var(--bg);}
+.wrap{max-width:760px;margin:0 auto;padding:24px 16px 80px}
+.brand{text-align:center;margin:14px 0 24px;font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:3px;font-size:22px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.brand small{display:block;font-family:'Rajdhani';font-weight:600;letter-spacing:2px;color:var(--mut);font-size:11px;margin-top:6px;background:none;-webkit-text-fill-color:var(--mut)}
+.card{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.4);}
+.label{display:block;font-weight:600;letter-spacing:1px;color:var(--mut);font-size:12px;text-transform:uppercase;margin:14px 0 6px}
+select,input{width:100%;background:#070b1c;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none}
+select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(55,225,255,.18)}
+.stock{margin-top:14px;padding:12px 14px;border-radius:10px;background:rgba(55,225,255,.06);border:1px dashed rgba(55,225,255,.25);font-weight:600;color:var(--accent);text-align:center;letter-spacing:1px;}
+.btn{display:block;width:100%;margin-top:18px;padding:14px;border:0;border-radius:12px;font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:2px;font-size:15px;color:#001;background:linear-gradient(90deg,var(--accent),var(--accent2));cursor:pointer;}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
+.result{margin-top:18px;padding:14px;border-radius:12px;background:rgba(39,227,164,.08);border:1px solid rgba(39,227,164,.4);}
+.result.err{background:rgba(255,85,119,.08);border-color:rgba(255,85,119,.4);color:var(--err);}
+.ttl{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:2px;font-size:13px;color:var(--ok);margin-bottom:8px}
+.result.err .ttl{color:var(--err)}
+.keybox{background:#000;border:1px dashed var(--accent);padding:12px;border-radius:8px;font-family:monospace;font-size:14px;word-break:break-all;color:var(--accent);}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.devbar{margin:-4px 0 14px;padding:10px 12px;border-radius:10px;background:rgba(125,92,255,.08);border:1px solid rgba(125,92,255,.3);font-size:12px;color:var(--mut);text-align:center}
+.devbar b{color:var(--txt)}
+.overlay{position:fixed;inset:0;background:rgba(2,5,15,.85);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:50;padding:18px}
+.overlay.show{display:flex}
+.modal{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:18px;padding:20px;max-width:420px;width:100%;text-align:center}
+.modal h3{font-family:'Orbitron',sans-serif;letter-spacing:2px;margin-bottom:8px}
+.modal p{color:var(--mut);font-size:13px;line-height:1.5;margin-bottom:14px}
+video{width:100%;border-radius:12px;background:#000;transform:scaleX(-1)}
+.challenge{font-family:'Orbitron',sans-serif;letter-spacing:2px;color:var(--accent);font-size:14px;padding:10px;border-radius:8px;background:rgba(55,225,255,.08);margin:10px 0}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:30px;background:#000;border:1px solid var(--accent);color:var(--txt);font-size:13px;opacity:0;transition:.3s;z-index:99}
+.toast.show{opacity:1}
 </style>
 </head>
 <body>
+<div class="wrap">
+  <div class="brand">VINZPRO STORE <small>AMBIL KEY · AUTO DEVICE + FACE VERIFY</small></div>
 
-<!-- ============ APP UTAMA ============ -->
-<div class="wrap" id="app" style="display:none">
-  <div class="topbar">
-    <span class="pill">ADMIN TOOL · RESELLER</span>
-    <a id="logoutBtn">Keluar</a>
+  <div id="devbar" class="devbar">Mendeteksi device…</div>
+
+  <div id="gate" class="card" style="text-align:center;display:none">
+    <div class="ttl" id="gateTtl" style="color:var(--warn)">DEVICE BELUM DI-APPROVE</div>
+    <p style="color:var(--mut);font-size:13px;line-height:1.6" id="gateMsg">
+      Device ini belum dikonfirmasi owner. Hubungi owner untuk approve device, lalu enroll wajah di web index.
+    </p>
+    <button class="btn ghost" onclick="location.reload()">🔄 CEK LAGI</button>
   </div>
-  <div class="brand">VINZPRO STORE<small>AMBIL KEY MANUAL · WHATSAPP ORDER</small></div>
-  <div class="device-info" id="devInfo"></div>
 
-  <div class="card" style="margin-top:14px">
+  <div id="app" class="card" style="display:none">
     <label class="label">Produk</label>
     <select id="prodSel"><option value="">— pilih produk —</option></select>
 
-    <div class="row">
-      <div>
-        <label class="label">Varian</label>
-        <select id="varSel"><option value="">— pilih varian —</option></select>
-      </div>
-      <div>
-        <label class="label">Email Buyer (opsional)</label>
-        <input id="emailInp" type="email" placeholder="email@buyer.com" autocomplete="off" />
-      </div>
-    </div>
+    <label class="label">Varian</label>
+    <select id="varSel"><option value="">— pilih varian —</option></select>
 
     <div class="stock" id="stockBox">Pilih produk & varian dulu</div>
 
-    <div>
-      <label class="label">No WhatsApp Buyer (opsional)</label>
-      <input id="waInp" type="tel" placeholder="08xxxxxxxxxx" autocomplete="off" />
-    </div>
+    <label class="label">Email Buyer (opsional)</label>
+    <input id="emailInp" placeholder="email@buyer.com">
 
-    <button class="btn" id="claimBtn" disabled>AMBIL KEY</button>
+    <label class="label">No WhatsApp Buyer (opsional)</label>
+    <input id="waInp" placeholder="08xxxxxxxxxx">
+
+    <button id="claimBtn" class="btn" disabled>AMBIL KEY</button>
     <div id="result"></div>
   </div>
-
-  <div class="hist">
-    <h3>Riwayat 10 Key Terakhir (di perangkat ini)</h3>
-    <div id="histList"><div style="color:var(--mut);font-size:12px">Belum ada.</div></div>
-  </div>
 </div>
 
-<!-- ============ MODAL: Password Admin ============ -->
-<div class="ov show" id="authOv">
-  <div class="auth">
-    <h2>VINZPRO ADMIN ACCESS</h2>
-    <p>Masukkan password admin untuk lanjut</p>
-    <div class="pwwrap">
-      <input id="pwInp" type="password" placeholder="Password admin" autocomplete="current-password" />
-      <button class="eye" id="eyeBtn" title="lihat">👁</button>
-    </div>
-    <div class="errmsg" id="authErr"></div>
-    <button class="btn" id="authBtn" style="margin-top:14px">MASUK</button>
-  </div>
-</div>
-
-<!-- ============ MODAL: Daftar Device (first-time) ============ -->
-<div class="ov" id="regOv">
-  <div class="auth">
-    <h2>DAFTAR DEVICE BARU</h2>
-    <p>Identitas wajib diisi. Owner akan dapat notif buat approve.</p>
-    <label class="label">Nama Reseller / Device</label>
-    <input id="regName" type="text" placeholder="cth: Budi - Redmi Note 12" autocomplete="off" />
-    <label class="label">No HP Reseller</label>
-    <input id="regPhone" type="tel" placeholder="08xxxxxxxxxx" autocomplete="off" />
-    <div class="errmsg" id="regErr"></div>
-    <button class="btn" id="regBtn" style="margin-top:14px">DAFTAR & TUNGGU APPROVAL</button>
-  </div>
-</div>
-
-<!-- ============ MODAL: Menunggu Approval ============ -->
-<div class="ov" id="pendOv">
-  <div class="auth pending-box">
-    <div class="spin"></div>
-    <h2>MENUNGGU KONFIRMASI OWNER</h2>
-    <p id="pendMsg">Device ini lagi nunggu di-approve. Hubungi owner buat konfirmasi.</p>
-    <button class="btn ghost" id="pendRefresh">CEK ULANG SEKARANG</button>
-    <button class="btn ghost" id="pendLogout" style="margin-top:8px">RESET DEVICE</button>
-  </div>
-</div>
-
-<!-- ============ MODAL: Face Verification ============ -->
-<div class="ov" id="faceOv">
-  <div class="auth face-modal">
-    <h2>VERIFIKASI WAJAH</h2>
-    <p>Posisikan wajah di kamera lalu tekan CAPTURE.</p>
+<!-- Face verify overlay -->
+<div class="overlay" id="faceOv">
+  <div class="modal">
+    <h3>VERIFIKASI WAJAH</h3>
+    <p>Posisikan wajah di tengah kamera. Ikuti instruksi liveness.</p>
     <video id="faceVid" autoplay playsinline muted></video>
-    <img id="faceImg" class="preview" style="display:none" />
-    <canvas id="faceCan"></canvas>
-    <div class="errmsg" id="faceErr"></div>
-    <div class="actions" style="margin-top:12px">
+    <div class="challenge" id="challengeTxt">Tunggu kamera…</div>
+    <div id="faceErr" style="color:var(--err);font-size:12px;min-height:14px;margin:6px 0"></div>
+    <div class="actions">
       <button class="btn ghost" id="faceCancel">BATAL</button>
-      <button class="btn" id="faceCapture">CAPTURE</button>
+      <button class="btn" id="faceStart">MULAI</button>
     </div>
-    <button class="btn" id="faceConfirm" style="display:none;margin-top:8px">KONFIRMASI & AMBIL KEY</button>
-    <button class="btn ghost" id="faceRetake" style="display:none;margin-top:8px">RETAKE</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-(() => {
-  // ====== CONFIG (sama persis dgn web index) ======
-  const SUPABASE_URL  = 'https://qlozoubmribwcnyvlcad.supabase.co';
-  const SUPABASE_ANON = 'sb_publishable_xwRLcjiBK4__KArgsCS8NQ_Xg8QF142';
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+<script type="module">
+import { FilesetResolver, FaceLandmarker }
+  from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
 
-  // Nama produk default — bila ada di settings.products dari index, dipakai itu.
-  const PRODUCT_NAMES = {
-    1:'DRIP CLIENT FF NON ROOT',2:'DRIP CLIENT ROOT FF',3:'FLUORITE IOS FF',
-    4:'MIGUL PRO IOS FF',5:'MIGUL IOS LITE FF',6:'HG CHEAT FF',
-    7:'PATO TEAM FF APKMOD',8:'FLUORITE IOS MLBB',9:'META+ MLBB ANDROID',
-    10:'BR MODS ROOT',11:'BR MODS SLIENT PC',12:'XYNCZ BYPASS',
-    13:'AURORA VN PC',14:'GBOX/ESIGN IOS',15:'PRIME HOOK APKMOD',
-    16:'DRIP CLIENT 8 BALL'
-  };
-  let productNames = {...PRODUCT_NAMES};
+// ====== CONFIG ======
+const SUPABASE_URL  = 'https://qlozoubmribwcnyvlcad.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_xwRLcjiBK4__KArgsCS8NQ_Xg8QF142';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-  // ====== ELEMENTS ======
-  const $ = (id) => document.getElementById(id);
-  const app = $('app'), authOv = $('authOv'), regOv = $('regOv'), pendOv = $('pendOv'), faceOv = $('faceOv');
-  const pwInp = $('pwInp'), authErr = $('authErr');
-  const prodSel = $('prodSel'), varSel = $('varSel'), stockBox = $('stockBox');
-  const emailInp = $('emailInp'), waInp = $('waInp'), claimBtn = $('claimBtn'), result = $('result');
-  const toastEl = $('toast'), devInfo = $('devInfo');
+const PRODUCT_NAMES = {
+  1:'DRIP CLIENT FF NON ROOT',2:'DRIP CLIENT ROOT FF',3:'FLUORITE IOS FF',
+  4:'MIGUL PRO IOS FF',5:'MIGUL IOS LITE FF',6:'HG CHEAT FF',
+  7:'PATO TEAM FF APKMOD',8:'FLUORITE IOS MLBB',9:'META+ MLBB ANDROID',
+  10:'BR MODS ROOT',11:'BR MODS SLIENT PC',12:'XYNCZ BYPASS',
+  13:'AURORA VN PC',14:'GBOX/ESIGN IOS',15:'PRIME HOOK APKMOD',
+  16:'DRIP CLIENT 8 BALL'
+};
+let productNames = {...PRODUCT_NAMES};
 
-  // ====== STATE ======
-  let stockMap = {};
-  let adminPw  = sessionStorage.getItem('vp_admin_pw') || '';
-  let deviceId = localStorage.getItem('vp_device_id') || '';
-  let deviceName = localStorage.getItem('vp_device_name') || '';
-  let devicePhone = localStorage.getItem('vp_device_phone') || '';
-  let pollTimer = null;
-  let pendingFaceCb = null;
-  const HIST_KEY = 'vp_ambilkey_hist';
+// ====== UTIL ======
+const $ = id => document.getElementById(id);
+const toast = m => { const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),1900); };
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  // ====== UTIL ======
-  const toast = (m) => { toastEl.textContent = m; toastEl.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(()=>toastEl.classList.remove('show'),1900); };
-  const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&0x3|0x8)).toString(16);}));
-  const fp = () => `${navigator.userAgent}|${screen.width}x${screen.height}|${navigator.language}|${new Date().getTimezoneOffset()}`;
-
-  function updateDevInfo(){
-    if (deviceName && devicePhone){
-      devInfo.innerHTML = `Device: <b>${esc(deviceName)}</b> · <b>${esc(devicePhone)}</b>`;
-    } else { devInfo.textContent = ''; }
+// ====== DEVICE FINGERPRINT (FingerprintJS open-source) ======
+async function getFingerprint(){
+  // load fpjs OSS
+  if (!window._fp){
+    const m = await import('https://openfpcdn.io/fingerprintjs/v4');
+    window._fp = await m.load();
   }
+  const r = await window._fp.get();
+  return r.visitorId;
+}
+function getDeviceId(){
+  let id = localStorage.getItem('vp_dev_id');
+  if (!id){ id = crypto.randomUUID(); localStorage.setItem('vp_dev_id', id); }
+  return id;
+}
+let DEVICE_ID = getDeviceId();
+let FP = '';
+let ADMIN_PW = ''; // diisi otomatis dari URL ?pw= atau localStorage
 
-  // ====== STEP 1: PASSWORD ADMIN ======
-  async function tryAuth(pw){
-    authErr.textContent = '';
-    if (!pw){ authErr.textContent='Password kosong'; return; }
-    try{
-      const { data, error } = await sb.rpc('admin_verify',{ p_pass: pw });
-      if (error) throw error;
-      if (data === true){
-        adminPw = pw; sessionStorage.setItem('vp_admin_pw', pw);
-        authOv.classList.remove('show');
-        await afterAuth();
-      } else {
-        authErr.textContent='Password salah';
-        const a = document.querySelector('#authOv .auth');
-        a.classList.remove('shake'); void a.offsetWidth; a.classList.add('shake');
-      }
-    }catch(e){ authErr.textContent='Gagal: '+(e.message||e); }
+// ====== STOK ======
+let stockMap = {};
+async function loadStock(){
+  stockMap = {};
+  $('prodSel').innerHTML = '<option value="">— pilih produk —</option>';
+  $('varSel').innerHTML  = '<option value="">— pilih varian —</option>';
+  // pakai v2 dulu, fallback ke lama
+  let rows = [];
+  try{
+    const { data, error } = await sb.rpc('get_stock_counts_v2');
+    if (error) throw error;
+    rows = data || [];
+  }catch(e){
+    const { data } = await sb.rpc('get_stock_counts');
+    rows = data || [];
   }
-  $('authBtn').addEventListener('click', ()=>tryAuth(pwInp.value.trim()));
-  pwInp.addEventListener('keydown', e=>{ if(e.key==='Enter') tryAuth(pwInp.value.trim()); });
-  $('eyeBtn').addEventListener('click', ()=>{ pwInp.type = pwInp.type==='password'?'text':'password'; });
-  $('logoutBtn').addEventListener('click', ()=>{ sessionStorage.removeItem('vp_admin_pw'); location.reload(); });
-
-  // ====== STEP 2: DEVICE CHECK ======
-  async function afterAuth(){
-    updateDevInfo();
-    if (!deviceId || !deviceName || !devicePhone){
-      regOv.classList.add('show'); $('regName').focus();
-      return;
-    }
-    await checkDeviceStatus();
-  }
-
-  async function checkDeviceStatus(){
-    try{
-      const { data, error } = await sb.rpc('device_status', { p_device_id: deviceId });
-      if (error) throw error;
-      if (data === 'approved'){
-        pendOv.classList.remove('show');
-        if (pollTimer){ clearInterval(pollTimer); pollTimer=null; }
-        app.style.display = '';
-        await loadProductNames();
-        await loadStock();
-        renderHist();
-      } else if (data === 'blocked'){
-        pendOv.classList.add('show');
-        $('pendMsg').textContent = '❌ Device ini DIBLOKIR oleh owner.';
-      } else if (data === 'pending' || !data){
-        pendOv.classList.add('show');
-        $('pendMsg').textContent = 'Device ini lagi nunggu di-approve. Hubungi owner buat konfirmasi.';
-        if (!pollTimer) pollTimer = setInterval(checkDeviceStatus, 5000);
-      }
-    }catch(e){ toast('Gagal cek device: '+(e.message||e)); }
-  }
-
-  $('regBtn').addEventListener('click', async () => {
-    const n = $('regName').value.trim(), p = $('regPhone').value.trim();
-    if (n.length<3){ $('regErr').textContent='Nama minimal 3 huruf'; return; }
-    if (!/^[0-9+]{8,15}$/.test(p)){ $('regErr').textContent='No HP tidak valid'; return; }
-    $('regErr').textContent='';
-    const newId = deviceId || uuid();
-    try{
-      const { data, error } = await sb.rpc('register_device', {
-        p_device_id: newId, p_name: n, p_phone: p, p_fingerprint: fp()
-      });
-      if (error) throw error;
-      deviceId = newId; deviceName = n; devicePhone = p;
-      localStorage.setItem('vp_device_id', newId);
-      localStorage.setItem('vp_device_name', n);
-      localStorage.setItem('vp_device_phone', p);
-      regOv.classList.remove('show'); updateDevInfo();
-      await checkDeviceStatus();
-    }catch(e){ $('regErr').textContent='Gagal: '+(e.message||e); }
+  const byProd = {};
+  rows.forEach(r => {
+    const pid=r.product_id, v=r.variant, s=r.stock|0;
+    stockMap[pid+'|'+v]=s;
+    (byProd[pid]=byProd[pid]||[]).push({v,s});
   });
-
-  $('pendRefresh').addEventListener('click', checkDeviceStatus);
-  $('pendLogout').addEventListener('click', () => {
-    if (!confirm('Reset identitas device? Lo harus daftar ulang.')) return;
-    localStorage.removeItem('vp_device_id');
-    localStorage.removeItem('vp_device_name');
-    localStorage.removeItem('vp_device_phone');
-    location.reload();
-  });
-
-  // ====== STEP 3: LOAD PRODUK & STOK ======
-  async function loadProductNames(){
-    try{
-      const { data } = await sb.from('settings').select('value').eq('key','products').maybeSingle();
-      if (data && data.value){
-        const arr = JSON.parse(data.value);
-        if (Array.isArray(arr)) arr.forEach(p => { if (p && p.id && p.name) productNames[p.id] = p.name; });
-      }
-    }catch(e){ console.warn('loadProductNames', e); }
-  }
-
-  async function loadStock(){
-    stockMap = {};
-    prodSel.innerHTML = '<option value="">— pilih produk —</option>';
-    varSel.innerHTML  = '<option value="">— pilih varian —</option>';
-    try{
-      const { data, error } = await sb.rpc('get_stock_counts');
-      if (error) throw error;
-      const rows = data || [];
-      const byProd = {};
-      rows.forEach(r => {
-        const pid=r.product_id, v=r.variant, s=r.stock|0;
-        stockMap[pid+'|'+v]=s;
-        (byProd[pid] = byProd[pid]||[]).push({v,s});
-      });
-      const pids = Object.keys(byProd).map(Number).sort((a,b)=>a-b);
-      pids.forEach(pid => {
-        const total = byProd[pid].reduce((a,b)=>a+b.s,0);
-        const name = productNames[pid] || ('Produk #'+pid);
-        const opt = document.createElement('option');
-        opt.value = pid;
-        opt.textContent = `${name}  ·  stok ${total}`;
-        opt.dataset.variants = JSON.stringify(byProd[pid]);
-        prodSel.appendChild(opt);
-      });
-      if (!pids.length){
-        const opt = document.createElement('option'); opt.disabled=true;
-        opt.textContent='Belum ada stok (tambah key dulu di web index)';
-        prodSel.appendChild(opt);
-      }
-    }catch(e){ toast('Gagal muat stok: '+(e.message||e)); }
-    updateStockBox();
-  }
-
-  prodSel.addEventListener('change', () => {
-    const opt = prodSel.selectedOptions[0];
-    varSel.innerHTML = '<option value="">— pilih varian —</option>';
-    if (opt && opt.dataset.variants){
-      JSON.parse(opt.dataset.variants).forEach(({v,s}) => {
-        const o = document.createElement('option');
-        o.value = v; o.textContent = `${v}  ·  stok ${s}`;
-        if (s<=0) o.disabled = true;
-        varSel.appendChild(o);
-      });
-    }
-    updateStockBox();
-  });
-  varSel.addEventListener('change', updateStockBox);
-
-  function updateStockBox(){
-    const pid = prodSel.value, v = varSel.value;
-    if (!pid || !v){ stockBox.textContent='Pilih produk & varian dulu'; claimBtn.disabled=true; return; }
-    const s = stockMap[pid+'|'+v]||0;
-    stockBox.textContent = s>0 ? `Stok tersedia: ${s}` : 'Stok habis';
-    claimBtn.disabled = s<=0;
-  }
-
-  // ====== STEP 4: FACE VERIFICATION ======
-  let faceStream = null;
-  async function openFace(cb){
-    pendingFaceCb = cb;
-    $('faceErr').textContent='';
-    $('faceImg').style.display='none'; $('faceImg').src='';
-    $('faceVid').style.display=''; $('faceConfirm').style.display='none';
-    $('faceRetake').style.display='none'; $('faceCapture').style.display='';
-    faceOv.classList.add('show');
-    try{
-      faceStream = await navigator.mediaDevices.getUserMedia({ video:{facingMode:'user'}, audio:false });
-      $('faceVid').srcObject = faceStream;
-    }catch(e){ $('faceErr').textContent='Kamera gagal: '+(e.message||e); }
-  }
-  function closeFace(){
-    if (faceStream){ faceStream.getTracks().forEach(t=>t.stop()); faceStream=null; }
-    faceOv.classList.remove('show'); pendingFaceCb = null;
-  }
-  $('faceCancel').addEventListener('click', closeFace);
-  $('faceCapture').addEventListener('click', () => {
-    const v = $('faceVid'), c = $('faceCan');
-    if (!v.videoWidth){ $('faceErr').textContent='Video belum siap'; return; }
-    c.width = v.videoWidth; c.height = v.videoHeight;
-    const ctx = c.getContext('2d');
-    ctx.translate(c.width,0); ctx.scale(-1,1); ctx.drawImage(v,0,0);
-    const dataUrl = c.toDataURL('image/jpeg', 0.6);
-    $('faceImg').src = dataUrl; $('faceImg').style.display='';
-    $('faceVid').style.display='none';
-    $('faceCapture').style.display='none';
-    $('faceConfirm').style.display=''; $('faceRetake').style.display='';
-  });
-  $('faceRetake').addEventListener('click', () => {
-    $('faceImg').style.display='none'; $('faceVid').style.display='';
-    $('faceCapture').style.display=''; $('faceConfirm').style.display='none'; $('faceRetake').style.display='none';
-  });
-  $('faceConfirm').addEventListener('click', () => {
-    const dataUrl = $('faceImg').src;
-    if (!dataUrl || dataUrl.length<200){ $('faceErr').textContent='Foto belum diambil'; return; }
-    const cb = pendingFaceCb; closeFace();
-    if (cb) cb(dataUrl);
-  });
-
-  // ====== STEP 5: CLAIM KEY ======
-  claimBtn.addEventListener('click', () => {
-    const pid = parseInt(prodSel.value,10), v = varSel.value;
-    if (!pid || !v) return;
-    if (!adminPw){ toast('Sesi admin habis'); location.reload(); return; }
-    openFace(async (faceData) => {
-      claimBtn.disabled = true; claimBtn.textContent = 'MEMPROSES…';
-      result.innerHTML = '';
-      try{
-        const email = emailInp.value.trim();
-        const wa = waInp.value.trim();
-        const { data, error } = await sb.rpc('admin_claim_key_manual', {
-          p_pass: adminPw, p_device_id: deviceId,
-          p_product: pid, p_variant: v,
-          p_email: email, p_buyer_wa: wa, p_face: faceData
-        });
-        if (error) throw error;
-        const key = String(data);
-        showResult(key, pid, v, email);
-        pushHist({ key, pid, variant:v, email, wa, at: Date.now() });
-        await loadStock();
-      }catch(e){
-        result.innerHTML = `<div class="result err"><div class="ttl">GAGAL</div><div>${esc(e.message||e)}</div></div>`;
-      }finally{
-        claimBtn.textContent='AMBIL KEY'; updateStockBox();
-      }
-    });
-  });
-
-  function showResult(key, pid, v, email){
+  const pids = Object.keys(byProd).map(Number).sort((a,b)=>a-b);
+  pids.forEach(pid => {
+    const total = byProd[pid].reduce((a,b)=>a+b.s,0);
     const name = productNames[pid] || ('Produk #'+pid);
-    const wa = waInp.value.trim().replace(/[^0-9]/g,'');
-    const msg = `Halo kak, ini key pesanan kamu di *VINZPRO STORE* ✨\n\n*Produk:* ${name}\n*Varian:* ${v}\n*Key:*\n\`\`\`${key}\`\`\`\n\nTerima kasih sudah order 🙏`;
-    const waUrl = wa
-      ? `https://wa.me/${wa.replace(/^0/,'62')}?text=${encodeURIComponent(msg)}`
-      : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-    result.innerHTML = `
-      <div class="result">
-        <div class="ttl">KEY BERHASIL DIAMBIL · MARKED SOLD</div>
-        <div style="font-size:13px;color:var(--mut);margin-bottom:8px">${esc(name)} · ${esc(v)}${email?` · ${esc(email)}`:''}</div>
-        <div class="keybox" id="keyOut">${esc(key)}</div>
-        <div class="actions">
-          <button class="btn ghost" id="copyBtn">COPY KEY</button>
-          <a class="btn" href="${waUrl}" target="_blank" rel="noopener" style="text-decoration:none;display:block;text-align:center;line-height:24px">KIRIM VIA WA</a>
-        </div>
-      </div>`;
-    $('copyBtn').addEventListener('click', () => navigator.clipboard.writeText(key).then(()=>toast('Key disalin')));
+    const opt = document.createElement('option');
+    opt.value = pid;
+    opt.textContent = `${name}  ·  total stok ${total}`;
+    opt.dataset.variants = JSON.stringify(byProd[pid]);
+    $('prodSel').appendChild(opt);
+  });
+}
+$('prodSel').addEventListener('change', () => {
+  const opt = $('prodSel').selectedOptions[0];
+  $('varSel').innerHTML = '<option value="">— pilih varian —</option>';
+  if (opt && opt.dataset.variants){
+    JSON.parse(opt.dataset.variants).forEach(({v,s}) => {
+      const o = document.createElement('option');
+      o.value = v;
+      o.textContent = s>0 ? `${v}  ·  stok ${s}` : `${v}  ·  HABIS`;
+      if (s<=0) o.disabled = true;
+      $('varSel').appendChild(o);
+    });
   }
+  updateStockBox();
+});
+$('varSel').addEventListener('change', updateStockBox);
+function updateStockBox(){
+  const pid = $('prodSel').value, v = $('varSel').value;
+  if (!pid || !v){ $('stockBox').textContent='Pilih produk & varian dulu'; $('claimBtn').disabled=true; return; }
+  const s = stockMap[pid+'|'+v]||0;
+  $('stockBox').textContent = s>0 ? `Stok tersedia: ${s}` : 'Stok HABIS untuk varian ini';
+  $('claimBtn').disabled = s<=0;
+}
 
-  // ====== HISTORY (per device, localStorage) ======
-  function pushHist(item){
-    let arr=[]; try{ arr=JSON.parse(localStorage.getItem(HIST_KEY)||'[]'); }catch(e){}
-    arr.unshift(item); arr = arr.slice(0,10);
-    localStorage.setItem(HIST_KEY, JSON.stringify(arr));
-    renderHist();
-  }
-  function renderHist(){
-    let arr=[]; try{ arr=JSON.parse(localStorage.getItem(HIST_KEY)||'[]'); }catch(e){}
-    const box = $('histList');
-    if (!arr.length){ box.innerHTML='<div style="color:var(--mut);font-size:12px">Belum ada.</div>'; return; }
-    box.innerHTML = arr.map(it => {
-      const name = productNames[it.pid] || ('Produk #'+it.pid);
-      const t = new Date(it.at).toLocaleString('id-ID');
-      return `<div class="item">
-        <div class="meta"><span>${esc(name)} · ${esc(it.variant)}</span><span>${esc(t)}</span></div>
-        <div class="k">${esc(it.key)}</div>
-        ${it.email?`<div style="color:var(--mut);font-size:11px;margin-top:4px">${esc(it.email)}</div>`:''}
-      </div>`;
-    }).join('');
-  }
+// Realtime sync stok: subscribe ke tabel keys (kalau ada realtime), kalau gagal poll 8s
+let pollTimer = setInterval(() => { if ($('app').style.display!=='none') loadStock(); }, 8000);
 
-  // ====== AUTO LOGIN ======
-  if (adminPw){
-    tryAuth(adminPw);
+// ====== FACE (MediaPipe Face Landmarker + liveness) ======
+let faceLandmarker = null;
+async function initFace(){
+  if (faceLandmarker) return;
+  const vision = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+    baseOptions:{ modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task" },
+    outputFaceBlendshapes:true, runningMode:"VIDEO", numFaces:1
+  });
+}
+async function runFaceChallenge(){
+  await initFace();
+  $('faceOv').classList.add('show');
+  $('faceErr').textContent='';
+  const vid = $('faceVid');
+  const ch = $('challengeTxt');
+  let stream;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:480},audio:false});
+    vid.srcObject = stream;
+    await vid.play();
+  }catch(e){ $('faceErr').textContent='Kamera gagal: '+e.message; throw e; }
+
+  return new Promise((resolve, reject) => {
+    let cancelled=false;
+    $('faceCancel').onclick = () => { cancelled=true; stream.getTracks().forEach(t=>t.stop()); $('faceOv').classList.remove('show'); reject(new Error('CANCELLED')); };
+    $('faceStart').onclick = async () => {
+      $('faceStart').disabled=true;
+      try{
+        const challenges = shuffle(['blink','left','right']).slice(0,2);
+        for (const c of challenges){
+          ch.textContent = c==='blink' ? '👁️ KEDIPKAN MATA' : c==='left' ? '👈 NOLEH KIRI' : '👉 NOLEH KANAN';
+          const ok = await waitForChallenge(c, vid, 8000);
+          if (cancelled) return;
+          if (!ok){ $('faceErr').textContent='Liveness gagal: '+c; $('faceStart').disabled=false; return; }
+        }
+        ch.textContent='✅ DETEKSI WAJAH…';
+        // Ambil descriptor (rata-rata landmark 468 titik -> reduce ke 128 sample)
+        const desc = await captureDescriptor(vid);
+        stream.getTracks().forEach(t=>t.stop());
+        $('faceOv').classList.remove('show');
+        $('faceStart').disabled=false;
+        resolve(desc);
+      }catch(e){ $('faceErr').textContent=e.message; $('faceStart').disabled=false; }
+    };
+  });
+}
+function shuffle(a){ a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]];} return a; }
+
+async function waitForChallenge(type, vid, timeoutMs){
+  const start = performance.now();
+  let baseline = null;
+  let blinkLow = false;
+  while (performance.now()-start < timeoutMs){
+    const res = faceLandmarker.detectForVideo(vid, performance.now());
+    if (res.faceLandmarks && res.faceLandmarks[0]){
+      const lm = res.faceLandmarks[0];
+      const bs = res.faceBlendshapes && res.faceBlendshapes[0] && res.faceBlendshapes[0].categories;
+      if (type==='blink' && bs){
+        const L = bs.find(x=>x.categoryName==='eyeBlinkLeft')?.score||0;
+        const R = bs.find(x=>x.categoryName==='eyeBlinkRight')?.score||0;
+        if ((L+R)/2 > 0.5) blinkLow = true;
+        if (blinkLow && (L+R)/2 < 0.15) return true;
+      }
+      if (type==='left' || type==='right'){
+        // hidung (idx 1) vs telinga proxy: pakai x dari nose
+        const nose = lm[1];
+        if (baseline===null) baseline = nose.x;
+        const dx = nose.x - baseline;
+        if (type==='left' && dx > 0.06) return true;   // mirrored video: noleh kiri => x naik
+        if (type==='right' && dx < -0.06) return true;
+      }
+    }
+    await new Promise(r => setTimeout(r,80));
+  }
+  return false;
+}
+async function captureDescriptor(vid){
+  // Ambil 5 frame, rata-rata 128 titik landmark (subset stabil)
+  const SAMPLE_IDX = [];
+  const step = Math.floor(468/64);
+  for (let i=0;i<468;i+=step) SAMPLE_IDX.push(i);
+  const frames=[];
+  for (let i=0;i<5;i++){
+    const res = faceLandmarker.detectForVideo(vid, performance.now()+i);
+    if (res.faceLandmarks && res.faceLandmarks[0]){
+      const lm = res.faceLandmarks[0];
+      const arr=[];
+      // normalisasi ke pusat hidung
+      const cx=lm[1].x, cy=lm[1].y;
+      for (const idx of SAMPLE_IDX){
+        arr.push(+(lm[idx].x-cx).toFixed(4), +(lm[idx].y-cy).toFixed(4));
+      }
+      frames.push(arr);
+    }
+    await new Promise(r=>setTimeout(r,100));
+  }
+  if (!frames.length) throw new Error('Wajah tidak terdeteksi');
+  const len = frames[0].length;
+  const avg = new Array(len).fill(0);
+  frames.forEach(f => f.forEach((v,i)=>avg[i]+=v));
+  return avg.map(v => +(v/frames.length).toFixed(5));
+}
+
+// ====== BOOT ======
+async function boot(){
+  // Ambil admin password dari URL ?pw= atau localStorage
+  const u = new URL(location.href);
+  ADMIN_PW = u.searchParams.get('pw') || localStorage.getItem('vp_admin_pw') || '';
+  if (u.searchParams.get('pw')) localStorage.setItem('vp_admin_pw', ADMIN_PW);
+
+  try{
+    FP = await getFingerprint();
+  }catch(e){ FP = navigator.userAgent + '|' + screen.width+'x'+screen.height; }
+
+  // Daftar auto + cek status
+  let status='pending';
+  try{
+    const { data, error } = await sb.rpc('register_device_auto', {
+      p_device_id: DEVICE_ID, p_fingerprint: FP,
+      p_ua: navigator.userAgent, p_email: 'ambil-key@page'
+    });
+    if (error) throw error;
+    status = data || 'pending';
+  }catch(e){ toast('Daftar device gagal: '+e.message); }
+
+  // Tampil device info
+  $('devbar').innerHTML = `Device: <b>${esc(DEVICE_ID.slice(0,8))}</b> · status: <b>${esc(status)}</b>`;
+
+  if (status === 'approved'){
+    // cek apakah sudah enroll face (via verify dummy supaya tahu)
+    $('app').style.display='';
+    await loadStock();
   } else {
-    setTimeout(()=>pwInp.focus(),200);
+    $('gate').style.display='';
+    if (status==='blocked'){
+      $('gateTtl').textContent='DEVICE DIBLOKIR';
+      $('gateMsg').textContent='Device ini diblokir owner.';
+    }
   }
-})();
+}
+
+// ====== CLAIM ======
+$('claimBtn').addEventListener('click', async () => {
+  const pid = parseInt($('prodSel').value,10);
+  const v = $('varSel').value;
+  if (!pid || !v) return;
+  if (!ADMIN_PW){
+    ADMIN_PW = prompt('Password admin (1x saja, akan disimpan):') || '';
+    if (ADMIN_PW) localStorage.setItem('vp_admin_pw', ADMIN_PW); else return;
+  }
+  let desc;
+  try{ desc = await runFaceChallenge(); }
+  catch(e){ if (e.message!=='CANCELLED') toast('Face: '+e.message); return; }
+
+  $('claimBtn').disabled=true; $('claimBtn').textContent='MEMPROSES…';
+  $('result').innerHTML='';
+  try{
+    const { data, error } = await sb.rpc('admin_claim_key_v2', {
+      p_pass: ADMIN_PW, p_device_id: DEVICE_ID, p_fingerprint: FP,
+      p_face: desc, p_product: pid, p_variant: v,
+      p_email: $('emailInp').value.trim() || null,
+      p_buyer_wa: $('waInp').value.trim() || null
+    });
+    if (error) throw error;
+    showResult(String(data), pid, v);
+    await loadStock();
+  }catch(e){
+    const msg = e.message||String(e);
+    let human = msg;
+    if (msg.includes('OUT_OF_STOCK')) human='Stok habis untuk varian ini';
+    else if (msg.includes('FACE_MISMATCH')) human='Wajah tidak cocok dengan yang ter-enroll';
+    else if (msg.includes('DEVICE_NOT_APPROVED')) human='Device belum di-approve';
+    else if (msg.includes('BAD_ADMIN_PASSWORD')) { human='Password admin salah'; localStorage.removeItem('vp_admin_pw'); ADMIN_PW=''; }
+    $('result').innerHTML = `<div class="result err"><div class="ttl">GAGAL</div><div>${esc(human)}</div></div>`;
+  }finally{
+    $('claimBtn').textContent='AMBIL KEY';
+    updateStockBox();
+  }
+});
+
+function showResult(key, pid, v){
+  const name = productNames[pid] || ('Produk #'+pid);
+  const wa = $('waInp').value.trim().replace(/[^0-9]/g,'');
+  const msg = `Halo kak, ini key pesanan kamu di *VINZPRO STORE* ✨\n\n*Produk:* ${name}\n*Varian:* ${v}\n*Key:*\n\`\`\`${key}\`\`\`\n\nTerima kasih sudah order 🙏`;
+  const waUrl = wa
+    ? `https://wa.me/${wa.replace(/^0/,'62')}?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  $('result').innerHTML = `
+    <div class="result">
+      <div class="ttl">KEY BERHASIL · STOK OTOMATIS TERSINKRON</div>
+      <div style="font-size:13px;color:var(--mut);margin-bottom:8px">${esc(name)} · ${esc(v)}</div>
+      <div class="keybox" id="keyOut">${esc(key)}</div>
+      <div class="actions">
+        <button class="btn ghost" id="copyBtn">COPY KEY</button>
+        <a class="btn" href="${waUrl}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center">KIRIM VIA WA</a>
+      </div>
+    </div>`;
+  $('copyBtn').addEventListener('click', () => navigator.clipboard.writeText(key).then(()=>toast('Key disalin')));
+}
+
+boot();
 </script>
 </body>
 </html>
