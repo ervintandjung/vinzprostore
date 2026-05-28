@@ -944,6 +944,13 @@ renderBannerSlider();
     <button class="btn-close-ap" onclick="closeAdmin()">✕ TUTUP</button>
   </div>
   <div class="ap-body">
+    <div id="devPanel" style="margin:14px 0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-family:Orbitron,sans-serif;font-weight:900;font-size:13px;color:#fff;letter-spacing:1px;">DEVICES RESELLER</div>
+        <button onclick="loadDevices()" style="background:rgba(26,111,255,.18);border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">↻ Refresh</button>
+      </div>
+      <div id="devList" style="font-size:12px;color:var(--muted);">Klik Refresh buat muat data.</div>
+    </div>
     <div class="ap-card">
       <h3>📱 Nomor WhatsApp Order</h3>
       <input class="ap-input" id="apWa" placeholder="6285954741269">
@@ -2852,19 +2859,37 @@ function renderKeyManager(){
     </div>
   `).join('');
 }
-function kmAddKeys(){
+async function kmAddKeys(){
   const pid = parseInt(document.getElementById('kmProd').value);
   const vn  = document.getElementById('kmVar').value;
   if (!pid || !vn) { showNotif('❌ Pilih produk & varian dulu'); return; }
-  const raw = document.getElementById('kmInput').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const raw = document.getElementById('kmInput').value
+              .split('\n').map(s=>s.trim()).filter(Boolean);
   if (!raw.length) { showNotif('❌ Masukkan minimal 1 key'); return; }
+
+  // 1) Simpan ke localStorage (cache lama, tetap dipakai web index)
   const s = getKeyStore(); const k = _kKey(pid,vn);
   s[k] = s[k] || [];
   raw.forEach(line => s[k].push({key: line, status:'available', soldTo:null, soldAt:null}));
   setKeyStore(s);
+
+  // 2) Sync ke Supabase supaya ambil-key.html bisa lihat
+  try {
+    const pw = sessionStorage.getItem('vp_admin_pw') || prompt('Password admin:');
+    if (pw){
+      sessionStorage.setItem('vp_admin_pw', pw);
+      const { data, error } = await _sb.rpc('admin_add_keys', {
+        p_pass: pw, p_product: pid, p_variant: vn, p_keys: raw
+      });
+      if (error) throw error;
+      showNotif('✅ '+raw.length+' key disimpan ('+data+' baru di cloud)');
+    }
+  } catch(e){
+    showNotif('⚠️ Cloud sync gagal: '+(e.message||e), 'var(--danger)');
+  }
+
   document.getElementById('kmInput').value = '';
   renderKeyManager();
-  showNotif('✅ ' + raw.length + ' key ditambahkan');
 }
 function kmDeleteOne(idx){
   const pid = parseInt(document.getElementById('kmProd').value);
@@ -5856,6 +5881,58 @@ function doPesan(){
     }
   };
 })();
+
+// ====== DEVICES RESELLER (panel di admin tool) ======
+async function loadDevices(){
+  const box = document.getElementById('devList');
+  if (!box) return;
+  const pw = sessionStorage.getItem('vp_admin_pw') || prompt('Password admin:');
+  if (!pw) return;
+  sessionStorage.setItem('vp_admin_pw', pw);
+  box.innerHTML = 'Memuat…';
+  try {
+    const { data, error } = await _sb.rpc('list_devices', { p_pass: pw });
+    if (error) throw error;
+    if (!data || !data.length){ box.innerHTML = '<div style="color:var(--muted)">Belum ada device.</div>'; return; }
+    box.innerHTML = data.map(d => {
+      const col = d.status==='approved' ? 'var(--success)'
+                : d.status==='blocked'  ? 'var(--danger)' : 'var(--gold)';
+      return `
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+            <div>
+              <div style="color:#fff;font-weight:700;">${d.name}</div>
+              <div style="color:var(--muted);font-size:11px;">${d.phone} · ${new Date(d.created_at).toLocaleString('id-ID')}</div>
+              <div style="color:${col};font-size:10px;font-weight:900;letter-spacing:1px;text-transform:uppercase;">${d.status}</div>
+            </div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
+              <button onclick="setDevice('${d.device_id}','approved')" style="background:var(--success);color:#000;border:none;border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer;font-weight:900;">APPROVE</button>
+              <button onclick="setDevice('${d.device_id}','blocked')" style="background:var(--danger);color:#fff;border:none;border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer;font-weight:900;">BLOKIR</button>
+              <button onclick="setDevice('${d.device_id}','pending')" style="background:var(--card);color:var(--muted);border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer;">RESET</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e){
+    box.innerHTML = '<div style="color:var(--danger)">Gagal: '+(e.message||e)+'</div>';
+  }
+}
+async function setDevice(id, status){
+  const pw = sessionStorage.getItem('vp_admin_pw');
+  if (!pw){ showNotif('❌ Password admin kosong'); return; }
+  try {
+    const { error } = await _sb.rpc('set_device_status', { p_pass: pw, p_device_id: id, p_status: status });
+    if (error) throw error;
+    showNotif('✅ Device di-set '+status);
+    loadDevices();
+  } catch(e){ showNotif('❌ '+(e.message||e), 'var(--danger)'); }
+}
+setInterval(() => {
+  const ap = document.getElementById('adminPanel');
+  if (ap && (ap.classList.contains('open') || ap.style.display !== 'none')){
+    loadDevices();
+  }
+}, 15000);
 </script>
 
 
