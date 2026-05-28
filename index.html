@@ -882,6 +882,61 @@ renderBannerSlider();
   </div>
 </div>
 
+<!-- ═══ ADMIN AUTH MODAL (futuristic) ═══ -->
+<style>
+#adminAuthOv{position:fixed;inset:0;background:radial-gradient(ellipse at center,rgba(26,111,255,.18),rgba(2,8,15,.92) 70%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:9998;display:none;align-items:center;justify-content:center;padding:18px;animation:aaFade .25s ease;}
+#adminAuthOv.show{display:flex;}
+@keyframes aaFade{from{opacity:0}to{opacity:1}}
+@keyframes aaPop{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes aaShake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
+.aa-card{position:relative;width:100%;max-width:360px;background:linear-gradient(160deg,#0a1830 0%,#07111f 100%);border:1.5px solid var(--accent);border-radius:18px;padding:22px 20px 20px;box-shadow:0 0 0 1px rgba(0,212,255,.08),0 18px 50px -10px rgba(26,111,255,.55),inset 0 1px 0 rgba(255,255,255,.04);animation:aaPop .28s cubic-bezier(.2,.8,.2,1);overflow:hidden;}
+.aa-card::before{content:"";position:absolute;inset:-1px;border-radius:18px;padding:1px;background:linear-gradient(135deg,var(--accent),var(--accent2),transparent 70%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.55;}
+.aa-glow{position:absolute;top:-60px;right:-60px;width:180px;height:180px;background:radial-gradient(circle,rgba(0,212,255,.35),transparent 70%);filter:blur(8px);pointer-events:none;}
+.aa-badge{display:inline-flex;align-items:center;gap:6px;font-family:'Orbitron',sans-serif;font-weight:700;font-size:9px;letter-spacing:2px;color:var(--accent2);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.35);padding:4px 9px;border-radius:999px;}
+.aa-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);box-shadow:0 0 8px var(--accent2);animation:aaPulse 1.4s infinite;}
+@keyframes aaPulse{50%{opacity:.35}}
+.aa-title{margin:10px 0 4px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;letter-spacing:1.2px;background:linear-gradient(90deg,#fff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.aa-sub{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:16px;}
+.aa-field{position:relative;margin-bottom:10px;}
+.aa-field input{width:100%;background:#040d1a;border:1.5px solid var(--border);border-radius:11px;padding:13px 44px 13px 14px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:15px;letter-spacing:.5px;outline:none;transition:.2s;}
+.aa-field input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(0,212,255,.18),0 0 18px rgba(26,111,255,.25);background:#081628;}
+.aa-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.aa-eye:hover{color:var(--accent2);background:rgba(0,212,255,.08);}
+.aa-err{display:none;color:var(--danger);font-size:11.5px;font-weight:600;margin:6px 2px 2px;letter-spacing:.3px;}
+.aa-err.show{display:block;animation:aaPop .2s ease;}
+.aa-actions{display:flex;gap:8px;margin-top:14px;}
+.aa-btn{flex:1;border:none;border-radius:11px;padding:12px 14px;font-family:'Orbitron',sans-serif;font-weight:800;font-size:12px;letter-spacing:1.5px;cursor:pointer;transition:.2s;}
+.aa-cancel{background:transparent;border:1.5px solid var(--border);color:var(--muted);}
+.aa-cancel:hover{color:#fff;border-color:var(--muted);}
+.aa-submit{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 8px 20px -6px rgba(26,111,255,.6);}
+.aa-submit:hover{filter:brightness(1.08);transform:translateY(-1px);}
+.aa-submit:active{transform:translateY(0);}
+.aa-submit[disabled]{opacity:.6;cursor:wait;}
+.aa-hint{margin-top:10px;font-size:10.5px;color:var(--muted);text-align:center;letter-spacing:.4px;}
+.aa-card.shake{animation:aaShake .45s cubic-bezier(.36,.07,.19,.97);}
+</style>
+<div id="adminAuthOv" role="dialog" aria-modal="true" aria-label="Admin Access">
+  <div class="aa-card" id="aaCard">
+    <div class="aa-glow"></div>
+    <span class="aa-badge"><span class="aa-dot"></span>SECURE ACCESS</span>
+    <div class="aa-title">VINZPRO ADMIN</div>
+    <div class="aa-sub">Masukkan password admin untuk membuka panel kontrol.</div>
+    <div class="aa-field">
+      <input id="aaPass" type="password" placeholder="Password admin" autocomplete="off" spellcheck="false">
+      <button class="aa-eye" type="button" id="aaEye" aria-label="Tampilkan password">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+    <div class="aa-err" id="aaErr">Password salah</div>
+    <div class="aa-actions">
+      <button class="aa-btn aa-cancel" type="button" onclick="closeAdminAuth()">BATAL</button>
+      <button class="aa-btn aa-submit" type="button" id="aaSubmit" onclick="submitAdminAuth()">MASUK</button>
+    </div>
+    <div class="aa-hint">🔒 Diverifikasi di server (Supabase RPC)</div>
+  </div>
+</div>
+
+
 <!-- ADMIN PANEL -->
 <div id="adminPanel">
   <div class="ap-header">
@@ -2250,6 +2305,12 @@ function openAdmin() {
   const d = document.getElementById('userDropdown');
   if (d) d.classList.remove('open');
   if (!currentUser || currentUser.email !== ADMIN_EMAIL) { showNotif('❌ Akses ditolak!'); return; }
+  // Gate via futuristic password modal (Supabase RPC admin_verify)
+  if (sessionStorage.getItem('vp_admin_ok') === '1') { _openAdminPanelNow(); return; }
+  openAdminAuth();
+}
+
+function _openAdminPanelNow(){
   document.getElementById('adminPanel').classList.add('open');
   try { hideBuyNotif(); } catch(e){}
   document.body.style.overflow = 'hidden';
@@ -2259,6 +2320,75 @@ function openAdmin() {
   renderApDelete();
   if (typeof renderApBanners === 'function') renderApBanners();
 }
+
+// ── Admin password modal helpers ──
+function openAdminAuth(){
+  const ov = document.getElementById('adminAuthOv');
+  const inp = document.getElementById('aaPass');
+  const err = document.getElementById('aaErr');
+  if (!ov || !inp) return;
+  inp.value = ''; inp.type = 'password';
+  err.classList.remove('show'); err.textContent = 'Password salah';
+  ov.classList.add('show');
+  document.body.style.overflow = 'hidden';
+  setTimeout(()=>inp.focus(), 60);
+}
+function closeAdminAuth(){
+  const ov = document.getElementById('adminAuthOv');
+  if (ov) ov.classList.remove('show');
+  document.body.style.overflow = '';
+}
+async function submitAdminAuth(){
+  const inp = document.getElementById('aaPass');
+  const err = document.getElementById('aaErr');
+  const btn = document.getElementById('aaSubmit');
+  const card = document.getElementById('aaCard');
+  const pw = (inp.value||'').trim();
+  if (!pw){
+    err.textContent = 'Masukkan password dulu';
+    err.classList.add('show');
+    card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+    return;
+  }
+  btn.disabled = true; const orig = btn.textContent; btn.textContent = 'MEMVERIFIKASI…';
+  let ok = false;
+  try {
+    const { data, error } = await _sb.rpc('admin_verify', { p_pass: pw });
+    if (!error && data === true) ok = true;
+  } catch(e){}
+  btn.disabled = false; btn.textContent = orig;
+  if (!ok){
+    err.textContent = 'Password salah';
+    err.classList.add('show');
+    inp.value = ''; inp.focus();
+    card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+    return;
+  }
+  // Simpan untuk RPC admin lain selama sesi browser
+  sessionStorage.setItem('vp_admin_ok','1');
+  sessionStorage.setItem('vp_admin_pw', pw);
+  closeAdminAuth();
+  _openAdminPanelNow();
+  try { showNotif('✅ Akses admin diberikan'); } catch(e){}
+}
+// Eye toggle + Enter submit + Esc cancel
+document.addEventListener('DOMContentLoaded', function(){
+  const eye = document.getElementById('aaEye');
+  const inp = document.getElementById('aaPass');
+  if (eye && inp){
+    eye.addEventListener('click', ()=>{ inp.type = inp.type==='password' ? 'text' : 'password'; inp.focus(); });
+  }
+  if (inp){
+    inp.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter'){ e.preventDefault(); submitAdminAuth(); }
+      if (e.key === 'Escape'){ e.preventDefault(); closeAdminAuth(); }
+    });
+  }
+  const ov = document.getElementById('adminAuthOv');
+  if (ov){ ov.addEventListener('click', (e)=>{ if (e.target === ov) closeAdminAuth(); }); }
+});
+
+
 
 // ══════════════════════════════
 // BANNER ADMIN
