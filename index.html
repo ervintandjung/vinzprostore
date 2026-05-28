@@ -2351,14 +2351,19 @@ async function submitAdminAuth(){
     return;
   }
   btn.disabled = true; const orig = btn.textContent; btn.textContent = 'MEMVERIFIKASI…';
-  let ok = false;
-  try {
-    const { data, error } = await _sb.rpc('admin_verify', { p_pass: pw });
-    if (!error && data === true) ok = true;
-  } catch(e){}
+  let ok = false; let serverErr = null;
+  // Coba beberapa nama parameter agar tahan banting terhadap signature function
+  const tries = [{ p_pass: pw }, { p_password: pw }, { password: pw }, { pass: pw }];
+  for (const args of tries){
+    try {
+      const { data, error } = await _sb.rpc('admin_verify', args);
+      if (!error){ if (data === true) { ok = true; } serverErr = null; break; }
+      serverErr = error;
+    } catch(e){ serverErr = e; }
+  }
   btn.disabled = false; btn.textContent = orig;
   if (!ok){
-    err.textContent = 'Password salah';
+    err.textContent = serverErr ? ('Server: ' + (serverErr.message||serverErr.toString()).slice(0,120)) : 'Password salah';
     err.classList.add('show');
     inp.value = ''; inp.focus();
     card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
