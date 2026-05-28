@@ -57,6 +57,18 @@ video{width:100%;border-radius:12px;background:#000;transform:scaleX(-1)}
     <button class="btn ghost" onclick="location.reload()">🔄 CEK LAGI</button>
   </div>
 
+  <!-- Gate: sudah approved tapi belum enroll wajah -->
+  <div id="enrollGate" class="card" style="text-align:center;display:none">
+    <div class="ttl" style="color:var(--warn);font-size:15px;margin-bottom:10px">⚠️ WAJAH BELUM DI-ENROLL</div>
+    <p style="color:var(--mut);font-size:13px;line-height:1.7;margin-bottom:16px">
+      Device sudah di-approve, tapi wajah kamu belum terdaftar.<br>
+      Kamu harus enroll wajah dulu sebelum bisa ambil key.
+    </p>
+    <button class="btn" id="enrollBtn">📷 ENROLL WAJAH SEKARANG</button>
+    <div id="enrollErr" style="color:var(--err);font-size:12px;margin-top:10px;min-height:14px"></div>
+    <button class="btn ghost" style="margin-top:10px" onclick="location.reload()">🔄 REFRESH</button>
+  </div>
+
   <div id="app" class="card" style="display:none">
     <label class="label">Produk</label>
     <select id="prodSel"><option value="">— pilih produk —</option></select>
@@ -328,9 +340,52 @@ async function boot(){
   $('devbar').innerHTML = `Device: <b>${esc(DEVICE_ID.slice(0,8))}</b> · status: <b>${esc(status)}</b>`;
 
   if (status === 'approved'){
-    // cek apakah sudah enroll face (via verify dummy supaya tahu)
-    $('app').style.display='';
-    await loadStock();
+    // Step 3: cek apakah sudah enroll wajah
+    let faceEnrolled = false;
+    try {
+      const { data: devData } = await sb
+        .from('reseller_devices')
+        .select('face_descriptor')
+        .eq('device_id', DEVICE_ID)
+        .single();
+      faceEnrolled = !!(devData && devData.face_descriptor && devData.face_descriptor.length > 0);
+    } catch(e) { faceEnrolled = false; }
+
+    if (!faceEnrolled) {
+      // Tampil enroll gate - paksa enroll dulu
+      $('enrollGate').style.display = '';
+      $('enrollBtn').addEventListener('click', async () => {
+        $('enrollBtn').disabled = true;
+        $('enrollBtn').textContent = 'Membuka kamera…';
+        $('enrollErr').textContent = '';
+        try {
+          await initFace();
+          const desc = await runFaceChallenge();
+          $('enrollBtn').textContent = 'Menyimpan wajah…';
+          const { error } = await sb
+            .from('reseller_devices')
+            .update({ face_descriptor: desc })
+            .eq('device_id', DEVICE_ID);
+          if (error) throw error;
+          toast('Wajah berhasil di-enroll! Membuka form…');
+          setTimeout(() => {
+            $('enrollGate').style.display = 'none';
+            $('app').style.display = '';
+            loadStock();
+          }, 1200);
+        } catch(e) {
+          if (e.message !== 'CANCELLED') {
+            $('enrollErr').textContent = 'Gagal: ' + e.message;
+          }
+          $('enrollBtn').disabled = false;
+          $('enrollBtn').textContent = '📷 ENROLL WAJAH SEKARANG';
+        }
+      });
+    } else {
+      // Step 4: sudah enroll, langsung buka form
+      $('app').style.display = '';
+      await loadStock();
+    }
   } else {
     $('gate').style.display='';
     if (status==='blocked'){
