@@ -3102,127 +3102,74 @@ initApp();
 async function syncKeysFromCloud(){
   if (typeof _sb === 'undefined' || !_sb.from) return;
   try {
-    // Coba beberapa nama tabel yang mungkin dipakai
-    const tables = ['product_keys', 'keys', 'reseller_keys', 'stock_keys'];
-    let rows = [];
-    for (const tbl of tables){
-      try {
-        const { data, error } = await _sb.from(tbl).select('*');
-        if (!error && data && data.length){
-          rows = data;
-          break;
-        }
-      } catch(e){}
-    }
-
-    // Juga coba via RPC get_stock_counts_v2 untuk deteksi perubahan stok
-    let stockRows = [];
-    try {
-      const { data: sd } = await _sb.rpc('get_stock_counts_v2');
-      if (sd) stockRows = sd;
-    } catch(e){
-      try {
-        const { data: sd } = await _sb.rpc('get_stock_counts');
-        if (sd) stockRows = sd;
-      } catch(e2){}
-    }
+    // Baca tabel product_keys langsung (terbukti dari SQL admin_claim_key_v2)
+    const { data: rows, error: rowsErr } = await _sb
+      .from('product_keys')
+      .select('product_id, variant, key_value, status');
+    if (rowsErr || !rows || !rows.length) return;
 
     const store = getKeyStore();
     let storeChanged = false;
 
-    if (rows.length){
-      // Deteksi kolom key value dan status
-      const sample = rows[0];
-      const keyCol    = ['key_value','key','value','license_key','serial'].find(c => sample[c] !== undefined) || 'key_value';
-      const statusCol = ['status','is_sold','sold','used'].find(c => sample[c] !== undefined) || 'status';
-      const pidCol    = ['product_id','prod_id','product'].find(c => sample[c] !== undefined) || 'product_id';
-      const varCol    = ['variant','varian','plan','type'].find(c => sample[c] !== undefined) || 'variant';
+    // Group by product_id__variant
+    const cloudGroups = {};
+    rows.forEach(r => {
+      const pid = parseInt(r.product_id) || 0;
+      const vn  = r.variant || '';
+      const k   = pid + '__' + vn;
+      // Status di Supabase: 'SOLD' (kapital) atau 'available'
+      const rawStatus = (r.status || '').toUpperCase();
+      const status = (rawStatus === 'SOLD' || rawStatus === 'USED') ? 'sold' : 'available';
+      cloudGroups[k] = cloudGroups[k] || [];
+      cloudGroups[k].push({ key: r.key_value, status });
+    });
 
-      const cloudGroups = {};
-      rows.forEach(r => {
-        const pid = parseInt(r[pidCol]) || 0;
-        const vn  = r[varCol] || '';
-        const k   = pid + '__' + vn;
-        const rawStatus = r[statusCol];
-        const status = (rawStatus === true || rawStatus === 1 || rawStatus === 'sold' || rawStatus === 'used') ? 'sold' : 'available';
-        cloudGroups[k] = cloudGroups[k] || [];
-        cloudGroups[k].push({ key: r[keyCol], status });
-      });
-
-      for (const [k, cloudArr] of Object.entries(cloudGroups)){
-        const local = store[k] || [];
-        const localMap = new Map(local.map(x => [x.key, x]));
-        let dirty = false;
-        for (const cr of cloudArr){
-          if (!cr.key) continue;
-          const lx = localMap.get(cr.key);
-          if (!lx){
-            local.push({ key: cr.key, status: cr.status, soldTo: cr.status==='sold'?'cloud':null, soldAt: cr.status==='sold'?new Date().toISOString():null });
-            dirty = true;
-          } else if (lx.status !== cr.status){
-            lx.status = cr.status;
-            if (cr.status==='sold' && !lx.soldAt) lx.soldAt = new Date().toISOString();
-            dirty = true;
-          }
+    // Merge cloud → localStorage (cloud wins)
+    for (const [k, cloudArr] of Object.entries(cloudGroups)){
+      const local = store[k] || [];
+      const localMap = new Map(local.map(x => [x.key, x]));
+      let dirty = false;
+      for (const cr of cloudArr){
+        if (!cr.key) continue;
+        const lx = localMap.get(cr.key);
+        if (!lx){
+          local.push({
+            key: cr.key, status: cr.status,
+            soldTo: cr.status==='sold' ? 'cloud' : null,
+            soldAt: cr.status==='sold' ? new Date().toISOString() : null
+          });
+          dirty = true;
+        } else if (lx.status !== cr.status){
+          lx.status = cr.status;
+          if (cr.status==='sold' && !lx.soldAt) lx.soldAt = new Date().toISOString();
+          dirty = true;
         }
-        if (dirty){ store[k] = local; storeChanged = true; }
       }
-    }
-
-    // Update sold counter dari stok RPC (jumlah available berkurang = sold naik)
-    if (stockRows.length){
-      const prods = getProducts();
-      let prodChanged = false;
-      prods.forEach(p => {
-        p.variants.forEach(v => {
-          const sr = stockRows.find(r => parseInt(r.product_id)===parseInt(p.id) && r.variant===v.n);
-          if (sr){
-            const cloudAvail = parseInt(sr.stock) || 0;
-            const k = p.id + '__' + v.n;
-            const localArr = store[k] || [];
-            const localTotal = localArr.length;
-            const localAvail = localArr.filter(x=>x.status==='available').length;
-            // Sold = total - available (dari cloud stock)
-            // Jika local total > 0, hitung sold dari selisih
-            let soldCount;
-            if (localTotal > 0){
-              soldCount = localArr.filter(x=>x.status==='sold').length;
-              // Kalau local avail lebih besar dari cloud avail → ada yang sold di cloud tapi belum di local
-              if (localAvail > cloudAvail){
-                const diff = localAvail - cloudAvail;
-                // Mark 'diff' key available → sold (ambil dari yang paling lama)
-                let marked = 0;
-                for (const kx of localArr){
-                  if (kx.status==='available' && marked<diff){
-                    kx.status = 'sold';
-                    kx.soldAt = kx.soldAt || new Date().toISOString();
-                    kx.soldTo = kx.soldTo || 'cloud';
-                    marked++;
-                  }
-                }
-                if (marked){ store[k]=localArr; storeChanged=true; }
-                soldCount = localArr.filter(x=>x.status==='sold').length;
-              }
-            } else {
-              soldCount = p.sold || 0;
-            }
-            if (soldCount !== (p.sold||0)){
-              p.sold = soldCount;
-              prodChanged = true;
-            }
-          }
-        });
-      });
-      if (prodChanged){
-        if (storeChanged) setKeyStore(store);
-        setProducts(prods);
-        if (typeof renderProducts==='function') renderProducts();
-        storeChanged = false; // sudah disave di atas
-      }
+      if (dirty){ store[k] = local; storeChanged = true; }
     }
 
     if (storeChanged){
       setKeyStore(store);
+
+      // Update sold counter produk
+      const prods = getProducts();
+      let prodChanged = false;
+      prods.forEach(p => {
+        p.variants.forEach(v => {
+          const k = p.id + '__' + v.n;
+          const arr = store[k] || [];
+          const soldCount = arr.filter(x => x.status === 'sold').length;
+          if (soldCount !== (p.sold || 0)){
+            p.sold = soldCount;
+            prodChanged = true;
+          }
+        });
+      });
+      if (prodChanged){
+        setProducts(prods);
+        if (typeof renderProducts === 'function') renderProducts();
+      }
+
       // Refresh key manager kalau admin panel terbuka
       try {
         const ap = document.getElementById('adminPanel');
