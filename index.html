@@ -1379,11 +1379,11 @@ function renderHeader() {
       </div>
       <div class="dropdown" id="userDropdown">
         <div class="dd-user"><strong>${currentUser.name || 'User'}</strong>${currentUser.email}</div>
-        ${isAdmin ? `<button class="dd-item admin-item" onclick="openAdmin()">⚙️ Menu Admin</button>` : ''}
-        ${isAdmin ? `<button class="dd-item admin-item" onclick="openNonton()">📺 Nonton</button>` : ''}
-        <button class="dd-item" onclick="showRiwayat()">📋 Riwayat Order</button>
-        <button class="dd-item" onclick="showPengaturan()">⚙️ Pengaturan Akun</button>
-        <button class="dd-item danger" onclick="doLogout()">🚪 Logout</button>
+        ${isAdmin ? `<button class="dd-item admin-item" onclick="openAdmin()">Menu Admin</button>` : ''}
+        ${isAdmin ? `<button class="dd-item admin-item" onclick="openNonton()">Nonton</button>` : ''}
+        <button class="dd-item" onclick="showRiwayat()">Riwayat Order</button>
+        <button class="dd-item" onclick="showPengaturan()">Pengaturan Akun</button>
+        <button class="dd-item danger" onclick="doLogout()">Logout</button>
       </div>
     </div>`;
   }
@@ -4616,8 +4616,11 @@ function doPesan(){
 
   function isAdmin(){
     try {
-      const u = JSON.parse(localStorage.getItem('vp_user')||'null');
-      return u && u.email === ADMIN_EM;
+      // Prioritas: currentUser global, fallback localStorage
+      const u = (typeof currentUser !== 'undefined' && currentUser)
+        ? currentUser
+        : JSON.parse(localStorage.getItem('vp_user')||'null');
+      return !!(u && u.email === ADMIN_EM);
     } catch(e){ return false; }
   }
 
@@ -4785,8 +4788,9 @@ function doPesan(){
     if (isAdmin()){
       window.openAdminRiwayat();
     } else {
-      if (_origShowRiw) _origShowRiw();
-      else if (typeof openRiwayat==='function') openRiwayat();
+      // user biasa: buka riwayat pribadi (localStorage)
+      if (typeof openRiwayat==='function') openRiwayat();
+      else if (_origShowRiw) _origShowRiw();
     }
   };
 
@@ -4843,7 +4847,9 @@ function doPesan(){
   };
 
   window.openNonton = function(){
-    const u = (() => { try { return JSON.parse(localStorage.getItem('vp_user')||'null'); } catch(e){ return null; } })();
+    const u = (typeof currentUser !== 'undefined' && currentUser)
+      ? currentUser
+      : (() => { try { return JSON.parse(localStorage.getItem('vp_user')||'null'); } catch(e){ return null; } })();
     if (!u || u.email !== 'alpintandjung@gmail.com'){ if(typeof showNotif==='function') showNotif('❌ Akses ditolak'); return; }
     const d = document.getElementById('userDropdown');
     if (d) d.classList.remove('open');
