@@ -3095,6 +3095,76 @@ if (sessionStorage.getItem('splashDone')) {
 }
 
 initApp();
+
+// ====== SYNC STOK DARI SUPABASE (untuk sinkronisasi dgn ambil-key.html) ======
+// Key yang di-claim via ambil-key.html tersimpan di tabel product_keys Supabase.
+// Fungsi ini membaca tabel tsb dan memperbarui localStorage vp_keys + sold count.
+async function syncKeysFromCloud(){
+  if (typeof _sb === 'undefined' || !_sb.from) return;
+  try {
+    const { data, error } = await _sb.from('product_keys').select('product_id,variant,key_value,status');
+    if (error || !data || !data.length) return;
+
+    const s = getKeyStore ? getKeyStore() : {};
+    let changed = false;
+    // Group by product_id+variant
+    const groups = {};
+    data.forEach(r => {
+      const k = r.product_id + '__' + r.variant;
+      groups[k] = groups[k] || [];
+      groups[k].push({ key: r.key_value, status: r.status || 'available' });
+    });
+
+    // Merge cloud → local. Cloud adalah sumber kebenaran untuk status.
+    for (const [k, cloudArr] of Object.entries(groups)){
+      const local = s[k] || [];
+      const localMap = new Map(local.map(x => [x.key, x]));
+      let dirty = false;
+      for (const cr of cloudArr){
+        const lx = localMap.get(cr.key);
+        if (!lx){
+          // key ada di cloud tapi belum di lokal → tambahkan
+          local.push({ key: cr.key, status: cr.status, soldTo: cr.status==='sold' ? 'ambil-key' : null, soldAt: cr.status==='sold' ? new Date().toISOString() : null });
+          dirty = true;
+        } else if (lx.status !== cr.status){
+          lx.status = cr.status;
+          if (cr.status === 'sold' && !lx.soldAt) lx.soldAt = new Date().toISOString();
+          dirty = true;
+        }
+      }
+      if (dirty){ s[k] = local; changed = true; }
+    }
+
+    if (changed && typeof setKeyStore === 'function'){
+      setKeyStore(s);
+
+      // Juga update sold counter per produk berdasarkan jumlah key sold
+      if (typeof getProducts === 'function' && typeof setProducts === 'function'){
+        const prods = getProducts();
+        let prodChanged = false;
+        prods.forEach(p => {
+          p.variants.forEach(v => {
+            const k = p.id + '__' + v.n;
+            const arr = s[k] || [];
+            const soldCount = arr.filter(x => x.status === 'sold').length;
+            // Hanya update kalau cloud sold lebih besar
+            if (soldCount > (p.sold || 0)){
+              p.sold = soldCount;
+              prodChanged = true;
+            }
+          });
+        });
+        if (prodChanged){
+          setProducts(prods);
+          if (typeof renderProducts === 'function') renderProducts();
+        }
+      }
+    }
+  } catch(e){ console.warn('[syncKeysFromCloud]', e); }
+}
+// Sync saat page load (setelah initApp selesai) dan tiap 30 detik
+setTimeout(syncKeysFromCloud, 2500);
+setInterval(syncKeysFromCloud, 30000);
 </script>
 
 <!-- ===== BUY NOTIF POPUP ===== -->
