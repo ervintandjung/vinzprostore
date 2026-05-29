@@ -18,8 +18,21 @@ body{background:radial-gradient(circle at 15% 10%,rgba(55,225,255,.10),transpare
 .brand small{display:block;font-family:'Rajdhani';font-weight:600;letter-spacing:2px;color:var(--mut);font-size:11px;margin-top:6px;background:none;-webkit-text-fill-color:var(--mut)}
 .card{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.4);}
 .label{display:block;font-weight:600;letter-spacing:1px;color:var(--mut);font-size:12px;text-transform:uppercase;margin:14px 0 6px}
-select,input{width:100%;background:#070b1c;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none}
-select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(55,225,255,.18)}
+input{width:100%;background:#070b1c;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(55,225,255,.18)}
+/* Custom dropdown */
+.cdd{position:relative;width:100%;}
+.cdd-val{width:100%;background:#070b1c;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;-webkit-user-select:none;}
+.cdd-val.open{border-color:var(--accent);box-shadow:0 0 0 3px rgba(55,225,255,.18)}
+.cdd-val .cdd-arrow{font-size:11px;color:var(--mut);transition:.2s;flex-shrink:0;margin-left:8px;}
+.cdd-val.open .cdd-arrow{transform:rotate(180deg)}
+.cdd-list{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#0e1430;border:1px solid var(--line);border-radius:10px;z-index:99;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.6);}
+.cdd-list.open{display:block;}
+.cdd-opt{padding:12px 14px;cursor:pointer;font-size:14px;font-family:inherit;color:var(--txt);transition:.15s;}
+.cdd-opt:hover{background:rgba(55,225,255,.10);color:var(--accent);}
+.cdd-opt.sel{color:var(--accent);font-weight:700;}
+.cdd-opt[data-disabled]{opacity:.4;cursor:not-allowed;color:var(--mut);}
+.cdd-opt[data-disabled]:hover{background:none;color:var(--mut);}
 .stock{margin-top:14px;padding:12px 14px;border-radius:10px;background:rgba(55,225,255,.06);border:1px dashed rgba(55,225,255,.25);font-weight:600;color:var(--accent);text-align:center;letter-spacing:1px;}
 .btn{display:block;width:100%;margin-top:18px;padding:14px;border:0;border-radius:12px;font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:2px;font-size:15px;color:#001;background:linear-gradient(90deg,var(--accent),var(--accent2));cursor:pointer;}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
@@ -71,10 +84,24 @@ video{width:100%;border-radius:12px;background:#000;transform:scaleX(-1)}
 
   <div id="app" class="card" style="display:none">
     <label class="label">Produk</label>
-    <select id="prodSel"><option value="">— pilih produk —</option></select>
+    <div class="cdd" id="prodCdd">
+      <div class="cdd-val" id="prodCddVal" onclick="toggleCdd('prod')">
+        <span id="prodCddTxt">— pilih produk —</span>
+        <span class="cdd-arrow">▼</span>
+      </div>
+      <div class="cdd-list" id="prodCddList"></div>
+    </div>
+    <input type="hidden" id="prodSel">
 
     <label class="label">Varian</label>
-    <select id="varSel"><option value="">— pilih varian —</option></select>
+    <div class="cdd" id="varCdd">
+      <div class="cdd-val" id="varCddVal" onclick="toggleCdd('var')">
+        <span id="varCddTxt">— pilih varian —</span>
+        <span class="cdd-arrow">▼</span>
+      </div>
+      <div class="cdd-list" id="varCddList"></div>
+    </div>
+    <input type="hidden" id="varSel">
 
     <div class="stock" id="stockBox">Pilih produk & varian dulu</div>
 
@@ -149,14 +176,114 @@ function getDeviceId(){
 let DEVICE_ID = getDeviceId();
 let FP = '';
 let ADMIN_PW = ''; // diisi otomatis dari URL ?pw= atau localStorage
+let stockMap = {};
+// ====== CUSTOM DROPDOWN ======
+// Data store untuk custom dropdown
+let _cddProds = []; // [{pid, name, total, variants:[{v,s}]}]
+
+function toggleCdd(type){
+  const val = $(`${type}CddVal`);
+  const list = $(`${type}CddList`);
+  // tutup semua dulu
+  ['prod','var'].forEach(t=>{
+    if (t!==type){
+      $(t+'CddVal').classList.remove('open');
+      $(t+'CddList').classList.remove('open');
+    }
+  });
+  val.classList.toggle('open');
+  list.classList.toggle('open');
+}
+// Tutup dropdown kalau klik di luar
+document.addEventListener('click', e=>{
+  ['prod','var'].forEach(t=>{
+    const wrap = $(t+'Cdd');
+    if (wrap && !wrap.contains(e.target)){
+      $(t+'CddVal').classList.remove('open');
+      $(t+'CddList').classList.remove('open');
+    }
+  });
+});
+
+function cddSelectProd(pid, name){
+  $('prodSel').value = pid;
+  $('prodCddTxt').textContent = name;
+  $('prodCddVal').classList.remove('open');
+  $('prodCddList').classList.remove('open');
+  // update active state
+  $('prodCddList').querySelectorAll('.cdd-opt').forEach(o=>{
+    o.classList.toggle('sel', o.dataset.val == pid);
+  });
+  // build varian
+  const prod = _cddProds.find(p=>p.pid==pid);
+  buildVarCdd(prod ? prod.variants : []);
+  updateStockBox();
+}
+function cddSelectVar(vn, label, disabled){
+  if (disabled) return;
+  $('varSel').value = vn;
+  $('varCddTxt').textContent = label;
+  $('varCddVal').classList.remove('open');
+  $('varCddList').classList.remove('open');
+  $('varCddList').querySelectorAll('.cdd-opt').forEach(o=>{
+    o.classList.toggle('sel', o.dataset.val === vn);
+  });
+  updateStockBox();
+}
+
+function buildProdCdd(prods){
+  const list = $('prodCddList');
+  if (!prods.length){
+    list.innerHTML = '<div class="cdd-opt" style="color:var(--mut);cursor:default">Tidak ada produk tersedia</div>';
+    return;
+  }
+  list.innerHTML = prods.map(p=>`<div class="cdd-opt" data-val="${p.pid}" onclick="cddSelectProd(${p.pid}, '${p.name.replace(/'/g,"\'")} · stok ${p.total}')">${p.name} · total stok ${p.total}</div>`).join('');
+}
+function buildVarCdd(variants){
+  // Reset varian
+  $('varSel').value = '';
+  $('varCddTxt').textContent = '— pilih varian —';
+  const list = $('varCddList');
+  if (!variants || !variants.length){
+    list.innerHTML = '<div class="cdd-opt" style="color:var(--mut);cursor:default">Pilih produk dulu</div>';
+    return;
+  }
+  list.innerHTML = variants.map(({v,s})=>{
+    const disabled = s<=0;
+    const label = s>0 ? `${v}  ·  stok ${s}` : `${v}  ·  HABIS`;
+    return `<div class="cdd-opt${disabled?' ':''}" data-val="${esc(v)}" ${disabled?'data-disabled="1"':''} onclick="cddSelectVar('${esc(v)}','${label}',${disabled})">${label}</div>`;
+  }).join('');
+}
+
+function updateStockBox(){
+  const pid = $('prodSel').value;
+  const v   = $('varSel').value;
+  const btn = $('claimBtn');
+  if (!pid || !v){
+    $('stockBox').textContent = 'Pilih produk & varian dulu';
+    btn.disabled = true;
+    return;
+  }
+  const s = stockMap[pid+'|'+v];
+  if (s === undefined){
+    $('stockBox').textContent = 'Stok tidak diketahui';
+    btn.disabled = true;
+  } else if (s <= 0){
+    $('stockBox').textContent = '⛔ STOK HABIS';
+    btn.disabled = true;
+  } else {
+    $('stockBox').textContent = `✅ Stok tersedia: ${s}`;
+    btn.disabled = false;
+  }
+}
+
 async function loadStock(){
   // simpan pilihan user supaya tidak ke-reset waktu polling 8s
   const prevPid = $('prodSel').value;
   const prevVar = $('varSel').value;
 
   stockMap = {};
-  $('prodSel').innerHTML = '<option value="">— pilih produk —</option>';
-  $('varSel').innerHTML  = '<option value="">— pilih varian —</option>';
+  _cddProds = [];
   // pakai v2 dulu, fallback ke lama
   let rows = [];
   try{
@@ -177,30 +304,27 @@ async function loadStock(){
   pids.forEach(pid => {
     const total = byProd[pid].reduce((a,b)=>a+b.s,0);
     const name = productNames[pid] || ('Produk #'+pid);
-    const opt = document.createElement('option');
-    opt.value = pid;
-    opt.textContent = `${name}  ·  total stok ${total}`;
-    opt.dataset.variants = JSON.stringify(byProd[pid]);
-    $('prodSel').appendChild(opt);
+    _cddProds.push({pid, name, total, variants: byProd[pid]});
   });
+  buildProdCdd(_cddProds);
 
   // restore pilihan user kalau masih ada
-  if (prevPid && [...$('prodSel').options].some(o => o.value === prevPid)){
+  if (prevPid && _cddProds.some(p=>p.pid==prevPid)){
+    const prod = _cddProds.find(p=>p.pid==prevPid);
     $('prodSel').value = prevPid;
-    // bangun ulang opsi varian
-    const opt = $('prodSel').selectedOptions[0];
-    if (opt && opt.dataset.variants){
-      $('varSel').innerHTML = '<option value="">— pilih varian —</option>';
-      JSON.parse(opt.dataset.variants).forEach(({v,s}) => {
-        const o = document.createElement('option');
-        o.value = v;
-        o.textContent = s>0 ? `${v}  ·  stok ${s}` : `${v}  ·  HABIS`;
-        if (s<=0) o.disabled = true;
-        $('varSel').appendChild(o);
+    $('prodCddTxt').textContent = `${prod.name} · total stok ${prod.total}`;
+    $('prodCddList').querySelectorAll('.cdd-opt').forEach(o=>{
+      o.classList.toggle('sel', o.dataset.val == prevPid);
+    });
+    buildVarCdd(prod.variants);
+    if (prevVar && prod.variants.some(({v})=>v===prevVar)){
+      const vv = prod.variants.find(({v})=>v===prevVar);
+      const label = vv.s>0 ? `${vv.v}  ·  stok ${vv.s}` : `${vv.v}  ·  HABIS`;
+      $('varSel').value = prevVar;
+      $('varCddTxt').textContent = label;
+      $('varCddList').querySelectorAll('.cdd-opt').forEach(o=>{
+        o.classList.toggle('sel', o.dataset.val === prevVar);
       });
-      if (prevVar && [...$('varSel').options].some(o => o.value === prevVar)){
-        $('varSel').value = prevVar;
-      }
     }
   }
   updateStockBox();
