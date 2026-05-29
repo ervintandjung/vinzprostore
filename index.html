@@ -2454,7 +2454,19 @@ function apBannerRemove(i){
   showNotif('🗑️ Banner dihapus');
 }
 
-function closeAdmin() { document.getElementById('adminPanel').classList.remove('open'); document.body.style.overflow=''; }
+function closeAdmin() { document.getElementById('adminPanel').classList.remove('open'); document.body.style.overflow=''; if (window.__kmPollTimer){ clearInterval(window.__kmPollTimer); window.__kmPollTimer=null; } }
+// Auto-refresh Key Manager tiap 15 detik selagi panel admin terbuka
+(function(){
+  const _orig = window._openAdminPanelNow;
+  if (typeof _orig === 'function'){
+    window._openAdminPanelNow = function(){
+      const r = _orig.apply(this, arguments);
+      if (window.__kmPollTimer) clearInterval(window.__kmPollTimer);
+      window.__kmPollTimer = setInterval(()=>{ try { renderKeyManager(); } catch(e){} }, 15000);
+      return r;
+    };
+  }
+})();
 
 function renderApProds() {
   const prods = getProducts();
@@ -2835,11 +2847,43 @@ function kmPopulateVar(){
   varSel.innerHTML = p.variants.map(v => `<option value="${v.n}">${v.n}</option>`).join('');
   if (cur && p.variants.some(v=>v.n===cur)) varSel.value = cur;
 }
-function renderKeyManager(){
+// Sync status SOLD dari Supabase ke localStorage (sumber kebenaran: tabel stock_keys)
+async function kmSyncFromCloud(pid, vn){
+  if (!pid || !vn || typeof _sb === 'undefined') return;
+  const { data, error } = await _sb
+    .from('stock_keys')
+    .select('key,status')
+    .eq('product', pid)
+    .eq('variant', vn);
+  if (error) throw error;
+  const cloud = new Map((data||[]).map(r => [r.key, r.status]));
+  const s = getKeyStore(); const k = _kKey(parseInt(pid), vn);
+  const arr = s[k] || [];
+  const localKeys = new Set(arr.map(x => x.key));
+  // Update status entry lokal dari cloud
+  for (const e of arr){
+    const cs = cloud.get(e.key);
+    if (cs && cs !== e.status){
+      e.status = cs;
+      if (cs === 'sold' && !e.soldAt) e.soldAt = new Date().toISOString();
+    }
+  }
+  // Tambah key yang ada di cloud tapi belum tercatat lokal
+  for (const [key, status] of cloud){
+    if (!localKeys.has(key)){
+      arr.push({ key, status, soldTo: null, soldAt: status==='sold' ? new Date().toISOString() : null });
+    }
+  }
+  s[k] = arr; setKeyStore(s);
+}
+
+async function renderKeyManager(){
   kmPopulateVar();
   const pid = document.getElementById('kmProd').value;
   const vn  = document.getElementById('kmVar').value;
   if (!pid || !vn) return;
+  try { await kmSyncFromCloud(parseInt(pid), vn); }
+  catch(e){ console.warn('Sync cloud gagal:', e.message||e); }
   const s = getKeyStore();
   const arr = s[_kKey(parseInt(pid), vn)] || [];
   const avail = arr.filter(k=>k.status==='available').length;
@@ -5934,7 +5978,7 @@ setInterval(() => {
   }
 }, 15000);
 </script>
-<script type="module" src="./vinz-patch.js"></script>
+
 
 </body>
 </html>
