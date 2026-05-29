@@ -85,7 +85,7 @@ video{width:100%;border-radius:12px;background:#000;transform:scaleX(-1)}
   <div id="app" class="card" style="display:none">
     <label class="label">Produk</label>
     <div class="cdd" id="prodCdd">
-      <div class="cdd-val" id="prodCddVal" onclick="toggleCdd('prod')">
+      <div class="cdd-val" id="prodCddVal" onclick="toggleCdd(event,'prod')">
         <span id="prodCddTxt">— pilih produk —</span>
         <span class="cdd-arrow">▼</span>
       </div>
@@ -95,7 +95,7 @@ video{width:100%;border-radius:12px;background:#000;transform:scaleX(-1)}
 
     <label class="label">Varian</label>
     <div class="cdd" id="varCdd">
-      <div class="cdd-val" id="varCddVal" onclick="toggleCdd('var')">
+      <div class="cdd-val" id="varCddVal" onclick="toggleCdd(event,'var')">
         <span id="varCddTxt">— pilih varian —</span>
         <span class="cdd-arrow">▼</span>
       </div>
@@ -181,7 +181,8 @@ let stockMap = {};
 // Data store untuk custom dropdown
 let _cddProds = []; // [{pid, name, total, variants:[{v,s}]}]
 
-function toggleCdd(type){
+function toggleCdd(e, type){
+  if (e && e.stopPropagation) e.stopPropagation();
   const val = $(`${type}CddVal`);
   const list = $(`${type}CddList`);
   // tutup semua dulu
@@ -205,7 +206,8 @@ document.addEventListener('click', e=>{
   });
 });
 
-function cddSelectProd(pid, name){
+function cddSelectProd(e, pid, name){
+  if (e && e.stopPropagation) e.stopPropagation();
   $('prodSel').value = pid;
   $('prodCddTxt').textContent = name;
   $('prodCddVal').classList.remove('open');
@@ -219,7 +221,8 @@ function cddSelectProd(pid, name){
   buildVarCdd(prod ? prod.variants : []);
   updateStockBox();
 }
-function cddSelectVar(vn, label, disabled){
+function cddSelectVar(e, vn, label, disabled){
+  if (e && e.stopPropagation) e.stopPropagation();
   if (disabled) return;
   $('varSel').value = vn;
   $('varCddTxt').textContent = label;
@@ -237,7 +240,7 @@ function buildProdCdd(prods){
     list.innerHTML = '<div class="cdd-opt" style="color:var(--mut);cursor:default">Tidak ada produk tersedia</div>';
     return;
   }
-  list.innerHTML = prods.map(p=>`<div class="cdd-opt" data-val="${p.pid}" onclick="cddSelectProd(${p.pid}, '${p.name.replace(/'/g,"\'")} · stok ${p.total}')">${p.name} · total stok ${p.total}</div>`).join('');
+  list.innerHTML = prods.map(p=>`<div class="cdd-opt" data-val="${p.pid}" onclick="cddSelectProd(event,${p.pid}, '${p.name.replace(/'/g,"\'")} · stok ${p.total}')">${p.name} · total stok ${p.total}</div>`).join('');
 }
 function buildVarCdd(variants){
   // Reset varian
@@ -251,7 +254,7 @@ function buildVarCdd(variants){
   list.innerHTML = variants.map(({v,s})=>{
     const disabled = s<=0;
     const label = s>0 ? `${v}  ·  stok ${s}` : `${v}  ·  HABIS`;
-    return `<div class="cdd-opt${disabled?' ':''}" data-val="${esc(v)}" ${disabled?'data-disabled="1"':''} onclick="cddSelectVar('${esc(v)}','${label}',${disabled})">${label}</div>`;
+    return `<div class="cdd-opt${disabled?' ':''}" data-val="${esc(v)}" ${disabled?'data-disabled="1"':''} onclick="cddSelectVar(event,'${esc(v)}','${label}',${disabled})">${label}</div>`;
   }).join('');
 }
 
