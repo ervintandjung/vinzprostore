@@ -2850,12 +2850,20 @@ function kmPopulateVar(){
 // Sync status SOLD dari Supabase ke localStorage (sumber kebenaran: tabel product_keys)
 async function kmSyncFromCloud(pid, vn){
   if (!pid || !vn || typeof _sb === 'undefined') return;
-  const { data, error } = await _sb
-    .from('product_keys')
-    .select('key_value,status')
-    .eq('product_id', pid)
-    .eq('variant', vn);
-  if (error) throw error;
+  const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || '';
+  let data, error;
+  if (pw) {
+    // Pakai RPC (bypass RLS)
+    const res = await _sb.rpc('get_keys_for_admin', { p_pass: pw, p_product: pid, p_variant: vn });
+    data = res.data; error = res.error;
+    if (error) throw error;
+    // RPC returns: [{key_value, status}]
+  } else {
+    // Fallback: query langsung (bisa gagal kalau RLS aktif)
+    const res = await _sb.from('product_keys').select('key_value,status').eq('product_id', pid).eq('variant', vn);
+    data = res.data; error = res.error;
+    if (error) throw error;
+  }
   const cloud = new Map((data||[]).map(r => [r.key_value, r.status]));
   const s = getKeyStore(); const k = _kKey(parseInt(pid), vn);
   const arr = s[k] || [];
@@ -3116,50 +3124,43 @@ initApp();
 async function syncKeysFromCloud(){
   if (typeof _sb === 'undefined' || !_sb.from) return;
   try {
-    // Baca tabel product_keys langsung (terbukti dari SQL admin_claim_key_v2)
-    const { data: rows, error: rowsErr } = await _sb
-      .from('product_keys')
-      .select('product_id, variant, key_value, status');
-    if (rowsErr || !rows || !rows.length) return;
+    // Pakai RPC get_stock_counts_v2 untuk ambil list key per produk/varian
+    // dan RPC get_keys_for_admin untuk sync status individual (butuh pw admin)
+    const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || '';
+    if (!pw) return; // tanpa pw admin, skip sync (RLS akan blokir query langsung)
 
+    // Ambil semua produk+varian yang ada di store lokal
     const store = getKeyStore();
     let storeChanged = false;
 
-    // Group by product_id__variant
-    const cloudGroups = {};
-    rows.forEach(r => {
-      const pid = parseInt(r.product_id) || 0;
-      const vn  = r.variant || '';
-      const k   = pid + '__' + vn;
-      // Status di Supabase: 'SOLD' (kapital) atau 'available'
-      const rawStatus = (r.status || '').toUpperCase();
-      const status = (rawStatus === 'SOLD' || rawStatus === 'USED') ? 'sold' : 'available';
-      cloudGroups[k] = cloudGroups[k] || [];
-      cloudGroups[k].push({ key: r.key_value, status });
-    });
-
-    // Merge cloud → localStorage (cloud wins)
-    for (const [k, cloudArr] of Object.entries(cloudGroups)){
+    const storeKeys = Object.keys(store);
+    const normStatus = raw => (['sold','used'].includes((raw||'').toLowerCase())) ? 'sold' : 'available';
+    for (const k of storeKeys) {
+      const underscoreIdx = k.indexOf('__');
+      if (underscoreIdx < 0) continue;
+      const pid = parseInt(k.slice(0, underscoreIdx));
+      const vn = k.slice(underscoreIdx + 2);
+      if (!pid || !vn) continue;
+      const res = await _sb.rpc('get_keys_for_admin', { p_pass: pw, p_product: pid, p_variant: vn });
+      if (res.error) { console.warn('[syncKeysFromCloud] RPC error:', res.error.message); continue; }
+      const rows = res.data || [];
       const local = store[k] || [];
       const localMap = new Map(local.map(x => [x.key, x]));
       let dirty = false;
-      for (const cr of cloudArr){
-        if (!cr.key) continue;
-        const lx = localMap.get(cr.key);
-        if (!lx){
-          local.push({
-            key: cr.key, status: cr.status,
-            soldTo: cr.status==='sold' ? 'cloud' : null,
-            soldAt: cr.status==='sold' ? new Date().toISOString() : null
-          });
+      for (const cr of rows) {
+        if (!cr.key_value) continue;
+        const st = normStatus(cr.status);
+        const lx = localMap.get(cr.key_value);
+        if (!lx) {
+          local.push({ key: cr.key_value, status: st, soldTo: st==='sold'?'cloud':null, soldAt: st==='sold'?new Date().toISOString():null });
           dirty = true;
-        } else if (lx.status !== cr.status){
-          lx.status = cr.status;
-          if (cr.status==='sold' && !lx.soldAt) lx.soldAt = new Date().toISOString();
+        } else if (lx.status !== st) {
+          lx.status = st;
+          if (st==='sold' && !lx.soldAt) lx.soldAt = new Date().toISOString();
           dirty = true;
         }
       }
-      if (dirty){ store[k] = local; storeChanged = true; }
+      if (dirty) { store[k] = local; storeChanged = true; }
     }
 
     if (storeChanged){
@@ -3170,8 +3171,8 @@ async function syncKeysFromCloud(){
       let prodChanged = false;
       prods.forEach(p => {
         p.variants.forEach(v => {
-          const k = p.id + '__' + v.n;
-          const arr = store[k] || [];
+          const kk = p.id + '__' + v.n;
+          const arr = store[kk] || [];
           const soldCount = arr.filter(x => x.status === 'sold').length;
           if (soldCount !== (p.sold || 0)){
             p.sold = soldCount;
