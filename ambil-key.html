@@ -149,10 +149,11 @@ function getDeviceId(){
 let DEVICE_ID = getDeviceId();
 let FP = '';
 let ADMIN_PW = ''; // diisi otomatis dari URL ?pw= atau localStorage
-
-// ====== STOK ======
-let stockMap = {};
 async function loadStock(){
+  // simpan pilihan user supaya tidak ke-reset waktu polling 8s
+  const prevPid = $('prodSel').value;
+  const prevVar = $('varSel').value;
+
   stockMap = {};
   $('prodSel').innerHTML = '<option value="">— pilih produk —</option>';
   $('varSel').innerHTML  = '<option value="">— pilih varian —</option>';
@@ -182,28 +183,27 @@ async function loadStock(){
     opt.dataset.variants = JSON.stringify(byProd[pid]);
     $('prodSel').appendChild(opt);
   });
-}
-$('prodSel').addEventListener('change', () => {
-  const opt = $('prodSel').selectedOptions[0];
-  $('varSel').innerHTML = '<option value="">— pilih varian —</option>';
-  if (opt && opt.dataset.variants){
-    JSON.parse(opt.dataset.variants).forEach(({v,s}) => {
-      const o = document.createElement('option');
-      o.value = v;
-      o.textContent = s>0 ? `${v}  ·  stok ${s}` : `${v}  ·  HABIS`;
-      if (s<=0) o.disabled = true;
-      $('varSel').appendChild(o);
-    });
+
+  // restore pilihan user kalau masih ada
+  if (prevPid && [...$('prodSel').options].some(o => o.value === prevPid)){
+    $('prodSel').value = prevPid;
+    // bangun ulang opsi varian
+    const opt = $('prodSel').selectedOptions[0];
+    if (opt && opt.dataset.variants){
+      $('varSel').innerHTML = '<option value="">— pilih varian —</option>';
+      JSON.parse(opt.dataset.variants).forEach(({v,s}) => {
+        const o = document.createElement('option');
+        o.value = v;
+        o.textContent = s>0 ? `${v}  ·  stok ${s}` : `${v}  ·  HABIS`;
+        if (s<=0) o.disabled = true;
+        $('varSel').appendChild(o);
+      });
+      if (prevVar && [...$('varSel').options].some(o => o.value === prevVar)){
+        $('varSel').value = prevVar;
+      }
+    }
   }
   updateStockBox();
-});
-$('varSel').addEventListener('change', updateStockBox);
-function updateStockBox(){
-  const pid = $('prodSel').value, v = $('varSel').value;
-  if (!pid || !v){ $('stockBox').textContent='Pilih produk & varian dulu'; $('claimBtn').disabled=true; return; }
-  const s = stockMap[pid+'|'+v]||0;
-  $('stockBox').textContent = s>0 ? `Stok tersedia: ${s}` : 'Stok HABIS untuk varian ini';
-  $('claimBtn').disabled = s<=0;
 }
 
 // Realtime sync stok: subscribe ke tabel keys (kalau ada realtime), kalau gagal poll 8s
@@ -399,7 +399,7 @@ async function boot(){
 $('claimBtn').addEventListener('click', async () => {
   const pid = parseInt($('prodSel').value,10);
   const v = $('varSel').value;
-  if (!pid || !v) return;
+  if (!pid || !v){ toast('Pilih produk & varian dulu'); return; }
   if (!ADMIN_PW){
     ADMIN_PW = prompt('Password admin (1x saja, akan disimpan):') || '';
     if (ADMIN_PW) localStorage.setItem('vp_admin_pw', ADMIN_PW); else return;
