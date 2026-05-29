@@ -181,7 +181,7 @@ let stockMap = {};
 // Data store untuk custom dropdown
 let _cddProds = []; // [{pid, name, total, variants:[{v,s}]}]
 
-function toggleCdd(e, type){
+window.toggleCdd = function toggleCdd(e, type){
   if (e && e.stopPropagation) e.stopPropagation();
   const val = $(`${type}CddVal`);
   const list = $(`${type}CddList`);
@@ -206,7 +206,7 @@ document.addEventListener('click', e=>{
   });
 });
 
-function cddSelectProd(e, pid, name){
+window.cddSelectProd = function cddSelectProd(e, pid, name){
   if (e && e.stopPropagation) e.stopPropagation();
   $('prodSel').value = pid;
   $('prodCddTxt').textContent = name;
@@ -221,7 +221,7 @@ function cddSelectProd(e, pid, name){
   buildVarCdd(prod ? prod.variants : []);
   updateStockBox();
 }
-function cddSelectVar(e, vn, label, disabled){
+window.cddSelectVar = function cddSelectVar(e, vn, label, disabled){
   if (e && e.stopPropagation) e.stopPropagation();
   if (disabled) return;
   $('varSel').value = vn;
