@@ -6506,44 +6506,220 @@ setTimeout(function(){
 
 
 <script>
-// Global safe wrappers — dipanggil dari dropdown
-window.__showRiwayat = function(){
-  try {
-    const d = document.getElementById('userDropdown');
-    if (d) d.classList.remove('open');
-    const em = (typeof currentUser!=='undefined'&&currentUser&&currentUser.email) ? currentUser.email
-      : (()=>{try{return JSON.parse(localStorage.getItem('vp_user')||'null')?.email||'';}catch(e){return '';}})();
-    if (em === 'alpintandjung@gmail.com'){
-      if (typeof window.openAdminRiwayat==='function') window.openAdminRiwayat();
-      else alert('openAdminRiwayat belum siap');
-    } else {
-      if (typeof openRiwayat==='function') openRiwayat();
-      else alert('openRiwayat belum siap');
-    }
-  } catch(e){ alert('Error: '+e.message); }
-};
-window.__openNonton = function(){
-  try {
-    const d = document.getElementById('userDropdown');
-    if (d) d.classList.remove('open');
-    const panel = document.getElementById('nontonPanel');
-    if (!panel){ alert('Panel nonton tidak ditemukan'); return; }
-    panel.classList.add('open');
+(function(){
+  // ======= ADMIN RIWAYAT PANEL INIT =======
+  function getAdminEmail(){
+    try {
+      const u = (typeof currentUser!=='undefined'&&currentUser) ? currentUser
+        : JSON.parse(localStorage.getItem('vp_user')||'null');
+      return u ? (u.email||'') : '';
+    } catch(e){ return ''; }
+  }
+
+  function openAdminRiwayatPanel(){
+    const panel = document.getElementById('adminRiwayatPanel');
+    if (!panel){ console.error('adminRiwayatPanel not found'); return; }
+    panel.style.display = 'block';
     document.body.style.overflow = 'hidden';
-    if (typeof renderYtHistory==='function') renderYtHistory();
-    else {
-      // inline render history
-      const el = document.getElementById('ytHistory');
-      if (el){
-        try {
-          const h = JSON.parse(localStorage.getItem('vp_yt_history')||'[]');
-          el.innerHTML = h.length ? h.slice(0,8).map(u=>`<div style="background:#0d1f3c;border:1px solid rgba(26,111,255,.3);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;"><div style="flex:1;font-size:11px;color:#00d4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u}</div><button onclick="document.getElementById('ytLinkInput').value='${u.replace(/'/g,'&#39;')}';window.loadYoutube();" style="background:#1a6fff;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;cursor:pointer;">Play</button></div>`).join('')
-          : '<div style="color:#6a8cb5;font-size:11px;">Belum ada riwayat</div>';
-        } catch(e){}
-      }
+    history.pushState({panel:'adminRiwayat'}, '');
+    // Load data
+    const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || '';
+    const listEl = document.getElementById('arList');
+    const filterEl = document.getElementById('arDeviceFilter');
+    const summEl = document.getElementById('arSummary');
+    if (!pw){
+      if(listEl) listEl.innerHTML = '<div style="padding:20px;text-align:center;color:#ff4455;font-size:13px;">Password admin belum diisi</div>';
+      return;
     }
-  } catch(e){ alert('Error nonton: '+e.message); }
-};
+    if(listEl) listEl.innerHTML = '<div style="padding:20px;text-align:center;color:#6a8cb5;">Memuat data...</div>';
+
+    Promise.all([
+      window._sb.rpc('admin_get_claim_log',{p_pass:pw}).catch(()=>
+        window._sb.from('key_claim_log').select('*').order('created_at',{ascending:false}).limit(300)
+      ),
+      window._sb.rpc('admin_get_transactions',{p_pass:pw}).catch(()=>
+        window._sb.from('transactions').select('*').order('created_at',{ascending:false}).limit(300)
+      )
+    ]).then(([r1,r2])=>{
+      const manual = (r1.data||[]);
+      const qris = (r2.data||[]);
+      window._arManual = manual;
+      window._arQris = qris;
+      window._arTab = window._arTab || 'manual';
+      window._arDevice = 'all';
+      renderArData();
+    }).catch(e=>{
+      if(listEl) listEl.innerHTML = '<div style="padding:20px;color:#ff4455;font-size:12px;">Error: '+e.message+'</div>';
+    });
+  }
+
+  function renderArData(){
+    const tab = window._arTab || 'manual';
+    const manual = window._arManual || [];
+    const qris = window._arQris || [];
+    const listEl = document.getElementById('arList');
+    const filterEl = document.getElementById('arDeviceFilter');
+    const summEl = document.getElementById('arSummary');
+    if(!listEl) return;
+
+    document.getElementById('arTabManual').className = 'ar-tab'+(tab==='manual'?' active':'');
+    document.getElementById('arTabQris').className = 'ar-tab'+(tab==='qris'?' active':'');
+
+    function fmt(ts){
+      if(!ts) return '-';
+      const d = new Date(ts);
+      const bln=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+      return d.getDate()+' '+bln[d.getMonth()]+' '+d.getFullYear()+' '+
+        String(d.getHours()).padStart(2,'0')+'.'+String(d.getMinutes()).padStart(2,'0');
+    }
+
+    if(tab==='manual'){
+      const devMap = {};
+      manual.forEach(r=>{
+        const k = r.device_id||'?';
+        if(!devMap[k]) devMap[k] = {name: r.device_name||r.device_phone||k.slice(0,8), count:0};
+        devMap[k].count++;
+      });
+      const selDev = window._arDevice||'all';
+      let btns = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+        <button onclick="window._arDevice='all';renderArData();" style="background:${selDev==='all'?'#1a6fff':'#0d1f3c'};color:#fff;border:1px solid #1a6fff;border-radius:20px;padding:4px 12px;font-size:11px;cursor:pointer;">Semua (${manual.length})</button>`;
+      Object.entries(devMap).forEach(([did,info])=>{
+        btns += `<button onclick="window._arDevice='${did}';renderArData();" style="background:${selDev===did?'#1a6fff':'#0d1f3c'};color:#fff;border:1px solid rgba(26,111,255,.4);border-radius:20px;padding:4px 12px;font-size:11px;cursor:pointer;">${info.name} (${info.count})</button>`;
+      });
+      btns += '</div>';
+      if(filterEl) filterEl.innerHTML = btns;
+
+      const rows = selDev==='all' ? manual : manual.filter(r=>(r.device_id||'?')===selDev);
+      if(summEl) summEl.innerHTML = `<div style="background:#0d1f3c;border:1px solid rgba(26,111,255,.3);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#00d4ff;font-weight:700;">Total klaim: ${rows.length}</div>`;
+      if(!rows.length){ listEl.innerHTML='<div style="padding:30px;text-align:center;color:#6a8cb5;">Belum ada data klaim</div>'; return; }
+      listEl.innerHTML = rows.map(r=>`
+        <div style="background:linear-gradient(180deg,#0d1f3c,#0a1a30);border:1px solid rgba(26,111,255,.25);border-radius:12px;padding:12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-size:11px;font-weight:900;color:#00d4ff;">${r.device_name||r.device_phone||'Device'}</div>
+            <div style="font-size:10px;color:#6a8cb5;">${fmt(r.created_at)}</div>
+          </div>
+          <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;">Produk #${r.product_id} · ${r.variant||'-'}</div>
+          <div style="background:#02080f;border:1px dashed #1a6fff;border-radius:6px;padding:7px 10px;font-family:monospace;font-size:12px;color:#00ff88;margin-top:6px;">${r.key_value||'-'}</div>
+          <div style="font-size:10px;color:#6a8cb5;margin-top:5px;">Buyer: ${[r.buyer_email,r.buyer_wa].filter(Boolean).join(' · ')||'-'}</div>
+        </div>`).join('');
+    } else {
+      if(filterEl) filterEl.innerHTML = '';
+      if(!qris.length){ if(summEl) summEl.innerHTML=''; listEl.innerHTML='<div style="padding:30px;text-align:center;color:#6a8cb5;">Belum ada transaksi QRIS</div>'; return; }
+      if(summEl) summEl.innerHTML = `<div style="background:#0d1f3c;border:1px solid rgba(255,180,0,.3);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#ffb400;font-weight:700;">Total transaksi: ${qris.length}</div>`;
+      listEl.innerHTML = qris.map(r=>{
+        const d=r.data||{};
+        return `<div style="background:linear-gradient(180deg,#0d1f3c,#0a1a30);border:1px solid rgba(255,180,0,.2);border-radius:12px;padding:12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-size:11px;font-weight:900;color:#ffb400;">${(d.method||'QRIS').toUpperCase()}</div>
+            <div style="font-size:10px;color:#6a8cb5;">${fmt(r.created_at)}</div>
+          </div>
+          <div style="font-size:13px;color:#fff;">${d.productName||d.prod||'-'} ${d.variantName||''}</div>
+          <div style="font-size:11px;color:#6a8cb5;margin-top:4px;">Email: ${r.email||'-'} · TRX: ${r.trx_id||'-'}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  window.renderArData = renderArData;
+  window.switchArTab = function(tab){ window._arTab=tab; renderArData(); };
+  window.closeAdminRiwayat = function(){
+    const p = document.getElementById('adminRiwayatPanel');
+    if(p) p.style.display='none';
+    document.body.style.overflow='';
+  };
+  window.openAdminRiwayat = openAdminRiwayatPanel;
+  window.loadAdminRiwayat = openAdminRiwayatPanel;
+
+  // ======= NONTON =======
+  window.__openNonton = function(){
+    const d = document.getElementById('userDropdown');
+    if(d) d.classList.remove('open');
+    const panel = document.getElementById('nontonPanel');
+    if(!panel) return;
+    panel.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    history.pushState({panel:'nonton'}, '');
+    // render history
+    const el = document.getElementById('ytHistory');
+    if(el){
+      try {
+        const h = JSON.parse(localStorage.getItem('vp_yt_history')||'[]');
+        el.innerHTML = h.length ? h.slice(0,8).map((u,i)=>`
+          <div style="background:#0d1f3c;border:1px solid rgba(26,111,255,.3);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;">
+            <div style="flex:1;font-size:11px;color:#00d4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u}</div>
+            <button onclick="document.getElementById('ytLinkInput').value=window._ytH[${i}];window.loadYoutube();" style="background:#1a6fff;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;cursor:pointer;">Play</button>
+          </div>`).join('')
+        : '<div style="color:#6a8cb5;font-size:11px;">Belum ada riwayat</div>';
+        window._ytH = h;
+      } catch(e){}
+    }
+  };
+  window.closeNonton = function(){
+    const ct = document.getElementById('ytContainer');
+    if(ct) ct.innerHTML = '<div style="color:#555;font-size:12px;text-align:center;padding:30px;">Paste link YouTube lalu tekan PLAY</div>';
+    const p = document.getElementById('nontonPanel');
+    if(p) p.style.display='none';
+    document.body.style.overflow='';
+  };
+  window.loadYoutube = function(){
+    const inp = document.getElementById('ytLinkInput');
+    const url = inp ? inp.value.trim() : '';
+    if(!url) return;
+    function ytId(u){
+      try {
+        const x = new URL(u);
+        if(x.hostname.includes('youtu.be')) return x.pathname.slice(1).split('?')[0];
+        return x.searchParams.get('v')||'';
+      } catch(e){ return ''; }
+    }
+    const vid = ytId(url);
+    const ct = document.getElementById('ytContainer');
+    if(!ct) return;
+    const src = vid ? `https://www.youtube.com/embed/${vid}?autoplay=1&rel=0` : url;
+    ct.innerHTML = `<iframe style="width:100%;aspect-ratio:16/9;border:none;" src="${src}" allowfullscreen allow="autoplay;encrypted-media;gyroscope"></iframe>`;
+    try {
+      let h = JSON.parse(localStorage.getItem('vp_yt_history')||'[]');
+      h = [url,...h.filter(x=>x!==url)].slice(0,8);
+      localStorage.setItem('vp_yt_history', JSON.stringify(h));
+      window._ytH = h;
+    } catch(e){}
+    window.__openNonton();
+  };
+
+  // ======= RIWAYAT WRAPPER =======
+  window.__showRiwayat = function(){
+    const d = document.getElementById('userDropdown');
+    if(d) d.classList.remove('open');
+    const em = getAdminEmail();
+    if(em === 'alpintandjung@gmail.com'){
+      openAdminRiwayatPanel();
+    } else {
+      if(typeof openRiwayat==='function') openRiwayat();
+      else if(typeof window.showRiwayat==='function') window.showRiwayat();
+    }
+  };
+
+  // ======= BACK BUTTON HANDLER =======
+  window.addEventListener('popstate', function(){
+    // Tutup panel yang terbuka
+    ['nontonPanel','adminRiwayatPanel'].forEach(id=>{
+      const p = document.getElementById(id);
+      if(p && p.style.display==='block'){
+        p.style.display='none';
+        document.body.style.overflow='';
+        const ct = document.getElementById('ytContainer');
+        if(ct && id==='nontonPanel') ct.innerHTML='<div style="color:#555;font-size:12px;text-align:center;padding:30px;">Paste link YouTube lalu tekan PLAY</div>';
+      }
+    });
+  });
+
+  // ======= OVERRIDE adminRiwayatPanel CSS display =======
+  // Panel pakai style.display langsung bukan classList
+  const style = document.createElement('style');
+  style.textContent = '#adminRiwayatPanel{display:none!important;} #adminRiwayatPanel[style*="block"]{display:block!important;} #nontonPanel{display:none!important;} #nontonPanel[style*="block"]{display:block!important;}';
+  document.head.appendChild(style);
+
+})();
 </script>
 </body>
 </html>
