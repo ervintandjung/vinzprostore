@@ -2847,16 +2847,16 @@ function kmPopulateVar(){
   varSel.innerHTML = p.variants.map(v => `<option value="${v.n}">${v.n}</option>`).join('');
   if (cur && p.variants.some(v=>v.n===cur)) varSel.value = cur;
 }
-// Sync status SOLD dari Supabase ke localStorage (sumber kebenaran: tabel stock_keys)
+// Sync status SOLD dari Supabase ke localStorage (sumber kebenaran: tabel product_keys)
 async function kmSyncFromCloud(pid, vn){
   if (!pid || !vn || typeof _sb === 'undefined') return;
   const { data, error } = await _sb
-    .from('stock_keys')
-    .select('key,status')
-    .eq('product', pid)
+    .from('product_keys')
+    .select('key_value,status')
+    .eq('product_id', pid)
     .eq('variant', vn);
   if (error) throw error;
-  const cloud = new Map((data||[]).map(r => [r.key, r.status]));
+  const cloud = new Map((data||[]).map(r => [r.key_value, r.status]));
   const s = getKeyStore(); const k = _kKey(parseInt(pid), vn);
   const arr = s[k] || [];
   const localKeys = new Set(arr.map(x => x.key));
