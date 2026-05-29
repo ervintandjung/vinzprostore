@@ -2860,18 +2860,21 @@ async function kmSyncFromCloud(pid, vn){
   const s = getKeyStore(); const k = _kKey(parseInt(pid), vn);
   const arr = s[k] || [];
   const localKeys = new Set(arr.map(x => x.key));
+  // Helper normalisasi status cloud → selalu lowercase 'sold' atau 'available'
+  const normStatus = raw => (['sold','used'].includes((raw||'').toLowerCase())) ? 'sold' : 'available';
   // Update status entry lokal dari cloud
   for (const e of arr){
-    const cs = cloud.get(e.key);
-    if (cs && cs !== e.status){
+    const cs = normStatus(cloud.get(e.key));
+    if (cloud.has(e.key) && cs !== e.status){
       e.status = cs;
       if (cs === 'sold' && !e.soldAt) e.soldAt = new Date().toISOString();
     }
   }
   // Tambah key yang ada di cloud tapi belum tercatat lokal
-  for (const [key, status] of cloud){
+  for (const [key, rawSt] of cloud){
     if (!localKeys.has(key)){
-      arr.push({ key, status, soldTo: null, soldAt: status==='sold' ? new Date().toISOString() : null });
+      const st = normStatus(rawSt);
+      arr.push({ key, status: st, soldTo: null, soldAt: st==='sold' ? new Date().toISOString() : null });
     }
   }
   s[k] = arr; setKeyStore(s);
