@@ -1380,8 +1380,8 @@ function renderHeader() {
       <div class="dropdown" id="userDropdown">
         <div class="dd-user"><strong>${currentUser.name || 'User'}</strong>${currentUser.email}</div>
         ${isAdmin ? `<button class="dd-item admin-item" onclick="openAdmin()">Menu Admin</button>` : ''}
-        ${isAdmin ? `<button class="dd-item admin-item" onclick="openNonton()">Nonton</button>` : ''}
-        <button class="dd-item" onclick="showRiwayat()">Riwayat Order</button>
+        ${isAdmin ? `<button class="dd-item admin-item" onclick="window.__openNonton()">Nonton</button>` : ''}
+        <button class="dd-item" onclick="window.__showRiwayat()">Riwayat Order</button>
         <button class="dd-item" onclick="showPengaturan()">Pengaturan Akun</button>
         <button class="dd-item danger" onclick="doLogout()">Logout</button>
       </div>
@@ -6504,6 +6504,47 @@ setTimeout(function(){
 </script>
 
 
+
+<script>
+// Global safe wrappers — dipanggil dari dropdown
+window.__showRiwayat = function(){
+  try {
+    const d = document.getElementById('userDropdown');
+    if (d) d.classList.remove('open');
+    const em = (typeof currentUser!=='undefined'&&currentUser&&currentUser.email) ? currentUser.email
+      : (()=>{try{return JSON.parse(localStorage.getItem('vp_user')||'null')?.email||'';}catch(e){return '';}})();
+    if (em === 'alpintandjung@gmail.com'){
+      if (typeof window.openAdminRiwayat==='function') window.openAdminRiwayat();
+      else alert('openAdminRiwayat belum siap');
+    } else {
+      if (typeof openRiwayat==='function') openRiwayat();
+      else alert('openRiwayat belum siap');
+    }
+  } catch(e){ alert('Error: '+e.message); }
+};
+window.__openNonton = function(){
+  try {
+    const d = document.getElementById('userDropdown');
+    if (d) d.classList.remove('open');
+    const panel = document.getElementById('nontonPanel');
+    if (!panel){ alert('Panel nonton tidak ditemukan'); return; }
+    panel.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (typeof renderYtHistory==='function') renderYtHistory();
+    else {
+      // inline render history
+      const el = document.getElementById('ytHistory');
+      if (el){
+        try {
+          const h = JSON.parse(localStorage.getItem('vp_yt_history')||'[]');
+          el.innerHTML = h.length ? h.slice(0,8).map(u=>`<div style="background:#0d1f3c;border:1px solid rgba(26,111,255,.3);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;"><div style="flex:1;font-size:11px;color:#00d4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u}</div><button onclick="document.getElementById('ytLinkInput').value='${u.replace(/'/g,'&#39;')}';window.loadYoutube();" style="background:#1a6fff;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;cursor:pointer;">Play</button></div>`).join('')
+          : '<div style="color:#6a8cb5;font-size:11px;">Belum ada riwayat</div>';
+        } catch(e){}
+      }
+    }
+  } catch(e){ alert('Error nonton: '+e.message); }
+};
+</script>
 </body>
 </html>
 
