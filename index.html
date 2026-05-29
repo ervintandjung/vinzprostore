@@ -1379,10 +1379,11 @@ function renderHeader() {
       </div>
       <div class="dropdown" id="userDropdown">
         <div class="dd-user"><strong>${currentUser.name || 'User'}</strong>${currentUser.email}</div>
-        ${isAdmin ? `<button class="dd-item admin-item" onclick="openAdmin()">Menu Admin</button>` : ''}
-        <button class="dd-item" onclick="showRiwayat()">Riwayat Order</button>
-        <button class="dd-item" onclick="showPengaturan()">Pengaturan Akun</button>
-        <button class="dd-item danger" onclick="doLogout()">Logout</button>
+        ${isAdmin ? `<button class="dd-item admin-item" onclick="openAdmin()">⚙️ Menu Admin</button>` : ''}
+        ${isAdmin ? `<button class="dd-item admin-item" onclick="openNonton()">📺 Nonton</button>` : ''}
+        <button class="dd-item" onclick="showRiwayat()">📋 Riwayat Order</button>
+        <button class="dd-item" onclick="showPengaturan()">⚙️ Pengaturan Akun</button>
+        <button class="dd-item danger" onclick="doLogout()">🚪 Logout</button>
       </div>
     </div>`;
   }
@@ -3254,7 +3255,7 @@ function getBuyNotifProductObj(){
 }
 function isMainPageActive(){
   // Cek semua panel/overlay — kalau ada yang open, berarti bukan di menu utama
-  const panels = ['prodFullscreen','adminPanel','settingsPanel','authOverlay','riwayatPanel','qrOverlay'];
+  const panels = ['prodFullscreen','adminPanel','settingsPanel','authOverlay','riwayatPanel','qrOverlay','adminRiwayatPanel','nontonPanel'];
   for (const id of panels){
     const el = document.getElementById(id);
     if (el && el.classList.contains('open')) return false;
@@ -4533,6 +4534,335 @@ function doPesan(){
       if (changed){ all.sort((a,b)=>(b.ts||0)-(a.ts||0)); setAllTrx(all); }
     }
   } catch(e){}
+})();
+</script>
+
+<!-- ===== ADMIN RIWAYAT PANEL ===== -->
+<style>
+#adminRiwayatPanel{display:none;position:fixed;inset:0;background:#07111f;z-index:390;overflow-y:auto;}
+#adminRiwayatPanel.open{display:block;animation:fsSlideIn .3s ease;}
+.ar-tabs{display:flex;gap:0;background:var(--card2);border-radius:10px;padding:4px;margin-bottom:14px;}
+.ar-tab{flex:1;padding:9px;text-align:center;border-radius:8px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;cursor:pointer;color:var(--muted);transition:.2s;letter-spacing:.5px;}
+.ar-tab.active{background:var(--accent);color:#fff;}
+.ar-card{background:linear-gradient(180deg,#0d1f3c,#0a1a30);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px;}
+.ar-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.ar-device{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;color:var(--accent2);}
+.ar-time{font-size:10px;color:var(--muted);}
+.ar-prod{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;}
+.ar-meta{font-size:11px;color:var(--muted);}
+.ar-key{background:#02080f;border:1px dashed var(--accent);border-radius:7px;padding:8px 10px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#00ff88;word-break:break-all;}
+.ar-buyer{font-size:10px;color:var(--muted);margin-top:6px;}
+.ar-empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.ar-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.ar-filter-btn{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted);transition:.2s;}
+.ar-filter-btn.sel{background:var(--accent);border-color:var(--accent);color:#fff;}
+</style>
+
+<div id="adminRiwayatPanel">
+  <div style="background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid var(--accent);padding:12px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);">
+    <button onclick="closeAdminRiwayat()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">&#8592;</button>
+    <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:var(--gold);flex:1;">📊 RIWAYAT SEMUA TRANSAKSI</div>
+    <button onclick="loadAdminRiwayat()" style="background:rgba(26,111,255,.18);border:1px solid var(--accent);color:var(--accent);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:14px;">↻</button>
+  </div>
+  <div style="max-width:520px;margin:0 auto;padding:16px 14px 80px;">
+    <div class="ar-tabs">
+      <div class="ar-tab active" id="arTabManual" onclick="switchArTab('manual')">📦 MANUAL (KEY)</div>
+      <div class="ar-tab" id="arTabQris" onclick="switchArTab('qris')">💳 QRIS/SALDO</div>
+    </div>
+    <!-- Filter device (hanya tab manual) -->
+    <div id="arDeviceFilter" style="margin-bottom:10px;"></div>
+    <div id="arSummary" style="margin-bottom:12px;"></div>
+    <div id="arList"><div class="ar-empty">⏳ Memuat…</div></div>
+  </div>
+</div>
+
+<!-- ===== NONTON PANEL (khusus admin) ===== -->
+<style>
+#nontonPanel{display:none;position:fixed;inset:0;background:#000;z-index:395;overflow-y:auto;}
+#nontonPanel.open{display:block;animation:fsSlideIn .3s ease;}
+.yt-frame{width:100%;aspect-ratio:16/9;border:none;background:#000;display:block;}
+</style>
+
+<div id="nontonPanel">
+  <div style="background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid #ff0000;padding:12px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;">
+    <button onclick="closeNonton()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">&#8592;</button>
+    <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#ff4444;flex:1;">📺 NONTON VIDEO</div>
+  </div>
+  <div style="padding:14px;">
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <input id="ytLinkInput" placeholder="Paste link YouTube di sini…" style="flex:1;background:#0d1f3c;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;">
+      <button onclick="loadYoutube()" style="background:#ff0000;color:#fff;border:none;border-radius:10px;padding:10px 16px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;cursor:pointer;">▶ PLAY</button>
+    </div>
+    <div id="ytContainer" style="border-radius:14px;overflow:hidden;background:#000;min-height:200px;display:flex;align-items:center;justify-content:center;">
+      <div style="color:#555;font-family:'Orbitron',sans-serif;font-size:12px;text-align:center;">📺<br>Paste link YouTube<br>lalu tekan PLAY</div>
+    </div>
+    <div style="margin-top:12px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:700;">RIWAYAT LINK:</div>
+      <div id="ytHistory" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== ADMIN RIWAYAT (baca dari Supabase) =====
+(function(){
+  'use strict';
+
+  const ADMIN_EM = 'alpintandjung@gmail.com';
+  let _currentTab = 'manual';
+  let _allManual = []; // dari key_claim_log
+  let _allQris = [];   // dari transactions
+  let _selectedDevice = 'all';
+
+  function isAdmin(){
+    try {
+      const u = JSON.parse(localStorage.getItem('vp_user')||'null');
+      return u && u.email === ADMIN_EM;
+    } catch(e){ return false; }
+  }
+
+  window.openAdminRiwayat = function(){
+    if (!isAdmin()){ if(typeof showNotif==='function') showNotif('❌ Akses ditolak'); return; }
+    document.getElementById('adminRiwayatPanel').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    loadAdminRiwayat();
+  };
+  window.closeAdminRiwayat = function(){
+    document.getElementById('adminRiwayatPanel').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  window.switchArTab = function(tab){
+    _currentTab = tab;
+    document.getElementById('arTabManual').classList.toggle('active', tab==='manual');
+    document.getElementById('arTabQris').classList.toggle('active', tab==='qris');
+    renderArList();
+  };
+
+  window.loadAdminRiwayat = async function(){
+    if (!isAdmin()) return;
+    const listEl = document.getElementById('arList');
+    listEl.innerHTML = '<div class="ar-empty">⏳ Memuat data dari cloud…</div>';
+    const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || '';
+    if (!pw){ listEl.innerHTML = '<div class="ar-empty" style="color:var(--danger)">❌ Password admin belum diisi</div>'; return; }
+
+    // Load manual (key_claim_log) via RPC
+    try {
+      const r1 = await _sb.rpc('admin_get_claim_log', { p_pass: pw });
+      if (r1.error) throw r1.error;
+      _allManual = r1.data || [];
+    } catch(e) {
+      // fallback: query langsung jika RPC belum ada
+      const r1b = await _sb.from('key_claim_log').select('*').order('created_at', {ascending:false}).limit(500);
+      _allManual = r1b.data || [];
+    }
+
+    // Load QRIS/Saldo (transactions)
+    try {
+      const r2 = await _sb.rpc('admin_get_transactions', { p_pass: pw });
+      if (r2.error) throw r2.error;
+      _allQris = r2.data || [];
+    } catch(e) {
+      const r2b = await _sb.from('transactions').select('*').order('created_at', {ascending:false}).limit(500);
+      _allQris = r2b.data || [];
+    }
+
+    renderArList();
+  };
+
+  const PROD_NAMES = {
+    1:'DRIP CLIENT FF NON ROOT',2:'DRIP CLIENT ROOT FF',3:'FLUORITE IOS FF',
+    4:'MIGUL PRO IOS FF',5:'MIGUL IOS LITE FF',6:'HG CHEAT FF',
+    7:'PATO TEAM FF APKMOD',8:'FLUORITE IOS MLBB',9:'META+ MLBB ANDROID',
+    10:'BR MODS ROOT',11:'BR MODS SLIENT PC',12:'XYNCZ BYPASS',
+    13:'AURORA VN PC',14:'GBOX/ESIGN IOS',15:'PRIME HOOK APKMOD',
+    16:'DRIP CLIENT 8 BALL'
+  };
+
+  function fmtTime(ts){
+    if (!ts) return '-';
+    const d = new Date(ts);
+    const bln=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    return d.getDate()+' '+bln[d.getMonth()]+' '+d.getFullYear()+', '+
+      String(d.getHours()).padStart(2,'0')+'.'+String(d.getMinutes()).padStart(2,'0');
+  }
+
+  function renderArList(){
+    const listEl = document.getElementById('arList');
+    const filterEl = document.getElementById('arDeviceFilter');
+    const summEl = document.getElementById('arSummary');
+
+    if (_currentTab === 'manual'){
+      // Build device list untuk filter
+      const devices = {};
+      _allManual.forEach(r => {
+        const key = r.device_id || 'unknown';
+        if (!devices[key]) devices[key] = { name: r.device_name || r.device_phone || key.slice(0,8), count: 0 };
+        devices[key].count++;
+      });
+
+      // Render filter buttons
+      const devBtns = Object.entries(devices).map(([did, info]) =>
+        `<button class="ar-filter-btn${_selectedDevice===did?' sel':''}" onclick="window._arSelectDevice('${did}')">${info.name} (${info.count})</button>`
+      ).join('');
+      filterEl.innerHTML = `<div class="ar-filter">
+        <button class="ar-filter-btn${_selectedDevice==='all'?' sel':''}" onclick="window._arSelectDevice('all')">Semua (${_allManual.length})</button>
+        ${devBtns}
+      </div>`;
+
+      // Filter data
+      const rows = _selectedDevice === 'all' ? _allManual
+        : _allManual.filter(r => (r.device_id||'unknown') === _selectedDevice);
+
+      // Summary
+      summEl.innerHTML = `<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="font-size:12px;color:var(--accent2);font-weight:700;">Total klaim: <span style="color:#fff">${rows.length}</span></div>
+      </div>`;
+
+      if (!rows.length){ listEl.innerHTML = '<div class="ar-empty">📭 Belum ada data klaim key</div>'; return; }
+
+      listEl.innerHTML = rows.map(r => {
+        const devName = r.device_name || r.device_phone || (r.device_id||'?').slice(0,8);
+        const prodName = PROD_NAMES[r.product_id] || ('Produk #'+r.product_id);
+        const buyer = [r.buyer_email, r.buyer_wa].filter(Boolean).join(' · ') || '-';
+        return `<div class="ar-card">
+          <div class="ar-head">
+            <div>
+              <div class="ar-device">📱 ${devName}</div>
+              <div class="ar-time">${fmtTime(r.created_at)}</div>
+            </div>
+            <div style="font-size:10px;color:var(--muted);text-align:right;">ID: ${String(r.device_id||'').slice(0,8)}</div>
+          </div>
+          <div class="ar-prod">${prodName}</div>
+          <div class="ar-meta">Varian: ${r.variant||'-'}</div>
+          <div class="ar-key">🔑 ${r.key_value||'-'}</div>
+          <div class="ar-buyer">Buyer: ${buyer}</div>
+        </div>`;
+      }).join('');
+
+    } else {
+      // QRIS / Saldo tab
+      filterEl.innerHTML = '';
+      if (!_allQris.length){ summEl.innerHTML=''; listEl.innerHTML = '<div class="ar-empty">📭 Belum ada transaksi QRIS/Saldo</div>'; return; }
+
+      summEl.innerHTML = `<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;">
+        <div style="font-size:12px;color:var(--accent2);font-weight:700;">Total transaksi: <span style="color:#fff">${_allQris.length}</span></div>
+      </div>`;
+
+      listEl.innerHTML = _allQris.map(r => {
+        const d = r.data || {};
+        const status = (d.status || d.state || 'menunggu').toLowerCase();
+        const stColor = status==='sukses'||status==='success' ? '#00ff88'
+                      : status==='batal'||status==='failed' ? '#ff4455' : '#ffb400';
+        const method = (d.method || d.type || 'QRIS').toUpperCase();
+        return `<div class="ar-card">
+          <div class="ar-head">
+            <div>
+              <div class="ar-device" style="color:var(--gold);">💳 ${method}</div>
+              <div class="ar-time">${fmtTime(r.created_at)}</div>
+            </div>
+            <div style="font-size:11px;font-weight:900;color:${stColor};">${status.toUpperCase()}</div>
+          </div>
+          <div class="ar-prod">${d.productName||d.prod||'-'}</div>
+          <div class="ar-meta">${d.variantName||d.variant||''} ${d.qty ? '· '+d.qty+'x':''}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;">Email: ${r.email||'-'}</div>
+          <div style="font-size:11px;color:var(--muted);">TRX: ${r.trx_id||'-'}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  window._arSelectDevice = function(did){
+    _selectedDevice = did;
+    renderArList();
+  };
+
+  // Override showRiwayat: admin → buka adminRiwayat, user biasa → riwayat biasa
+  const _origShowRiw = window.showRiwayat;
+  window.showRiwayat = function(){
+    const d = document.getElementById('userDropdown');
+    if (d) d.classList.remove('open');
+    if (isAdmin()){
+      window.openAdminRiwayat();
+    } else {
+      if (_origShowRiw) _origShowRiw();
+      else if (typeof openRiwayat==='function') openRiwayat();
+    }
+  };
+
+})();
+
+// ===== NONTON YOUTUBE (khusus admin) =====
+(function(){
+  let _ytHistory = [];
+  try { _ytHistory = JSON.parse(localStorage.getItem('vp_yt_history')||'[]'); } catch(e){}
+
+  function ytVideoId(url){
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1).split('?')[0];
+      return u.searchParams.get('v') || '';
+    } catch(e){ return ''; }
+  }
+
+  function renderYtHistory(){
+    const el = document.getElementById('ytHistory');
+    if (!el) return;
+    if (!_ytHistory.length){ el.innerHTML = '<div style="color:var(--muted);font-size:11px;">Belum ada riwayat</div>'; return; }
+    el.innerHTML = _ytHistory.slice(0,8).map((url,i) =>
+      `<div style="display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;">
+        <div style="flex:1;font-size:11px;color:var(--accent2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${url}</div>
+        <button onclick="window._playYt('${url.replace(/'/g,''')}')" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;">▶</button>
+      </div>`
+    ).join('');
+  }
+
+  window._playYt = function(url){
+    const inp = document.getElementById('ytLinkInput');
+    if (inp) inp.value = url;
+    window.loadYoutube();
+  };
+
+  window.loadYoutube = function(){
+    const inp = document.getElementById('ytLinkInput');
+    const url = (inp ? inp.value.trim() : '');
+    if (!url){ if(typeof showNotif==='function') showNotif('❌ Paste link YouTube dulu'); return; }
+    const vid = ytVideoId(url);
+    const ct = document.getElementById('ytContainer');
+    if (!ct) return;
+    if (!vid){
+      // Coba embed langsung sebagai iframe src
+      ct.innerHTML = `<iframe class="yt-frame" src="${url}" allowfullscreen allow="autoplay;encrypted-media"></iframe>`;
+    } else {
+      ct.innerHTML = `<iframe class="yt-frame" src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0" allowfullscreen allow="autoplay;encrypted-media;gyroscope;picture-in-picture"></iframe>`;
+    }
+    // Simpan ke history
+    _ytHistory = [url, ..._ytHistory.filter(u=>u!==url)].slice(0,8);
+    try { localStorage.setItem('vp_yt_history', JSON.stringify(_ytHistory)); } catch(e){}
+    renderYtHistory();
+  };
+
+  window.openNonton = function(){
+    const u = (() => { try { return JSON.parse(localStorage.getItem('vp_user')||'null'); } catch(e){ return null; } })();
+    if (!u || u.email !== 'alpintandjung@gmail.com'){ if(typeof showNotif==='function') showNotif('❌ Akses ditolak'); return; }
+    const d = document.getElementById('userDropdown');
+    if (d) d.classList.remove('open');
+    document.getElementById('nontonPanel').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    renderYtHistory();
+  };
+
+  window.closeNonton = function(){
+    // Stop video saat tutup
+    const ct = document.getElementById('ytContainer');
+    if (ct) ct.innerHTML = '<div style="color:#555;font-family:Orbitron,sans-serif;font-size:12px;text-align:center;">📺<br>Paste link YouTube<br>lalu tekan PLAY</div>';
+    document.getElementById('nontonPanel').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  // Enter key di input
+  const inp = document.getElementById('ytLinkInput');
+  if (inp) inp.addEventListener('keydown', e=>{ if(e.key==='Enter') window.loadYoutube(); });
 })();
 </script>
 
