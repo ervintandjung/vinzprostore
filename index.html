@@ -2890,29 +2890,50 @@ async function kmSyncFromCloud(pid, vn){
 
 async function renderKeyManager(){
   kmPopulateVar();
-  const pid = document.getElementById('kmProd').value;
+  const pid = parseInt(document.getElementById('kmProd').value);
   const vn  = document.getElementById('kmVar').value;
   if (!pid || !vn) return;
-  try { await kmSyncFromCloud(parseInt(pid), vn); }
-  catch(e){ console.warn('Sync cloud gagal:', e.message||e); }
-  const s = getKeyStore();
-  const arr = s[_kKey(parseInt(pid), vn)] || [];
-  const avail = arr.filter(k=>k.status==='available').length;
-  const sold  = arr.filter(k=>k.status==='sold').length;
-  document.getElementById('kmStats').innerHTML = `
-    <div style="background:var(--success);color:#000;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;">TERSEDIA: ${avail}</div>
-    <div style="background:var(--danger);color:#fff;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;">SOLD: ${sold}</div>
-    <div style="background:var(--card2);border:1px solid var(--border);color:var(--accent2);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;">TOTAL: ${arr.length}</div>`;
+
   const list = document.getElementById('kmList');
-  if (!arr.length){ list.innerHTML = '<div style="padding:18px;text-align:center;color:var(--muted);font-size:12px;">Belum ada key. Tambahkan di atas ⬆️</div>'; return; }
-  list.innerHTML = arr.map((k,i) => `
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);font-size:12px;">
-      <span style="color:var(--muted);width:24px;flex-shrink:0;">${i+1}</span>
-      <span style="flex:1;color:#fff;font-family:'JetBrains Mono',monospace;word-break:break-all;">${k.key}</span>
-      <span style="font-size:9px;font-weight:900;padding:3px 7px;border-radius:5px;font-family:Orbitron,sans-serif;${k.status==='sold'?'background:var(--danger);color:#fff;':'background:var(--success);color:#000;'}">${k.status==='sold'?'SOLD':'AVAIL'}</span>
-      <button onclick="kmDeleteOne(${i})" style="background:transparent;border:1px solid var(--danger);color:var(--danger);border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:11px;flex-shrink:0;">✕</button>
-    </div>
-  `).join('');
+  const statsEl = document.getElementById('kmStats');
+  list.innerHTML = '<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px;">⏳ Memuat dari cloud…</div>';
+
+  // Ambil langsung dari Supabase (sumber kebenaran), bukan localStorage
+  const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || '';
+  if (!pw) {
+    list.innerHTML = '<div style="padding:12px;text-align:center;color:var(--danger);font-size:12px;">❌ Password admin belum diisi</div>';
+    return;
+  }
+  try {
+    const { data, error } = await _sb.rpc('get_keys_for_admin', { p_pass: pw, p_product: pid, p_variant: vn });
+    if (error) throw error;
+    const arr = data || [];
+    const normSt = s => (['sold','used'].includes((s||'').toLowerCase())) ? 'sold' : 'available';
+    const normed = arr.map(r => ({ key: r.key_value, status: normSt(r.status) }));
+    const avail = normed.filter(x=>x.status==='available').length;
+    const sold  = normed.filter(x=>x.status==='sold').length;
+
+    // Update localStorage biar assignKeys (pembelian QRIS/saldo) tetap bisa pakai
+    const store = getKeyStore(); const k = _kKey(pid, vn);
+    store[k] = normed.map(r => ({ key: r.key, status: r.status, soldTo: r.status==='sold'?'cloud':null, soldAt: null }));
+    setKeyStore(store);
+
+    statsEl.innerHTML = `
+      <div style="background:var(--success);color:#000;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;">TERSEDIA: ${avail}</div>
+      <div style="background:var(--danger);color:#fff;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;">SOLD: ${sold}</div>
+      <div style="background:var(--card2);border:1px solid var(--border);color:var(--accent2);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;">TOTAL: ${normed.length}</div>`;
+    if (!normed.length){ list.innerHTML = '<div style="padding:18px;text-align:center;color:var(--muted);font-size:12px;">Belum ada key. Tambahkan di atas ⬆️</div>'; return; }
+    list.innerHTML = normed.map((r,i) => `
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);font-size:12px;">
+        <span style="color:var(--muted);width:24px;flex-shrink:0;">${i+1}</span>
+        <span style="flex:1;color:#fff;font-family:'JetBrains Mono',monospace;word-break:break-all;">${r.key}</span>
+        <span style="font-size:9px;font-weight:900;padding:3px 7px;border-radius:5px;font-family:Orbitron,sans-serif;${r.status==='sold'?'background:var(--danger);color:#fff;':'background:var(--success);color:#000;'}">${r.status==='sold'?'SOLD':'AVAIL'}</span>
+        <button onclick="kmDeleteOne('${r.key.replace(/'/g,"\'")}')" style="background:transparent;border:1px solid var(--danger);color:var(--danger);border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:11px;flex-shrink:0;">✕</button>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="padding:12px;color:var(--danger);font-size:12px;">❌ Gagal load dari cloud: '+(e.message||e)+'</div>';
+  }
 }
 async function kmAddKeys(){
   const pid = parseInt(document.getElementById('kmProd').value);
@@ -2922,59 +2943,50 @@ async function kmAddKeys(){
               .split('\n').map(s=>s.trim()).filter(Boolean);
   if (!raw.length) { showNotif('❌ Masukkan minimal 1 key'); return; }
 
-  // 1) Simpan ke localStorage (cache lama, tetap dipakai web index)
-  const s = getKeyStore(); const k = _kKey(pid,vn);
-  s[k] = s[k] || [];
-  raw.forEach(line => s[k].push({key: line, status:'available', soldTo:null, soldAt:null}));
-  setKeyStore(s);
-
-  // 2) Sync ke Supabase supaya ambil-key.html bisa lihat
   try {
-    const pw = sessionStorage.getItem('vp_admin_pw') || prompt('Password admin:');
-    if (pw){
-      sessionStorage.setItem('vp_admin_pw', pw);
-      const { data, error } = await _sb.rpc('admin_add_keys', {
-        p_pass: pw, p_product: pid, p_variant: vn, p_keys: raw
-      });
-      if (error) throw error;
-      showNotif('✅ '+raw.length+' key disimpan ('+data+' baru di cloud)');
-    }
+    const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || prompt('Password admin:');
+    if (!pw) return;
+    sessionStorage.setItem('vp_admin_pw', pw);
+    localStorage.setItem('vp_admin_pw', pw);
+    const { data, error } = await _sb.rpc('admin_add_keys', {
+      p_pass: pw, p_product: pid, p_variant: vn, p_keys: raw
+    });
+    if (error) throw error;
+    showNotif('✅ '+raw.length+' key disimpan ('+data+' baru di cloud)');
   } catch(e){
-    showNotif('⚠️ Cloud sync gagal: '+(e.message||e), 'var(--danger)');
+    showNotif('⚠️ Gagal: '+(e.message||e), 'var(--danger)');
+    return;
   }
 
   document.getElementById('kmInput').value = '';
   renderKeyManager();
 }
-async function kmDeleteOne(idx){
+async function kmDeleteOne(keyVal){
+  if (!confirm('Hapus key ini?')) return;
   const pid = parseInt(document.getElementById('kmProd').value);
   const vn  = document.getElementById('kmVar').value;
-  const s = getKeyStore(); const k = _kKey(pid,vn);
-  if (!s[k]) return;
-  if (!confirm('Hapus key ini?')) return;
-  const keyVal = s[k][idx] ? s[k][idx].key : null;
-  s[k].splice(idx,1); setKeyStore(s); renderKeyManager();
-  if (keyVal) {
-    try {
-      const pw = sessionStorage.getItem('vp_admin_pw');
-      if (pw) await _sb.rpc('admin_delete_keys', { p_pass: pw, p_product: parseInt(pid), p_variant: vn, p_key_values: [keyVal] });
-    } catch(e){ console.warn('[kmDeleteOne cloud]', e.message||e); }
-  }
+  try {
+    const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || '';
+    if (!pw) { showNotif('❌ Password admin kosong'); return; }
+    const { error } = await _sb.rpc('admin_delete_keys', { p_pass: pw, p_product: pid, p_variant: vn, p_key_values: [keyVal] });
+    if (error) throw error;
+    showNotif('🗑️ Key dihapus');
+  } catch(e){ showNotif('❌ Gagal hapus: '+(e.message||e), 'var(--danger)'); }
+  renderKeyManager();
 }
 async function kmDeleteSold(){
   const pid = parseInt(document.getElementById('kmProd').value);
   const vn  = document.getElementById('kmVar').value;
-  const s = getKeyStore(); const k = _kKey(pid,vn);
-  if (!s[k]) return;
-  const before = s[k].length;
-  s[k] = s[k].filter(x => x.status !== 'sold');
-  setKeyStore(s);
-  renderKeyManager();
-  showNotif('🗑️ ' + (before - s[k].length) + ' key SOLD dihapus');
+  if (!pid || !vn) return;
+  if (!confirm('Hapus semua key SOLD?')) return;
   try {
-    const pw = sessionStorage.getItem('vp_admin_pw');
-    if (pw) await _sb.rpc('admin_delete_keys', { p_pass: pw, p_product: parseInt(pid), p_variant: vn });
-  } catch(e){ console.warn('[kmDeleteSold cloud]', e.message||e); }
+    const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || '';
+    if (!pw) { showNotif('❌ Password admin kosong'); return; }
+    const { error } = await _sb.rpc('admin_delete_keys', { p_pass: pw, p_product: pid, p_variant: vn });
+    if (error) throw error;
+    showNotif('🗑️ Semua key SOLD dihapus');
+  } catch(e){ showNotif('❌ Gagal: '+(e.message||e), 'var(--danger)'); }
+  renderKeyManager();
 }
 
 // ══════════════════════════════
