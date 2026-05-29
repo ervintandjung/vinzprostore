@@ -2938,15 +2938,22 @@ async function kmAddKeys(){
   document.getElementById('kmInput').value = '';
   renderKeyManager();
 }
-function kmDeleteOne(idx){
+async function kmDeleteOne(idx){
   const pid = parseInt(document.getElementById('kmProd').value);
   const vn  = document.getElementById('kmVar').value;
   const s = getKeyStore(); const k = _kKey(pid,vn);
   if (!s[k]) return;
   if (!confirm('Hapus key ini?')) return;
+  const keyVal = s[k][idx] ? s[k][idx].key : null;
   s[k].splice(idx,1); setKeyStore(s); renderKeyManager();
+  if (keyVal) {
+    try {
+      const pw = sessionStorage.getItem('vp_admin_pw');
+      if (pw) await _sb.rpc('admin_delete_keys', { p_pass: pw, p_product: parseInt(pid), p_variant: vn, p_key_values: [keyVal] });
+    } catch(e){ console.warn('[kmDeleteOne cloud]', e.message||e); }
+  }
 }
-function kmDeleteSold(){
+async function kmDeleteSold(){
   const pid = parseInt(document.getElementById('kmProd').value);
   const vn  = document.getElementById('kmVar').value;
   const s = getKeyStore(); const k = _kKey(pid,vn);
@@ -2956,6 +2963,10 @@ function kmDeleteSold(){
   setKeyStore(s);
   renderKeyManager();
   showNotif('🗑️ ' + (before - s[k].length) + ' key SOLD dihapus');
+  try {
+    const pw = sessionStorage.getItem('vp_admin_pw');
+    if (pw) await _sb.rpc('admin_delete_keys', { p_pass: pw, p_product: parseInt(pid), p_variant: vn });
+  } catch(e){ console.warn('[kmDeleteSold cloud]', e.message||e); }
 }
 
 // ══════════════════════════════
@@ -6031,15 +6042,23 @@ async function loadDevices(){
     box.innerHTML = data.map(d => {
       const col = d.status==='approved' ? 'var(--success)'
                 : d.status==='blocked'  ? 'var(--danger)' : 'var(--gold)';
+      const maxVal = (d.max_keys != null) ? d.max_keys : '';
       return `
         <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
-            <div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
+            <div style="flex:1;min-width:0;">
               <div style="color:#fff;font-weight:700;">${d.name}</div>
               <div style="color:var(--muted);font-size:11px;">${d.phone} · ${new Date(d.created_at).toLocaleString('id-ID')}</div>
-              <div style="color:${col};font-size:10px;font-weight:900;letter-spacing:1px;text-transform:uppercase;">${d.status}</div>
+              <div style="color:${col};font-size:10px;font-weight:900;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">${d.status}</div>
+              <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                <span style="font-size:10px;color:var(--accent2);font-weight:700;">MAX KEY:</span>
+                <input id="maxkey_${d.device_id}" type="number" min="0" placeholder="Tdk terbatas" value="${maxVal}"
+                  style="width:90px;background:var(--secondary);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:#fff;font-size:11px;font-family:'Rajdhani',sans-serif;">
+                <button onclick="setDeviceLimit('${d.device_id}')" style="background:var(--accent);color:#fff;border:none;border-radius:5px;padding:3px 8px;font-size:10px;cursor:pointer;font-weight:700;">SIMPAN</button>
+                <span id="lbl_${d.device_id}" style="font-size:9px;color:var(--muted);"></span>
+              </div>
             </div>
-            <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
+            <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0;">
               <button onclick="setDevice('${d.device_id}','approved')" style="background:var(--success);color:#000;border:none;border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer;font-weight:900;">APPROVE</button>
               <button onclick="setDevice('${d.device_id}','blocked')" style="background:var(--danger);color:#fff;border:none;border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer;font-weight:900;">BLOKIR</button>
               <button onclick="setDevice('${d.device_id}','pending')" style="background:var(--card);color:var(--muted);border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer;">RESET</button>
@@ -6050,6 +6069,23 @@ async function loadDevices(){
   } catch(e){
     box.innerHTML = '<div style="color:var(--danger)">Gagal: '+(e.message||e)+'</div>';
   }
+}
+async function setDeviceLimit(deviceId){
+  const pw = sessionStorage.getItem('vp_admin_pw');
+  if (!pw){ showNotif('❌ Password admin kosong'); return; }
+  const inp = document.getElementById('maxkey_'+deviceId);
+  const lbl = document.getElementById('lbl_'+deviceId);
+  const val = inp ? inp.value.trim() : '';
+  const maxKeys = val === '' ? null : parseInt(val);
+  if (val !== '' && (isNaN(maxKeys) || maxKeys < 0)){ showNotif('❌ Angka tidak valid'); return; }
+  try {
+    const { error } = await _sb.rpc('admin_set_device_limit', {
+      p_pass: pw, p_device_id: deviceId, p_max_keys: maxKeys
+    });
+    if (error) throw error;
+    if (lbl) lbl.textContent = maxKeys==null ? '✔ Tdk terbatas' : '✔ Disimpan';
+    showNotif('✅ Limit device disimpan: ' + (maxKeys==null ? 'Tanpa batas' : maxKeys+' key'));
+  } catch(e){ showNotif('❌ '+(e.message||e), 'var(--danger)'); }
 }
 async function setDevice(id, status){
   const pw = sessionStorage.getItem('vp_admin_pw');
@@ -6067,6 +6103,55 @@ setInterval(() => {
     loadDevices();
   }
 }, 15000);
+
+// ====== SUPABASE REALTIME: Sync product_keys ke localStorage instan ======
+setTimeout(function(){
+  try {
+    const normSt = function(s){ return (['sold','used'].includes((s||'').toLowerCase())) ? 'sold' : 'available'; };
+    _sb.channel('vp-keys-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'product_keys' }, function(payload){
+        try {
+          const ev = payload.eventType;
+          const nr = payload.new; const or = payload.old;
+          const row = nr || or;
+          if (!row || !row.product_id) return;
+          const store = typeof getKeyStore==='function' ? getKeyStore() : {};
+          const k = parseInt(row.product_id) + '__' + (row.variant||'');
+          if (!store[k]) store[k] = [];
+          if (ev === 'UPDATE' && nr) {
+            const ns = normSt(nr.status);
+            const entry = store[k].find(function(e){ return e.key === nr.key_value; });
+            if (entry) {
+              if (entry.status !== ns) {
+                entry.status = ns;
+                if (ns === 'sold' && !entry.soldAt) entry.soldAt = new Date().toISOString();
+                if (typeof setKeyStore==='function') setKeyStore(store);
+              }
+            } else {
+              store[k].push({ key: nr.key_value, status: ns, soldTo: ns==='sold'?'cloud':null, soldAt: ns==='sold'?new Date().toISOString():null });
+              if (typeof setKeyStore==='function') setKeyStore(store);
+            }
+          } else if (ev === 'INSERT' && nr) {
+            const ns = normSt(nr.status);
+            if (!store[k].find(function(e){ return e.key === nr.key_value; })) {
+              store[k].push({ key: nr.key_value, status: ns, soldTo: null, soldAt: ns==='sold'?new Date().toISOString():null });
+              if (typeof setKeyStore==='function') setKeyStore(store);
+            }
+          } else if (ev === 'DELETE' && or) {
+            store[k] = store[k].filter(function(e){ return e.key !== or.key_value; });
+            if (typeof setKeyStore==='function') setKeyStore(store);
+          }
+          // Refresh admin panel jika terbuka
+          try {
+            const ap = document.getElementById('adminPanel');
+            if (ap && ap.classList.contains('open') && typeof renderKeyManager==='function') renderKeyManager();
+          } catch(e2){}
+        } catch(e){ console.warn('[realtime handler]', e); }
+      })
+      .subscribe();
+    console.log('[VinzPro] Realtime product_keys aktif');
+  } catch(e){ console.warn('[realtime init]', e); }
+}, 2500);
 </script>
 
 
