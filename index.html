@@ -568,8 +568,9 @@ function closeSplash(){
   }, 460);
 
   sessionStorage.setItem('splashDone','1');
+  localStorage.setItem('splashDone','1');
 }
-if(sessionStorage.getItem('splashDone')){
+if(sessionStorage.getItem('splashDone') || localStorage.getItem('splashDone')){
   document.addEventListener('DOMContentLoaded',()=>{
     const el=document.getElementById('splashScreen');
     if(el) el.style.display='none';
@@ -1379,11 +1380,11 @@ function renderHeader() {
       </div>
       <div class="dropdown" id="userDropdown">
         <div class="dd-user"><strong>${currentUser.name || 'User'}</strong>${currentUser.email}</div>
-        ${isAdmin ? `<button class="dd-item admin-item" onclick="document.getElementById('userDropdown').classList.remove('open');openAdmin();">Menu Admin</button>` : ''}
-        ${isAdmin ? `<button class="dd-item admin-item" onclick="document.getElementById('userDropdown').classList.remove('open');_vpNonton();">Nonton</button>` : ''}
-        <button class="dd-item" onclick="document.getElementById('userDropdown').classList.remove('open');_vpRiwayat();">Riwayat Order</button>
-        <button class="dd-item" onclick="showPengaturan()">Pengaturan Akun</button>
-        <button class="dd-item danger" onclick="doLogout()">Logout</button>
+        ${isAdmin ? `<button class="dd-item admin-item" onclick="event.stopPropagation();document.getElementById('userDropdown').classList.remove('open');openAdmin();">Menu Admin</button>` : ''}
+        <button class="dd-item admin-item" onclick="event.stopPropagation();document.getElementById('userDropdown').classList.remove('open');_vpNonton();">📺 Nonton</button>
+        <button class="dd-item" onclick="event.stopPropagation();document.getElementById('userDropdown').classList.remove('open');_vpRiwayat();">Riwayat Order</button>
+        <button class="dd-item" onclick="event.stopPropagation();document.getElementById('userDropdown').classList.remove('open');showPengaturan();">Pengaturan Akun</button>
+        <button class="dd-item danger" onclick="event.stopPropagation();doLogout()">Logout</button>
       </div>
     </div>`;
   }
@@ -1452,9 +1453,9 @@ window.addEventListener('popstate', function(e){
     }
   });
 });
-document.addEventListener('click', () => {
+document.addEventListener('click', (e) => {
   const d = document.getElementById('userDropdown');
-  if (d) d.classList.remove('open');
+  if (d && !d.contains(e.target) && !e.target.closest('.dots-btn')) d.classList.remove('open');
 });
 
 // ══════════════════════════════
@@ -6893,8 +6894,22 @@ async function orderQRISXendit(){
 
   } catch(e){
     if(window._xenditTimer){ clearInterval(window._xenditTimer); window._xenditTimer=null; }
-    try{ if(typeof qrSimClose==='function') qrSimClose(); }catch(e2){}
-    showNotif('Gagal QR Xendit: ' + (e.message||e));
+    if(window._xenditPoll){ clearInterval(window._xenditPoll); window._xenditPoll=null; }
+    // Tampilkan error di DALAM halaman QR, jangan tutup overlay
+    const _qimg3 = document.getElementById('qrImgSim');
+    if(_qimg3){
+      _qimg3.alt = '⚠ Gagal memuat QR';
+      _qimg3.src = '';
+    }
+    const qrHint = document.querySelector('#qrSim .qHint');
+    if(qrHint){
+      qrHint.innerHTML = '<span style="color:#ef4444;font-size:13px;letter-spacing:1px;">⚠ Gagal membuat QRIS Xendit<br><span style="font-size:11px;color:#aaa;font-weight:500;">' + (e.message||'Cek koneksi & coba lagi') + '</span></span>';
+    }
+    // Tombol coba lagi
+    const qrBox = document.querySelector('#qrSim .qrBox');
+    if(qrBox){
+      qrBox.innerHTML = '<div style="padding:20px;text-align:center;color:#ef4444;font-weight:700;font-size:13px;">⚠ Gagal memuat QR<br><span style="color:#aaa;font-size:11px;font-weight:500;">' + (e.message||'Koneksi bermasalah') + '</span><br><button onclick="qrSimClose();setTimeout(()=>orderQRISXendit(),300)" style="margin-top:14px;background:#1a6fff;color:#fff;border:none;border-radius:10px;padding:10px 22px;font-family:Orbitron,sans-serif;font-weight:700;font-size:11px;cursor:pointer;letter-spacing:1px;">🔄 COBA LAGI</button></div>';
+    }
   }
 }
 
