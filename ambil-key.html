@@ -457,20 +457,38 @@ async function boot(){
     FP = await getFingerprint();
   }catch(e){ FP = navigator.userAgent + '|' + screen.width+'x'+screen.height; }
 
-  // Daftar auto + cek status (langsung ke tabel — hindari error operator text=uuid pada RPC)
+  // Helper: query reseller_devices via raw fetch (hindari type cast issue)
+  async function rdSelect(cols){
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/reseller_devices?select=${cols}&device_id=eq.${encodeURIComponent(DEVICE_ID)}`,
+      { headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer '+SUPABASE_ANON, 'Accept': 'application/vnd.pgrst.object+json' } }
+    );
+    if (r.status === 406) return null; // tidak ketemu
+    if (!r.ok) { const t=await r.text(); throw new Error(t); }
+    return await r.json();
+  }
+  async function rdInsert(obj){
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/reseller_devices`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer '+SUPABASE_ANON, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(obj)
+    });
+    if (!r.ok) { const t=await r.text(); throw new Error(t); }
+  }
+  async function rdUpdate(obj){
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/reseller_devices?device_id=eq.${encodeURIComponent(DEVICE_ID)}`,
+      { method: 'PATCH', headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer '+SUPABASE_ANON, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify(obj) }
+    );
+    if (!r.ok) { const t=await r.text(); throw new Error(t); }
+  }
+
+  // Daftar auto + cek status via raw fetch (hindari error operator text=uuid)
   let status='pending';
   try{
-    const { data: existing, error: selErr } = await sb
-      .from('reseller_devices')
-      .select('status')
-      .filter('device_id', 'eq', DEVICE_ID)
-      .maybeSingle();
-    if (selErr) throw selErr;
+    const existing = await rdSelect('status');
     if (!existing){
-      const { error: insErr } = await sb
-        .from('reseller_devices')
-        .insert({ device_id: DEVICE_ID, fingerprint: FP, user_agent: navigator.userAgent, status: 'pending' });
-      if (insErr) throw insErr;
+      await rdInsert({ device_id: DEVICE_ID, fingerprint: FP, user_agent: navigator.userAgent, status: 'pending' });
       status = 'pending';
     } else {
       status = existing.status || 'pending';
@@ -484,11 +502,7 @@ async function boot(){
     // Step 3: cek apakah sudah enroll wajah
     let faceEnrolled = false;
     try {
-      const { data: devData } = await sb
-        .from('reseller_devices')
-        .select('face_descriptor')
-        .filter('device_id', 'eq', DEVICE_ID)
-        .single();
+      const devData = await rdSelect('face_descriptor');
       faceEnrolled = !!(devData && devData.face_descriptor && devData.face_descriptor.length > 0);
     } catch(e) { faceEnrolled = false; }
 
@@ -503,11 +517,7 @@ async function boot(){
           await initFace();
           const desc = await runFaceChallenge();
           $('enrollBtn').textContent = 'Menyimpan wajah…';
-          const { error } = await sb
-            .from('reseller_devices')
-            .update({ face_descriptor: desc })
-            .filter('device_id', 'eq', DEVICE_ID);
-          if (error) throw error;
+          await rdUpdate({ face_descriptor: desc });
           toast('Wajah berhasil di-enroll! Membuka form…');
           setTimeout(() => {
             $('enrollGate').style.display = 'none';
@@ -550,13 +560,49 @@ $('claimBtn').addEventListener('click', async () => {
   $('claimBtn').disabled=true; $('claimBtn').textContent='MEMPROSES…';
   $('result').innerHTML='';
   try{
-    const { data, error } = await sb.rpc('admin_claim_key_v2', {
-      p_pass: ADMIN_PW, p_device_id: DEVICE_ID, p_fingerprint: FP,
-      p_face: desc, p_product: pid, p_variant: v,
-      p_email: $('emailInp').value.trim() || null,
-      p_buyer_wa: $('waInp').value.trim() || null
-    }, { get: false, count: null });
-    if (error) throw error;
+    // Kirim p_device_id sebagai UUID dengan explicit type cast via raw REST call
+    // untuk menghindari error "operator does not exist: text = uuid"
+    let data, error;
+    try {
+      // Coba v2 via raw fetch dengan explicit uuid header
+      const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_claim_key_v2`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON,
+          'Authorization': 'Bearer ' + SUPABASE_ANON
+        },
+        body: JSON.stringify({
+          p_pass: ADMIN_PW,
+          p_device_id: DEVICE_ID,   // sudah dijamin UUID format dari getDeviceId()
+          p_fingerprint: FP,
+          p_face: desc,
+          p_product: pid,
+          p_variant: v,
+          p_email: $('emailInp').value.trim() || null,
+          p_buyer_wa: $('waInp').value.trim() || null
+        })
+      });
+      const text = await resp.text();
+      if (!resp.ok) {
+        let errMsg = text;
+        try { errMsg = JSON.parse(text).message || text; } catch(e){}
+        throw new Error(errMsg);
+      }
+      data = text.replace(/^"|"$/g,'').replace(/\\n/g,'\n').replace(/\\"/g,'"');
+    } catch(e2) {
+      // Fallback ke RPC v1 (tanpa _v2) jika v2 gagal
+      if (e2.message && e2.message.includes('operator does not exist')) {
+        const r = await sb.rpc('admin_claim_key', {
+          p_pass: ADMIN_PW, p_device_id: DEVICE_ID, p_fingerprint: FP,
+          p_face: desc, p_product: pid, p_variant: v,
+          p_email: $('emailInp').value.trim() || null,
+          p_buyer_wa: $('waInp').value.trim() || null
+        });
+        if (r.error) throw r.error;
+        data = r.data;
+      } else { throw e2; }
+    }
     showResult(String(data), pid, v);
     await loadStock();
   }catch(e){
