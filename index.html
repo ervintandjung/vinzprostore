@@ -743,18 +743,11 @@ renderBannerSlider();
   <div style="padding:8px 14px 130px;">
     <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:12px;color:#fff;letter-spacing:1.5px;margin-bottom:8px;">PILIH CARA PEMBAYARAN</div>
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div class="pm-card" data-method="qris_xendit" onclick="selectPayMethod('qris_xendit')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
-        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#6b3fa0,#9b59b6);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
-        </div>
-        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS <span style="font-size:9px;background:#6b3fa0;color:#fff;padding:1px 7px;border-radius:4px;margin-left:4px;">XENDIT</span></div><div style="font-size:10px;color:var(--muted);">Otomatis · GoPay, OVO, Dana, dll</div></div>
-        <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
-      </div>
       <div class="pm-card" data-method="qris" onclick="selectPayMethod('qris')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
         <div style="width:36px;height:36px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0050dd" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
         </div>
-        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS <span style="font-size:9px;background:#0050dd;color:#fff;padding:1px 7px;border-radius:4px;margin-left:4px;">DUITKU</span></div><div style="font-size:10px;color:var(--muted);">Bayar via scan QR · Semua e-wallet</div></div>
+        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS</div><div style="font-size:10px;color:var(--muted);">Bayar via scan QR · Semua e-wallet</div></div>
         <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
       </div>
       <div class="pm-card" data-method="wa" onclick="selectPayMethod('wa')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
@@ -764,7 +757,13 @@ renderBannerSlider();
         <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">WhatsApp</div><div style="font-size:10px;color:var(--muted);">Pesan langsung ke admin · Manual</div></div>
         <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
       </div>
-
+      <div class="pm-card" data-method="saldo" onclick="selectPayMethod('saldo')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
+        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#f7b500,#ff7a00);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.2"/><path d="M6 10v5M18 10v5"/></svg>
+        </div>
+        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">Saldo <span id="pmSaldoAmt" style="color:#f7b500;font-size:11px;font-weight:800;">Rp 0</span></div><div style="font-size:10px;color:var(--muted);">Bayar pakai saldo akun · Instan</div></div>
+        <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
+      </div>
     </div>
   </div>
 
@@ -2091,7 +2090,7 @@ function renderProducts() {
       <div class="prod-img">${imgContent}<span class="plat-badge ${platClass(p.plat)}">${platLabel(p.plat)}</span></div>
       <div class="prod-info">
         <div class="prod-name">${p.name}</div>
-        <div class="prod-sold">🛒 ${p.sold.toLocaleString('id-ID')} TERJUAL</div>
+
         <button class="btn-beli">BELI</button>
       </div>
     </div>`;
@@ -3505,8 +3504,7 @@ function resetPayMethod(){
 }
 function doPesan(){
   if (!selectedPayMethod){ showNotif('⚠️ Pilih cara pembayaran dulu'); return; }
-  if (selectedPayMethod === 'qris_xendit') orderQRISXendit();
-  else if (selectedPayMethod === 'qris') orderQRIS();
+  if (selectedPayMethod === 'qris') orderQRIS();
   else if (selectedPayMethod === 'wa') orderWA();
 }
 // Reset whenever product fullscreen opens
@@ -4586,24 +4584,22 @@ function doPesan(){
 </style>
 
 <div id="nontonPanel">
-  <div style="background:#000;border-bottom:1.5px solid #ff0000;padding:10px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;">
-    <button onclick="closeNonton()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&#8592;</button>
-    <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#ff2222;flex:1;">NONTON VIDEO</div>
+  <div style="background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid #ff0000;padding:12px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;">
+    <button onclick="closeNonton()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">&#8592;</button>
+    <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#ff4444;flex:1;">📺 NONTON VIDEO</div>
   </div>
-  <!-- Video area 16:9 full width -->
-  <div id="ytContainer" style="width:100%;background:#000;position:relative;">
-    <div style="width:100%;padding-top:56.25%;position:relative;">
-      <div id="ytInner" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#444;font-size:12px;text-align:center;">Paste link lalu tekan PLAY</div>
+  <div style="padding:14px;">
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <input id="ytLinkInput" placeholder="Paste link YouTube di sini…" style="flex:1;background:#0d1f3c;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;">
+      <button onclick="loadYoutube()" style="background:#ff0000;color:#fff;border:none;border-radius:10px;padding:10px 16px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;cursor:pointer;">▶ PLAY</button>
     </div>
-  </div>
-  <!-- Input -->
-  <div style="padding:12px 14px;background:#0a0a0a;">
-    <div style="display:flex;gap:8px;margin-bottom:10px;">
-      <input id="ytLinkInput" placeholder="Paste link YouTube…" style="flex:1;background:#111;border:1px solid #333;border-radius:8px;padding:9px 12px;color:#fff;font-size:14px;outline:none;">
-      <button onclick="loadYoutube()" style="background:#ff0000;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;cursor:pointer;white-space:nowrap;">PLAY</button>
+    <div id="ytContainer" style="border-radius:14px;overflow:hidden;background:#000;min-height:200px;display:flex;align-items:center;justify-content:center;">
+      <div style="color:#555;font-family:'Orbitron',sans-serif;font-size:12px;text-align:center;">📺<br>Paste link YouTube<br>lalu tekan PLAY</div>
     </div>
-    <div style="font-size:10px;color:#555;margin-bottom:8px;font-weight:700;letter-spacing:1px;">RIWAYAT LINK</div>
-    <div id="ytHistory" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;"></div>
+    <div style="margin-top:12px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:700;">RIWAYAT LINK:</div>
+      <div id="ytHistory" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
   </div>
 </div>
 
@@ -6724,145 +6720,6 @@ setTimeout(function(){
   document.head.appendChild(style);
 
 })();
-</script>
-
-<script>
-// ===== XENDIT QRIS via Supabase Edge Function =====
-const SUPABASE_XENDIT_URL = 'https://niqjrwtolqszevopayir.supabase.co/functions/v1/xendit-qris';
-
-async function orderQRISXendit(){
-  if (!currentUser){ closeProdModalBtn(); openAuth('masuk'); showNotif('Login dulu!'); return; }
-  if (!currentUser.verified){ closeProdModalBtn(); openOtpVerifyModal(); return; }
-
-  const p = getProducts().find(x => x.id === selProdId);
-  const v = p.variants[selVarIdx];
-  const total = v.p * qty;
-  const avail = getAvailableKeys(p.id, v.n).length;
-  if (avail < qty){ showNotif('Stok habis (tersedia: ' + avail + ')'); return; }
-
-  const orderId = 'VNZ' + Date.now().toString().slice(-8) + Math.floor(Math.random()*100);
-  qrPending = { pid: p.id, vn: v.n, qty, total, orderId, productName: p.name, method: 'xendit' };
-
-  // Buka QR overlay dengan loading state
-  try {
-    const fs = document.getElementById('prodFullscreen');
-    if (fs && fs.classList.contains('open')){ fs.classList.remove('open','closing'); fs.style.display='none'; }
-  } catch(e){}
-
-  const qo = document.getElementById('qrOverlay');
-  document.getElementById('qrOrderId').textContent = orderId;
-  document.getElementById('qrAmount').textContent = rp(total);
-  document.getElementById('qrSimNote').style.display = 'none';
-  const payBtn = document.getElementById('qrPayBtn');
-  if (payBtn) payBtn.style.display = 'none';
-  const qrImg = document.getElementById('qrImg');
-  qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=LOADING';
-  qo.classList.add('fullpage','open');
-  document.body.style.overflow = 'hidden';
-
-  let secs = 600;
-  const cntEl = document.getElementById('qrCount');
-  const fmt = s => String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-  if(cntEl) cntEl.textContent = fmt(secs);
-  if(qrTimer) clearInterval(qrTimer);
-
-  try {
-    // Panggil Edge Function (API key tersimpan aman di server)
-    const anon = typeof _sb !== 'undefined' ? _sb.supabaseKey || '' : '';
-    const resp = await fetch(SUPABASE_XENDIT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+anon },
-      body: JSON.stringify({ amount: total, reference_id: orderId, email: currentUser.email })
-    });
-    const xd = await resp.json();
-    if (!resp.ok || xd.error){ throw new Error(xd.error || xd.message || 'Gagal buat QR'); }
-
-    const qrData = encodeURIComponent(xd.qr_string);
-    qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + qrData;
-    qrPending.xenditId = xd.id;
-
-    // Polling status
-    let pollId = setInterval(async ()=>{
-      try {
-        const pr = await fetch(SUPABASE_XENDIT_URL + '/status?id=' + xd.id, {
-          headers:{ 'Authorization':'Bearer '+anon }
-        });
-        const pd = await pr.json();
-        if (pd.status === 'SUCCEEDED' || pd.paid){
-          clearInterval(pollId); clearInterval(qrTimer); qrTimer = null;
-          payXenditDone();
-        }
-      } catch(e){}
-    }, 5000);
-
-    qrTimer = setInterval(()=>{
-      secs--; if(cntEl) cntEl.textContent = fmt(secs);
-      if(secs <= 0){ clearInterval(qrTimer); qrTimer=null; clearInterval(pollId); showNotif('Waktu habis'); closeQrPayment(); }
-    }, 1000);
-
-  } catch(e){
-    closeQrPayment();
-    showNotif('Gagal QR Xendit: ' + (e.message||e));
-  }
-}
-
-function payXenditDone(){
-  if(!qrPending) return;
-  const {pid,vn,qty,total,orderId,productName} = qrPending;
-  const keys = assignKeys(pid,vn,qty,currentUser?currentUser.email:'guest');
-  if(!keys.length){ showNotif('Stok habis'); closeQrPayment(); return; }
-  try {
-    const prods = getProducts();
-    const idx = prods.findIndex(x=>x.id===pid);
-    if(idx!==-1){ prods[idx].sold=(prods[idx].sold||0)+qty; setProducts(prods); renderProducts(); }
-  } catch(e){}
-  try {
-    const trx={id:orderId,type:'qris_xendit',productName,variantName:vn,qty,total,keys,status:'SUKSES',method:'QRIS Xendit',ts:Date.now(),email:currentUser?.email||''};
-    const riw=getUserRiw(currentUser.email); riw.unshift(trx); setUserRiw(currentUser.email,riw);
-    const all=getAllTrx(); all.unshift({...trx}); setAllTrx(all);
-    if(typeof _sb!=='undefined') _sb.from('transactions').insert({email:currentUser.email,trx_id:orderId,data:{productName,variantName:vn,qty,total,keys,status:'SUKSES',method:'QRIS Xendit'}}).then(()=>{}).catch(()=>{});
-  } catch(e){}
-  closeQrPayment(); qrPending=null;
-  showNotif('Pembayaran sukses!');
-  setTimeout(()=>alert('PEMBAYARAN SUKSES\n\nKey:\n'+keys.join('\n')+'\n\nSimpan baik-baik!'),300);
-}
-
-// ===== FIX loadYoutube pakai ytInner bukan ytContainer innerHTML =====
-window.loadYoutube = function(){
-  const inp = document.getElementById('ytLinkInput');
-  const url = inp ? inp.value.trim() : '';
-  if(!url){ if(typeof showNotif==='function') showNotif('Paste link YouTube dulu'); return; }
-  function ytId(u){
-    try { const x=new URL(u); if(x.hostname.includes('youtu.be')) return x.pathname.slice(1).split('?')[0]; return x.searchParams.get('v')||''; } catch(e){ return ''; }
-  }
-  const vid = ytId(url);
-  const inner = document.getElementById('ytInner');
-  if(!inner) return;
-  const src = vid ? 'https://www.youtube.com/embed/'+vid+'?autoplay=1&rel=0' : url;
-  inner.innerHTML = '<iframe style="position:absolute;inset:0;width:100%;height:100%;border:none;" src="'+src+'" allowfullscreen allow="autoplay;encrypted-media;gyroscope;picture-in-picture"></iframe>';
-  // Bungkus iframe dalam posisi absolute
-  inner.style.position = 'absolute';
-  inner.style.inset = '0';
-  // Simpan history
-  try {
-    let h=JSON.parse(localStorage.getItem('vp_yt_history')||'[]');
-    h=[url,...h.filter(x=>x!==url)].slice(0,8);
-    localStorage.setItem('vp_yt_history',JSON.stringify(h));
-    window._ytH=h;
-    // Refresh history list
-    const el=document.getElementById('ytHistory');
-    if(el) el.innerHTML=h.map((u,i)=>'<div style="display:flex;align-items:center;gap:8px;background:#111;border:1px solid #222;border-radius:6px;padding:6px 10px;"><div style="flex:1;font-size:11px;color:#00aaff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+u+'</div><button onclick="document.getElementById('ytLinkInput').value=window._ytH['+i+'];window.loadYoutube();" style="background:#ff0000;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:10px;cursor:pointer;">Play</button></div>').join('');
-  } catch(e){}
-};
-
-// ===== FIX closeNonton =====
-window.closeNonton = function(){
-  const inner = document.getElementById('ytInner');
-  if(inner){ inner.innerHTML='Paste link lalu tekan PLAY'; inner.style.position=''; inner.style.inset=''; }
-  const p=document.getElementById('nontonPanel');
-  if(p) p.style.display='none';
-  document.body.style.overflow='';
-};
 </script>
 </body>
 </html>
