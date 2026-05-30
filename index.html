@@ -743,11 +743,18 @@ renderBannerSlider();
   <div style="padding:8px 14px 130px;">
     <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:12px;color:#fff;letter-spacing:1.5px;margin-bottom:8px;">PILIH CARA PEMBAYARAN</div>
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div class="pm-card" data-method="qris" onclick="selectPayMethod('qris')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
+            <div class="pm-card" data-method="qris_xendit" onclick="selectPayMethod('qris_xendit')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
+        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#6b3fa0,#9b59b6);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
+        </div>
+        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS <span style="font-size:9px;background:#6b3fa0;color:#fff;padding:1px 7px;border-radius:4px;margin-left:4px;">XENDIT</span></div><div style="font-size:10px;color:var(--muted);">Otomatis · GoPay, OVO, Dana, dll</div></div>
+        <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
+      </div>
+<div class="pm-card" data-method="qris" onclick="selectPayMethod('qris')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
         <div style="width:36px;height:36px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0050dd" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
         </div>
-        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS</div><div style="font-size:10px;color:var(--muted);">Bayar via scan QR · Semua e-wallet</div></div>
+        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS <span style="font-size:9px;background:#0050dd;color:#fff;padding:1px 7px;border-radius:4px;margin-left:4px;">DUITKU</span></div><div style="font-size:10px;color:var(--muted);">Bayar via scan QR · Semua e-wallet</div></div>
         <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
       </div>
       <div class="pm-card" data-method="wa" onclick="selectPayMethod('wa')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
@@ -757,14 +764,7 @@ renderBannerSlider();
         <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">WhatsApp</div><div style="font-size:10px;color:var(--muted);">Pesan langsung ke admin · Manual</div></div>
         <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
       </div>
-      <div class="pm-card" data-method="saldo" onclick="selectPayMethod('saldo')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
-        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#f7b500,#ff7a00);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.2"/><path d="M6 10v5M18 10v5"/></svg>
-        </div>
-        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">Saldo <span id="pmSaldoAmt" style="color:#f7b500;font-size:11px;font-weight:800;">Rp 0</span></div><div style="font-size:10px;color:var(--muted);">Bayar pakai saldo akun · Instan</div></div>
-        <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
-      </div>
-    </div>
+      
   </div>
 
   <!-- Fixed Bottom: PESAN button (gray → blue when method selected) -->
@@ -2090,7 +2090,7 @@ function renderProducts() {
       <div class="prod-img">${imgContent}<span class="plat-badge ${platClass(p.plat)}">${platLabel(p.plat)}</span></div>
       <div class="prod-info">
         <div class="prod-name">${p.name}</div>
-
+        <div class="prod-sold">🛒 ${p.sold.toLocaleString('id-ID')} TERJUAL</div>
         <button class="btn-beli">BELI</button>
       </div>
     </div>`;
@@ -2945,7 +2945,7 @@ async function kmAddKeys(){
   if (!raw.length) { showNotif('❌ Masukkan minimal 1 key'); return; }
 
   try {
-    const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || prompt('Password admin:');
+    const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || '';
     if (!pw) return;
     sessionStorage.setItem('vp_admin_pw', pw);
     localStorage.setItem('vp_admin_pw', pw);
@@ -3504,7 +3504,8 @@ function resetPayMethod(){
 }
 function doPesan(){
   if (!selectedPayMethod){ showNotif('⚠️ Pilih cara pembayaran dulu'); return; }
-  if (selectedPayMethod === 'qris') orderQRIS();
+  if (selectedPayMethod === 'qris_xendit') orderQRISXendit();
+  else if (selectedPayMethod === 'qris') orderQRIS();
   else if (selectedPayMethod === 'wa') orderWA();
 }
 // Reset whenever product fullscreen opens
@@ -6380,7 +6381,7 @@ function doPesan(){
 async function loadDevices(){
   const box = document.getElementById('devList');
   if (!box) return;
-  const pw = sessionStorage.getItem('vp_admin_pw') || prompt('Password admin:');
+  const pw = sessionStorage.getItem('vp_admin_pw') || '';
   if (!pw) return;
   sessionStorage.setItem('vp_admin_pw', pw);
   box.innerHTML = 'Memuat…';
@@ -6720,6 +6721,114 @@ setTimeout(function(){
   document.head.appendChild(style);
 
 })();
+</script>
+
+<script>
+// ===== XENDIT QRIS =====
+const SUPABASE_XENDIT_URL = 'https://niqjrwtolqszevopayir.supabase.co/functions/v1/xendit-qris';
+
+async function orderQRISXendit(){
+  if (!currentUser){ closeProdModalBtn(); openAuth('masuk'); showNotif('Login dulu!'); return; }
+  if (!currentUser.verified){ closeProdModalBtn(); openOtpVerifyModal(); return; }
+
+  const p = getProducts().find(x => x.id === selProdId);
+  const v = p.variants[selVarIdx];
+  const total = v.p * qty;
+  const avail = getAvailableKeys(p.id, v.n).length;
+  if (avail < qty){ showNotif('Stok key habis'); return; }
+
+  const orderId = 'VNZ' + Date.now().toString().slice(-8) + Math.floor(Math.random()*100);
+  qrPending = { pid: p.id, vn: v.n, qty, total, orderId, productName: p.name, method: 'xendit' };
+
+  try {
+    const fs = document.getElementById('prodFullscreen');
+    if (fs && fs.classList.contains('open')){ fs.classList.remove('open','closing'); fs.style.display='none'; }
+  } catch(e){}
+
+  const qo = document.getElementById('qrOverlay');
+  document.getElementById('qrOrderId').textContent = orderId;
+  document.getElementById('qrAmount').textContent = rp(total);
+  document.getElementById('qrSimNote').style.display = 'none';
+  const payBtn = document.getElementById('qrPayBtn');
+  if (payBtn) payBtn.style.display = 'none';
+  const qrImg = document.getElementById('qrImg');
+  qrImg.src = '';
+  qrImg.alt = 'Memuat QR...';
+  qo.classList.add('fullpage','open');
+  document.body.style.overflow = 'hidden';
+
+  let secs = 600;
+  const cntEl = document.getElementById('qrCount');
+  const fmt = s => String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  if(cntEl) cntEl.textContent = fmt(secs);
+  if(qrTimer) clearInterval(qrTimer);
+
+  try {
+    const anonKey = typeof _sb !== 'undefined' ? (_sb.supabaseKey || '') : '';
+    const resp = await fetch(SUPABASE_XENDIT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+anonKey },
+      body: JSON.stringify({ amount: total, reference_id: orderId, email: currentUser.email })
+    });
+    const xd = await resp.json();
+    if (!resp.ok || xd.error) throw new Error(xd.error || xd.message || 'Gagal buat QR');
+
+    qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(xd.qr_string);
+    qrImg.alt = 'QR Code';
+    qrPending.xenditId = xd.id;
+
+    let pollId = setInterval(async ()=>{
+      try {
+        const anonKey2 = typeof _sb !== 'undefined' ? (_sb.supabaseKey || '') : '';
+        const pr = await fetch(SUPABASE_XENDIT_URL + '?id=' + xd.id, {
+          headers:{ 'Authorization':'Bearer '+anonKey2 }
+        });
+        const pd = await pr.json();
+        if (pd.paid || pd.status === 'SUCCEEDED'){
+          clearInterval(pollId); clearInterval(qrTimer); qrTimer = null;
+          payXenditDone();
+        }
+      } catch(e){}
+    }, 5000);
+
+    qrTimer = setInterval(()=>{
+      secs--;
+      if(cntEl) cntEl.textContent = fmt(secs);
+      if(secs <= 0){
+        clearInterval(qrTimer); qrTimer = null;
+        clearInterval(pollId);
+        showNotif('Waktu pembayaran habis');
+        closeQrPayment();
+      }
+    }, 1000);
+
+  } catch(e){
+    closeQrPayment();
+    showNotif('Gagal QR Xendit: ' + (e.message||e));
+  }
+}
+
+function payXenditDone(){
+  if(!qrPending) return;
+  const {pid,vn,qty,total,orderId,productName} = qrPending;
+  const keys = assignKeys(pid,vn,qty,currentUser?currentUser.email:'guest');
+  if(!keys.length){ showNotif('Stok habis'); closeQrPayment(); return; }
+  try {
+    const prods = getProducts();
+    const idx = prods.findIndex(x=>x.id===pid);
+    if(idx!==-1){ prods[idx].sold=(prods[idx].sold||0)+qty; setProducts(prods); renderProducts(); }
+    if(typeof VinzDaily!=='undefined') VinzDaily.bump(pid, qty);
+  } catch(e){}
+  try {
+    const trx={id:orderId,type:'qris_xendit',productName,variantName:vn,qty,total,keys,status:'SUKSES',method:'QRIS Xendit',ts:Date.now(),email:currentUser?.email||''};
+    const riw=getUserRiw(currentUser.email); riw.unshift(trx); setUserRiw(currentUser.email,riw);
+    const all=getAllTrx(); all.unshift({...trx}); setAllTrx(all);
+    if(typeof _sb!=='undefined') _sb.from('transactions').insert({email:currentUser.email,trx_id:orderId,data:{productName,variantName:vn,qty,total,keys,status:'SUKSES',method:'QRIS Xendit'}}).then(()=>{}).catch(()=>{});
+  } catch(e){}
+  closeQrPayment(); qrPending=null;
+  showNotif('Pembayaran sukses!');
+  setTimeout(()=>alert('PEMBAYARAN SUKSES\n\nKey:\n'+keys.join('\n')),300);
+}
 </script>
 </body>
 </html>
