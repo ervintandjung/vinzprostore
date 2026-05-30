@@ -1380,8 +1380,8 @@ function renderHeader() {
       <div class="dropdown" id="userDropdown">
         <div class="dd-user"><strong>${currentUser.name || 'User'}</strong>${currentUser.email}</div>
         ${isAdmin ? `<button class="dd-item admin-item" onclick="document.getElementById('userDropdown').classList.remove('open');openAdmin();">Menu Admin</button>` : ''}
-        ${isAdmin ? `<button class="dd-item admin-item" onclick="document.getElementById('userDropdown').classList.remove('open');vpOpenNonton();">Nonton</button>` : ''}
-        <button class="dd-item" onclick="document.getElementById('userDropdown').classList.remove('open');vpOpenRiwayat();">Riwayat Order</button>
+        ${isAdmin ? `<button class="dd-item admin-item" onclick="document.getElementById('userDropdown').classList.remove('open');_vpNonton();">Nonton</button>` : ''}
+        <button class="dd-item" onclick="document.getElementById('userDropdown').classList.remove('open');_vpRiwayat();">Riwayat Order</button>
         <button class="dd-item" onclick="showPengaturan()">Pengaturan Akun</button>
         <button class="dd-item danger" onclick="doLogout()">Logout</button>
       </div>
@@ -1394,33 +1394,64 @@ function toggleDropdown(e) {
   document.getElementById('userDropdown').classList.toggle('open');
 }
 
-// ── Wrapper aman untuk panel yang mungkin belum siap saat DOMContentLoaded ──
-function vpOpenNonton(){
-  try {
-    const panel = document.getElementById('nontonPanel');
-    if(!panel){ alert('Panel Nonton belum siap'); return; }
-    if(typeof window.__openNonton === 'function'){
-      window.__openNonton();
-    } else {
-      panel.style.display = 'block';
-      document.body.style.overflow = 'hidden';
-    }
-  } catch(e){ console.error('[vpOpenNonton]', e); }
+function _vpNonton(){
+  const p = document.getElementById('nontonPanel');
+  if(!p){ alert('Panel tidak ditemukan'); return; }
+  // Tutup produk fullscreen jika terbuka
+  try{ const fs=document.getElementById('prodFullscreen'); if(fs&&fs.classList.contains('open')){ fs.classList.remove('open','closing'); } }catch(e){}
+  document.body.style.overflow='hidden';
+  document.body.style.top='';
+  document.body.classList.remove('panel-lock');
+  p.classList.add('open');
+  // Render history YouTube
+  try{
+    const el=document.getElementById('ytHistory');
+    const h=JSON.parse(localStorage.getItem('vp_yt_history')||'[]');
+    window._ytH=h;
+    if(el) el.innerHTML=h.length?h.slice(0,8).map((u,i)=>`
+      <div style="background:#0d1f3c;border:1px solid rgba(26,111,255,.3);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;">
+        <div style="flex:1;font-size:11px;color:#00d4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u}</div>
+        <button onclick="document.getElementById('ytLinkInput').value=window._ytH[${i}];loadYoutube();" style="background:#1a6fff;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;cursor:pointer;">Play</button>
+      </div>`).join('')
+    :'<div style="color:#6a8cb5;font-size:11px;">Belum ada riwayat</div>';
+  }catch(e){}
+  history.pushState({vpPanel:'nonton'},'');
 }
-function vpOpenRiwayat(){
-  try {
-    if(typeof window.__showRiwayat === 'function'){
-      window.__showRiwayat();
-    } else if(typeof window.openRiwayat === 'function'){
-      window.openRiwayat();
-    } else if(typeof window.showRiwayat === 'function'){
-      window.showRiwayat();
-    } else {
-      const panel = document.getElementById('riwayatPanel');
-      if(panel){ panel.classList.add('open'); document.body.style.overflow='hidden'; }
+
+function _vpRiwayat(){
+  // Tutup produk fullscreen jika terbuka
+  try{ const fs=document.getElementById('prodFullscreen'); if(fs&&fs.classList.contains('open')){ fs.classList.remove('open','closing'); } }catch(e){}
+  document.body.style.top='';
+  document.body.classList.remove('panel-lock');
+  // Cek admin
+  try{
+    const u=(typeof currentUser!=='undefined'&&currentUser)?currentUser:JSON.parse(localStorage.getItem('vp_user')||'null');
+    if(u&&u.email==='alpintandjung@gmail.com'){
+      if(typeof window.openAdminRiwayat==='function'){ window.openAdminRiwayat(); return; }
     }
-  } catch(e){ console.error('[vpOpenRiwayat]', e); }
+  }catch(e){}
+  // Buka riwayat user biasa
+  const p=document.getElementById('riwayatPanel');
+  if(p){
+    p.classList.add('open');
+    document.body.style.overflow='hidden';
+    history.pushState({vpPanel:'riwayat'},'');
+    if(typeof window.renderRiwayat==='function') setTimeout(window.renderRiwayat,50);
+  }
 }
+
+// Global back handler untuk panel _vp
+window.addEventListener('popstate', function(e){
+  ['nontonPanel'].forEach(function(id){
+    const p=document.getElementById(id);
+    if(p&&p.classList.contains('open')){
+      p.classList.remove('open');
+      document.body.style.overflow='';
+      const ct=document.getElementById('ytContainer');
+      if(ct) ct.innerHTML='<div style="color:#555;font-family:\'Orbitron\',sans-serif;font-size:12px;text-align:center;">📺<br>Paste link YouTube<br>lalu tekan PLAY</div>';
+    }
+  });
+});
 document.addEventListener('click', () => {
   const d = document.getElementById('userDropdown');
   if (d) d.classList.remove('open');
@@ -6548,6 +6579,9 @@ setTimeout(function(){
   function openAdminRiwayatPanel(){
     const panel = document.getElementById('adminRiwayatPanel');
     if (!panel){ console.error('adminRiwayatPanel not found'); return; }
+    // Tutup produk fullscreen jika terbuka
+    try{ const fs=document.getElementById('prodFullscreen'); if(fs&&fs.classList.contains('open')){ fs.classList.remove('open','closing'); } }catch(e){}
+    document.body.style.top=''; document.body.classList.remove('panel-lock');
     panel.classList.add('open');
     document.body.style.overflow = 'hidden';
     history.pushState({panel:'adminRiwayat'}, '');
@@ -6653,7 +6687,7 @@ setTimeout(function(){
   window.switchArTab = function(tab){ window._arTab=tab; renderArData(); };
   window.closeAdminRiwayat = function(){
     const p = document.getElementById('adminRiwayatPanel');
-    if(p){ p.classList.remove('open'); }
+    if(p) p.classList.remove('open');
     document.body.style.overflow='';
   };
   window.openAdminRiwayat = openAdminRiwayatPanel;
@@ -6665,7 +6699,7 @@ setTimeout(function(){
     if(d) d.classList.remove('open');
     const panel = document.getElementById('nontonPanel');
     if(!panel) return;
-    panel.classList.add('open');
+    panel.style.display = 'block';
     document.body.style.overflow = 'hidden';
     history.pushState({panel:'nonton'}, '');
     // render history
@@ -6685,7 +6719,7 @@ setTimeout(function(){
   };
   window.closeNonton = function(){
     const ct = document.getElementById('ytContainer');
-    if(ct) ct.innerHTML = '<div style="color:#555;font-size:12px;text-align:center;padding:30px;">Paste link YouTube lalu tekan PLAY</div>';
+    if(ct) ct.innerHTML = '<div style="color:#555;font-family:\'Orbitron\',sans-serif;font-size:12px;text-align:center;">📺<br>Paste link YouTube<br>lalu tekan PLAY</div>';
     const p = document.getElementById('nontonPanel');
     if(p) p.classList.remove('open');
     document.body.style.overflow='';
@@ -6712,7 +6746,7 @@ setTimeout(function(){
       localStorage.setItem('vp_yt_history', JSON.stringify(h));
       window._ytH = h;
     } catch(e){}
-    window.__openNonton();
+    if(typeof _vpNonton==='function') _vpNonton(); else { const p=document.getElementById('nontonPanel'); if(p) p.classList.add('open'); }
   };
 
   // ======= RIWAYAT WRAPPER =======
@@ -6730,21 +6764,17 @@ setTimeout(function(){
 
   // ======= BACK BUTTON HANDLER =======
   window.addEventListener('popstate', function(){
-    // Tutup panel yang terbuka
-    ['nontonPanel','adminRiwayatPanel'].forEach(id=>{
+    ['adminRiwayatPanel'].forEach(id=>{
       const p = document.getElementById(id);
-      if(p && (p.classList.contains('open') || p.style.display==='block')){
+      if(p && p.classList.contains('open')){
         p.classList.remove('open');
-        p.style.display = '';
         document.body.style.overflow='';
-        const ct = document.getElementById('ytContainer');
-        if(ct && id==='nontonPanel') ct.innerHTML='<div style="color:#555;font-size:12px;text-align:center;padding:30px;">Paste link YouTube lalu tekan PLAY</div>';
       }
     });
   });
 
-  // Panel pakai classList.add('open') — tidak perlu CSS override tambahan
-  // (sudah ada #adminRiwayatPanel.open dan #nontonPanel.open di stylesheet)
+  // Panel sudah pakai classList.add('open') — tidak perlu CSS override tambahan
+  // CSS #adminRiwayatPanel.open dan #nontonPanel.open sudah ada di stylesheet
 
 })();
 </script>
@@ -6754,17 +6784,17 @@ setTimeout(function(){
 const SUPABASE_XENDIT_URL = 'https://niqjrwtolqszevopayir.supabase.co/functions/v1/xendit-qris';
 
 async function orderQRISXendit(){
-  // Ambil user dari localStorage (aman di semua konteks)
-  let _cu = null;
-  try { _cu = JSON.parse(localStorage.getItem('vp_user')||'null'); } catch(e){}
-  if (!_cu){
-    try{ if(typeof closeProdModalBtn==='function') closeProdModalBtn(); }catch(e){}
-    try{ if(typeof openAuth==='function') openAuth('masuk'); }catch(e){}
+  // Ambil currentUser aman dari localStorage juga (fallback)
+  let _u = (typeof currentUser !== 'undefined' && currentUser) ? currentUser : null;
+  if (!_u){ try{ _u = JSON.parse(localStorage.getItem('vp_user')||'null'); }catch(e){} }
+  if (!_u){
+    try{ closeProdModalBtn(); }catch(e){}
+    try{ openAuth('masuk'); }catch(e){}
     showNotif('Login dulu!'); return;
   }
-  if (!_cu.verified){
-    try{ if(typeof closeProdModalBtn==='function') closeProdModalBtn(); }catch(e){}
-    try{ if(typeof openOtpVerifyModal==='function') openOtpVerifyModal(); }catch(e){}
+  if (!_u.verified){
+    try{ closeProdModalBtn(); }catch(e){}
+    try{ openOtpVerifyModal(); }catch(e){}
     return;
   }
 
@@ -6776,42 +6806,39 @@ async function orderQRISXendit(){
   if (avail < qty){ showNotif('Stok key habis'); return; }
 
   const orderId = 'VNZ' + Date.now().toString().slice(-8) + Math.floor(Math.random()*100);
-  window.qrPending = { pid: p.id, vn: v.n, qty, total, orderId, productName: p.name, method: 'xendit', userEmail: _cu.email };
+  window.qrPending = { pid: p.id, vn: v.n, qty, total, orderId, productName: p.name, method: 'xendit', userEmail: _u.email };
 
-  // Tutup halaman produk
+  // Tutup halaman produk fullscreen
   try {
     const fs = document.getElementById('prodFullscreen');
-    if (fs && fs.classList.contains('open')){ fs.classList.remove('open','closing'); fs.style.display='none'; }
-    if(typeof closeProdModalBtn==='function') closeProdModalBtn();
+    if (fs && fs.classList.contains('open')){ fs.classList.remove('open','closing'); }
+    try{ closeProdModalBtn(); }catch(e){}
   } catch(e){}
 
-  // Tampilkan halaman QR simulasi (qrSim) yang sudah ada
-  // Sementara fetch Xendit, tampilkan QR placeholder dulu
-  try {
-    // Set data awal di qrSim
-    const time = (function(){
-      const d=new Date(); const M=['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
-      const p2=n=>String(n).padStart(2,'0');
-      return `${d.getDate()} ${M[d.getMonth()]} ${d.getFullYear()}, ${p2(d.getHours())}.${p2(d.getMinutes())}`;
-    })();
-    window._xenditPendingTime = time;
+  // Tampilkan qrSim (halaman QR yang sudah ada, sama dengan QRIS Duitku)
+  const time = (function(){
+    const d=new Date(); const M=['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
+    const p2=n=>String(n).padStart(2,'0');
+    return `${d.getDate()} ${M[d.getMonth()]} ${d.getFullYear()}, ${p2(d.getHours())}.${p2(d.getMinutes())}`;
+  })();
+  window._xenditTime = time;
 
-    // Tampilkan qrSim manual (tanpa openQrSim agar tidak auto-ok)
+  try {
     document.getElementById('qrSimWait').style.display = '';
     document.getElementById('qrSimOk').style.display = 'none';
-    document.getElementById('qrTotal').textContent = (typeof rp==='function')?rp(total):('Rp '+total);
+    document.getElementById('qrTotal').textContent = rp(total);
     document.getElementById('qrTrxId').textContent = '#'+orderId;
     document.getElementById('qrTrxTime').textContent = time;
     document.getElementById('qrProdName').textContent = p.name;
     document.getElementById('qrProdVar').textContent = (v.n||'').toUpperCase();
     const imgWrap = document.getElementById('qrProdImgWrap');
     if(imgWrap){
-      if(p.img) imgWrap.outerHTML = `<img id="qrProdImgWrap" src="${p.img}" alt="">`;
+      if(p.img) imgWrap.outerHTML = `<img id="qrProdImgWrap" src="${p.img}" alt="" style="width:96px;height:96px;border-radius:18px;object-fit:cover;">`;
       else imgWrap.outerHTML = `<div class="qpEmoji" id="qrProdImgWrap">${p.emoji||'📦'}</div>`;
     }
-    // Set QR loading placeholder
+    // QR loading state
     const _qimg = document.getElementById('qrImgSim');
-    if(_qimg){ _qimg.src = ''; _qimg.alt = 'Memuat QR Xendit...'; }
+    if(_qimg){ _qimg.src=''; _qimg.alt='Memuat QR Xendit...'; }
 
     // Timer 10 menit
     let secs = 600;
@@ -6821,20 +6848,23 @@ async function orderQRISXendit(){
       if(secEl) secEl.textContent = String(secs%60).padStart(2,'0');
     };
     tick();
-    if(window._xenditQrTimer) clearInterval(window._xenditQrTimer);
-    window._xenditQrTimer = setInterval(()=>{ secs=Math.max(0,secs-1); tick(); if(secs===0){ clearInterval(window._xenditQrTimer); showNotif('Waktu pembayaran habis'); if(typeof qrSimClose==='function') qrSimClose(); } }, 1000);
+    if(window._xenditTimer) clearInterval(window._xenditTimer);
+    window._xenditTimer = setInterval(()=>{
+      secs=Math.max(0,secs-1); tick();
+      if(secs===0){ clearInterval(window._xenditTimer); showNotif('Waktu pembayaran habis'); if(typeof qrSimClose==='function') qrSimClose(); }
+    }, 1000);
 
     document.getElementById('qrSim').classList.add('open');
     document.body.style.overflow = 'hidden';
-  } catch(eShow){ console.warn('[xendit show]', eShow); }
+  } catch(eShow){ console.warn('[xendit-show]', eShow); }
 
-  // Fetch Xendit QR
+  // Fetch QR dari Xendit
   try {
     const anonKey = typeof _sb !== 'undefined' ? (_sb.supabaseKey || '') : '';
     const resp = await fetch(SUPABASE_XENDIT_URL, {
       method: 'POST',
       headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+anonKey },
-      body: JSON.stringify({ amount: total, reference_id: orderId, email: _cu.email })
+      body: JSON.stringify({ amount: total, reference_id: orderId, email: _u.email })
     });
     const xd = await resp.json();
     if (!resp.ok || xd.error) throw new Error(xd.error || xd.message || 'Gagal buat QR');
@@ -6846,21 +6876,23 @@ async function orderQRISXendit(){
       _qimg2.src = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=0&data='+encodeURIComponent(xd.qr_string);
     }
 
-    // Poll status Xendit
-    let pollId = setInterval(async ()=>{
+    // Poll status Xendit setiap 5 detik
+    if(window._xenditPoll) clearInterval(window._xenditPoll);
+    window._xenditPoll = setInterval(async ()=>{
       try {
         const anonKey2 = typeof _sb !== 'undefined' ? (_sb.supabaseKey || '') : '';
         const pr = await fetch(SUPABASE_XENDIT_URL + '?id=' + xd.id, { headers:{ 'Authorization':'Bearer '+anonKey2 } });
         const pd = await pr.json();
         if (pd.paid || pd.status === 'SUCCEEDED'){
-          clearInterval(pollId);
-          if(window._xenditQrTimer){ clearInterval(window._xenditQrTimer); window._xenditQrTimer=null; }
+          clearInterval(window._xenditPoll);
+          if(window._xenditTimer){ clearInterval(window._xenditTimer); window._xenditTimer=null; }
           payXenditDone();
         }
       } catch(e){}
     }, 5000);
+
   } catch(e){
-    if(window._xenditQrTimer){ clearInterval(window._xenditQrTimer); window._xenditQrTimer=null; }
+    if(window._xenditTimer){ clearInterval(window._xenditTimer); window._xenditTimer=null; }
     try{ if(typeof qrSimClose==='function') qrSimClose(); }catch(e2){}
     showNotif('Gagal QR Xendit: ' + (e.message||e));
   }
@@ -6869,12 +6901,11 @@ async function orderQRISXendit(){
 function payXenditDone(){
   const pending = window.qrPending;
   if(!pending) return;
-  const {pid,vn,qty,total,orderId,productName} = pending;
+  const {pid, vn, qty, total, orderId, productName} = pending;
 
-  // Ambil user dari localStorage
-  let _cu = null;
-  try { _cu = JSON.parse(localStorage.getItem('vp_user')||'null'); } catch(e){}
-  const _email = (_cu && _cu.email) ? _cu.email : 'guest';
+  let _u = (typeof currentUser !== 'undefined' && currentUser) ? currentUser : null;
+  if(!_u){ try{ _u = JSON.parse(localStorage.getItem('vp_user')||'null'); }catch(e){} }
+  const _email = (_u && _u.email) ? _u.email : 'guest';
 
   const keys = assignKeys(pid, vn, qty, _email);
   if(!keys.length){
@@ -6891,52 +6922,49 @@ function payXenditDone(){
     if(typeof VinzDaily!=='undefined') VinzDaily.bump(pid, qty);
   } catch(e){}
 
-  // Simpan riwayat transaksi
+  // Simpan riwayat
   try {
-    if(_cu && _cu.email){
-      const time = window._xenditPendingTime || new Date().toLocaleString('id-ID',{timeZone:'Asia/Makassar'});
-      const lsKey = 'vp_riw_'+_cu.email;
+    if(_u && _u.email){
+      const time = window._xenditTime || new Date().toLocaleString('id-ID',{timeZone:'Asia/Makassar'});
+      const lsKey = 'vp_riw_'+_u.email;
       let cur = JSON.parse(localStorage.getItem(lsKey)||'[]');
       keys.forEach((k,i)=>{
         const trx = {
-          id:'#'+orderId+(keys.length>1?('-'+(i+1)):''),
+          id:'#'+orderId+(keys.length>1?'-'+(i+1):''),
           prod:productName+' '+(vn||''), productName, variantName:vn||'',
           img:'', emoji:'📦', price:Math.round(total/qty), qty:1, key:k,
           status:'sukses', method:'QRIS Xendit', time, ts:Date.now()
         };
         cur.unshift(trx);
-        try{ if(typeof window.__pushAllTrx==='function') window.__pushAllTrx({...trx,email:_cu.email}); }catch(_x){}
-        try{ if(typeof _sb!=='undefined') _sb.from('transactions').insert({email:_cu.email,trx_id:trx.id,data:trx}).then(()=>{}); }catch(_x){}
+        try{ if(typeof getAllTrx==='function'){ const all=getAllTrx(); all.unshift({...trx,email:_u.email}); if(typeof setAllTrx==='function') setAllTrx(all); } }catch(_x){}
+        try{ if(typeof _sb!=='undefined') _sb.from('transactions').insert({email:_u.email,trx_id:trx.id,data:trx}).then(()=>{}); }catch(_x){}
       });
       localStorage.setItem(lsKey, JSON.stringify(cur.slice(0,200)));
     }
   } catch(e){}
 
-  // Hentikan timer
-  if(window._xenditQrTimer){ clearInterval(window._xenditQrTimer); window._xenditQrTimer=null; }
+  // Stop timer & poll
+  if(window._xenditTimer){ clearInterval(window._xenditTimer); window._xenditTimer=null; }
+  if(window._xenditPoll){ clearInterval(window._xenditPoll); window._xenditPoll=null; }
 
   window.qrPending = null;
-  showNotif('Pembayaran sukses!');
+  showNotif('✅ Pembayaran Xendit sukses!');
 
-  // Tampilkan layar OK di qrSim
-  try{
-    const p = getProducts().find(x=>x.id===pid);
-    const v = p ? p.variants.find(x=>x.n===vn)||p.variants[0] : null;
-    if(typeof qrSimShowOk==='function'){
-      // Override _qrPending agar qrSimShowOk bisa jalan
-      // Langsung render layar OK manual
-      document.getElementById('qrSimWait').style.display = 'none';
-      document.getElementById('qrSimOk').style.display = '';
-      const time2 = window._xenditPendingTime || '';
-      document.getElementById('qrOkTrx').textContent = '#'+orderId;
-      document.getElementById('qrOkTime').textContent = time2;
-      document.getElementById('qrOkProd').textContent = productName;
-      document.getElementById('qrOkVar').textContent = (vn||'').toUpperCase();
-      const wrap = document.getElementById('qrOkImgWrap');
-      if(wrap){ wrap.innerHTML = p && p.img ? `<img src="${p.img}" alt="">` : `<div class="qpEmoji">${(p&&p.emoji)||'📦'}</div>`; }
-      document.getElementById('qrOkKeyList').innerHTML = keys.map((k,i)=>`<div>${i+1}. ${k}</div>`).join('');
-    }
-  }catch(e){ setTimeout(()=>alert('PEMBAYARAN SUKSES\n\nKey:\n'+keys.join('\n')),300); }
+  // Tampilkan layar sukses di qrSim
+  try {
+    const p2 = getProducts().find(x=>x.id===pid);
+    document.getElementById('qrSimWait').style.display = 'none';
+    document.getElementById('qrSimOk').style.display = '';
+    document.getElementById('qrOkTrx').textContent = '#'+orderId;
+    document.getElementById('qrOkTime').textContent = window._xenditTime || '';
+    document.getElementById('qrOkProd').textContent = productName;
+    document.getElementById('qrOkVar').textContent = (vn||'').toUpperCase();
+    const wrap = document.getElementById('qrOkImgWrap');
+    if(wrap) wrap.innerHTML = (p2&&p2.img) ? `<img src="${p2.img}" alt="" style="width:96px;height:96px;border-radius:18px;object-fit:cover;">` : `<div class="qpEmoji">${(p2&&p2.emoji)||'📦'}</div>`;
+    document.getElementById('qrOkKeyList').innerHTML = keys.map((k,i)=>`<div>${i+1}. ${k}</div>`).join('');
+  } catch(e){
+    setTimeout(()=>alert('PEMBAYARAN SUKSES\n\nKey:\n'+keys.join('\n')), 300);
+  }
 }
 </script>
 </body>
