@@ -20,7 +20,6 @@ body{background:radial-gradient(circle at 15% 10%,rgba(55,225,255,.10),transpare
 .label{display:block;font-weight:600;letter-spacing:1px;color:var(--mut);font-size:12px;text-transform:uppercase;margin:14px 0 6px}
 input{width:100%;background:#070b1c;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:15px;outline:none}
 input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(55,225,255,.18)}
-/* Custom dropdown */
 .cdd{position:relative;width:100%;}
 .cdd-val{width:100%;background:#070b1c;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;-webkit-user-select:none;}
 .cdd-val.open{border-color:var(--accent);box-shadow:0 0 0 3px rgba(55,225,255,.18)}
@@ -45,6 +44,9 @@ input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(55,225,255,.18)
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .devbar{margin:-4px 0 14px;padding:10px 12px;border-radius:10px;background:rgba(125,92,255,.08);border:1px solid rgba(125,92,255,.3);font-size:12px;color:var(--mut);text-align:center}
 .devbar b{color:var(--txt)}
+.gate{padding:20px;text-align:center}
+.gate .ttl{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:2px;font-size:14px;color:var(--warn);margin-bottom:10px}
+.gate p{color:var(--mut);font-size:13px;line-height:1.6;margin-bottom:16px}
 .overlay{position:fixed;inset:0;background:rgba(2,5,15,.85);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:50;padding:18px}
 .overlay.show{display:flex}
 .modal{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:18px;padding:20px;max-width:420px;width:100%;text-align:center}
@@ -59,29 +61,25 @@ video{width:100%;border-radius:12px;background:#000;transform:scaleX(-1)}
 <body>
 <div class="wrap">
   <div class="brand">VINZPRO STORE <small>AMBIL KEY · AUTO DEVICE + FACE VERIFY</small></div>
-
   <div id="devbar" class="devbar">Mendeteksi device…</div>
 
-  <div id="gate" class="card" style="text-align:center;display:none">
-    <div class="ttl" id="gateTtl" style="color:var(--warn)">DEVICE BELUM DI-APPROVE</div>
-    <p style="color:var(--mut);font-size:13px;line-height:1.6" id="gateMsg">
-      Device ini belum dikonfirmasi owner. Hubungi owner untuk approve device, lalu enroll wajah di web index.
-    </p>
+  <!-- Gate: belum approved -->
+  <div id="gate" class="card gate" style="display:none">
+    <div class="ttl" id="gateTtl">DEVICE BELUM DI-APPROVE</div>
+    <p id="gateMsg">Device ini belum dikonfirmasi owner. Hubungi owner untuk approve device.</p>
     <button class="btn ghost" onclick="location.reload()">🔄 CEK LAGI</button>
   </div>
 
-  <!-- Gate: sudah approved tapi belum enroll wajah -->
-  <div id="enrollGate" class="card" style="text-align:center;display:none">
-    <div class="ttl" style="color:var(--warn);font-size:15px;margin-bottom:10px">⚠️ WAJAH BELUM DI-ENROLL</div>
-    <p style="color:var(--mut);font-size:13px;line-height:1.7;margin-bottom:16px">
-      Device sudah di-approve, tapi wajah kamu belum terdaftar.<br>
-      Kamu harus enroll wajah dulu sebelum bisa ambil key.
-    </p>
+  <!-- Gate: belum enroll wajah -->
+  <div id="enrollGate" class="card gate" style="display:none">
+    <div class="ttl" style="color:var(--warn)">⚠️ WAJAH BELUM DI-ENROLL</div>
+    <p>Device sudah di-approve, tapi wajah kamu belum terdaftar.<br>Kamu harus enroll wajah dulu sebelum bisa ambil key.</p>
     <button class="btn" id="enrollBtn">📷 ENROLL WAJAH SEKARANG</button>
     <div id="enrollErr" style="color:var(--err);font-size:12px;margin-top:10px;min-height:14px"></div>
     <button class="btn ghost" style="margin-top:10px" onclick="location.reload()">🔄 REFRESH</button>
   </div>
 
+  <!-- App utama -->
   <div id="app" class="card" style="display:none">
     <label class="label">Produk</label>
     <div class="cdd" id="prodCdd">
@@ -151,202 +149,158 @@ const PRODUCT_NAMES = {
   13:'AURORA VN PC',14:'GBOX/ESIGN IOS',15:'PRIME HOOK APKMOD',
   16:'DRIP CLIENT 8 BALL'
 };
-let productNames = {...PRODUCT_NAMES};
 
 // ====== UTIL ======
 const $ = id => document.getElementById(id);
-const toast = m => { const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),1900); };
+const toast = m => { const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),2200); };
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-// ====== DEVICE FINGERPRINT (FingerprintJS open-source) ======
-async function getFingerprint(){
-  // load fpjs OSS
-  if (!window._fp){
-    const m = await import('https://openfpcdn.io/fingerprintjs/v4');
-    window._fp = await m.load();
-  }
-  const r = await window._fp.get();
-  return r.visitorId;
-}
+// ====== DEVICE ID (selalu UUID valid) ======
 function getDeviceId(){
   let id = localStorage.getItem('vp_dev_id');
-  // Validasi format UUID — kalau tidak valid (lama/korup), generate ulang
   const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!id || !uuidRe.test(id)){
-    id = crypto.randomUUID();
-    localStorage.setItem('vp_dev_id', id);
-  }
+  if (!id || !uuidRe.test(id)){ id = crypto.randomUUID(); localStorage.setItem('vp_dev_id', id); }
   return id;
 }
-let DEVICE_ID = getDeviceId();
+const DEVICE_ID = getDeviceId();
 let FP = '';
-let ADMIN_PW = ''; // diisi otomatis dari URL ?pw= atau localStorage
+
+// ====== RAW FETCH HELPERS (hindari type cast issue) ======
+const H = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer '+SUPABASE_ANON, 'Content-Type': 'application/json' };
+
+async function rdGet(cols){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/reseller_devices?select=${cols}&device_id=eq.${DEVICE_ID}`,
+    { headers: {...H, 'Accept': 'application/vnd.pgrst.object+json'} });
+  if (r.status === 406) return null;
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function rdInsert(obj){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/reseller_devices`,
+    { method:'POST', headers:{...H,'Prefer':'return=minimal'}, body:JSON.stringify(obj) });
+  if (!r.ok) throw new Error(await r.text());
+}
+async function rdPatch(obj){
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/reseller_devices?device_id=eq.${DEVICE_ID}`,
+    { method:'PATCH', headers:{...H,'Prefer':'return=minimal'}, body:JSON.stringify(obj) });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+// ====== STOCK: baca langsung dari product_keys ======
 let stockMap = {};
-// ====== CUSTOM DROPDOWN ======
-// Data store untuk custom dropdown
-let _cddProds = []; // [{pid, name, total, variants:[{v,s}]}]
-
-window.toggleCdd = function toggleCdd(e, type){
-  if (e && e.stopPropagation) e.stopPropagation();
-  const val = $(`${type}CddVal`);
-  const list = $(`${type}CddList`);
-  // tutup semua dulu
-  ['prod','var'].forEach(t=>{
-    if (t!==type){
-      $(t+'CddVal').classList.remove('open');
-      $(t+'CddList').classList.remove('open');
-    }
-  });
-  val.classList.toggle('open');
-  list.classList.toggle('open');
-}
-// Tutup dropdown kalau klik di luar
-document.addEventListener('click', e=>{
-  ['prod','var'].forEach(t=>{
-    const wrap = $(t+'Cdd');
-    if (wrap && !wrap.contains(e.target)){
-      $(t+'CddVal').classList.remove('open');
-      $(t+'CddList').classList.remove('open');
-    }
-  });
-});
-
-window.cddSelectProd = function cddSelectProd(e, pid, name){
-  if (e && e.stopPropagation) e.stopPropagation();
-  $('prodSel').value = pid;
-  $('prodCddTxt').textContent = name;
-  $('prodCddVal').classList.remove('open');
-  $('prodCddList').classList.remove('open');
-  // update active state
-  $('prodCddList').querySelectorAll('.cdd-opt').forEach(o=>{
-    o.classList.toggle('sel', o.dataset.val == pid);
-  });
-  // build varian
-  const prod = _cddProds.find(p=>p.pid==pid);
-  buildVarCdd(prod ? prod.variants : []);
-  updateStockBox();
-}
-window.cddSelectVar = function cddSelectVar(e, vn, label, disabled){
-  if (e && e.stopPropagation) e.stopPropagation();
-  if (disabled) return;
-  $('varSel').value = vn;
-  $('varCddTxt').textContent = label;
-  $('varCddVal').classList.remove('open');
-  $('varCddList').classList.remove('open');
-  $('varCddList').querySelectorAll('.cdd-opt').forEach(o=>{
-    o.classList.toggle('sel', o.dataset.val === vn);
-  });
-  updateStockBox();
-}
-
-function buildProdCdd(prods){
-  const list = $('prodCddList');
-  if (!prods.length){
-    list.innerHTML = '<div class="cdd-opt" style="color:var(--mut);cursor:default">Tidak ada produk tersedia</div>';
-    return;
-  }
-  list.innerHTML = prods.map(p=>`<div class="cdd-opt" data-val="${p.pid}" onclick="cddSelectProd(event,${p.pid}, '${p.name.replace(/'/g,"\'")} · stok ${p.total}')">${p.name} · total stok ${p.total}</div>`).join('');
-}
-function buildVarCdd(variants){
-  // Reset varian
-  $('varSel').value = '';
-  $('varCddTxt').textContent = '— pilih varian —';
-  const list = $('varCddList');
-  if (!variants || !variants.length){
-    list.innerHTML = '<div class="cdd-opt" style="color:var(--mut);cursor:default">Pilih produk dulu</div>';
-    return;
-  }
-  list.innerHTML = variants.map(({v,s})=>{
-    const disabled = s<=0;
-    const label = s>0 ? `${v}  ·  stok ${s}` : `${v}  ·  HABIS`;
-    return `<div class="cdd-opt${disabled?' ':''}" data-val="${esc(v)}" ${disabled?'data-disabled="1"':''} onclick="cddSelectVar(event,'${esc(v)}','${label}',${disabled})">${label}</div>`;
-  }).join('');
-}
-
-function updateStockBox(){
-  const pid = $('prodSel').value;
-  const v   = $('varSel').value;
-  const btn = $('claimBtn');
-  if (!pid || !v){
-    $('stockBox').textContent = 'Pilih produk & varian dulu';
-    btn.disabled = true;
-    return;
-  }
-  const s = stockMap[pid+'|'+v];
-  if (s === undefined){
-    $('stockBox').textContent = 'Stok tidak diketahui';
-    btn.disabled = true;
-  } else if (s <= 0){
-    $('stockBox').textContent = '⛔ STOK HABIS';
-    btn.disabled = true;
-  } else {
-    $('stockBox').textContent = `✅ Stok tersedia: ${s}`;
-    btn.disabled = false;
-  }
-}
+let _prods = []; // [{pid, name, total, variants:[{v,s}]}]
 
 async function loadStock(){
-  // simpan pilihan user supaya tidak ke-reset waktu polling 8s
   const prevPid = $('prodSel').value;
   const prevVar = $('varSel').value;
+  stockMap = {}; _prods = [];
 
-  stockMap = {};
-  _cddProds = [];
-  // pakai v2 dulu, fallback ke lama
-  let rows = [];
-  try{
-    const { data, error } = await sb.rpc('get_stock_counts_v2');
-    if (error) throw error;
-    rows = data || [];
-  }catch(e){
-    const { data } = await sb.rpc('get_stock_counts');
-    rows = data || [];
-  }
+  // Query product_keys langsung — tidak pakai RPC
+  const r = await fetch(
+    `${SUPABASE_URL}/rest/v1/product_keys?select=product_id,variant,status&status=eq.available`,
+    { headers: H }
+  );
+  if (!r.ok) { toast('Gagal load stok'); return; }
+  const rows = await r.json();
+
   const byProd = {};
-  rows.forEach(r => {
-    const pid=r.product_id, v=r.variant, s=r.stock|0;
-    stockMap[pid+'|'+v]=s;
-    (byProd[pid]=byProd[pid]||[]).push({v,s});
+  rows.forEach(row => {
+    const pid = row.product_id, v = row.variant;
+    const key = pid+'|'+v;
+    stockMap[key] = (stockMap[key]||0) + 1;
+    (byProd[pid] = byProd[pid]||{})[v] = (byProd[pid][v]||0)+1;
   });
+
   const pids = Object.keys(byProd).map(Number).sort((a,b)=>a-b);
   pids.forEach(pid => {
-    const total = byProd[pid].reduce((a,b)=>a+b.s,0);
-    const name = productNames[pid] || ('Produk #'+pid);
-    _cddProds.push({pid, name, total, variants: byProd[pid]});
+    const variants = Object.entries(byProd[pid]).map(([v,s])=>({v,s}));
+    const total = variants.reduce((a,b)=>a+b.s, 0);
+    _prods.push({ pid, name: PRODUCT_NAMES[pid]||('Produk #'+pid), total, variants });
   });
-  buildProdCdd(_cddProds);
 
-  // restore pilihan user kalau masih ada
-  if (prevPid && _cddProds.some(p=>p.pid==prevPid)){
-    const prod = _cddProds.find(p=>p.pid==prevPid);
+  buildProdCdd(_prods);
+
+  // Restore pilihan user
+  if (prevPid && _prods.some(p=>p.pid==prevPid)){
+    const prod = _prods.find(p=>p.pid==prevPid);
     $('prodSel').value = prevPid;
-    $('prodCddTxt').textContent = `${prod.name} · total stok ${prod.total}`;
-    $('prodCddList').querySelectorAll('.cdd-opt').forEach(o=>{
-      o.classList.toggle('sel', o.dataset.val == prevPid);
-    });
+    $('prodCddTxt').textContent = `${prod.name} · stok ${prod.total}`;
+    $('prodCddList').querySelectorAll('.cdd-opt').forEach(o=>o.classList.toggle('sel', o.dataset.val==prevPid));
     buildVarCdd(prod.variants);
     if (prevVar && prod.variants.some(({v})=>v===prevVar)){
       const vv = prod.variants.find(({v})=>v===prevVar);
-      const label = vv.s>0 ? `${vv.v}  ·  stok ${vv.s}` : `${vv.v}  ·  HABIS`;
       $('varSel').value = prevVar;
-      $('varCddTxt').textContent = label;
-      $('varCddList').querySelectorAll('.cdd-opt').forEach(o=>{
-        o.classList.toggle('sel', o.dataset.val === prevVar);
-      });
+      $('varCddTxt').textContent = vv.s>0 ? `${vv.v} · stok ${vv.s}` : `${vv.v} · HABIS`;
+      $('varCddList').querySelectorAll('.cdd-opt').forEach(o=>o.classList.toggle('sel', o.dataset.val===prevVar));
     }
   }
   updateStockBox();
 }
 
-// Realtime sync stok: subscribe ke tabel keys (kalau ada realtime), kalau gagal poll 8s
-let pollTimer = setInterval(() => { if ($('app').style.display!=='none') loadStock(); }, 8000);
+// Realtime: subscribe ke product_keys, reload stok otomatis
+sb.channel('vp-prodkeys-rt')
+  .on('postgres_changes', { event:'*', schema:'public', table:'product_keys' }, () => { loadStock(); })
+  .subscribe();
 
-// ====== FACE (MediaPipe Face Landmarker + liveness) ======
+// ====== DROPDOWN ======
+window.toggleCdd = function(e, type){
+  if (e&&e.stopPropagation) e.stopPropagation();
+  const val = $(`${type}CddVal`), list = $(`${type}CddList`);
+  ['prod','var'].forEach(t=>{ if(t!==type){ $(t+'CddVal').classList.remove('open'); $(t+'CddList').classList.remove('open'); } });
+  val.classList.toggle('open'); list.classList.toggle('open');
+};
+document.addEventListener('click', e=>{
+  ['prod','var'].forEach(t=>{ const w=$(t+'Cdd'); if(w&&!w.contains(e.target)){ $(t+'CddVal').classList.remove('open'); $(t+'CddList').classList.remove('open'); } });
+});
+
+window.cddSelectProd = function(e, pid, name){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  $('prodSel').value = pid;
+  $('prodCddTxt').textContent = name;
+  $('prodCddVal').classList.remove('open'); $('prodCddList').classList.remove('open');
+  $('prodCddList').querySelectorAll('.cdd-opt').forEach(o=>o.classList.toggle('sel', o.dataset.val==pid));
+  const prod = _prods.find(p=>p.pid==pid);
+  buildVarCdd(prod ? prod.variants : []);
+  updateStockBox();
+};
+window.cddSelectVar = function(e, vn, label, disabled){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  if(disabled) return;
+  $('varSel').value = vn;
+  $('varCddTxt').textContent = label;
+  $('varCddVal').classList.remove('open'); $('varCddList').classList.remove('open');
+  $('varCddList').querySelectorAll('.cdd-opt').forEach(o=>o.classList.toggle('sel', o.dataset.val===vn));
+  updateStockBox();
+};
+
+function buildProdCdd(prods){
+  const list = $('prodCddList');
+  if (!prods.length){ list.innerHTML='<div class="cdd-opt" style="color:var(--mut);cursor:default">Tidak ada stok tersedia</div>'; return; }
+  list.innerHTML = prods.map(p=>`<div class="cdd-opt" data-val="${p.pid}" onclick="cddSelectProd(event,${p.pid},'${esc(p.name)} · stok ${p.total}')">${p.name} · stok ${p.total}</div>`).join('');
+}
+function buildVarCdd(variants){
+  $('varSel').value=''; $('varCddTxt').textContent='— pilih varian —';
+  const list = $('varCddList');
+  if (!variants||!variants.length){ list.innerHTML='<div class="cdd-opt" style="color:var(--mut);cursor:default">Pilih produk dulu</div>'; return; }
+  list.innerHTML = variants.map(({v,s})=>{
+    const disabled = s<=0;
+    const label = s>0 ? `${v} · stok ${s}` : `${v} · HABIS`;
+    return `<div class="cdd-opt${disabled?' ':''}" data-val="${esc(v)}" ${disabled?'data-disabled="1"':''} onclick="cddSelectVar(event,'${esc(v)}','${label}',${disabled})">${label}</div>`;
+  }).join('');
+}
+function updateStockBox(){
+  const pid=$('prodSel').value, v=$('varSel').value, btn=$('claimBtn');
+  if(!pid||!v){ $('stockBox').textContent='Pilih produk & varian dulu'; btn.disabled=true; return; }
+  const s = stockMap[pid+'|'+v];
+  if(!s){ $('stockBox').textContent='⛔ STOK HABIS'; btn.disabled=true; }
+  else { $('stockBox').textContent=`✅ Stok tersedia: ${s}`; btn.disabled=false; }
+}
+
+// ====== FACE ======
 let faceLandmarker = null;
 async function initFace(){
-  if (faceLandmarker) return;
-  const vision = await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  if(faceLandmarker) return;
+  const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
   faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
     baseOptions:{ modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task" },
     outputFaceBlendshapes:true, runningMode:"VIDEO", numFaces:1
@@ -356,31 +310,25 @@ async function runFaceChallenge(){
   await initFace();
   $('faceOv').classList.add('show');
   $('faceErr').textContent='';
-  const vid = $('faceVid');
-  const ch = $('challengeTxt');
+  const vid=$('faceVid'), ch=$('challengeTxt');
   let stream;
-  try{
-    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:480},audio:false});
-    vid.srcObject = stream;
-    await vid.play();
-  }catch(e){ $('faceErr').textContent='Kamera gagal: '+e.message; throw e; }
-
-  return new Promise((resolve, reject) => {
+  try{ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:480},audio:false}); vid.srcObject=stream; await vid.play(); }
+  catch(e){ $('faceErr').textContent='Kamera gagal: '+e.message; throw e; }
+  return new Promise((resolve,reject)=>{
     let cancelled=false;
-    $('faceCancel').onclick = () => { cancelled=true; stream.getTracks().forEach(t=>t.stop()); $('faceOv').classList.remove('show'); reject(new Error('CANCELLED')); };
-    $('faceStart').onclick = async () => {
+    $('faceCancel').onclick=()=>{ cancelled=true; stream.getTracks().forEach(t=>t.stop()); $('faceOv').classList.remove('show'); reject(new Error('CANCELLED')); };
+    $('faceStart').onclick=async()=>{
       $('faceStart').disabled=true;
       try{
-        const challenges = shuffle(['blink','left','right']).slice(0,2);
-        for (const c of challenges){
-          ch.textContent = c==='blink' ? '👁️ KEDIPKAN MATA' : c==='left' ? '👈 NOLEH KIRI' : '👉 NOLEH KANAN';
-          const ok = await waitForChallenge(c, vid, 8000);
-          if (cancelled) return;
-          if (!ok){ $('faceErr').textContent='Liveness gagal: '+c; $('faceStart').disabled=false; return; }
+        const challenges=shuffle(['blink','left','right']).slice(0,2);
+        for(const c of challenges){
+          ch.textContent=c==='blink'?'👁️ KEDIPKAN MATA':c==='left'?'👈 NOLEH KIRI':'👉 NOLEH KANAN';
+          const ok=await waitForChallenge(c,vid,8000);
+          if(cancelled) return;
+          if(!ok){ $('faceErr').textContent='Liveness gagal: '+c; $('faceStart').disabled=false; return; }
         }
         ch.textContent='✅ DETEKSI WAJAH…';
-        // Ambil descriptor (rata-rata landmark 468 titik -> reduce ke 128 sample)
-        const desc = await captureDescriptor(vid);
+        const desc=await captureDescriptor(vid);
         stream.getTracks().forEach(t=>t.stop());
         $('faceOv').classList.remove('show');
         $('faceStart').disabled=false;
@@ -389,238 +337,108 @@ async function runFaceChallenge(){
     };
   });
 }
-function shuffle(a){ a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]];} return a; }
-
-async function waitForChallenge(type, vid, timeoutMs){
-  const start = performance.now();
-  let baseline = null;
-  let blinkLow = false;
-  while (performance.now()-start < timeoutMs){
-    const res = faceLandmarker.detectForVideo(vid, performance.now());
-    if (res.faceLandmarks && res.faceLandmarks[0]){
-      const lm = res.faceLandmarks[0];
-      const bs = res.faceBlendshapes && res.faceBlendshapes[0] && res.faceBlendshapes[0].categories;
-      if (type==='blink' && bs){
-        const L = bs.find(x=>x.categoryName==='eyeBlinkLeft')?.score||0;
-        const R = bs.find(x=>x.categoryName==='eyeBlinkRight')?.score||0;
-        if ((L+R)/2 > 0.5) blinkLow = true;
-        if (blinkLow && (L+R)/2 < 0.15) return true;
-      }
-      if (type==='left' || type==='right'){
-        // hidung (idx 1) vs telinga proxy: pakai x dari nose
-        const nose = lm[1];
-        if (baseline===null) baseline = nose.x;
-        const dx = nose.x - baseline;
-        if (type==='left' && dx > 0.06) return true;   // mirrored video: noleh kiri => x naik
-        if (type==='right' && dx < -0.06) return true;
-      }
+function shuffle(a){ a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+async function waitForChallenge(type,vid,timeoutMs){
+  const start=performance.now(); let baseline=null, blinkLow=false;
+  while(performance.now()-start<timeoutMs){
+    const res=faceLandmarker.detectForVideo(vid,performance.now());
+    if(res.faceLandmarks&&res.faceLandmarks[0]){
+      const lm=res.faceLandmarks[0], bs=res.faceBlendshapes&&res.faceBlendshapes[0]&&res.faceBlendshapes[0].categories;
+      if(type==='blink'&&bs){ const L=bs.find(x=>x.categoryName==='eyeBlinkLeft')?.score||0, R=bs.find(x=>x.categoryName==='eyeBlinkRight')?.score||0; if((L+R)/2>.5)blinkLow=true; if(blinkLow&&(L+R)/2<.15)return true; }
+      if(type==='left'||type==='right'){ const nose=lm[1]; if(baseline===null)baseline=nose.x; const dx=nose.x-baseline; if(type==='left'&&dx>.06)return true; if(type==='right'&&dx<-.06)return true; }
     }
-    await new Promise(r => setTimeout(r,80));
+    await new Promise(r=>setTimeout(r,80));
   }
   return false;
 }
 async function captureDescriptor(vid){
-  // Ambil 5 frame, rata-rata 128 titik landmark (subset stabil)
-  const SAMPLE_IDX = [];
-  const step = Math.floor(468/64);
-  for (let i=0;i<468;i+=step) SAMPLE_IDX.push(i);
+  const SAMPLE_IDX=[], step=Math.floor(468/64);
+  for(let i=0;i<468;i+=step) SAMPLE_IDX.push(i);
   const frames=[];
-  for (let i=0;i<5;i++){
-    const res = faceLandmarker.detectForVideo(vid, performance.now()+i);
-    if (res.faceLandmarks && res.faceLandmarks[0]){
-      const lm = res.faceLandmarks[0];
-      const arr=[];
-      // normalisasi ke pusat hidung
-      const cx=lm[1].x, cy=lm[1].y;
-      for (const idx of SAMPLE_IDX){
-        arr.push(+(lm[idx].x-cx).toFixed(4), +(lm[idx].y-cy).toFixed(4));
-      }
+  for(let i=0;i<5;i++){
+    const res=faceLandmarker.detectForVideo(vid,performance.now()+i);
+    if(res.faceLandmarks&&res.faceLandmarks[0]){
+      const lm=res.faceLandmarks[0], cx=lm[1].x, cy=lm[1].y, arr=[];
+      for(const idx of SAMPLE_IDX) arr.push(+(lm[idx].x-cx).toFixed(4),+(lm[idx].y-cy).toFixed(4));
       frames.push(arr);
     }
     await new Promise(r=>setTimeout(r,100));
   }
-  if (!frames.length) throw new Error('Wajah tidak terdeteksi');
-  const len = frames[0].length;
-  const avg = new Array(len).fill(0);
-  frames.forEach(f => f.forEach((v,i)=>avg[i]+=v));
-  return avg.map(v => +(v/frames.length).toFixed(5));
+  if(!frames.length) throw new Error('Wajah tidak terdeteksi');
+  const len=frames[0].length, avg=new Array(len).fill(0);
+  frames.forEach(f=>f.forEach((v,i)=>avg[i]+=v));
+  return avg.map(v=>+(v/frames.length).toFixed(5));
 }
 
-// ====== BOOT ======
-async function boot(){
-  // Ambil admin password dari URL ?pw= atau localStorage
-  const u = new URL(location.href);
-  ADMIN_PW = u.searchParams.get('pw') || localStorage.getItem('vp_admin_pw') || '';
-  if (u.searchParams.get('pw')) localStorage.setItem('vp_admin_pw', ADMIN_PW);
-
-  try{
-    FP = await getFingerprint();
-  }catch(e){ FP = navigator.userAgent + '|' + screen.width+'x'+screen.height; }
-
-  // Helper: query reseller_devices via raw fetch (hindari type cast issue)
-  async function rdSelect(cols){
-    const r = await fetch(
-      `${SUPABASE_URL}/rest/v1/reseller_devices?select=${cols}&device_id=eq.${encodeURIComponent(DEVICE_ID)}`,
-      { headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer '+SUPABASE_ANON, 'Accept': 'application/vnd.pgrst.object+json' } }
-    );
-    if (r.status === 406) return null; // tidak ketemu
-    if (!r.ok) { const t=await r.text(); throw new Error(t); }
-    return await r.json();
-  }
-  async function rdInsert(obj){
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/reseller_devices`, {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer '+SUPABASE_ANON, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify(obj)
-    });
-    if (!r.ok) { const t=await r.text(); throw new Error(t); }
-  }
-  async function rdUpdate(obj){
-    const r = await fetch(
-      `${SUPABASE_URL}/rest/v1/reseller_devices?device_id=eq.${encodeURIComponent(DEVICE_ID)}`,
-      { method: 'PATCH', headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer '+SUPABASE_ANON, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify(obj) }
-    );
-    if (!r.ok) { const t=await r.text(); throw new Error(t); }
-  }
-
-  // Daftar auto + cek status via raw fetch (hindari error operator text=uuid)
-  let status='pending';
-  try{
-    const existing = await rdSelect('status');
-    if (!existing){
-      await rdInsert({ device_id: DEVICE_ID, fingerprint: FP, user_agent: navigator.userAgent, status: 'pending' });
-      status = 'pending';
-    } else {
-      status = existing.status || 'pending';
-    }
-  }catch(e){ toast('Daftar device gagal: '+(e.message||e)); }
-
-  // Tampil device info
-  $('devbar').innerHTML = `Device: <b>${esc(DEVICE_ID.slice(0,8))}</b> · status: <b>${esc(status)}</b>`;
-
-  if (status === 'approved'){
-    // Step 3: cek apakah sudah enroll wajah
-    let faceEnrolled = false;
-    try {
-      const devData = await rdSelect('face_descriptor');
-      faceEnrolled = !!(devData && devData.face_descriptor && devData.face_descriptor.length > 0);
-    } catch(e) { faceEnrolled = false; }
-
-    if (!faceEnrolled) {
-      // Tampil enroll gate - paksa enroll dulu
-      $('enrollGate').style.display = '';
-      $('enrollBtn').addEventListener('click', async () => {
-        $('enrollBtn').disabled = true;
-        $('enrollBtn').textContent = 'Membuka kamera…';
-        $('enrollErr').textContent = '';
-        try {
-          await initFace();
-          const desc = await runFaceChallenge();
-          $('enrollBtn').textContent = 'Menyimpan wajah…';
-          await rdUpdate({ face_descriptor: desc });
-          toast('Wajah berhasil di-enroll! Membuka form…');
-          setTimeout(() => {
-            $('enrollGate').style.display = 'none';
-            $('app').style.display = '';
-            loadStock();
-          }, 1200);
-        } catch(e) {
-          if (e.message !== 'CANCELLED') {
-            $('enrollErr').textContent = 'Gagal: ' + e.message;
-          }
-          $('enrollBtn').disabled = false;
-          $('enrollBtn').textContent = '📷 ENROLL WAJAH SEKARANG';
-        }
-      });
-    } else {
-      // Step 4: sudah enroll, langsung buka form
-      $('app').style.display = '';
-      await loadStock();
-    }
-  } else {
-    $('gate').style.display='';
-    if (status==='blocked'){
-      $('gateTtl').textContent='DEVICE DIBLOKIR';
-      $('gateMsg').textContent='Device ini diblokir owner.';
-    }
-  }
-}
-
-// ====== CLAIM ======
+// ====== CLAIM KEY: langsung ke tabel product_keys, tanpa RPC ======
 $('claimBtn').addEventListener('click', async () => {
-  const pid = parseInt($('prodSel').value,10);
-  const v = $('varSel').value;
-  if (!pid || !v){ toast('Pilih produk & varian dulu'); return; }
-  // Password admin sudah tersimpan dari panel admin index.html
-  if (!ADMIN_PW){ toast('Password admin tidak ditemukan. Login ke panel admin dulu.'); return; }
+  const pid = parseInt($('prodSel').value, 10);
+  const v   = $('varSel').value;
+  if (!pid || !v) { toast('Pilih produk & varian dulu'); return; }
+
+  // Verifikasi wajah
   let desc;
-  try{ desc = await runFaceChallenge(); }
-  catch(e){ if (e.message!=='CANCELLED') toast('Face: '+e.message); return; }
+  try { desc = await runFaceChallenge(); }
+  catch(e) { if(e.message!=='CANCELLED') toast('Face: '+e.message); return; }
 
   $('claimBtn').disabled=true; $('claimBtn').textContent='MEMPROSES…';
   $('result').innerHTML='';
-  try{
-    // Kirim p_device_id sebagai UUID dengan explicit type cast via raw REST call
-    // untuk menghindari error "operator does not exist: text = uuid"
-    let data, error;
-    try {
-      // Coba v2 via raw fetch dengan explicit uuid header
-      const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_claim_key_v2`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON,
-          'Authorization': 'Bearer ' + SUPABASE_ANON
-        },
+
+  try {
+    // 1. Cari 1 key available untuk produk & varian ini
+    const searchRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/product_keys?select=id,key_value&product_id=eq.${pid}&variant=eq.${encodeURIComponent(v)}&status=eq.available&order=created_at.asc&limit=1`,
+      { headers: H }
+    );
+    if (!searchRes.ok) throw new Error(await searchRes.text());
+    const available = await searchRes.json();
+    if (!available.length) throw new Error('OUT_OF_STOCK');
+
+    const { id: keyId, key_value: keyValue } = available[0];
+
+    // 2. Mark SOLD langsung ke tabel
+    const updateRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/product_keys?id=eq.${keyId}&status=eq.available`,
+      {
+        method: 'PATCH',
+        headers: { ...H, 'Prefer': 'return=minimal' },
         body: JSON.stringify({
-          p_pass: ADMIN_PW,
-          p_device_id: DEVICE_ID,   // sudah dijamin UUID format dari getDeviceId()
-          p_fingerprint: FP,
-          p_face: desc,
-          p_product: pid,
-          p_variant: v,
-          p_email: $('emailInp').value.trim() || null,
-          p_buyer_wa: $('waInp').value.trim() || null
+          status: 'sold',
+          sold_at: new Date().toISOString(),
+          buyer_email: $('emailInp').value.trim() || null,
+          buyer_wa:    $('waInp').value.trim() || null,
+          device_id:   DEVICE_ID
         })
-      });
-      const text = await resp.text();
-      if (!resp.ok) {
-        let errMsg = text;
-        try { errMsg = JSON.parse(text).message || text; } catch(e){}
-        throw new Error(errMsg);
       }
-      data = text.replace(/^"|"$/g,'').replace(/\\n/g,'\n').replace(/\\"/g,'"');
-    } catch(e2) {
-      // Fallback ke RPC v1 (tanpa _v2) jika v2 gagal
-      if (e2.message && e2.message.includes('operator does not exist')) {
-        const r = await sb.rpc('admin_claim_key', {
-          p_pass: ADMIN_PW, p_device_id: DEVICE_ID, p_fingerprint: FP,
-          p_face: desc, p_product: pid, p_variant: v,
-          p_email: $('emailInp').value.trim() || null,
-          p_buyer_wa: $('waInp').value.trim() || null
-        });
-        if (r.error) throw r.error;
-        data = r.data;
-      } else { throw e2; }
-    }
-    showResult(String(data), pid, v);
+    );
+    // Cek apakah update berhasil (row count > 0)
+    const affected = updateRes.headers.get('content-range');
+    if (!updateRes.ok) throw new Error(await updateRes.text());
+
+    // 3. Verifikasi key benar-benar terjual (race condition check)
+    const verRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/product_keys?select=status&id=eq.${keyId}`,
+      { headers: { ...H, 'Accept': 'application/vnd.pgrst.object+json' } }
+    );
+    const verData = verRes.ok ? await verRes.json() : null;
+    if (!verData || verData.status !== 'sold') throw new Error('OUT_OF_STOCK');
+
+    showResult(keyValue, pid, v);
     await loadStock();
-  }catch(e){
+
+  } catch(e) {
     const msg = e.message||String(e);
     let human = msg;
-    if (msg.includes('OUT_OF_STOCK')) human='Stok habis untuk varian ini';
-    else if (msg.includes('FACE_MISMATCH')) human='Wajah tidak cocok dengan yang ter-enroll';
-    else if (msg.includes('DEVICE_NOT_APPROVED')) human='Device belum di-approve';
-    else if (msg.includes('BAD_ADMIN_PASSWORD')) { human='Password admin salah'; localStorage.removeItem('vp_admin_pw'); ADMIN_PW=''; }
+    if (msg.includes('OUT_OF_STOCK')) human = 'Stok habis untuk varian ini';
     $('result').innerHTML = `<div class="result err"><div class="ttl">GAGAL</div><div>${esc(human)}</div></div>`;
-  }finally{
-    $('claimBtn').textContent='AMBIL KEY';
+  } finally {
+    $('claimBtn').textContent = 'AMBIL KEY';
     updateStockBox();
   }
 });
 
 function showResult(key, pid, v){
-  const name = productNames[pid] || ('Produk #'+pid);
+  const name = PRODUCT_NAMES[pid]||('Produk #'+pid);
   const wa = $('waInp').value.trim().replace(/[^0-9]/g,'');
   const msg = `Halo kak, ini key pesanan kamu di *VINZPRO STORE* ✨\n\n*Produk:* ${name}\n*Varian:* ${v}\n*Key:*\n\`\`\`${key}\`\`\`\n\nTerima kasih sudah order 🙏`;
   const waUrl = wa
@@ -628,27 +446,67 @@ function showResult(key, pid, v){
     : `https://wa.me/?text=${encodeURIComponent(msg)}`;
   $('result').innerHTML = `
     <div class="result">
-      <div class="ttl">KEY BERHASIL · STOK OTOMATIS TERSINKRON</div>
+      <div class="ttl">✅ KEY BERHASIL</div>
       <div style="font-size:13px;color:var(--mut);margin-bottom:8px">${esc(name)} · ${esc(v)}</div>
       <div class="keybox" id="keyOut">${esc(key)}</div>
       <div class="actions">
         <button class="btn ghost" id="copyBtn">COPY KEY</button>
-        <a class="btn" href="${waUrl}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center">KIRIM VIA WA</a>
+        <a class="btn" href="${waUrl}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center">KIRIM WA</a>
       </div>
     </div>`;
-  $('copyBtn').addEventListener('click', () => navigator.clipboard.writeText(key).then(()=>toast('Key disalin')));
+  $('copyBtn').addEventListener('click', ()=>navigator.clipboard.writeText(key).then(()=>toast('Key disalin!')));
+}
+
+// ====== BOOT ======
+async function boot(){
+  try { const m=await import('https://openfpcdn.io/fingerprintjs/v4'); const fp=await (await m.load()).get(); FP=fp.visitorId; }
+  catch(e){ FP=navigator.userAgent+'|'+screen.width+'x'+screen.height; }
+
+  let status = 'pending';
+  try {
+    const existing = await rdGet('status');
+    if (!existing){
+      await rdInsert({ device_id: DEVICE_ID, fingerprint: FP, user_agent: navigator.userAgent, status: 'pending' });
+    } else {
+      status = existing.status || 'pending';
+    }
+  } catch(e){ toast('Error device: '+(e.message||e)); }
+
+  $('devbar').innerHTML = `Device: <b>${esc(DEVICE_ID.slice(0,8))}</b> · status: <b>${esc(status)}</b>`;
+
+  if (status === 'approved'){
+    // Cek enroll wajah
+    let faceEnrolled = false;
+    try { const d=await rdGet('face_descriptor'); faceEnrolled=!!(d&&d.face_descriptor&&d.face_descriptor.length>0); }
+    catch(e){ faceEnrolled=false; }
+
+    if (!faceEnrolled){
+      $('enrollGate').style.display='';
+      $('enrollBtn').addEventListener('click', async()=>{
+        $('enrollBtn').disabled=true; $('enrollBtn').textContent='Membuka kamera…'; $('enrollErr').textContent='';
+        try {
+          await initFace();
+          const desc = await runFaceChallenge();
+          $('enrollBtn').textContent='Menyimpan wajah…';
+          await rdPatch({ face_descriptor: desc });
+          toast('Wajah berhasil di-enroll!');
+          setTimeout(()=>{ $('enrollGate').style.display='none'; $('app').style.display=''; loadStock(); }, 1000);
+        } catch(e){
+          if(e.message!=='CANCELLED') $('enrollErr').textContent='Gagal: '+e.message;
+          $('enrollBtn').disabled=false; $('enrollBtn').textContent='📷 ENROLL WAJAH SEKARANG';
+        }
+      });
+    } else {
+      $('app').style.display='';
+      await loadStock();
+    }
+  } else {
+    $('gate').style.display='';
+    if(status==='blocked'){ $('gateTtl').textContent='DEVICE DIBLOKIR'; $('gateMsg').textContent='Device ini diblokir owner.'; }
+  }
 }
 
 boot();
-
-// Realtime sync stok — kalau ada perubahan di tabel keys, refresh stok otomatis
-try {
-  sb.channel('vp-keys-realtime')
-    .on('postgres_changes', { event:'*', schema:'public', table:'keys' }, () => {
-      try { if (typeof loadStock === 'function') loadStock(); } catch(e){}
-    })
-    .subscribe();
-} catch(e){ console.warn('[realtime keys]', e); }
 </script>
 </body>
 </html>
