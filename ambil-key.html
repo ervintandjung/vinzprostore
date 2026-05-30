@@ -452,16 +452,25 @@ async function boot(){
     FP = await getFingerprint();
   }catch(e){ FP = navigator.userAgent + '|' + screen.width+'x'+screen.height; }
 
-  // Daftar auto + cek status
+  // Daftar auto + cek status (langsung ke tabel — hindari error operator text=uuid pada RPC)
   let status='pending';
   try{
-    const { data, error } = await sb.rpc('register_device_auto', {
-      p_device_id: DEVICE_ID, p_fingerprint: FP,
-      p_ua: navigator.userAgent
-    });
-    if (error) throw error;
-    status = data || 'pending';
-  }catch(e){ toast('Daftar device gagal: '+e.message); }
+    const { data: existing, error: selErr } = await sb
+      .from('reseller_devices')
+      .select('status')
+      .eq('device_id', DEVICE_ID)
+      .maybeSingle();
+    if (selErr) throw selErr;
+    if (!existing){
+      const { error: insErr } = await sb
+        .from('reseller_devices')
+        .insert({ device_id: DEVICE_ID, fingerprint: FP, user_agent: navigator.userAgent, status: 'pending' });
+      if (insErr) throw insErr;
+      status = 'pending';
+    } else {
+      status = existing.status || 'pending';
+    }
+  }catch(e){ toast('Daftar device gagal: '+(e.message||e)); }
 
   // Tampil device info
   $('devbar').innerHTML = `Device: <b>${esc(DEVICE_ID.slice(0,8))}</b> · status: <b>${esc(status)}</b>`;
@@ -580,6 +589,15 @@ function showResult(key, pid, v){
 }
 
 boot();
+
+// Realtime sync stok — kalau ada perubahan di tabel keys, refresh stok otomatis
+try {
+  sb.channel('vp-keys-realtime')
+    .on('postgres_changes', { event:'*', schema:'public', table:'keys' }, () => {
+      try { if (typeof loadStock === 'function') loadStock(); } catch(e){}
+    })
+    .subscribe();
+} catch(e){ console.warn('[realtime keys]', e); }
 </script>
 </body>
 </html>
