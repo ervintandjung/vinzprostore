@@ -568,9 +568,8 @@ function closeSplash(){
   }, 460);
 
   sessionStorage.setItem('splashDone','1');
-  localStorage.setItem('splashDone','1');
 }
-if(sessionStorage.getItem('splashDone') || localStorage.getItem('splashDone')){
+if(sessionStorage.getItem('splashDone')){
   document.addEventListener('DOMContentLoaded',()=>{
     const el=document.getElementById('splashScreen');
     if(el) el.style.display='none';
@@ -744,14 +743,14 @@ renderBannerSlider();
   <div style="padding:8px 14px 130px;">
     <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:12px;color:#fff;letter-spacing:1.5px;margin-bottom:8px;">PILIH CARA PEMBAYARAN</div>
     <div style="display:flex;flex-direction:column;gap:8px;">
-            <div class="pm-card" data-method="qris_xendit" onclick="selectPayMethod('qris_xendit')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
+      <div class="pm-card" data-method="qris_xendit" onclick="selectPayMethod('qris_xendit')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
         <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#6b3fa0,#9b59b6);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
         </div>
         <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS <span style="font-size:9px;background:#6b3fa0;color:#fff;padding:1px 7px;border-radius:4px;margin-left:4px;">XENDIT</span></div><div style="font-size:10px;color:var(--muted);">Otomatis · GoPay, OVO, Dana, dll</div></div>
         <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
       </div>
-<div class="pm-card" data-method="qris" onclick="selectPayMethod('qris')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
+      <div class="pm-card" data-method="qris" onclick="selectPayMethod('qris')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
         <div style="width:36px;height:36px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0050dd" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
         </div>
@@ -765,7 +764,8 @@ renderBannerSlider();
         <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">WhatsApp</div><div style="font-size:10px;color:var(--muted);">Pesan langsung ke admin · Manual</div></div>
         <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
       </div>
-      
+
+    </div>
   </div>
 
   <!-- Fixed Bottom: PESAN button (gray → blue when method selected) -->
@@ -1067,6 +1067,7 @@ renderBannerSlider();
           <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Klik tombol di bawah untuk pilih foto</div>
           <input type="file" id="setAvatarInput" accept="image/*" style="display:none;" onchange="setAvatarChange()">
           <label for="setAvatarInput" style="display:inline-block;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">&#128193; Pilih Foto</label>
+          <button type="button" onclick="deleteAvatar()" style="display:inline-block;margin-left:6px;background:transparent;border:1.5px solid #ff4d4f;color:#ff4d4f;border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">&#128465; Hapus Foto</button>
         </div>
       </div>
       <button id="btnSaveAvatar" onclick="saveAvatar()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.8px;">&#128248; SIMPAN FOTO</button>
@@ -1380,11 +1381,11 @@ function renderHeader() {
       </div>
       <div class="dropdown" id="userDropdown">
         <div class="dd-user"><strong>${currentUser.name || 'User'}</strong>${currentUser.email}</div>
-        ${isAdmin ? `<button class="dd-item admin-item" onclick="event.stopPropagation();document.getElementById('userDropdown').classList.remove('open');openAdmin();">Menu Admin</button>` : ''}
-        <button class="dd-item admin-item" onclick="event.stopPropagation();document.getElementById('userDropdown').classList.remove('open');_vpNonton();">📺 Nonton</button>
-        <button class="dd-item" onclick="event.stopPropagation();document.getElementById('userDropdown').classList.remove('open');_vpRiwayat();">Riwayat Order</button>
-        <button class="dd-item" onclick="event.stopPropagation();document.getElementById('userDropdown').classList.remove('open');showPengaturan();">Pengaturan Akun</button>
-        <button class="dd-item danger" onclick="event.stopPropagation();doLogout()">Logout</button>
+        ${isAdmin ? `<button class="dd-item admin-item" onclick="openAdmin()">Menu Admin</button>` : ''}
+        ${isAdmin ? `<button class="dd-item admin-item" onclick="window.__openNonton()">Nonton</button>` : ''}
+        <button class="dd-item" onclick="window.__showRiwayat()">Riwayat Order</button>
+        <button class="dd-item" onclick="showPengaturan()">Pengaturan Akun</button>
+        <button class="dd-item danger" onclick="doLogout()">Logout</button>
       </div>
     </div>`;
   }
@@ -1394,68 +1395,9 @@ function toggleDropdown(e) {
   e.stopPropagation();
   document.getElementById('userDropdown').classList.toggle('open');
 }
-
-function _vpNonton(){
-  const p = document.getElementById('nontonPanel');
-  if(!p){ alert('Panel tidak ditemukan'); return; }
-  // Tutup produk fullscreen jika terbuka
-  try{ const fs=document.getElementById('prodFullscreen'); if(fs&&fs.classList.contains('open')){ fs.classList.remove('open','closing'); } }catch(e){}
-  document.body.style.overflow='hidden';
-  document.body.style.top='';
-  document.body.classList.remove('panel-lock');
-  p.classList.add('open');
-  // Render history YouTube
-  try{
-    const el=document.getElementById('ytHistory');
-    const h=JSON.parse(localStorage.getItem('vp_yt_history')||'[]');
-    window._ytH=h;
-    if(el) el.innerHTML=h.length?h.slice(0,8).map((u,i)=>`
-      <div style="background:#0d1f3c;border:1px solid rgba(26,111,255,.3);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;">
-        <div style="flex:1;font-size:11px;color:#00d4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u}</div>
-        <button onclick="document.getElementById('ytLinkInput').value=window._ytH[${i}];loadYoutube();" style="background:#1a6fff;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;cursor:pointer;">Play</button>
-      </div>`).join('')
-    :'<div style="color:#6a8cb5;font-size:11px;">Belum ada riwayat</div>';
-  }catch(e){}
-  history.pushState({vpPanel:'nonton'},'');
-}
-
-function _vpRiwayat(){
-  // Tutup produk fullscreen jika terbuka
-  try{ const fs=document.getElementById('prodFullscreen'); if(fs&&fs.classList.contains('open')){ fs.classList.remove('open','closing'); } }catch(e){}
-  document.body.style.top='';
-  document.body.classList.remove('panel-lock');
-  // Cek admin
-  try{
-    const u=(typeof currentUser!=='undefined'&&currentUser)?currentUser:JSON.parse(localStorage.getItem('vp_user')||'null');
-    if(u&&u.email==='alpintandjung@gmail.com'){
-      if(typeof window.openAdminRiwayat==='function'){ window.openAdminRiwayat(); return; }
-    }
-  }catch(e){}
-  // Buka riwayat user biasa
-  const p=document.getElementById('riwayatPanel');
-  if(p){
-    p.classList.add('open');
-    document.body.style.overflow='hidden';
-    history.pushState({vpPanel:'riwayat'},'');
-    if(typeof window.renderRiwayat==='function') setTimeout(window.renderRiwayat,50);
-  }
-}
-
-// Global back handler untuk panel _vp
-window.addEventListener('popstate', function(e){
-  ['nontonPanel'].forEach(function(id){
-    const p=document.getElementById(id);
-    if(p&&p.classList.contains('open')){
-      p.classList.remove('open');
-      document.body.style.overflow='';
-      const ct=document.getElementById('ytContainer');
-      if(ct) ct.innerHTML='<div style="color:#555;font-family:\'Orbitron\',sans-serif;font-size:12px;text-align:center;">📺<br>Paste link YouTube<br>lalu tekan PLAY</div>';
-    }
-  });
-});
-document.addEventListener('click', (e) => {
+document.addEventListener('click', () => {
   const d = document.getElementById('userDropdown');
-  if (d && !d.contains(e.target) && !e.target.closest('.dots-btn')) d.classList.remove('open');
+  if (d) d.classList.remove('open');
 });
 
 // ══════════════════════════════
@@ -2026,6 +1968,25 @@ async function saveAvatar() {
   } finally { btn.disabled = false; btn.textContent = '📸 SIMPAN FOTO'; }
 }
 
+async function deleteAvatar(){
+  if (!currentUser) { showNotif('⚠️ Login dulu'); return; }
+  if (!confirm('Hapus foto profil?')) return;
+  try {
+    try { await _sb.from('users').update({ avatar: null }).eq('email', currentUser.email); } catch(e) {}
+    currentUser.avatarData = null;
+    currentUser.avatar = null;
+    localStorage.setItem('vp_user', JSON.stringify(currentUser));
+    settingsAvatarData = null;
+    const av = document.getElementById('setAvatarPreview');
+    if (av) {
+      av.style.background = 'linear-gradient(135deg,var(--accent),var(--accent2))';
+      av.innerHTML = (currentUser.name||'?').charAt(0).toUpperCase();
+    }
+    try { renderHeader(); } catch(e){}
+    showNotif('🗑️ Foto profil dihapus');
+  } catch(e){ showNotif('❌ Gagal hapus foto: '+(e.message||e), 'var(--danger)'); }
+}
+
 async function requestEmailChange() {
   const newEmail = document.getElementById('setNewEmail').value.trim().toLowerCase();
   const errEl = document.getElementById('setEmailErr');
@@ -2150,7 +2111,6 @@ function renderProducts() {
       <div class="prod-img">${imgContent}<span class="plat-badge ${platClass(p.plat)}">${platLabel(p.plat)}</span></div>
       <div class="prod-info">
         <div class="prod-name">${p.name}</div>
-        <div class="prod-sold">🛒 ${p.sold.toLocaleString('id-ID')} TERJUAL</div>
         <button class="btn-beli">BELI</button>
       </div>
     </div>`;
@@ -3006,7 +2966,7 @@ async function kmAddKeys(){
 
   try {
     const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || '';
-    if (!pw) return;
+    if (!pw) { showNotif('🔒 Buka panel admin dulu untuk login', 'var(--danger)'); try { openAdminAuth(); } catch(e){} return; }
     sessionStorage.setItem('vp_admin_pw', pw);
     localStorage.setItem('vp_admin_pw', pw);
     const { data, error } = await _sb.rpc('admin_add_keys', {
@@ -3709,12 +3669,12 @@ function doPesan(){
           var daily = getDaily(p.id);
           if (card.querySelector('.prod-sold-today')) return;
           var info = card.querySelector('.prod-info');
-          var sold = card.querySelector('.prod-sold');
+          var name = card.querySelector('.prod-name');
           var el = document.createElement('div');
           el.className = 'prod-sold-today';
-          el.style.cssText = 'font-size:9px;color:var(--success);font-weight:700;margin-top:2px;letter-spacing:0.3px;';
+          el.style.cssText = 'font-size:11px;color:var(--success);font-weight:700;margin:4px 0 8px;letter-spacing:0.3px;';
           el.textContent = '🔥 ' + daily + ' TERJUAL HARI INI';
-          if (sold && sold.parentNode) sold.parentNode.insertBefore(el, sold.nextSibling);
+          if (name && name.parentNode) name.parentNode.insertBefore(el, name.nextSibling);
           else if (info) info.insertBefore(el, info.firstChild);
         });
       } catch(e){}
@@ -4645,22 +4605,24 @@ function doPesan(){
 </style>
 
 <div id="nontonPanel">
-  <div style="background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid #ff0000;padding:12px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;">
-    <button onclick="closeNonton()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">&#8592;</button>
-    <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#ff4444;flex:1;">📺 NONTON VIDEO</div>
+  <div style="background:#000;border-bottom:1.5px solid #ff0000;padding:10px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;">
+    <button onclick="closeNonton()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&#8592;</button>
+    <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#ff2222;flex:1;">NONTON VIDEO</div>
   </div>
-  <div style="padding:14px;">
-    <div style="display:flex;gap:8px;margin-bottom:12px;">
-      <input id="ytLinkInput" placeholder="Paste link YouTube di sini…" style="flex:1;background:#0d1f3c;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;">
-      <button onclick="loadYoutube()" style="background:#ff0000;color:#fff;border:none;border-radius:10px;padding:10px 16px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;cursor:pointer;">▶ PLAY</button>
+  <!-- Video area 16:9 full width -->
+  <div id="ytContainer" style="width:100%;background:#000;position:relative;">
+    <div style="width:100%;padding-top:56.25%;position:relative;">
+      <div id="ytInner" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#444;font-size:12px;text-align:center;">Paste link lalu tekan PLAY</div>
     </div>
-    <div id="ytContainer" style="border-radius:14px;overflow:hidden;background:#000;min-height:200px;display:flex;align-items:center;justify-content:center;">
-      <div style="color:#555;font-family:'Orbitron',sans-serif;font-size:12px;text-align:center;">📺<br>Paste link YouTube<br>lalu tekan PLAY</div>
+  </div>
+  <!-- Input -->
+  <div style="padding:12px 14px;background:#0a0a0a;">
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <input id="ytLinkInput" placeholder="Paste link YouTube…" style="flex:1;background:#111;border:1px solid #333;border-radius:8px;padding:9px 12px;color:#fff;font-size:14px;outline:none;">
+      <button onclick="loadYoutube()" style="background:#ff0000;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;cursor:pointer;white-space:nowrap;">PLAY</button>
     </div>
-    <div style="margin-top:12px;">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:700;">RIWAYAT LINK:</div>
-      <div id="ytHistory" style="display:flex;flex-direction:column;gap:6px;"></div>
-    </div>
+    <div style="font-size:10px;color:#555;margin-bottom:8px;font-weight:700;letter-spacing:1px;">RIWAYAT LINK</div>
+    <div id="ytHistory" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;"></div>
   </div>
 </div>
 
@@ -5541,39 +5503,9 @@ function doPesan(){
   setInterval(paintBal, 1500);
 
 
-  // ---------- INJECT: SALDO SECTION DI SETTINGS ----------
-  function injectSettingsSaldo(){
-    const sp = document.getElementById('settingsPanel');
-    if (!sp || document.getElementById('setSaldoCard')) return;
-    // cari kontainer body di dalam settingsPanel
-    const target = sp.querySelector('.ap-body, .sp-body') || sp;
-    const card = document.createElement('div');
-    card.id = 'setSaldoCard';
-    card.className = 'ap-card';
-    card.style.cssText = 'background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin:12px;';
-    card.innerHTML = `
-      <h3 style="font-family:Orbitron,sans-serif;font-size:13px;letter-spacing:1px;margin:0 0 10px;color:#fff;">💎 SALDO AKUN</h3>
-      <div style="background:linear-gradient(135deg,rgba(247,181,0,.18),rgba(255,122,0,.10));border:1.5px solid rgba(247,181,0,.45);border-radius:10px;padding:14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;">
-        <div style="font-size:26px;">💰</div>
-        <div style="flex:1;">
-          <div style="font-size:10px;color:var(--muted);letter-spacing:1.2px;font-weight:700;">SALDO TERSEDIA</div>
-          <div data-bal-amt style="font-family:Orbitron,sans-serif;font-size:20px;font-weight:900;color:#f7b500;">Rp 0</div>
-        </div>
-        <button onclick="vpReloadBalance()" title="Refresh saldo" style="background:transparent;border:1px solid var(--border);color:var(--accent2);border-radius:8px;padding:6px 10px;font-size:11px;cursor:pointer;">↻</button>
-      </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:700;letter-spacing:.6px;">💸 TOP UP SALDO</div>
-      <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <input id="topupAmt" type="number" min="10000" placeholder="Nominal (min Rp 10.000)" style="flex:1;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:#fff;font-family:Rajdhani,sans-serif;font-size:14px;">
-      </div>
-      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-        ${[20000,50000,100000,200000].map(v=>`<button onclick="document.getElementById('topupAmt').value=${v}" style="flex:1;min-width:70px;background:var(--secondary);border:1px solid var(--border);color:var(--accent2);border-radius:7px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:Rajdhani,sans-serif;">${rp(v)}</button>`).join('')}
-      </div>
-      <button onclick="vpTopupQRIS()" style="width:100%;background:linear-gradient(135deg,#0050dd,#00aaff);border:none;color:#fff;border-radius:10px;padding:12px;font-family:Orbitron,sans-serif;font-weight:800;font-size:12px;letter-spacing:1px;cursor:pointer;margin-bottom:8px;">📱 TOP UP VIA QRIS</button>
-      <button onclick="vpTopupWA()" style="width:100%;background:#25D366;border:none;color:#fff;border-radius:10px;padding:12px;font-family:Orbitron,sans-serif;font-weight:800;font-size:12px;letter-spacing:1px;cursor:pointer;">💬 TOP UP VIA WHATSAPP</button>
-    `;
-    target.appendChild(card);
-    paintBal();
-  }
+  // ---------- SALDO CARD DI SETTINGS DIHAPUS (request user) ----------
+  function injectSettingsSaldo(){ /* removed */ }
+
   // Inject ketika pengaturan dibuka
   const _origShowPeng = window.showPengaturan;
   if (typeof _origShowPeng === 'function'){
@@ -6442,7 +6374,7 @@ async function loadDevices(){
   const box = document.getElementById('devList');
   if (!box) return;
   const pw = sessionStorage.getItem('vp_admin_pw') || '';
-  if (!pw) return;
+  if (!pw) { showNotif('🔒 Buka panel admin dulu untuk login', 'var(--danger)'); try { openAdminAuth(); } catch(e){} return; }
   sessionStorage.setItem('vp_admin_pw', pw);
   box.innerHTML = 'Memuat…';
   try {
@@ -6580,10 +6512,7 @@ setTimeout(function(){
   function openAdminRiwayatPanel(){
     const panel = document.getElementById('adminRiwayatPanel');
     if (!panel){ console.error('adminRiwayatPanel not found'); return; }
-    // Tutup produk fullscreen jika terbuka
-    try{ const fs=document.getElementById('prodFullscreen'); if(fs&&fs.classList.contains('open')){ fs.classList.remove('open','closing'); } }catch(e){}
-    document.body.style.top=''; document.body.classList.remove('panel-lock');
-    panel.classList.add('open');
+    panel.style.display = 'block';
     document.body.style.overflow = 'hidden';
     history.pushState({panel:'adminRiwayat'}, '');
     // Load data
@@ -6688,7 +6617,7 @@ setTimeout(function(){
   window.switchArTab = function(tab){ window._arTab=tab; renderArData(); };
   window.closeAdminRiwayat = function(){
     const p = document.getElementById('adminRiwayatPanel');
-    if(p) p.classList.remove('open');
+    if(p) p.style.display='none';
     document.body.style.overflow='';
   };
   window.openAdminRiwayat = openAdminRiwayatPanel;
@@ -6720,9 +6649,9 @@ setTimeout(function(){
   };
   window.closeNonton = function(){
     const ct = document.getElementById('ytContainer');
-    if(ct) ct.innerHTML = '<div style="color:#555;font-family:\'Orbitron\',sans-serif;font-size:12px;text-align:center;">📺<br>Paste link YouTube<br>lalu tekan PLAY</div>';
+    if(ct) ct.innerHTML = '<div style="color:#555;font-size:12px;text-align:center;padding:30px;">Paste link YouTube lalu tekan PLAY</div>';
     const p = document.getElementById('nontonPanel');
-    if(p) p.classList.remove('open');
+    if(p) p.style.display='none';
     document.body.style.overflow='';
   };
   window.loadYoutube = function(){
@@ -6747,7 +6676,7 @@ setTimeout(function(){
       localStorage.setItem('vp_yt_history', JSON.stringify(h));
       window._ytH = h;
     } catch(e){}
-    if(typeof _vpNonton==='function') _vpNonton(); else { const p=document.getElementById('nontonPanel'); if(p) p.classList.add('open'); }
+    window.__openNonton();
   };
 
   // ======= RIWAYAT WRAPPER =======
@@ -6765,222 +6694,164 @@ setTimeout(function(){
 
   // ======= BACK BUTTON HANDLER =======
   window.addEventListener('popstate', function(){
-    ['adminRiwayatPanel'].forEach(id=>{
+    // Tutup panel yang terbuka
+    ['nontonPanel','adminRiwayatPanel'].forEach(id=>{
       const p = document.getElementById(id);
-      if(p && p.classList.contains('open')){
-        p.classList.remove('open');
+      if(p && p.style.display==='block'){
+        p.style.display='none';
         document.body.style.overflow='';
+        const ct = document.getElementById('ytContainer');
+        if(ct && id==='nontonPanel') ct.innerHTML='<div style="color:#555;font-size:12px;text-align:center;padding:30px;">Paste link YouTube lalu tekan PLAY</div>';
       }
     });
   });
 
-  // Panel sudah pakai classList.add('open') — tidak perlu CSS override tambahan
-  // CSS #adminRiwayatPanel.open dan #nontonPanel.open sudah ada di stylesheet
+  // ======= OVERRIDE adminRiwayatPanel CSS display =======
+  // Panel pakai style.display langsung bukan classList
+  const style = document.createElement('style');
+  style.textContent = '#adminRiwayatPanel{display:none!important;} #adminRiwayatPanel[style*="block"]{display:block!important;} #nontonPanel{display:none!important;} #nontonPanel[style*="block"]{display:block!important;}';
+  document.head.appendChild(style);
 
 })();
 </script>
 
 <script>
-// ===== XENDIT QRIS =====
+// ===== XENDIT QRIS via Supabase Edge Function =====
 const SUPABASE_XENDIT_URL = 'https://niqjrwtolqszevopayir.supabase.co/functions/v1/xendit-qris';
 
 async function orderQRISXendit(){
-  // Ambil currentUser aman dari localStorage juga (fallback)
-  let _u = (typeof currentUser !== 'undefined' && currentUser) ? currentUser : null;
-  if (!_u){ try{ _u = JSON.parse(localStorage.getItem('vp_user')||'null'); }catch(e){} }
-  if (!_u){
-    try{ closeProdModalBtn(); }catch(e){}
-    try{ openAuth('masuk'); }catch(e){}
-    showNotif('Login dulu!'); return;
-  }
-  if (!_u.verified){
-    try{ closeProdModalBtn(); }catch(e){}
-    try{ openOtpVerifyModal(); }catch(e){}
-    return;
-  }
+  if (!currentUser){ closeProdModalBtn(); openAuth('masuk'); showNotif('Login dulu!'); return; }
+  if (!currentUser.verified){ closeProdModalBtn(); openOtpVerifyModal(); return; }
 
   const p = getProducts().find(x => x.id === selProdId);
-  if (!p){ showNotif('Produk tidak ditemukan'); return; }
   const v = p.variants[selVarIdx];
   const total = v.p * qty;
   const avail = getAvailableKeys(p.id, v.n).length;
-  if (avail < qty){ showNotif('Stok key habis'); return; }
+  if (avail < qty){ showNotif('Stok habis (tersedia: ' + avail + ')'); return; }
 
   const orderId = 'VNZ' + Date.now().toString().slice(-8) + Math.floor(Math.random()*100);
-  window.qrPending = { pid: p.id, vn: v.n, qty, total, orderId, productName: p.name, method: 'xendit', userEmail: _u.email };
+  qrPending = { pid: p.id, vn: v.n, qty, total, orderId, productName: p.name, method: 'xendit' };
 
-  // Tutup halaman produk fullscreen
+  // Buka QR overlay dengan loading state
   try {
     const fs = document.getElementById('prodFullscreen');
-    if (fs && fs.classList.contains('open')){ fs.classList.remove('open','closing'); }
-    try{ closeProdModalBtn(); }catch(e){}
+    if (fs && fs.classList.contains('open')){ fs.classList.remove('open','closing'); fs.style.display='none'; }
   } catch(e){}
 
-  // Tampilkan qrSim (halaman QR yang sudah ada, sama dengan QRIS Duitku)
-  const time = (function(){
-    const d=new Date(); const M=['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
-    const p2=n=>String(n).padStart(2,'0');
-    return `${d.getDate()} ${M[d.getMonth()]} ${d.getFullYear()}, ${p2(d.getHours())}.${p2(d.getMinutes())}`;
-  })();
-  window._xenditTime = time;
+  const qo = document.getElementById('qrOverlay');
+  document.getElementById('qrOrderId').textContent = orderId;
+  document.getElementById('qrAmount').textContent = rp(total);
+  document.getElementById('qrSimNote').style.display = 'none';
+  const payBtn = document.getElementById('qrPayBtn');
+  if (payBtn) payBtn.style.display = 'none';
+  const qrImg = document.getElementById('qrImg');
+  qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=LOADING';
+  qo.classList.add('fullpage','open');
+  document.body.style.overflow = 'hidden';
+
+  let secs = 600;
+  const cntEl = document.getElementById('qrCount');
+  const fmt = s => String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  if(cntEl) cntEl.textContent = fmt(secs);
+  if(qrTimer) clearInterval(qrTimer);
 
   try {
-    document.getElementById('qrSimWait').style.display = '';
-    document.getElementById('qrSimOk').style.display = 'none';
-    document.getElementById('qrTotal').textContent = rp(total);
-    document.getElementById('qrTrxId').textContent = '#'+orderId;
-    document.getElementById('qrTrxTime').textContent = time;
-    document.getElementById('qrProdName').textContent = p.name;
-    document.getElementById('qrProdVar').textContent = (v.n||'').toUpperCase();
-    const imgWrap = document.getElementById('qrProdImgWrap');
-    if(imgWrap){
-      if(p.img) imgWrap.outerHTML = `<img id="qrProdImgWrap" src="${p.img}" alt="" style="width:96px;height:96px;border-radius:18px;object-fit:cover;">`;
-      else imgWrap.outerHTML = `<div class="qpEmoji" id="qrProdImgWrap">${p.emoji||'📦'}</div>`;
-    }
-    // QR loading state
-    const _qimg = document.getElementById('qrImgSim');
-    if(_qimg){ _qimg.src=''; _qimg.alt='Memuat QR Xendit...'; }
-
-    // Timer 10 menit
-    let secs = 600;
-    const minEl = document.getElementById('qrMin'), secEl = document.getElementById('qrSec');
-    const tick = () => {
-      if(minEl) minEl.textContent = String(Math.floor(secs/60)).padStart(2,'0');
-      if(secEl) secEl.textContent = String(secs%60).padStart(2,'0');
-    };
-    tick();
-    if(window._xenditTimer) clearInterval(window._xenditTimer);
-    window._xenditTimer = setInterval(()=>{
-      secs=Math.max(0,secs-1); tick();
-      if(secs===0){ clearInterval(window._xenditTimer); showNotif('Waktu pembayaran habis'); if(typeof qrSimClose==='function') qrSimClose(); }
-    }, 1000);
-
-    document.getElementById('qrSim').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  } catch(eShow){ console.warn('[xendit-show]', eShow); }
-
-  // Fetch QR dari Xendit
-  try {
-    const anonKey = typeof _sb !== 'undefined' ? (_sb.supabaseKey || '') : '';
+    // Panggil Edge Function (API key tersimpan aman di server)
+    const anon = typeof _sb !== 'undefined' ? _sb.supabaseKey || '' : '';
     const resp = await fetch(SUPABASE_XENDIT_URL, {
       method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+anonKey },
-      body: JSON.stringify({ amount: total, reference_id: orderId, email: _u.email })
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+anon },
+      body: JSON.stringify({ amount: total, reference_id: orderId, email: currentUser.email })
     });
     const xd = await resp.json();
-    if (!resp.ok || xd.error) throw new Error(xd.error || xd.message || 'Gagal buat QR');
+    if (!resp.ok || xd.error){ throw new Error(xd.error || xd.message || 'Gagal buat QR'); }
 
-    window.qrPending.xenditId = xd.id;
-    const _qimg2 = document.getElementById('qrImgSim');
-    if(_qimg2){
-      _qimg2.onerror = function(){ _qimg2.onerror=null; _qimg2.src='https://quickchart.io/qr?size=400&margin=0&text='+encodeURIComponent(xd.qr_string); };
-      _qimg2.src = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=0&data='+encodeURIComponent(xd.qr_string);
-    }
+    const qrData = encodeURIComponent(xd.qr_string);
+    qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + qrData;
+    qrPending.xenditId = xd.id;
 
-    // Poll status Xendit setiap 5 detik
-    if(window._xenditPoll) clearInterval(window._xenditPoll);
-    window._xenditPoll = setInterval(async ()=>{
+    // Polling status
+    let pollId = setInterval(async ()=>{
       try {
-        const anonKey2 = typeof _sb !== 'undefined' ? (_sb.supabaseKey || '') : '';
-        const pr = await fetch(SUPABASE_XENDIT_URL + '?id=' + xd.id, { headers:{ 'Authorization':'Bearer '+anonKey2 } });
+        const pr = await fetch(SUPABASE_XENDIT_URL + '/status?id=' + xd.id, {
+          headers:{ 'Authorization':'Bearer '+anon }
+        });
         const pd = await pr.json();
-        if (pd.paid || pd.status === 'SUCCEEDED'){
-          clearInterval(window._xenditPoll);
-          if(window._xenditTimer){ clearInterval(window._xenditTimer); window._xenditTimer=null; }
+        if (pd.status === 'SUCCEEDED' || pd.paid){
+          clearInterval(pollId); clearInterval(qrTimer); qrTimer = null;
           payXenditDone();
         }
       } catch(e){}
     }, 5000);
 
+    qrTimer = setInterval(()=>{
+      secs--; if(cntEl) cntEl.textContent = fmt(secs);
+      if(secs <= 0){ clearInterval(qrTimer); qrTimer=null; clearInterval(pollId); showNotif('Waktu habis'); closeQrPayment(); }
+    }, 1000);
+
   } catch(e){
-    if(window._xenditTimer){ clearInterval(window._xenditTimer); window._xenditTimer=null; }
-    if(window._xenditPoll){ clearInterval(window._xenditPoll); window._xenditPoll=null; }
-    // Tampilkan error di DALAM halaman QR, jangan tutup overlay
-    const _qimg3 = document.getElementById('qrImgSim');
-    if(_qimg3){
-      _qimg3.alt = '⚠ Gagal memuat QR';
-      _qimg3.src = '';
-    }
-    const qrHint = document.querySelector('#qrSim .qHint');
-    if(qrHint){
-      qrHint.innerHTML = '<span style="color:#ef4444;font-size:13px;letter-spacing:1px;">⚠ Gagal membuat QRIS Xendit<br><span style="font-size:11px;color:#aaa;font-weight:500;">' + (e.message||'Cek koneksi & coba lagi') + '</span></span>';
-    }
-    // Tombol coba lagi
-    const qrBox = document.querySelector('#qrSim .qrBox');
-    if(qrBox){
-      qrBox.innerHTML = '<div style="padding:20px;text-align:center;color:#ef4444;font-weight:700;font-size:13px;">⚠ Gagal memuat QR<br><span style="color:#aaa;font-size:11px;font-weight:500;">' + (e.message||'Koneksi bermasalah') + '</span><br><button onclick="qrSimClose();setTimeout(()=>orderQRISXendit(),300)" style="margin-top:14px;background:#1a6fff;color:#fff;border:none;border-radius:10px;padding:10px 22px;font-family:Orbitron,sans-serif;font-weight:700;font-size:11px;cursor:pointer;letter-spacing:1px;">🔄 COBA LAGI</button></div>';
-    }
+    closeQrPayment();
+    showNotif('Gagal QR Xendit: ' + (e.message||e));
   }
 }
 
 function payXenditDone(){
-  const pending = window.qrPending;
-  if(!pending) return;
-  const {pid, vn, qty, total, orderId, productName} = pending;
-
-  let _u = (typeof currentUser !== 'undefined' && currentUser) ? currentUser : null;
-  if(!_u){ try{ _u = JSON.parse(localStorage.getItem('vp_user')||'null'); }catch(e){} }
-  const _email = (_u && _u.email) ? _u.email : 'guest';
-
-  const keys = assignKeys(pid, vn, qty, _email);
-  if(!keys.length){
-    showNotif('Stok habis');
-    try{ if(typeof qrSimClose==='function') qrSimClose(); }catch(e){}
-    return;
-  }
-
-  // Update sold counter
+  if(!qrPending) return;
+  const {pid,vn,qty,total,orderId,productName} = qrPending;
+  const keys = assignKeys(pid,vn,qty,currentUser?currentUser.email:'guest');
+  if(!keys.length){ showNotif('Stok habis'); closeQrPayment(); return; }
   try {
     const prods = getProducts();
     const idx = prods.findIndex(x=>x.id===pid);
-    if(idx!==-1){ prods[idx].sold=(prods[idx].sold||0)+qty; setProducts(prods); if(typeof renderProducts==='function') renderProducts(); }
-    if(typeof VinzDaily!=='undefined') VinzDaily.bump(pid, qty);
+    if(idx!==-1){ prods[idx].sold=(prods[idx].sold||0)+qty; setProducts(prods); renderProducts(); }
   } catch(e){}
-
-  // Simpan riwayat
   try {
-    if(_u && _u.email){
-      const time = window._xenditTime || new Date().toLocaleString('id-ID',{timeZone:'Asia/Makassar'});
-      const lsKey = 'vp_riw_'+_u.email;
-      let cur = JSON.parse(localStorage.getItem(lsKey)||'[]');
-      keys.forEach((k,i)=>{
-        const trx = {
-          id:'#'+orderId+(keys.length>1?'-'+(i+1):''),
-          prod:productName+' '+(vn||''), productName, variantName:vn||'',
-          img:'', emoji:'📦', price:Math.round(total/qty), qty:1, key:k,
-          status:'sukses', method:'QRIS Xendit', time, ts:Date.now()
-        };
-        cur.unshift(trx);
-        try{ if(typeof getAllTrx==='function'){ const all=getAllTrx(); all.unshift({...trx,email:_u.email}); if(typeof setAllTrx==='function') setAllTrx(all); } }catch(_x){}
-        try{ if(typeof _sb!=='undefined') _sb.from('transactions').insert({email:_u.email,trx_id:trx.id,data:trx}).then(()=>{}); }catch(_x){}
-      });
-      localStorage.setItem(lsKey, JSON.stringify(cur.slice(0,200)));
-    }
+    const trx={id:orderId,type:'qris_xendit',productName,variantName:vn,qty,total,keys,status:'SUKSES',method:'QRIS Xendit',ts:Date.now(),email:currentUser?.email||''};
+    const riw=getUserRiw(currentUser.email); riw.unshift(trx); setUserRiw(currentUser.email,riw);
+    const all=getAllTrx(); all.unshift({...trx}); setAllTrx(all);
+    if(typeof _sb!=='undefined') _sb.from('transactions').insert({email:currentUser.email,trx_id:orderId,data:{productName,variantName:vn,qty,total,keys,status:'SUKSES',method:'QRIS Xendit'}}).then(()=>{}).catch(()=>{});
   } catch(e){}
-
-  // Stop timer & poll
-  if(window._xenditTimer){ clearInterval(window._xenditTimer); window._xenditTimer=null; }
-  if(window._xenditPoll){ clearInterval(window._xenditPoll); window._xenditPoll=null; }
-
-  window.qrPending = null;
-  showNotif('✅ Pembayaran Xendit sukses!');
-
-  // Tampilkan layar sukses di qrSim
-  try {
-    const p2 = getProducts().find(x=>x.id===pid);
-    document.getElementById('qrSimWait').style.display = 'none';
-    document.getElementById('qrSimOk').style.display = '';
-    document.getElementById('qrOkTrx').textContent = '#'+orderId;
-    document.getElementById('qrOkTime').textContent = window._xenditTime || '';
-    document.getElementById('qrOkProd').textContent = productName;
-    document.getElementById('qrOkVar').textContent = (vn||'').toUpperCase();
-    const wrap = document.getElementById('qrOkImgWrap');
-    if(wrap) wrap.innerHTML = (p2&&p2.img) ? `<img src="${p2.img}" alt="" style="width:96px;height:96px;border-radius:18px;object-fit:cover;">` : `<div class="qpEmoji">${(p2&&p2.emoji)||'📦'}</div>`;
-    document.getElementById('qrOkKeyList').innerHTML = keys.map((k,i)=>`<div>${i+1}. ${k}</div>`).join('');
-  } catch(e){
-    setTimeout(()=>alert('PEMBAYARAN SUKSES\n\nKey:\n'+keys.join('\n')), 300);
-  }
+  closeQrPayment(); qrPending=null;
+  showNotif('Pembayaran sukses!');
+  setTimeout(()=>alert('PEMBAYARAN SUKSES\n\nKey:\n'+keys.join('\n')+'\n\nSimpan baik-baik!'),300);
 }
+
+// ===== FIX loadYoutube pakai ytInner bukan ytContainer innerHTML =====
+window.loadYoutube = function(){
+  const inp = document.getElementById('ytLinkInput');
+  const url = inp ? inp.value.trim() : '';
+  if(!url){ if(typeof showNotif==='function') showNotif('Paste link YouTube dulu'); return; }
+  function ytId(u){
+    try { const x=new URL(u); if(x.hostname.includes('youtu.be')) return x.pathname.slice(1).split('?')[0]; return x.searchParams.get('v')||''; } catch(e){ return ''; }
+  }
+  const vid = ytId(url);
+  const inner = document.getElementById('ytInner');
+  if(!inner) return;
+  const src = vid ? 'https://www.youtube.com/embed/'+vid+'?autoplay=1&rel=0' : url;
+  inner.innerHTML = '<iframe style="position:absolute;inset:0;width:100%;height:100%;border:none;" src="'+src+'" allowfullscreen allow="autoplay;encrypted-media;gyroscope;picture-in-picture"></iframe>';
+  // Bungkus iframe dalam posisi absolute
+  inner.style.position = 'absolute';
+  inner.style.inset = '0';
+  // Simpan history
+  try {
+    let h=JSON.parse(localStorage.getItem('vp_yt_history')||'[]');
+    h=[url,...h.filter(x=>x!==url)].slice(0,8);
+    localStorage.setItem('vp_yt_history',JSON.stringify(h));
+    window._ytH=h;
+    // Refresh history list
+    const el=document.getElementById('ytHistory');
+    if(el) el.innerHTML=h.map((u,i)=>'<div style="display:flex;align-items:center;gap:8px;background:#111;border:1px solid #222;border-radius:6px;padding:6px 10px;"><div style="flex:1;font-size:11px;color:#00aaff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+u+'</div><button onclick="document.getElementById('ytLinkInput').value=window._ytH['+i+'];window.loadYoutube();" style="background:#ff0000;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:10px;cursor:pointer;">Play</button></div>').join('');
+  } catch(e){}
+};
+
+// ===== FIX closeNonton =====
+window.closeNonton = function(){
+  const inner = document.getElementById('ytInner');
+  if(inner){ inner.innerHTML='Paste link lalu tekan PLAY'; inner.style.position=''; inner.style.inset=''; }
+  const p=document.getElementById('nontonPanel');
+  if(p) p.style.display='none';
+  document.body.style.overflow='';
+};
 </script>
 </body>
 </html>
