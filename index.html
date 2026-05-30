@@ -2966,7 +2966,7 @@ async function kmAddKeys(){
 
   try {
     const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || '';
-    if (!pw) { showNotif('🔒 Buka panel admin dulu untuk login', 'var(--danger)'); try { openAdminAuth(); } catch(e){} return; }
+    if (!pw) { showNotif('🔒 Buka Menu Admin dulu untuk login', 'var(--danger)'); return; }
     sessionStorage.setItem('vp_admin_pw', pw);
     localStorage.setItem('vp_admin_pw', pw);
     const { data, error } = await _sb.rpc('admin_add_keys', {
@@ -6374,7 +6374,7 @@ async function loadDevices(){
   const box = document.getElementById('devList');
   if (!box) return;
   const pw = sessionStorage.getItem('vp_admin_pw') || '';
-  if (!pw) { showNotif('🔒 Buka panel admin dulu untuk login', 'var(--danger)'); try { openAdminAuth(); } catch(e){} return; }
+  if (!pw) { showNotif('🔒 Buka Menu Admin dulu untuk login', 'var(--danger)'); return; }
   sessionStorage.setItem('vp_admin_pw', pw);
   box.innerHTML = 'Memuat…';
   try {
@@ -6441,9 +6441,7 @@ async function setDevice(id, status){
 }
 setInterval(() => {
   const ap = document.getElementById('adminPanel');
-  if (ap && (ap.classList.contains('open') || ap.style.display !== 'none')){
-    loadDevices();
-  }
+  if (ap && ap.classList.contains('open')) loadDevices();
 }, 15000);
 
 // ====== SUPABASE REALTIME: Sync product_keys ke localStorage instan ======
