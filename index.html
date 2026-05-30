@@ -6000,15 +6000,20 @@ function doPesan(){
   setInterval(tryWrapAuth, 1500);
 
   /* ---------- 2) STOK MANUAL: tambahkan QRIS & SALDO toggle (mirip WA) ---------- */
-  const Q_KEY = 'vinz_qris_stock';
-  const S_KEY = 'vinz_saldo_stock';
+  const XN_KEY = 'vinz_xendit_stock';
+  const DK_KEY = 'vinz_duitku_stock';
   function _g(K){ try{ return JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){ return {}; } }
   function _s(K,o){ try{ localStorage.setItem(K, JSON.stringify(o)); }catch(e){} }
   function _k(p,v){ return p+'::'+v; }
-  window._qrisManualAvail  = (p,v)=>{ const o=_g(Q_KEY); const k=_k(p,v); return o[k]===undefined?true:!!o[k]; };
-  window._qrisManualSet    = (p,v,b)=>{ const o=_g(Q_KEY); o[_k(p,v)]=!!b; _s(Q_KEY,o); };
-  window._saldoManualAvail = (p,v)=>{ const o=_g(S_KEY); const k=_k(p,v); return o[k]===undefined?true:!!o[k]; };
-  window._saldoManualSet   = (p,v,b)=>{ const o=_g(S_KEY); o[_k(p,v)]=!!b; _s(S_KEY,o); };
+  window._xenditAvail  = (p,v)=>{ const o=_g(XN_KEY); const k=_k(p,v); return o[k]===undefined?true:!!o[k]; };
+  window._xenditSet    = (p,v,b)=>{ const o=_g(XN_KEY); o[_k(p,v)]=!!b; _s(XN_KEY,o); };
+  window._duitkuAvail  = (p,v)=>{ const o=_g(DK_KEY); const k=_k(p,v); return o[k]===undefined?true:!!o[k]; };
+  window._duitkuSet    = (p,v,b)=>{ const o=_g(DK_KEY); o[_k(p,v)]=!!b; _s(DK_KEY,o); };
+  // Backward-compat aliases (agar tidak error kalau ada kode lama)
+  window._qrisManualAvail = window._xenditAvail;
+  window._qrisManualSet   = window._xenditSet;
+  window._saldoManualAvail = (p,v)=>true;
+  window._saldoManualSet   = ()=>{};
 
   function _cur(){
     try {
@@ -6019,18 +6024,23 @@ function doPesan(){
     } catch(e){ return null; }
   }
 
-  // Hook block payment method untuk QRIS & SALDO juga
+  // Hook block payment method untuk QRIS Xendit & Duitku
   const _origSel = window.selectPayMethod;
   if (typeof _origSel === 'function'){
     window.selectPayMethod = function(m){
       const c = _cur();
       if (c){
-        if (m === 'qris' && !window._qrisManualAvail(c.p.id, c.v.n)){
-          try { showNotif('❌ QRIS ditandai HABIS oleh admin. Pilih metode lain.'); } catch(e){}
+        if (m === 'qris_xendit' && !window._xenditAvail(c.p.id, c.v.n)){
+          try { showNotif('❌ QRIS Xendit sedang HABIS. Pilih metode lain.'); } catch(e){}
           return;
         }
-        if (m === 'saldo' && !window._saldoManualAvail(c.p.id, c.v.n)){
-          try { showNotif('❌ Pembayaran SALDO dimatikan admin untuk varian ini.'); } catch(e){}
+        if (m === 'qris_duitku' && !window._duitkuAvail(c.p.id, c.v.n)){
+          try { showNotif('❌ QRIS Duitku sedang HABIS. Pilih metode lain.'); } catch(e){}
+          return;
+        }
+        // Backward compat: blokir 'qris' jika semua provider habis
+        if (m === 'qris' && !window._xenditAvail(c.p.id, c.v.n) && !window._duitkuAvail(c.p.id, c.v.n)){
+          try { showNotif('❌ Semua QRIS sedang HABIS. Pilih metode lain.'); } catch(e){}
           return;
         }
       }
@@ -6038,15 +6048,17 @@ function doPesan(){
     };
   }
 
-  // Hook refresh availability — tambahkan flag manual ke QRIS & SALDO
+  // Hook refresh availability — tambahkan flag ke QRIS Xendit & Duitku
   const _origRA = window.refreshPayMethodAvailability;
   window.refreshPayMethodAvailability = function(){
     if (typeof _origRA === 'function') try { _origRA.apply(this, arguments); } catch(e){}
     const c = _cur(); if (!c) return;
-    const qOk = window._qrisManualAvail(c.p.id, c.v.n);
-    const sOk = window._saldoManualAvail(c.p.id, c.v.n);
+    const xOk = window._xenditAvail(c.p.id, c.v.n);
+    const dOk = window._duitkuAvail(c.p.id, c.v.n);
+    const cardXendit = document.querySelector('.pm-card[data-method="qris_xendit"]');
+    const cardDuitku = document.querySelector('.pm-card[data-method="qris_duitku"]');
+    // Juga handle generic qris card jika semua provider habis
     const cardQ = document.querySelector('.pm-card[data-method="qris"]');
-    const cardS = document.querySelector('.pm-card[data-method="saldo"]');
     function force(card, ok, label){
       if (!card) return;
       let b = card.querySelector('.pm-stat-badge');
@@ -6059,11 +6071,14 @@ function doPesan(){
       b.style.background='rgba(255,68,85,.18)'; b.style.color='#ff4757'; b.style.border='1px solid #ff4757';
       b.textContent = label;
     }
-    if (!qOk) force(cardQ, false, 'HABIS');
-    if (!sOk) force(cardS, false, 'OFF');
+    if (!xOk) force(cardXendit, false, 'HABIS');
+    if (!dOk) force(cardDuitku, false, 'HABIS');
+    if (!xOk && !dOk) force(cardQ, false, 'HABIS');
     try {
-      if (window.selectedPayMethod==='qris'  && !qOk && typeof resetPayMethod==='function') resetPayMethod();
-      if (window.selectedPayMethod==='saldo' && !sOk && typeof resetPayMethod==='function') resetPayMethod();
+      if ((window.selectedPayMethod==='qris_xendit' && !xOk ||
+           window.selectedPayMethod==='qris_duitku' && !dOk ||
+           window.selectedPayMethod==='qris' && !xOk && !dOk)
+          && typeof resetPayMethod==='function') resetPayMethod();
     } catch(e){}
   };
 
@@ -6093,33 +6108,34 @@ function doPesan(){
         '<button onclick="'+toggleFn+'()" style="margin-left:auto;background:'+(isOk?'#ff4757':'#00ff88')+';color:'+(isOk?'#fff':'#000')+';border:none;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;cursor:pointer;">'+
           (isOk?offLbl:onLbl)+'</button>';
     }
-    rowFor('kmQrisToggle', '💳 STOK QRIS (manual):',
-      window._qrisManualAvail(pid, vn),
-      'TANDAI QRIS READY', 'TANDAI QRIS HABIS', 'kmToggleQris');
-    rowFor('kmSaldoToggle', '💎 STOK SALDO (manual):',
-      window._saldoManualAvail(pid, vn),
-      'TANDAI SALDO READY', 'TANDAI SALDO OFF', 'kmToggleSaldo');
+    rowFor('kmXendtToggle', '⚡ QRIS XENDIT:',
+      window._xenditAvail(pid, vn),
+      'TANDAI XENDIT READY', 'TANDAI XENDIT HABIS', 'kmToggleXendit');
+    rowFor('kmDuitkuToggle', '💚 QRIS DUITKU:',
+      window._duitkuAvail(pid, vn),
+      'TANDAI DUITKU READY', 'TANDAI DUITKU HABIS', 'kmToggleDuitku');
   }
-  window.kmToggleQris = function(){
+  window.kmToggleXendit = function(){
     const pid = parseInt(document.getElementById('kmProd').value);
     const vn  = document.getElementById('kmVar').value;
     if (!pid || !vn) return;
-    const cur = window._qrisManualAvail(pid, vn);
-    window._qrisManualSet(pid, vn, !cur);
-    try { showNotif(!cur?'✅ QRIS ditandai TERSEDIA':'⚠️ QRIS ditandai HABIS'); } catch(e){}
+    const cur = window._xenditAvail(pid, vn);
+    window._xenditSet(pid, vn, !cur);
+    try { showNotif(!cur?'✅ QRIS Xendit TERSEDIA':'⚠️ QRIS Xendit HABIS'); } catch(e){}
     ensureExtraToggles();
     try { refreshPayMethodAvailability(); } catch(e){}
     try { const p = getProducts().find(x=>x.id===selProdId); if (p && typeof renderFsVars==='function') renderFsVars(p); } catch(e){}
   };
-  window.kmToggleSaldo = function(){
+  window.kmToggleDuitku = function(){
     const pid = parseInt(document.getElementById('kmProd').value);
     const vn  = document.getElementById('kmVar').value;
     if (!pid || !vn) return;
-    const cur = window._saldoManualAvail(pid, vn);
-    window._saldoManualSet(pid, vn, !cur);
-    try { showNotif(!cur?'✅ SALDO ditandai TERSEDIA':'⚠️ SALDO dimatikan'); } catch(e){}
+    const cur = window._duitkuAvail(pid, vn);
+    window._duitkuSet(pid, vn, !cur);
+    try { showNotif(!cur?'✅ QRIS Duitku TERSEDIA':'⚠️ QRIS Duitku HABIS'); } catch(e){}
     ensureExtraToggles();
     try { refreshPayMethodAvailability(); } catch(e){}
+    try { const p = getProducts().find(x=>x.id===selProdId); if (p && typeof renderFsVars==='function') renderFsVars(p); } catch(e){}
   };
   setInterval(ensureExtraToggles, 1500);
 
