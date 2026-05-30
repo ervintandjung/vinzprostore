@@ -170,7 +170,12 @@ async function getFingerprint(){
 }
 function getDeviceId(){
   let id = localStorage.getItem('vp_dev_id');
-  if (!id){ id = crypto.randomUUID(); localStorage.setItem('vp_dev_id', id); }
+  // Validasi format UUID — kalau tidak valid (lama/korup), generate ulang
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!id || !uuidRe.test(id)){
+    id = crypto.randomUUID();
+    localStorage.setItem('vp_dev_id', id);
+  }
   return id;
 }
 let DEVICE_ID = getDeviceId();
@@ -458,7 +463,7 @@ async function boot(){
     const { data: existing, error: selErr } = await sb
       .from('reseller_devices')
       .select('status')
-      .eq('device_id', DEVICE_ID)
+      .filter('device_id', 'eq', DEVICE_ID)
       .maybeSingle();
     if (selErr) throw selErr;
     if (!existing){
@@ -482,7 +487,7 @@ async function boot(){
       const { data: devData } = await sb
         .from('reseller_devices')
         .select('face_descriptor')
-        .eq('device_id', DEVICE_ID)
+        .filter('device_id', 'eq', DEVICE_ID)
         .single();
       faceEnrolled = !!(devData && devData.face_descriptor && devData.face_descriptor.length > 0);
     } catch(e) { faceEnrolled = false; }
@@ -501,7 +506,7 @@ async function boot(){
           const { error } = await sb
             .from('reseller_devices')
             .update({ face_descriptor: desc })
-            .eq('device_id', DEVICE_ID);
+            .filter('device_id', 'eq', DEVICE_ID);
           if (error) throw error;
           toast('Wajah berhasil di-enroll! Membuka form…');
           setTimeout(() => {
@@ -550,7 +555,7 @@ $('claimBtn').addEventListener('click', async () => {
       p_face: desc, p_product: pid, p_variant: v,
       p_email: $('emailInp').value.trim() || null,
       p_buyer_wa: $('waInp').value.trim() || null
-    });
+    }, { get: false, count: null });
     if (error) throw error;
     showResult(String(data), pid, v);
     await loadStock();
