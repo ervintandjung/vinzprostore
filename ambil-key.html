@@ -457,7 +457,7 @@ async function boot(){
   try{
     const { data, error } = await sb.rpc('register_device_auto', {
       p_device_id: DEVICE_ID, p_fingerprint: FP,
-      p_ua: navigator.userAgent, p_email: 'ambil-key@page'
+      p_ua: navigator.userAgent
     });
     if (error) throw error;
     status = data || 'pending';
@@ -527,10 +527,8 @@ $('claimBtn').addEventListener('click', async () => {
   const pid = parseInt($('prodSel').value,10);
   const v = $('varSel').value;
   if (!pid || !v){ toast('Pilih produk & varian dulu'); return; }
-  if (!ADMIN_PW){
-    ADMIN_PW = prompt('Password admin (1x saja, akan disimpan):') || '';
-    if (ADMIN_PW) localStorage.setItem('vp_admin_pw', ADMIN_PW); else return;
-  }
+  // Password admin sudah tersimpan dari panel admin index.html
+  if (!ADMIN_PW){ toast('Password admin tidak ditemukan. Login ke panel admin dulu.'); return; }
   let desc;
   try{ desc = await runFaceChallenge(); }
   catch(e){ if (e.message!=='CANCELLED') toast('Face: '+e.message); return; }
