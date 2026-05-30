@@ -1379,9 +1379,9 @@ function renderHeader() {
       </div>
       <div class="dropdown" id="userDropdown">
         <div class="dd-user"><strong>${currentUser.name || 'User'}</strong>${currentUser.email}</div>
-        ${isAdmin ? `<button class="dd-item admin-item" onclick="openAdmin()">Menu Admin</button>` : ''}
-        ${isAdmin ? `<button class="dd-item admin-item" onclick="window.__openNonton()">Nonton</button>` : ''}
-        <button class="dd-item" onclick="window.__showRiwayat()">Riwayat Order</button>
+        ${isAdmin ? `<button class="dd-item admin-item" onclick="document.getElementById('userDropdown').classList.remove('open');openAdmin();">Menu Admin</button>` : ''}
+        ${isAdmin ? `<button class="dd-item admin-item" onclick="document.getElementById('userDropdown').classList.remove('open');vpOpenNonton();">Nonton</button>` : ''}
+        <button class="dd-item" onclick="document.getElementById('userDropdown').classList.remove('open');vpOpenRiwayat();">Riwayat Order</button>
         <button class="dd-item" onclick="showPengaturan()">Pengaturan Akun</button>
         <button class="dd-item danger" onclick="doLogout()">Logout</button>
       </div>
@@ -1392,6 +1392,34 @@ function renderHeader() {
 function toggleDropdown(e) {
   e.stopPropagation();
   document.getElementById('userDropdown').classList.toggle('open');
+}
+
+// ── Wrapper aman untuk panel yang mungkin belum siap saat DOMContentLoaded ──
+function vpOpenNonton(){
+  try {
+    const panel = document.getElementById('nontonPanel');
+    if(!panel){ alert('Panel Nonton belum siap'); return; }
+    if(typeof window.__openNonton === 'function'){
+      window.__openNonton();
+    } else {
+      panel.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+  } catch(e){ console.error('[vpOpenNonton]', e); }
+}
+function vpOpenRiwayat(){
+  try {
+    if(typeof window.__showRiwayat === 'function'){
+      window.__showRiwayat();
+    } else if(typeof window.openRiwayat === 'function'){
+      window.openRiwayat();
+    } else if(typeof window.showRiwayat === 'function'){
+      window.showRiwayat();
+    } else {
+      const panel = document.getElementById('riwayatPanel');
+      if(panel){ panel.classList.add('open'); document.body.style.overflow='hidden'; }
+    }
+  } catch(e){ console.error('[vpOpenRiwayat]', e); }
 }
 document.addEventListener('click', () => {
   const d = document.getElementById('userDropdown');
@@ -6520,7 +6548,7 @@ setTimeout(function(){
   function openAdminRiwayatPanel(){
     const panel = document.getElementById('adminRiwayatPanel');
     if (!panel){ console.error('adminRiwayatPanel not found'); return; }
-    panel.style.display = 'block';
+    panel.classList.add('open');
     document.body.style.overflow = 'hidden';
     history.pushState({panel:'adminRiwayat'}, '');
     // Load data
@@ -6625,7 +6653,7 @@ setTimeout(function(){
   window.switchArTab = function(tab){ window._arTab=tab; renderArData(); };
   window.closeAdminRiwayat = function(){
     const p = document.getElementById('adminRiwayatPanel');
-    if(p) p.style.display='none';
+    if(p){ p.classList.remove('open'); }
     document.body.style.overflow='';
   };
   window.openAdminRiwayat = openAdminRiwayatPanel;
@@ -6637,7 +6665,7 @@ setTimeout(function(){
     if(d) d.classList.remove('open');
     const panel = document.getElementById('nontonPanel');
     if(!panel) return;
-    panel.style.display = 'block';
+    panel.classList.add('open');
     document.body.style.overflow = 'hidden';
     history.pushState({panel:'nonton'}, '');
     // render history
@@ -6659,7 +6687,7 @@ setTimeout(function(){
     const ct = document.getElementById('ytContainer');
     if(ct) ct.innerHTML = '<div style="color:#555;font-size:12px;text-align:center;padding:30px;">Paste link YouTube lalu tekan PLAY</div>';
     const p = document.getElementById('nontonPanel');
-    if(p) p.style.display='none';
+    if(p) p.classList.remove('open');
     document.body.style.overflow='';
   };
   window.loadYoutube = function(){
@@ -6705,8 +6733,9 @@ setTimeout(function(){
     // Tutup panel yang terbuka
     ['nontonPanel','adminRiwayatPanel'].forEach(id=>{
       const p = document.getElementById(id);
-      if(p && p.style.display==='block'){
-        p.style.display='none';
+      if(p && (p.classList.contains('open') || p.style.display==='block')){
+        p.classList.remove('open');
+        p.style.display = '';
         document.body.style.overflow='';
         const ct = document.getElementById('ytContainer');
         if(ct && id==='nontonPanel') ct.innerHTML='<div style="color:#555;font-size:12px;text-align:center;padding:30px;">Paste link YouTube lalu tekan PLAY</div>';
@@ -6714,11 +6743,8 @@ setTimeout(function(){
     });
   });
 
-  // ======= OVERRIDE adminRiwayatPanel CSS display =======
-  // Panel pakai style.display langsung bukan classList
-  const style = document.createElement('style');
-  style.textContent = '#adminRiwayatPanel{display:none!important;} #adminRiwayatPanel[style*="block"]{display:block!important;} #nontonPanel{display:none!important;} #nontonPanel[style*="block"]{display:block!important;}';
-  document.head.appendChild(style);
+  // Panel pakai classList.add('open') — tidak perlu CSS override tambahan
+  // (sudah ada #adminRiwayatPanel.open dan #nontonPanel.open di stylesheet)
 
 })();
 </script>
@@ -6728,106 +6754,189 @@ setTimeout(function(){
 const SUPABASE_XENDIT_URL = 'https://niqjrwtolqszevopayir.supabase.co/functions/v1/xendit-qris';
 
 async function orderQRISXendit(){
-  if (!currentUser){ closeProdModalBtn(); openAuth('masuk'); showNotif('Login dulu!'); return; }
-  if (!currentUser.verified){ closeProdModalBtn(); openOtpVerifyModal(); return; }
+  // Ambil user dari localStorage (aman di semua konteks)
+  let _cu = null;
+  try { _cu = JSON.parse(localStorage.getItem('vp_user')||'null'); } catch(e){}
+  if (!_cu){
+    try{ if(typeof closeProdModalBtn==='function') closeProdModalBtn(); }catch(e){}
+    try{ if(typeof openAuth==='function') openAuth('masuk'); }catch(e){}
+    showNotif('Login dulu!'); return;
+  }
+  if (!_cu.verified){
+    try{ if(typeof closeProdModalBtn==='function') closeProdModalBtn(); }catch(e){}
+    try{ if(typeof openOtpVerifyModal==='function') openOtpVerifyModal(); }catch(e){}
+    return;
+  }
 
   const p = getProducts().find(x => x.id === selProdId);
+  if (!p){ showNotif('Produk tidak ditemukan'); return; }
   const v = p.variants[selVarIdx];
   const total = v.p * qty;
   const avail = getAvailableKeys(p.id, v.n).length;
   if (avail < qty){ showNotif('Stok key habis'); return; }
 
   const orderId = 'VNZ' + Date.now().toString().slice(-8) + Math.floor(Math.random()*100);
-  qrPending = { pid: p.id, vn: v.n, qty, total, orderId, productName: p.name, method: 'xendit' };
+  window.qrPending = { pid: p.id, vn: v.n, qty, total, orderId, productName: p.name, method: 'xendit', userEmail: _cu.email };
 
+  // Tutup halaman produk
   try {
     const fs = document.getElementById('prodFullscreen');
     if (fs && fs.classList.contains('open')){ fs.classList.remove('open','closing'); fs.style.display='none'; }
+    if(typeof closeProdModalBtn==='function') closeProdModalBtn();
   } catch(e){}
 
-  const qo = document.getElementById('qrOverlay');
-  document.getElementById('qrOrderId').textContent = orderId;
-  document.getElementById('qrAmount').textContent = rp(total);
-  document.getElementById('qrSimNote').style.display = 'none';
-  const payBtn = document.getElementById('qrPayBtn');
-  if (payBtn) payBtn.style.display = 'none';
-  const qrImg = document.getElementById('qrImg');
-  qrImg.src = '';
-  qrImg.alt = 'Memuat QR...';
-  qo.classList.add('fullpage','open');
-  document.body.style.overflow = 'hidden';
+  // Tampilkan halaman QR simulasi (qrSim) yang sudah ada
+  // Sementara fetch Xendit, tampilkan QR placeholder dulu
+  try {
+    // Set data awal di qrSim
+    const time = (function(){
+      const d=new Date(); const M=['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
+      const p2=n=>String(n).padStart(2,'0');
+      return `${d.getDate()} ${M[d.getMonth()]} ${d.getFullYear()}, ${p2(d.getHours())}.${p2(d.getMinutes())}`;
+    })();
+    window._xenditPendingTime = time;
 
-  let secs = 600;
-  const cntEl = document.getElementById('qrCount');
-  const fmt = s => String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-  if(cntEl) cntEl.textContent = fmt(secs);
-  if(qrTimer) clearInterval(qrTimer);
+    // Tampilkan qrSim manual (tanpa openQrSim agar tidak auto-ok)
+    document.getElementById('qrSimWait').style.display = '';
+    document.getElementById('qrSimOk').style.display = 'none';
+    document.getElementById('qrTotal').textContent = (typeof rp==='function')?rp(total):('Rp '+total);
+    document.getElementById('qrTrxId').textContent = '#'+orderId;
+    document.getElementById('qrTrxTime').textContent = time;
+    document.getElementById('qrProdName').textContent = p.name;
+    document.getElementById('qrProdVar').textContent = (v.n||'').toUpperCase();
+    const imgWrap = document.getElementById('qrProdImgWrap');
+    if(imgWrap){
+      if(p.img) imgWrap.outerHTML = `<img id="qrProdImgWrap" src="${p.img}" alt="">`;
+      else imgWrap.outerHTML = `<div class="qpEmoji" id="qrProdImgWrap">${p.emoji||'📦'}</div>`;
+    }
+    // Set QR loading placeholder
+    const _qimg = document.getElementById('qrImgSim');
+    if(_qimg){ _qimg.src = ''; _qimg.alt = 'Memuat QR Xendit...'; }
 
+    // Timer 10 menit
+    let secs = 600;
+    const minEl = document.getElementById('qrMin'), secEl = document.getElementById('qrSec');
+    const tick = () => {
+      if(minEl) minEl.textContent = String(Math.floor(secs/60)).padStart(2,'0');
+      if(secEl) secEl.textContent = String(secs%60).padStart(2,'0');
+    };
+    tick();
+    if(window._xenditQrTimer) clearInterval(window._xenditQrTimer);
+    window._xenditQrTimer = setInterval(()=>{ secs=Math.max(0,secs-1); tick(); if(secs===0){ clearInterval(window._xenditQrTimer); showNotif('Waktu pembayaran habis'); if(typeof qrSimClose==='function') qrSimClose(); } }, 1000);
+
+    document.getElementById('qrSim').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  } catch(eShow){ console.warn('[xendit show]', eShow); }
+
+  // Fetch Xendit QR
   try {
     const anonKey = typeof _sb !== 'undefined' ? (_sb.supabaseKey || '') : '';
     const resp = await fetch(SUPABASE_XENDIT_URL, {
       method: 'POST',
       headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+anonKey },
-      body: JSON.stringify({ amount: total, reference_id: orderId, email: currentUser.email })
+      body: JSON.stringify({ amount: total, reference_id: orderId, email: _cu.email })
     });
     const xd = await resp.json();
     if (!resp.ok || xd.error) throw new Error(xd.error || xd.message || 'Gagal buat QR');
 
-    qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(xd.qr_string);
-    qrImg.alt = 'QR Code';
-    qrPending.xenditId = xd.id;
+    window.qrPending.xenditId = xd.id;
+    const _qimg2 = document.getElementById('qrImgSim');
+    if(_qimg2){
+      _qimg2.onerror = function(){ _qimg2.onerror=null; _qimg2.src='https://quickchart.io/qr?size=400&margin=0&text='+encodeURIComponent(xd.qr_string); };
+      _qimg2.src = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=0&data='+encodeURIComponent(xd.qr_string);
+    }
 
+    // Poll status Xendit
     let pollId = setInterval(async ()=>{
       try {
         const anonKey2 = typeof _sb !== 'undefined' ? (_sb.supabaseKey || '') : '';
-        const pr = await fetch(SUPABASE_XENDIT_URL + '?id=' + xd.id, {
-          headers:{ 'Authorization':'Bearer '+anonKey2 }
-        });
+        const pr = await fetch(SUPABASE_XENDIT_URL + '?id=' + xd.id, { headers:{ 'Authorization':'Bearer '+anonKey2 } });
         const pd = await pr.json();
         if (pd.paid || pd.status === 'SUCCEEDED'){
-          clearInterval(pollId); clearInterval(qrTimer); qrTimer = null;
+          clearInterval(pollId);
+          if(window._xenditQrTimer){ clearInterval(window._xenditQrTimer); window._xenditQrTimer=null; }
           payXenditDone();
         }
       } catch(e){}
     }, 5000);
-
-    qrTimer = setInterval(()=>{
-      secs--;
-      if(cntEl) cntEl.textContent = fmt(secs);
-      if(secs <= 0){
-        clearInterval(qrTimer); qrTimer = null;
-        clearInterval(pollId);
-        showNotif('Waktu pembayaran habis');
-        closeQrPayment();
-      }
-    }, 1000);
-
   } catch(e){
-    closeQrPayment();
+    if(window._xenditQrTimer){ clearInterval(window._xenditQrTimer); window._xenditQrTimer=null; }
+    try{ if(typeof qrSimClose==='function') qrSimClose(); }catch(e2){}
     showNotif('Gagal QR Xendit: ' + (e.message||e));
   }
 }
 
 function payXenditDone(){
-  if(!qrPending) return;
-  const {pid,vn,qty,total,orderId,productName} = qrPending;
-  const keys = assignKeys(pid,vn,qty,currentUser?currentUser.email:'guest');
-  if(!keys.length){ showNotif('Stok habis'); closeQrPayment(); return; }
+  const pending = window.qrPending;
+  if(!pending) return;
+  const {pid,vn,qty,total,orderId,productName} = pending;
+
+  // Ambil user dari localStorage
+  let _cu = null;
+  try { _cu = JSON.parse(localStorage.getItem('vp_user')||'null'); } catch(e){}
+  const _email = (_cu && _cu.email) ? _cu.email : 'guest';
+
+  const keys = assignKeys(pid, vn, qty, _email);
+  if(!keys.length){
+    showNotif('Stok habis');
+    try{ if(typeof qrSimClose==='function') qrSimClose(); }catch(e){}
+    return;
+  }
+
+  // Update sold counter
   try {
     const prods = getProducts();
     const idx = prods.findIndex(x=>x.id===pid);
-    if(idx!==-1){ prods[idx].sold=(prods[idx].sold||0)+qty; setProducts(prods); renderProducts(); }
+    if(idx!==-1){ prods[idx].sold=(prods[idx].sold||0)+qty; setProducts(prods); if(typeof renderProducts==='function') renderProducts(); }
     if(typeof VinzDaily!=='undefined') VinzDaily.bump(pid, qty);
   } catch(e){}
+
+  // Simpan riwayat transaksi
   try {
-    const trx={id:orderId,type:'qris_xendit',productName,variantName:vn,qty,total,keys,status:'SUKSES',method:'QRIS Xendit',ts:Date.now(),email:currentUser?.email||''};
-    const riw=getUserRiw(currentUser.email); riw.unshift(trx); setUserRiw(currentUser.email,riw);
-    const all=getAllTrx(); all.unshift({...trx}); setAllTrx(all);
-    if(typeof _sb!=='undefined') _sb.from('transactions').insert({email:currentUser.email,trx_id:orderId,data:{productName,variantName:vn,qty,total,keys,status:'SUKSES',method:'QRIS Xendit'}}).then(()=>{}).catch(()=>{});
+    if(_cu && _cu.email){
+      const time = window._xenditPendingTime || new Date().toLocaleString('id-ID',{timeZone:'Asia/Makassar'});
+      const lsKey = 'vp_riw_'+_cu.email;
+      let cur = JSON.parse(localStorage.getItem(lsKey)||'[]');
+      keys.forEach((k,i)=>{
+        const trx = {
+          id:'#'+orderId+(keys.length>1?('-'+(i+1)):''),
+          prod:productName+' '+(vn||''), productName, variantName:vn||'',
+          img:'', emoji:'📦', price:Math.round(total/qty), qty:1, key:k,
+          status:'sukses', method:'QRIS Xendit', time, ts:Date.now()
+        };
+        cur.unshift(trx);
+        try{ if(typeof window.__pushAllTrx==='function') window.__pushAllTrx({...trx,email:_cu.email}); }catch(_x){}
+        try{ if(typeof _sb!=='undefined') _sb.from('transactions').insert({email:_cu.email,trx_id:trx.id,data:trx}).then(()=>{}); }catch(_x){}
+      });
+      localStorage.setItem(lsKey, JSON.stringify(cur.slice(0,200)));
+    }
   } catch(e){}
-  closeQrPayment(); qrPending=null;
+
+  // Hentikan timer
+  if(window._xenditQrTimer){ clearInterval(window._xenditQrTimer); window._xenditQrTimer=null; }
+
+  window.qrPending = null;
   showNotif('Pembayaran sukses!');
-  setTimeout(()=>alert('PEMBAYARAN SUKSES\n\nKey:\n'+keys.join('\n')),300);
+
+  // Tampilkan layar OK di qrSim
+  try{
+    const p = getProducts().find(x=>x.id===pid);
+    const v = p ? p.variants.find(x=>x.n===vn)||p.variants[0] : null;
+    if(typeof qrSimShowOk==='function'){
+      // Override _qrPending agar qrSimShowOk bisa jalan
+      // Langsung render layar OK manual
+      document.getElementById('qrSimWait').style.display = 'none';
+      document.getElementById('qrSimOk').style.display = '';
+      const time2 = window._xenditPendingTime || '';
+      document.getElementById('qrOkTrx').textContent = '#'+orderId;
+      document.getElementById('qrOkTime').textContent = time2;
+      document.getElementById('qrOkProd').textContent = productName;
+      document.getElementById('qrOkVar').textContent = (vn||'').toUpperCase();
+      const wrap = document.getElementById('qrOkImgWrap');
+      if(wrap){ wrap.innerHTML = p && p.img ? `<img src="${p.img}" alt="">` : `<div class="qpEmoji">${(p&&p.emoji)||'📦'}</div>`; }
+      document.getElementById('qrOkKeyList').innerHTML = keys.map((k,i)=>`<div>${i+1}. ${k}</div>`).join('');
+    }
+  }catch(e){ setTimeout(()=>alert('PEMBAYARAN SUKSES\n\nKey:\n'+keys.join('\n')),300); }
 }
 </script>
 </body>
