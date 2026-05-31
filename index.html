@@ -6716,6 +6716,7 @@ async function loadDevices(){
               <button onclick="setDevice('${d.device_id}','approved')" style="background:var(--success);color:#000;border:none;border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer;font-weight:900;">APPROVE</button>
               <button onclick="setDevice('${d.device_id}','blocked')" style="background:var(--danger);color:#fff;border:none;border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer;font-weight:900;">BLOKIR</button>
               <button onclick="setDevice('${d.device_id}','pending')" style="background:var(--card);color:var(--muted);border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer;">RESET</button>
+              <button onclick="deleteDevice('${d.device_id}','${d.name}')" style="background:#1a0a0a;color:#ff4757;border:1px solid #ff4757;border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer;font-weight:900;">HAPUS</button>
             </div>
           </div>
           <!-- Per-product limit panel (collapsed by default) -->
@@ -6757,6 +6758,18 @@ async function setDeviceLimit(deviceId){
   // Legacy stub
   showNotif('ℹ️ Gunakan tombol "Set Limit Per Produk" di device card');
 }
+async function deleteDevice(id, name){
+  const pw = sessionStorage.getItem('vp_admin_pw');
+  if(!pw){ showNotif('❌ Login admin dulu'); return; }
+  if(!confirm('Hapus device "'+name+'" dari daftar?\nTidak bisa dibatalkan!')) return;
+  try {
+    const { error } = await _sb.rpc('admin_delete_device', { p_pass: pw, p_device_id: id });
+    if(error) throw error;
+    showNotif('🗑️ Device dihapus');
+    loadDevices();
+  } catch(e){ showNotif('❌ '+(e.message||e)); }
+}
+
 async function setDevice(id, status){
   const pw = sessionStorage.getItem('vp_admin_pw');
   if (!pw){ showNotif('❌ Password admin kosong'); return; }
