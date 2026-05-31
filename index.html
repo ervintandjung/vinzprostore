@@ -6785,6 +6785,31 @@ setInterval(() => {
   if (ap && ap.classList.contains('open')) loadDevices();
 }, 15000);
 
+// ====== SYNC: Pull semua key dari Supabase ke localStorage saat startup ======
+async function syncAllKeysFromCloud(){
+  try {
+    const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || '';
+    if (!pw) return; // hanya sync kalau sudah login admin
+    const prods = typeof getProducts==='function' ? getProducts() : [];
+    const store = typeof getKeyStore==='function' ? getKeyStore() : {};
+    const normSt = s => (['sold','used'].includes((s||'').toLowerCase())) ? 'sold' : 'available';
+    for (const p of prods) {
+      for (const v of (p.variants||[])) {
+        try {
+          const { data, error } = await _sb.rpc('get_keys_for_admin', { p_pass: pw, p_product: p.id, p_variant: v.n });
+          if (error || !data) continue;
+          const k = p.id + '__' + v.n;
+          store[k] = data.map(r => ({ key: r.key_value, status: normSt(r.status), soldTo: normSt(r.status)==='sold'?'cloud':null, soldAt: null }));
+        } catch(e) {}
+      }
+    }
+    if (typeof setKeyStore==='function') setKeyStore(store);
+    if (typeof renderProducts==='function') renderProducts();
+  } catch(e) { console.warn('[syncAllKeysFromCloud]', e); }
+}
+// Jalankan sync saat halaman load (dengan delay agar login sempat terdeteksi)
+setTimeout(syncAllKeysFromCloud, 3000);
+
 // ====== SUPABASE REALTIME: Sync product_keys ke localStorage instan ======
 setTimeout(function(){
   try {
