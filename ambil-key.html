@@ -294,6 +294,8 @@ function updateStockBox(){
   const s = stockMap[pid+'|'+v];
   if(!s){ $('stockBox').textContent='⛔ STOK HABIS'; btn.disabled=true; }
   else { $('stockBox').textContent=`✅ Stok tersedia: ${s}`; btn.disabled=false; }
+  // Tampilkan info limit per produk
+  if(pid && v) updateLimitInfo(parseInt(pid), v);
 }
 
 // ====== FACE ======
@@ -370,11 +372,51 @@ async function captureDescriptor(vid){
   return avg.map(v=>+(v/frames.length).toFixed(5));
 }
 
+// ====== PER-PRODUCT LIMIT (dari Supabase — tabel device_product_limits) ======
+
+// Ambil limit + used count sekaligus dari RPC
+async function getDeviceLimit(pid, vn){
+  try{
+    const { data, error } = await sb.rpc('get_device_prod_limit', {
+      p_device_id:  DEVICE_ID,
+      p_product_id: parseInt(pid),
+      p_variant:    vn
+    });
+    if(error) throw error;
+    // data bisa berupa array (satu row) atau object
+    const row = Array.isArray(data) ? data[0] : data;
+    if(!row) return null; // tidak ada limit
+    if(row.max_keys === null || row.max_keys <= 0) return null; // tidak terbatas
+    return { max: row.max_keys, used: row.used_count||0, remaining: row.remaining||0 };
+  }catch(e){ return null; } // gagal query = anggap tidak terbatas
+}
+
+// Tampilkan info limit di stockBox
+async function updateLimitInfo(pid, vn){
+  const lim = await getDeviceLimit(pid, vn);
+  if(!lim) return; // tidak terbatas, tidak perlu tampil
+  const box = $('stockBox');
+  if(lim.remaining <= 0){
+    box.innerHTML = `⛔ Limit habis · <span style="color:var(--warn)">Kamu sudah ambil ${lim.used}/${lim.max} key untuk ${vn}</span>`;
+    $('claimBtn').disabled = true;
+  } else {
+    box.innerHTML = box.innerHTML + ` · <span style="color:var(--warn)">Sisa limit: ${lim.remaining}/${lim.max}</span>`;
+  }
+}
+
 // ====== CLAIM KEY: langsung ke tabel product_keys, tanpa RPC ======
 $('claimBtn').addEventListener('click', async () => {
   const pid = parseInt($('prodSel').value, 10);
   const v   = $('varSel').value;
   if (!pid || !v) { toast('Pilih produk & varian dulu'); return; }
+
+  // ── CEK LIMIT SEBELUM BUKA KAMERA ──
+  const limBefore = await getDeviceLimit(pid, v);
+  if(limBefore && limBefore.remaining <= 0){
+    $('result').innerHTML = `<div class="result err"><div class="ttl">LIMIT HABIS</div>
+      <div>Kamu sudah mengambil ${limBefore.used}/${limBefore.max} key untuk varian <b>${esc(v)}</b>.<br>Hubungi owner untuk menambah limit.</div></div>`;
+    return;
+  }
 
   // Verifikasi wajah
   let desc;
@@ -385,6 +427,10 @@ $('claimBtn').addEventListener('click', async () => {
   $('result').innerHTML='';
 
   try {
+    // ── CEK LIMIT SEKALI LAGI SETELAH FACE (anti race condition) ──
+    const limAfter = await getDeviceLimit(pid, v);
+    if(limAfter && limAfter.remaining <= 0) throw new Error('LIMIT_EXCEEDED:'+limAfter.used+':'+limAfter.max);
+
     // 1. Cari 1 key available untuk produk & varian ini
     const searchRes = await fetch(
       `${SUPABASE_URL}/rest/v1/product_keys?select=id,key_value&product_id=eq.${pid}&variant=eq.${encodeURIComponent(v)}&status=eq.available&order=created_at.asc&limit=1`,
@@ -411,8 +457,6 @@ $('claimBtn').addEventListener('click', async () => {
         })
       }
     );
-    // Cek apakah update berhasil (row count > 0)
-    const affected = updateRes.headers.get('content-range');
     if (!updateRes.ok) throw new Error(await updateRes.text());
 
     // 3. Verifikasi key benar-benar terjual (race condition check)
@@ -429,7 +473,11 @@ $('claimBtn').addEventListener('click', async () => {
   } catch(e) {
     const msg = e.message||String(e);
     let human = msg;
-    if (msg.includes('OUT_OF_STOCK')) human = 'Stok habis untuk varian ini';
+    if(msg.includes('OUT_OF_STOCK')) human = 'Stok habis untuk varian ini';
+    else if(msg.startsWith('LIMIT_EXCEEDED')){
+      const parts = msg.split(':');
+      human = `Limit habis! Kamu sudah ambil ${parts[1]||'?'}/${parts[2]||'?'} key untuk varian ini. Hubungi owner.`;
+    }
     $('result').innerHTML = `<div class="result err"><div class="ttl">GAGAL</div><div>${esc(human)}</div></div>`;
   } finally {
     $('claimBtn').textContent = 'AMBIL KEY';
