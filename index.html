@@ -6605,7 +6605,8 @@ const _limCache = {};
 
 // Toggle tampilan limit per produk
 window.toggleDevProdLimit = function(devId){
-  const wrap = document.getElementById('devprod_'+CSS.escape(devId));
+  const safeId = devId.replace(/[^a-zA-Z0-9]/g,'_');
+  const wrap = document.getElementById('devprod_'+safeId);
   if(!wrap) return;
   const isHidden = wrap.style.display === 'none';
   wrap.style.display = isHidden ? 'block' : 'none';
@@ -6727,7 +6728,7 @@ async function loadDevices(){
             </div>
           </div>
           <!-- Per-product limit panel (collapsed by default) -->
-          <div id="devprod_${d.device_id}" style="display:none;margin-top:10px;background:rgba(26,111,255,.06);border:1px solid rgba(26,111,255,.2);border-radius:8px;padding:10px;">
+          <div id="devprod_${d.device_id.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none;margin-top:10px;background:rgba(26,111,255,.06);border:1px solid rgba(26,111,255,.2);border-radius:8px;padding:10px;">
             <div style="font-family:'Orbitron',sans-serif;font-size:10px;color:var(--gold);letter-spacing:1px;margin-bottom:8px;">
               ⚡ LIMIT KEY PER PRODUK & VARIAN
             </div>
