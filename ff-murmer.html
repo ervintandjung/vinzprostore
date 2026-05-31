@@ -693,7 +693,7 @@ document.addEventListener('click', e => {
 // AUTH MODAL
 // ============================================================
 function openAuth(mode) {
-  showStep('step1');
+  showStep('auth-step1');
   switchAuth(mode);
   document.getElementById('auth-overlay').classList.add('open');
 }
@@ -1070,7 +1070,7 @@ function closeLoginGate() {
 
 function gateGoAuth(mode) {
   document.getElementById('login-gate-overlay').classList.remove('open');
-  showStep('step1');
+  showStep('auth-step1');
   switchAuth(mode);
   document.getElementById('auth-overlay').classList.add('open');
 }
