@@ -2170,10 +2170,13 @@ function openProd(id) {
 
   renderFsVars(p); updateFsSummary(p);
 
-  // Set download link per produk
+  // Set download link per produk + show/hide berdasarkan p.showDl
   const dlEl = document.getElementById("fsDlLink");
   const dlUrl = p.dlLink || "https://whatsapp.com/channel/0029Vb8IGxu5q08Wge7eDQ3T";
   if (dlEl) dlEl.onclick = function(){ window.open(dlUrl, '_blank'); };
+  // Sembunyikan card download kalau produk tidak punya file pendukung
+  const dlCard = document.querySelector('.fs-dl-card');
+  if (dlCard) dlCard.style.display = (p.showDl !== false) ? '' : 'none';
 
   // Show fullscreen
   const fs = document.getElementById('prodFullscreen');
@@ -2523,6 +2526,18 @@ function renderApProds() {
       `).join('')}
       <button onclick="apAddVariant(${p.id})" style="background:var(--secondary);border:1px dashed var(--border);color:var(--accent2);border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;width:100%;margin-top:4px;">+ Tambah Varian</button>
       <button onclick="apSaveProduct(${p.id})" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:8px;padding:9px;font-weight:800;cursor:pointer;width:100%;margin-top:8px;font-family:'Rajdhani',sans-serif;font-size:13px;letter-spacing:.5px;box-shadow:0 2px 10px rgba(26,111,255,.4);">💾 Simpan Produk Ini</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--secondary);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-top:8px;">
+        <div>
+          <div style="font-size:11px;font-weight:800;color:#fff;">📥 Download File Pendukung</div>
+          <div style="font-size:10px;color:var(--muted);">Tampilkan tombol download di halaman produk</div>
+        </div>
+        <label style="position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0;">
+          <input type="checkbox" id="showDl_${p.id}" ${p.showDl !== false ? 'checked' : ''} onchange="apToggleShowDl(${p.id},this.checked)" style="opacity:0;width:0;height:0;position:absolute;">
+          <span onclick="document.getElementById('showDl_${p.id}').click()" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:${p.showDl !== false ? 'var(--success)' : 'var(--secondary)'};border-radius:22px;border:1px solid var(--border);transition:.2s;">
+            <span style="position:absolute;content:'';height:16px;width:16px;left:${p.showDl !== false ? '20px' : '2px'};bottom:2px;background:#fff;border-radius:50%;transition:.2s;display:block;"></span>
+          </span>
+        </label>
+      </div>
     </div>
   `).join('');
 }
@@ -2567,6 +2582,17 @@ function handleImgUrl(id, input) {
   updateImgPreview(id, url);
   renderProducts();
   showNotif('✅ Foto URL disimpan!');
+}
+
+// Toggle show/hide "Download File Pendukung" per produk
+function apToggleShowDl(id, isShow) {
+  const _prods = getProducts();
+  const p = _prods.find(x => x.id === id);
+  if (!p) return;
+  p.showDl = isShow;
+  setProducts(_prods);
+  renderApProds();
+  showNotif(isShow ? '✅ Download file aktif untuk produk ini' : '🚫 Download file disembunyikan');
 }
 
 function updateImgPreview(id, src) {
