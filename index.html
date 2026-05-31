@@ -6672,7 +6672,14 @@ async function loadDevices(){
     if (!data || !data.length){ box.innerHTML = '<div style="color:var(--muted)">Belum ada device.</div>'; return; }
 
     // Ambil semua produk & varian
-    const prods = (typeof getProducts==='function') ? getProducts() : [];
+    // Pastikan produk sudah ke-load dari cloud sebelum render
+    let prods = (typeof getProducts==='function') ? getProducts() : [];
+    if (!prods.length) {
+      try {
+        await loadProductsFromCloud();
+        prods = (typeof getProducts==='function') ? getProducts() : [];
+      } catch(e) {}
+    }
 
     box.innerHTML = data.map(d => {
       const col = d.status==='approved' ? 'var(--success)'
