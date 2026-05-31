@@ -6681,7 +6681,7 @@ async function loadDevices(){
       // Buat baris per produk per varian
       const prodRows = prods.map(p=>{
         return (p.variants||[]).map(v=>{
-          const cur = _dlGetLimit(d.device_id, p.id, v.n);
+          
           const inpId = 'dpl_'+d.device_id+'__'+p.id+'__'+v.n.replace(/\s/g,'_');
           const lblId = 'dlbl_'+d.device_id+'__'+p.id+'__'+v.n.replace(/\s/g,'_');
           return `
@@ -6690,7 +6690,7 @@ async function loadDevices(){
                 <div style="font-size:10px;font-weight:700;color:#fff;">${p.name}</div>
                 <div style="font-size:9px;color:var(--accent2);">${v.n}</div>
               </div>
-              <input id="${inpId}" type="number" min="0" placeholder="∞" value="${cur!==null?cur:''}"
+              <input id="${inpId}" type="number" min="0" placeholder="∞" value=""
                 style="width:60px;background:var(--secondary);border:1px solid var(--border);border-radius:5px;padding:3px 5px;color:#fff;font-size:11px;font-family:'Rajdhani',sans-serif;text-align:center;">
               <span style="font-size:9px;color:var(--muted);">key maks</span>
               <button onclick="saveDevProdLimit('${d.device_id}',${p.id},'${v.n}')"
