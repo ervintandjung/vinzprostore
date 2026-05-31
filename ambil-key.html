@@ -195,40 +195,51 @@ async function loadStock(){
   const prevVar = $('varSel').value;
   stockMap = {}; _prods = [];
 
-  // Query SEMUA product_keys (available & sold) untuk bangun daftar produk+varian
-  // Stok = hitung yang available
+  // Pakai RPC get_stock_counts() — bypass RLS, tidak ekspos key_value
   let rows = [];
   try {
     const r = await fetch(
-      `${SUPABASE_URL}/rest/v1/product_keys?select=product_id,variant,status`,
-      { headers: { ...H, 'Range': '0-4999' } }
+      `${SUPABASE_URL}/rest/v1/rpc/get_stock_counts`,
+      { method: 'POST', headers: { ...H }, body: '{}' }
     );
     if (!r.ok) throw new Error(await r.text());
     rows = await r.json();
   } catch(e) { toast('Gagal load stok: '+e.message); return; }
 
-  const byProd = {};    // { pid: { vn: { avail:0, total:0 } } }
+  const byProd = {};
   rows.forEach(row => {
-    const pid = row.product_id, v = row.variant;
+    const pid = row.product_id, v = row.variant, cnt = row.available_count||0;
     const key = pid+'|'+v;
+    stockMap[key] = cnt;
     if (!byProd[pid]) byProd[pid] = {};
-    if (!byProd[pid][v]) byProd[pid][v] = { avail: 0 };
-    if (row.status === 'available') {
-      byProd[pid][v].avail++;
-      stockMap[key] = (stockMap[key]||0) + 1;
-    }
+    byProd[pid][v] = cnt;
   });
 
-  // Juga load produk dari PRODUCT_NAMES yang mungkin belum ada di product_keys
-  Object.entries(PRODUCT_NAMES).forEach(([pid, name]) => {
+  // Juga ambil semua varian yang pernah ada (termasuk stok 0) via RPC
+  try {
+    const r2 = await fetch(
+      `${SUPABASE_URL}/rest/v1/rpc/get_all_variants`,
+      { method: 'POST', headers: { ...H }, body: '{}' }
+    );
+    if (r2.ok) {
+      const allVars = await r2.json();
+      allVars.forEach(row => {
+        const pid = row.product_id, v = row.variant;
+        if (!byProd[pid]) byProd[pid] = {};
+        if (byProd[pid][v] === undefined) byProd[pid][v] = 0; // stok 0, varian tetap muncul
+      });
+    }
+  } catch(e) {}
+
+  // Semua produk dari PRODUCT_NAMES selalu muncul
+  Object.keys(PRODUCT_NAMES).forEach(pid => {
     if (!byProd[pid]) byProd[pid] = {};
   });
 
   const pids = Object.keys(byProd).map(Number).sort((a,b)=>a-b);
   pids.forEach(pid => {
-    const variants = Object.entries(byProd[pid]).map(([v,info])=>({v, s: info.avail||0}));
-    // Hanya tampilkan produk yang ada di PRODUCT_NAMES
-    if (!PRODUCT_NAMES[pid] && variants.length === 0) return;
+    const variants = Object.entries(byProd[pid]).map(([v,cnt])=>({v, s: cnt||0}));
+    if (!variants.length) return; // skip produk yang belum pernah punya key sama sekali
     const total = variants.reduce((a,b)=>a+b.s, 0);
     _prods.push({ pid, name: PRODUCT_NAMES[pid]||('Produk #'+pid), total, variants });
   });
