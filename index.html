@@ -6167,6 +6167,217 @@ function doPesan(){
 
 /* ═══ FIX: SALDO PESAN flow — potong saldo + tampilkan key di success overlay ═══ */
 </script>
+
+<!-- ═══════════════════════════════════════════════════════
+     VINZ BULK UPDATE — tandai semua produk sekaligus
+     ═══════════════════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+/* ── helpers ── */
+function _waGet(){ try{ return JSON.parse(localStorage.getItem('vinz_wa_stock')||'{}'); }catch(e){ return {}; } }
+function _waSet(o){ try{ localStorage.setItem('vinz_wa_stock', JSON.stringify(o)); }catch(e){} }
+function _xnGet(){ try{ return JSON.parse(localStorage.getItem('vinz_xendit_stock')||'{}'); }catch(e){ return {}; } }
+function _xnSet(o){ try{ localStorage.setItem('vinz_xendit_stock', JSON.stringify(o)); }catch(e){} }
+function _dkGet(){ try{ return JSON.parse(localStorage.getItem('vinz_duitku_stock')||'{}'); }catch(e){ return {}; } }
+function _dkSet(o){ try{ localStorage.setItem('vinz_duitku_stock', JSON.stringify(o)); }catch(e){} }
+function _key(pid,vn){ return pid+'::'+vn; }
+
+/* ── get all unique variant names across all products ── */
+function getAllVariantNames(){
+  try{
+    const prods = (typeof getProducts==='function') ? getProducts() : [];
+    const set = new Set();
+    prods.forEach(p=>{ (p.variants||[]).forEach(v=>{ if(v.n) set.add(v.n); }); });
+    return Array.from(set).sort();
+  }catch(e){ return []; }
+}
+
+/* ── core bulk action ── */
+window.vinzBulkSet = function(variantFilter, payTypes, isAvail){
+  try{
+    const prods = (typeof getProducts==='function') ? getProducts() : [];
+    const wa = _waGet(), xn = _xnGet(), dk = _dkGet();
+    let count = 0;
+    prods.forEach(p=>{
+      (p.variants||[]).forEach(v=>{
+        if(variantFilter !== '__ALL__' && v.n !== variantFilter) return;
+        const k = _key(p.id, v.n);
+        if(payTypes.includes('wa')){ wa[k] = !!isAvail; count++; }
+        if(payTypes.includes('xendit')){ xn[k] = !!isAvail; count++; }
+        if(payTypes.includes('duitku')){ dk[k] = !!isAvail; count++; }
+      });
+    });
+    if(payTypes.includes('wa')) _waSet(wa);
+    if(payTypes.includes('xendit')) _xnSet(xn);
+    if(payTypes.includes('duitku')) _dkSet(dk);
+    try{ refreshPayMethodAvailability(); }catch(e){}
+    try{ const p=getProducts().find(x=>x.id===selProdId); if(p&&typeof renderFsVars==='function') renderFsVars(p); }catch(e){}
+    return count;
+  }catch(e){ return 0; }
+};
+
+/* ── inject card into admin panel ── */
+function injectBulkCard(){
+  const ap = document.getElementById('adminPanel');
+  if(!ap || document.getElementById('vinzBulkCard')) return;
+  const apBody = ap.querySelector('.ap-body');
+  if(!apBody) return;
+
+  const card = document.createElement('div');
+  card.id = 'vinzBulkCard';
+  card.style.cssText = 'margin:14px 14px 0;background:linear-gradient(135deg,#0a1528,#0d1f3c);border:1.5px solid #ffd700;border-radius:14px;overflow:hidden;';
+  card.innerHTML = `
+    <div style="background:linear-gradient(90deg,#ffd700,#ff9500);padding:10px 14px;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:16px;">⚡</span>
+      <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:12px;color:#000;letter-spacing:1px;">BULK UPDATE PAYMENT</span>
+      <span style="margin-left:auto;font-size:9px;font-weight:800;color:#000;opacity:.7;">UPDATE SEMUA PRODUK SEKALIGUS</span>
+    </div>
+    <div style="padding:14px;">
+
+      <!-- Step 1: Pilih varian -->
+      <div style="margin-bottom:12px;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:10px;color:#00d4ff;letter-spacing:1px;margin-bottom:6px;">① PILIH VARIAN</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="bulkVarBtns"></div>
+      </div>
+
+      <!-- Step 2: Pilih payment type -->
+      <div style="margin-bottom:12px;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:10px;color:#00d4ff;letter-spacing:1px;margin-bottom:6px;">② PILIH PAYMENT</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button id="bpWa" onclick="vinzBulkTogglePay('wa')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #25D366;background:rgba(37,211,102,.15);color:#25D366;cursor:pointer;transition:.2s;">📱 WA</button>
+          <button id="bpXendit" onclick="vinzBulkTogglePay('xendit')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #7c3aed;background:rgba(124,58,237,.15);color:#a78bfa;cursor:pointer;transition:.2s;">⚡ XENDIT</button>
+          <button id="bpDuitku" onclick="vinzBulkTogglePay('duitku')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #22c55e;background:rgba(34,197,94,.15);color:#22c55e;cursor:pointer;transition:.2s;">💚 DUITKU</button>
+          <button id="bpAll" onclick="vinzBulkTogglePay('all')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #ffd700;background:rgba(255,215,0,.1);color:#ffd700;cursor:pointer;transition:.2s;">🌟 SEMUA</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Tombol aksi -->
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button onclick="vinzBulkAction(false)" style="flex:1;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;padding:10px 0;border-radius:9px;border:none;background:#ff4757;color:#fff;cursor:pointer;letter-spacing:.5px;">🚫 TANDAI HABIS</button>
+        <button onclick="vinzBulkAction(true)" style="flex:1;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;padding:10px 0;border-radius:9px;border:none;background:#00ff88;color:#000;cursor:pointer;letter-spacing:.5px;">✅ TANDAI READY</button>
+      </div>
+
+      <!-- Info -->
+      <div id="bulkInfo" style="margin-top:10px;font-size:10px;color:var(--muted);text-align:center;font-family:'Orbitron',sans-serif;letter-spacing:.5px;"></div>
+    </div>
+  `;
+  apBody.insertBefore(card, apBody.firstChild);
+
+  renderBulkVarBtns();
+}
+
+/* ── selected state ── */
+let _bulkVar = null;       // null = belum pilih
+let _bulkPay = new Set();  // set of 'wa','xendit','duitku'
+
+function renderBulkVarBtns(){
+  const wrap = document.getElementById('bulkVarBtns');
+  if(!wrap) return;
+  const names = getAllVariantNames();
+  const all = ['__ALL__', ...names];
+
+  wrap.innerHTML = all.map(n=>{
+    const label = n === '__ALL__' ? '🌍 SEMUA VARIAN' : n;
+    const active = _bulkVar === n;
+    return `<button onclick="vinzBulkSelVar('${n}')"
+      style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 10px;border-radius:7px;cursor:pointer;transition:.2s;
+        border:1.5px solid ${active?'#ffd700':'rgba(255,255,255,.15)'};
+        background:${active?'rgba(255,215,0,.18)':'rgba(255,255,255,.04)'};
+        color:${active?'#ffd700':'#a0b0c8'};">
+      ${label}
+    </button>`;
+  }).join('');
+}
+
+window.vinzBulkSelVar = function(n){
+  _bulkVar = n;
+  renderBulkVarBtns();
+  updateBulkInfo();
+};
+
+window.vinzBulkTogglePay = function(type){
+  if(type === 'all'){
+    if(_bulkPay.size === 3){ _bulkPay.clear(); }
+    else{ _bulkPay = new Set(['wa','xendit','duitku']); }
+  } else {
+    if(_bulkPay.has(type)) _bulkPay.delete(type); else _bulkPay.add(type);
+  }
+  // update button styles
+  ['wa','xendit','duitku'].forEach(t=>{
+    const btn = document.getElementById('bp'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(!btn) return;
+    const on = _bulkPay.has(t);
+    btn.style.opacity = on ? '1' : '.45';
+    btn.style.transform = on ? 'scale(1.04)' : 'scale(1)';
+  });
+  const allBtn = document.getElementById('bpAll');
+  if(allBtn){
+    const allOn = _bulkPay.size === 3;
+    allBtn.style.opacity = allOn ? '1' : '.45';
+    allBtn.style.transform = allOn ? 'scale(1.04)' : 'scale(1)';
+  }
+  updateBulkInfo();
+};
+
+function updateBulkInfo(){
+  const el = document.getElementById('bulkInfo');
+  if(!el) return;
+  if(!_bulkVar){ el.textContent = '← Pilih varian dulu'; return; }
+  if(_bulkPay.size===0){ el.textContent = '← Pilih payment dulu'; return; }
+  try{
+    const prods = (typeof getProducts==='function') ? getProducts() : [];
+    let count = 0;
+    prods.forEach(p=>{
+      (p.variants||[]).forEach(v=>{
+        if(_bulkVar === '__ALL__' || v.n === _bulkVar) count++;
+      });
+    });
+    const varLabel = _bulkVar === '__ALL__' ? 'semua varian' : _bulkVar;
+    const payLabel = Array.from(_bulkPay).join('+').toUpperCase();
+    el.textContent = `Akan update ${count} varian (${varLabel}) · Payment: ${payLabel}`;
+    el.style.color = '#00d4ff';
+  }catch(e){}
+}
+
+window.vinzBulkAction = function(isAvail){
+  if(!_bulkVar){
+    try{ showNotif('❌ Pilih varian dulu!'); }catch(e){ alert('Pilih varian dulu!'); }
+    return;
+  }
+  if(_bulkPay.size === 0){
+    try{ showNotif('❌ Pilih payment dulu!'); }catch(e){ alert('Pilih payment dulu!'); }
+    return;
+  }
+  const varLabel = _bulkVar === '__ALL__' ? 'SEMUA VARIAN' : _bulkVar;
+  const payLabel = Array.from(_bulkPay).join('+').toUpperCase();
+  const statusLabel = isAvail ? 'READY ✅' : 'HABIS 🚫';
+  const confirm_ = confirm(`Tandai ${statusLabel} untuk:\nVarian: ${varLabel}\nPayment: ${payLabel}\n\nLanjutkan?`);
+  if(!confirm_) return;
+  const n = window.vinzBulkSet(_bulkVar, Array.from(_bulkPay), isAvail);
+  try{ showNotif(`${isAvail?'✅':'🚫'} ${varLabel} · ${payLabel} → ${isAvail?'READY':'HABIS'}`); }catch(e){}
+  updateBulkInfo();
+};
+
+/* ── polling inject ── */
+let _injected = false;
+function tryInject(){
+  if(_injected) return;
+  const ap = document.getElementById('adminPanel');
+  if(ap && ap.querySelector('.ap-body')){
+    injectBulkCard();
+    _injected = true;
+  }
+}
+setInterval(()=>{
+  tryInject();
+  if(_injected) renderBulkVarBtns(); // refresh varian list setiap 3 detik
+}, 3000);
+setTimeout(tryInject, 1500);
+
+})();
+</script>
 <script>
 (function(){
   function rp(n){ return 'Rp '+(Number(n)||0).toLocaleString('id-ID'); }
@@ -6386,6 +6597,68 @@ function doPesan(){
 })();
 
 // ====== DEVICES RESELLER (panel di admin tool) ======
+// ── Per-product max key: disimpan di Supabase (tabel device_product_limits) ──
+
+// Cache limits yang sudah di-load agar tidak query terus saat render
+// Format: { "devId::pid::vn": maxKeys|null }
+const _limCache = {};
+
+// Toggle tampilan limit per produk
+window.toggleDevProdLimit = function(devId){
+  const wrap = document.getElementById('devprod_'+CSS.escape(devId));
+  if(!wrap) return;
+  const isHidden = wrap.style.display === 'none';
+  wrap.style.display = isHidden ? 'block' : 'none';
+  if(isHidden) loadDevProdLimits(devId); // load dari Supabase saat dibuka
+};
+
+// Load semua limit untuk satu device dari Supabase → isi input field
+async function loadDevProdLimits(devId){
+  const pw = sessionStorage.getItem('vp_admin_pw');
+  if(!pw) return;
+  try{
+    const { data, error } = await _sb.rpc('admin_get_prod_limits', { p_pass: pw, p_device_id: devId });
+    if(error) throw error;
+    if(!data) return;
+    data.forEach(row => {
+      const inpId = 'dpl_'+devId+'__'+row.product_id+'__'+(row.variant||'').replace(/\s/g,'_');
+      const inp = document.getElementById(inpId);
+      if(inp) inp.value = row.max_keys > 0 ? row.max_keys : '';
+      // Update cache
+      _limCache[devId+'::'+row.product_id+'::'+row.variant] = row.max_keys > 0 ? row.max_keys : null;
+    });
+  }catch(e){ try{ showNotif('❌ Gagal load limits: '+(e.message||e)); }catch(_){} }
+}
+
+// Simpan limit ke Supabase
+window.saveDevProdLimit = async function(devId, pid, vn){
+  const pw = sessionStorage.getItem('vp_admin_pw');
+  if(!pw){ try{showNotif('❌ Login admin dulu');}catch(e){} return; }
+  const safeVn = (vn||'').replace(/\s/g,'_');
+  const inpId  = 'dpl_'+devId+'__'+pid+'__'+safeVn;
+  const lblId  = 'dlbl_'+devId+'__'+pid+'__'+safeVn;
+  const inp = document.getElementById(inpId);
+  const lbl = document.getElementById(lblId);
+  if(!inp) return;
+  const val = inp.value.trim();
+  const num = val==='' ? 0 : parseInt(val);
+  if(val!=='' && (isNaN(num)||num<0)){ try{showNotif('❌ Angka tidak valid');}catch(e){} return; }
+  if(lbl){ lbl.textContent='Menyimpan…'; lbl.style.color='var(--accent2)'; }
+  try{
+    const { error } = await _sb.rpc('admin_set_prod_limit', {
+      p_pass: pw, p_device_id: devId, p_product_id: pid, p_variant: vn,
+      p_max_keys: num === 0 ? null : num
+    });
+    if(error) throw error;
+    _limCache[devId+'::'+pid+'::'+vn] = num > 0 ? num : null;
+    if(lbl){ lbl.textContent = num===0 ? '✔ Tdk terbatas' : '✔ '+num+' key'; lbl.style.color='var(--success)'; }
+    try{ showNotif('✅ Limit '+vn+' disimpan: '+(num===0?'Tanpa batas':num+' key')); }catch(e){}
+  }catch(e){
+    if(lbl){ lbl.textContent='❌ Gagal'; lbl.style.color='var(--danger)'; }
+    try{ showNotif('❌ '+(e.message||e)); }catch(_){}
+  }
+};
+
 async function loadDevices(){
   const box = document.getElementById('devList');
   if (!box) return;
@@ -6397,24 +6670,47 @@ async function loadDevices(){
     const { data, error } = await _sb.rpc('list_devices', { p_pass: pw });
     if (error) throw error;
     if (!data || !data.length){ box.innerHTML = '<div style="color:var(--muted)">Belum ada device.</div>'; return; }
+
+    // Ambil semua produk & varian
+    const prods = (typeof getProducts==='function') ? getProducts() : [];
+
     box.innerHTML = data.map(d => {
       const col = d.status==='approved' ? 'var(--success)'
                 : d.status==='blocked'  ? 'var(--danger)' : 'var(--gold)';
-      const maxVal = (d.max_keys != null) ? d.max_keys : '';
+
+      // Buat baris per produk per varian
+      const prodRows = prods.map(p=>{
+        return (p.variants||[]).map(v=>{
+          const cur = _dlGetLimit(d.device_id, p.id, v.n);
+          const inpId = 'dpl_'+d.device_id+'__'+p.id+'__'+v.n.replace(/\s/g,'_');
+          const lblId = 'dlbl_'+d.device_id+'__'+p.id+'__'+v.n.replace(/\s/g,'_');
+          return `
+            <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);flex-wrap:wrap;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:10px;font-weight:700;color:#fff;">${p.name}</div>
+                <div style="font-size:9px;color:var(--accent2);">${v.n}</div>
+              </div>
+              <input id="${inpId}" type="number" min="0" placeholder="∞" value="${cur!==null?cur:''}"
+                style="width:60px;background:var(--secondary);border:1px solid var(--border);border-radius:5px;padding:3px 5px;color:#fff;font-size:11px;font-family:'Rajdhani',sans-serif;text-align:center;">
+              <span style="font-size:9px;color:var(--muted);">key maks</span>
+              <button onclick="saveDevProdLimit('${d.device_id}',${p.id},'${v.n}')"
+                style="background:var(--accent);color:#fff;border:none;border-radius:5px;padding:3px 7px;font-size:10px;cursor:pointer;font-weight:700;">OK</button>
+              <span id="${lblId}" style="font-size:9px;color:var(--success);"></span>
+            </div>`;
+        }).join('');
+      }).join('');
+
       return `
         <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
             <div style="flex:1;min-width:0;">
               <div style="color:#fff;font-weight:700;">${d.name}</div>
               <div style="color:var(--muted);font-size:11px;">${d.phone} · ${new Date(d.created_at).toLocaleString('id-ID')}</div>
-              <div style="color:${col};font-size:10px;font-weight:900;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">${d.status}</div>
-              <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-                <span style="font-size:10px;color:var(--accent2);font-weight:700;">MAX KEY:</span>
-                <input id="maxkey_${d.device_id}" type="number" min="0" placeholder="Tdk terbatas" value="${maxVal}"
-                  style="width:90px;background:var(--secondary);border:1px solid var(--border);border-radius:5px;padding:3px 6px;color:#fff;font-size:11px;font-family:'Rajdhani',sans-serif;">
-                <button onclick="setDeviceLimit('${d.device_id}')" style="background:var(--accent);color:#fff;border:none;border-radius:5px;padding:3px 8px;font-size:10px;cursor:pointer;font-weight:700;">SIMPAN</button>
-                <span id="lbl_${d.device_id}" style="font-size:9px;color:var(--muted);"></span>
-              </div>
+              <div style="color:${col};font-size:10px;font-weight:900;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">${d.status}</div>
+              <button onclick="toggleDevProdLimit('${d.device_id}')"
+                style="background:rgba(26,111,255,.15);border:1px solid var(--accent);color:var(--accent2);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Orbitron',sans-serif;letter-spacing:.5px;">
+                ⚙️ SET LIMIT PER PRODUK
+              </button>
             </div>
             <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0;">
               <button onclick="setDevice('${d.device_id}','approved')" style="background:var(--success);color:#000;border:none;border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer;font-weight:900;">APPROVE</button>
@@ -6422,28 +6718,44 @@ async function loadDevices(){
               <button onclick="setDevice('${d.device_id}','pending')" style="background:var(--card);color:var(--muted);border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer;">RESET</button>
             </div>
           </div>
+          <!-- Per-product limit panel (collapsed by default) -->
+          <div id="devprod_${d.device_id}" style="display:none;margin-top:10px;background:rgba(26,111,255,.06);border:1px solid rgba(26,111,255,.2);border-radius:8px;padding:10px;">
+            <div style="font-family:'Orbitron',sans-serif;font-size:10px;color:var(--gold);letter-spacing:1px;margin-bottom:8px;">
+              ⚡ LIMIT KEY PER PRODUK & VARIAN
+            </div>
+            <div style="font-size:9px;color:var(--muted);margin-bottom:8px;line-height:1.5;">
+              Kosong = tidak terbatas. Isi angka = max berapa key yang bisa dibeli device ini untuk produk+varian tsb.
+            </div>
+            ${prodRows}
+          </div>
         </div>`;
     }).join('');
   } catch(e){
     box.innerHTML = '<div style="color:var(--danger)">Gagal: '+(e.message||e)+'</div>';
   }
 }
-async function setDeviceLimit(deviceId){
-  const pw = sessionStorage.getItem('vp_admin_pw');
-  if (!pw){ showNotif('❌ Password admin kosong'); return; }
-  const inp = document.getElementById('maxkey_'+deviceId);
-  const lbl = document.getElementById('lbl_'+deviceId);
-  const val = inp ? inp.value.trim() : '';
-  const maxKeys = val === '' ? null : parseInt(val);
-  if (val !== '' && (isNaN(maxKeys) || maxKeys < 0)){ showNotif('❌ Angka tidak valid'); return; }
-  try {
-    const { error } = await _sb.rpc('admin_set_device_limit', {
-      p_pass: pw, p_device_id: deviceId, p_max_keys: maxKeys
+
+// ── Cek limit per produk saat reseller mau beli (tidak dipakai langsung di index.html,
+//    pengecekan real ada di ambil-key.html via RPC get_device_prod_limit) ──
+window.checkDeviceProdLimit = async function(devId, pid, vn, qtyWanted){
+  if(!devId) return { ok: true };
+  try{
+    const { data, error } = await _sb.rpc('get_device_prod_limit', {
+      p_device_id: devId, p_product_id: parseInt(pid), p_variant: vn
     });
-    if (error) throw error;
-    if (lbl) lbl.textContent = maxKeys==null ? '✔ Tdk terbatas' : '✔ Disimpan';
-    showNotif('✅ Limit device disimpan: ' + (maxKeys==null ? 'Tanpa batas' : maxKeys+' key'));
-  } catch(e){ showNotif('❌ '+(e.message||e), 'var(--danger)'); }
+    if(error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    if(!row || row.max_keys === null) return { ok: true }; // tidak terbatas
+    const remaining = row.remaining;
+    if(remaining <= 0) return { ok: false, reason: 'Limit habis! Sudah ambil '+row.used_count+'/'+row.max_keys+' key untuk '+vn };
+    if(qtyWanted > remaining) return { ok: false, reason: 'Sisa limit '+remaining+' key (maks '+row.max_keys+'). Kurangi qty.' };
+    return { ok: true, remaining, usedCount: row.used_count, maxAllowed: row.max_keys };
+  }catch(e){ return { ok: true }; } // kalau gagal query, biarkan lanjut
+};
+
+async function setDeviceLimit(deviceId){
+  // Legacy stub
+  showNotif('ℹ️ Gunakan tombol "Set Limit Per Produk" di device card');
 }
 async function setDevice(id, status){
   const pw = sessionStorage.getItem('vp_admin_pw');
