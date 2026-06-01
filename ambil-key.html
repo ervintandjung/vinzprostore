@@ -448,45 +448,18 @@ $('claimBtn').addEventListener('click', async () => {
   $('result').innerHTML='';
 
   try {
-    // ── CEK LIMIT SEKALI LAGI SETELAH FACE (anti race condition) ──
-    const limAfter = await getDeviceLimit(pid, v);
-    if(limAfter && limAfter.remaining <= 0) throw new Error('LIMIT_EXCEEDED:'+limAfter.used+':'+limAfter.max);
-
-    // 1. Cari 1 key available untuk produk & varian ini
-    const searchRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/product_keys?select=id,key_value&product_id=eq.${pid}&variant=eq.${encodeURIComponent(v)}&status=eq.available&order=created_at.asc&limit=1`,
-      { headers: H }
-    );
-    if (!searchRes.ok) throw new Error(await searchRes.text());
-    const available = await searchRes.json();
-    if (!available.length) throw new Error('OUT_OF_STOCK');
-
-    const { id: keyId, key_value: keyValue } = available[0];
-
-    // 2. Mark SOLD langsung ke tabel
-    const updateRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/product_keys?id=eq.${keyId}&status=eq.available`,
-      {
-        method: 'PATCH',
-        headers: { ...H, 'Prefer': 'return=minimal' },
-        body: JSON.stringify({
-          status: 'sold',
-          sold_at: new Date().toISOString(),
-          buyer_email: $('emailInp').value.trim() || null,
-          buyer_wa:    $('waInp').value.trim() || null,
-          device_id:   DEVICE_ID
-        })
-      }
-    );
-    if (!updateRes.ok) throw new Error(await updateRes.text());
-
-    // 3. Verifikasi key benar-benar terjual (race condition check)
-    const verRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/product_keys?select=status&id=eq.${keyId}`,
-      { headers: { ...H, 'Accept': 'application/vnd.pgrst.object+json' } }
-    );
-    const verData = verRes.ok ? await verRes.json() : null;
-    if (!verData || verData.status !== 'sold') throw new Error('OUT_OF_STOCK');
+    // Pakai RPC admin_claim_key_v2 (bypass RLS, atomic, anti race condition)
+    const { data: keyValue, error: claimErr } = await sb.rpc('admin_claim_key_v2', {
+      p_pass:        ADMIN_PW,
+      p_device_id:   DEVICE_ID,
+      p_fingerprint: FP,
+      p_face:        Array.from(desc),
+      p_product:     pid,
+      p_variant:     v,
+      p_email:       $('emailInp').value.trim() || null,
+      p_buyer_wa:    $('waInp').value.trim() || null
+    });
+    if (claimErr) throw new Error(claimErr.message || JSON.stringify(claimErr));
 
     showResult(keyValue, pid, v);
     await loadStock();
