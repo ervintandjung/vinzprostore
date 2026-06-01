@@ -239,6 +239,19 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
 .gate-notice strong{color:var(--accent2);}
 .gate-acc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:16px;}
 
+/* SLIDER */
+.slider{position:relative;width:100%;overflow:hidden;}
+.slider-track{display:flex;transition:transform .3s ease;will-change:transform;}
+.slider-track img{width:100%;flex-shrink:0;object-fit:cover;display:block;}
+.slider-dots{position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:center;gap:4px;}
+.slider-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.4);transition:.2s;}
+.slider-dot.on{background:#fff;width:14px;border-radius:3px;}
+.det-slider{position:relative;width:100%;overflow:hidden;margin-bottom:0;}
+.det-slider .slider-track img{height:300px;width:100%;object-fit:cover;display:block;}
+.det-slider .slider-dots{bottom:10px;}
+.det-img-full{width:100%;height:300px;object-fit:cover;display:block;margin-bottom:0;}
+.det-info{padding:16px 14px 0;}
+
 /* === CUSTOM ADDITIONS === */
 .logo-box{overflow:hidden;padding:0;}
 .logo-box img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -425,8 +438,12 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
 </div>
 
 <!-- ===== DETAIL OVERLAY ===== -->
-<div class="ov" id="det-ov" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="sheet" id="det-sheet"></div>
+<div class="panel" id="det-panel">
+  <div class="panel-hdr" id="det-panel-hdr">
+    <button class="back-btn" onclick="closeDetail()">←</button>
+    <span class="panel-title" id="det-panel-title">Detail Akun</span>
+  </div>
+  <div id="det-sheet" style="padding:0 0 80px"></div>
 </div>
 
 <!-- ===== PAYMENT OVERLAY ===== -->
@@ -914,9 +931,17 @@ function renderAccounts() {
   if (!list.length) { grid.innerHTML = `<div class="empty">Tidak ada akun ditemukan</div>`; return; }
 
   grid.innerHTML = list.map(a => {
-    const img = a.photos[0]
-      ? `<img src="${a.photos[0]}" onerror="this.style.display='none'">`
-      : `<div style="height:160px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;background:var(--card2)">📷 No Photo</div>`;
+    const photos = a.photos.filter(Boolean);
+    let imgHtml;
+    if (photos.length > 1) {
+      const slides = photos.map(p=>`<img src="${p}" style="height:160px" onerror="this.style.display='none'">`).join('');
+      const dots = photos.map((_,i)=>`<span class="slider-dot${i===0?' on':''}" onclick="event.stopPropagation();cardSlide(${a.id},${i})"></span>`).join('');
+      imgHtml = `<div class="slider card-img" id="sl-${a.id}" style="height:160px"><div class="slider-track" id="slt-${a.id}">${slides}</div><div class="slider-dots">${dots}</div></div>`;
+    } else if (photos.length===1) {
+      imgHtml = `<div class="card-img"><img src="${photos[0]}" style="height:160px" onerror="this.style.display='none'"></div>`;
+    } else {
+      imgHtml = `<div class="card-img" style="height:160px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px">📷 No Photo</div>`;
+    }
     const bdgs = [
       a.level   ? bdg('Lv '+a.level,'#1a6fff') : '',
       a.diamonds ? bdg('💎 '+a.diamonds,'#9b59b6') : '',
@@ -926,7 +951,7 @@ function renderAccounts() {
     ].filter(Boolean).join('');
     return `
       <div class="card${a.sold?' sold-card':''}" onclick="openDetail(${a.id})">
-        <div class="card-img">${img}</div>
+        ${imgHtml}
         <div class="card-body">
           <div class="card-name">${a.name||'Akun FF'}</div>
           <div class="badges">${bdgs}</div>
@@ -949,11 +974,24 @@ function bdg(text, color) {
 // ============================================================
 // DETAIL
 // ============================================================
+function closeDetail() {
+  document.getElementById('det-panel').classList.remove('open');
+}
+
 function openDetail(id) {
   const a = accounts.find(x=>x.id===id);
   if (!a) return;
   const sheet = document.getElementById('det-sheet');
-  const img = a.photos[0] ? `<img class="det-img" src="${a.photos[0]}">` : '';
+  document.getElementById('det-panel-title').textContent = a.name||'Detail Akun';
+  const photos = a.photos.filter(Boolean);
+  let imgHtml = '';
+  if (photos.length > 1) {
+    const slides = photos.map(p=>`<img src="${p}" onerror="this.style.display='none'">`).join('');
+    const dots = photos.map((_,i)=>`<span class="slider-dot${i===0?' on':''}" onclick="detSlide(${a.id},${i})"></span>`).join('');
+    imgHtml = `<div class="det-slider" id="det-sl-${a.id}"><div class="slider-track" id="det-slt-${a.id}">${slides}</div><div class="slider-dots">${dots}</div></div>`;
+  } else if (photos.length===1) {
+    imgHtml = `<img class="det-img-full" src="${photos[0]}">`;
+  }
   const bdgs = [
     a.level   ? bdg('Level '+a.level,'#1a6fff') : '',
     a.diamonds ? bdg('💎 '+a.diamonds+' Diamonds','#9b59b6') : '',
@@ -962,23 +1000,24 @@ function openDetail(id) {
     a.sold    ? bdg('SOLD OUT','#ff4455') : bdg('READY','#00ff88'),
   ].filter(Boolean).join('');
   sheet.innerHTML = `
-    <div class="handle"></div>
-    ${img}
-    <div class="det-title">${a.name||'Akun FF'}</div>
-    <div class="det-badges">${bdgs}</div>
-    <div class="stat-grid">
-      <div class="stat-box"><div class="stat-val">${a.level||'-'}</div><div class="stat-lbl">Level</div></div>
-      <div class="stat-box"><div class="stat-val">${a.diamonds||'-'}</div><div class="stat-lbl">Diamonds</div></div>
-      <div class="stat-box"><div class="stat-val">${a.skins||'-'}</div><div class="stat-lbl">Skins</div></div>
-      <div class="stat-box"><div class="stat-val">${a.rank||'-'}</div><div class="stat-lbl">Rank</div></div>
+    ${imgHtml}
+    <div class="det-info">
+      <div class="det-title" style="margin-top:14px">${a.name||'Akun FF'}</div>
+      <div class="det-badges">${bdgs}</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-val">${a.level||'-'}</div><div class="stat-lbl">Level</div></div>
+        <div class="stat-box"><div class="stat-val">${a.diamonds||'-'}</div><div class="stat-lbl">Diamonds</div></div>
+        <div class="stat-box"><div class="stat-val">${a.skins||'-'}</div><div class="stat-lbl">Skins</div></div>
+        <div class="stat-box"><div class="stat-val">${a.rank||'-'}</div><div class="stat-lbl">Rank</div></div>
+      </div>
+      <div class="price-row">
+        <div class="price-big">Rp${(a.price||0).toLocaleString('id')}</div>
+        ${a.origPrice ? `<div class="price-orig">Rp${a.origPrice.toLocaleString('id')}</div>` : ''}
+      </div>
+      <button class="btn-main" ${a.sold?'disabled':''} onclick="buyNow(${a.id})">${a.sold?'SOLD OUT':'🛒 BELI SEKARANG'}</button>
     </div>
-    <div class="price-row">
-      <div class="price-big">Rp${(a.price||0).toLocaleString('id')}</div>
-      ${a.origPrice ? `<div class="price-orig">Rp${a.origPrice.toLocaleString('id')}</div>` : ''}
-    </div>
-    <button class="btn-main" ${a.sold?'disabled':''} onclick="buyNow(${a.id})">${a.sold?'SOLD OUT':'🛒 BELI SEKARANG'}</button>
   `;
-  document.getElementById('det-ov').classList.add('open');
+  document.getElementById('det-panel').classList.add('open');
 }
 
 // ============================================================
@@ -987,7 +1026,7 @@ function openDetail(id) {
 function buyNow(id) {
   const a = accounts.find(x=>x.id===id);
   if (!a || a.sold) return;
-  document.getElementById('det-ov').classList.remove('open');
+  document.getElementById('det-panel').classList.remove('open');
   if (!user) {
     showLoginGate(a);
     return;
@@ -1420,6 +1459,63 @@ async function doAddAkun() {
   notif('✅ Akun berhasil ditambah!');
 }
 
+// ============================================================
+// SLIDER
+// ============================================================
+const _slIdx = {};
+function cardSlide(id, idx) {
+  const track = document.getElementById('slt-'+id);
+  const wrap = document.getElementById('sl-'+id);
+  if (!track||!wrap) return;
+  const count = track.children.length;
+  _slIdx[id] = (idx+count)%count;
+  track.style.transform = `translateX(-${_slIdx[id]*100}%)`;
+  wrap.querySelectorAll('.slider-dot').forEach((d,i)=>d.classList.toggle('on',i===_slIdx[id]));
+}
+function detSlide(id, idx) {
+  const track = document.getElementById('det-slt-'+id);
+  const wrap = document.getElementById('det-sl-'+id);
+  if (!track||!wrap) return;
+  const count = track.children.length;
+  _slIdx['d'+id] = (idx+count)%count;
+  track.style.transform = `translateX(-${_slIdx['d'+id]*100}%)`;
+  wrap.querySelectorAll('.slider-dot').forEach((d,i)=>d.classList.toggle('on',i===_slIdx['d'+id]));
+}
+
+// Touch swipe support
+function initSwipe(el, onLeft, onRight) {
+  let sx=0,sy=0;
+  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  el.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>40){ dx<0?onLeft():onRight(); }
+  },{passive:true});
+}
+
+// Patch renderAccounts to init swipe after render
+const _origRenderAccounts = renderAccounts;
+function renderAccounts(){
+  _origRenderAccounts();
+  setTimeout(()=>{
+    accounts.filter(a=>a.photos.filter(Boolean).length>1).forEach(a=>{
+      const sl=document.getElementById('sl-'+a.id);
+      if(sl) initSwipe(sl,()=>cardSlide(a.id,((_slIdx[a.id]||0)+1)),()=>cardSlide(a.id,((_slIdx[a.id]||0)-1)));
+    });
+  },100);
+}
+
+// Patch openDetail to init swipe after open
+const _origOpenDetail = openDetail;
+function openDetail(id){
+  _origOpenDetail(id);
+  setTimeout(()=>{
+    const a=accounts.find(x=>x.id===id);
+    if(a&&a.photos.filter(Boolean).length>1){
+      const sl=document.getElementById('det-sl-'+id);
+      if(sl) initSwipe(sl,()=>detSlide(id,((_slIdx['d'+id]||0)+1)),()=>detSlide(id,((_slIdx['d'+id]||0)-1)));
+    }
+  },100);
+}
 // ============================================================
 // INIT
 // ============================================================
