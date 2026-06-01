@@ -1014,6 +1014,15 @@ renderBannerSlider();
       </div>
       <button onclick="npAddVar()" style="background:var(--secondary);border:1px dashed var(--border);color:var(--accent2);border-radius:7px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px;">+ Tambah Varian</button>
       <div style="margin-bottom:10px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">📝 Deskripsi Aplikasi (Opsional)</div>
+        <textarea id="npDesc" class="ap-input" rows="3" placeholder="Contoh: Akun premium sudah terverifikasi, bisa login multi device, support semua OS..." style="resize:vertical;font-family:'Rajdhani',sans-serif;font-size:13px;line-height:1.5;"></textarea>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">✨ Fitur Aplikasi (Opsional)</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">Tulis 1 fitur per baris. Contoh:<br>✅ Tanpa iklan<br>✅ Unlimited download</div>
+        <textarea id="npFeatures" class="ap-input" rows="4" placeholder="✅ Tanpa iklan&#10;✅ Unlimited download&#10;✅ Update otomatis&#10;✅ Multi device" style="resize:vertical;font-family:'Rajdhani',sans-serif;font-size:13px;line-height:1.7;"></textarea>
+      </div>
+      <div style="margin-bottom:10px;">
         <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:600;">📷 FOTO PRODUK (OPSIONAL)</div>
         <input type="file" id="npImg" accept="image/*" style="display:block;width:100%;background:var(--secondary);border:1.5px dashed var(--border);border-radius:9px;padding:8px;font-size:12px;color:var(--muted);margin-bottom:6px;" onchange="previewNewImg()">
         <label for="npImg" style="display:block;width:100%;background:var(--secondary);border:1.5px dashed var(--border);border-radius:9px;padding:8px;font-size:12px;color:var(--muted);margin-bottom:6px;cursor:pointer;text-align:center;">📁 Pilih File Gambar</label>
@@ -2154,15 +2163,18 @@ function openProd(id) {
     fallEl.textContent = p.emoji;
   }
 
-  // Features
+  // Features & Description
   const featEl = document.getElementById('fsFeatBox');
-  if (p.features && p.features.length) {
+  const hasDesc = p.desc && p.desc.trim();
+  const hasFeat = p.features && p.features.length;
+  if (hasDesc || hasFeat) {
     featEl.innerHTML = `<div class="fs-feat-box">
       <div class="fs-feat-title">
         <svg width="14" height="14" viewBox="0 0 24 24" stroke="var(--gold)" stroke-width="2" fill="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         FITUR &amp; DESKRIPSI
       </div>
-      ${p.features.map(f => `<div class="fs-feat-item"><div class="fs-feat-dot"></div>${f}</div>`).join('')}
+      ${hasDesc ? `<div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:${hasFeat?'10px':'0'};padding-bottom:${hasFeat?'10px':'0'};border-bottom:${hasFeat?'1px solid rgba(26,111,255,0.15)':'none'};">${p.desc.replace(/\n/g,'<br>')}</div>` : ''}
+      ${hasFeat ? p.features.map(f => `<div class="fs-feat-item"><div class="fs-feat-dot"></div>${f}</div>`).join('') : ''}
     </div>`;
   } else {
     featEl.innerHTML = '';
@@ -2769,7 +2781,10 @@ function apAddProduct() {
   if (!variants.length) { showNotif('❌ Minimal 1 varian harga!'); return; }
   const newId = Date.now();
   const _prods = getProducts();
-  _prods.push({ id: newId, name, cat, plat, emoji: '🎮', sold: 0, img: newProdImgData, variants });
+  const desc = (document.getElementById('npDesc').value || '').trim();
+  const featuresRaw = (document.getElementById('npFeatures').value || '').trim();
+  const features = featuresRaw ? featuresRaw.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+  _prods.push({ id: newId, name, cat, plat, emoji: '🎮', sold: 0, img: newProdImgData, variants, desc, features });
   const saved = setProducts(_prods);
   if (!saved) return;
   renderProducts(); renderApProds(); renderApDelete();
@@ -2787,6 +2802,8 @@ function apAddProduct() {
       <input type="number" placeholder="Harga (Rp)" style="flex:1;background:var(--secondary);border:1px solid var(--border);border-radius:7px;padding:7px 9px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:13px;">
       <button onclick="npRemoveVar(this)" style="background:var(--danger);border:none;color:#fff;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:13px;align-self:center;">✕</button>
     </div>`;
+  document.getElementById('npDesc').value = '';
+  document.getElementById('npFeatures').value = '';
   newProdImgData = '';
   showNotif('✅ Produk baru ditambahkan!');
 }
