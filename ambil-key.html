@@ -164,6 +164,8 @@ function getDeviceId(){
 }
 const DEVICE_ID = getDeviceId();
 let FP = '';
+// Password admin diambil dari localStorage (disimpan saat login panel admin di index.html)
+const ADMIN_PW = localStorage.getItem('vp_admin_pw') || sessionStorage.getItem('vp_admin_pw') || '';
 
 // ====== RAW FETCH HELPERS (hindari type cast issue) ======
 const H = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer '+SUPABASE_ANON, 'Content-Type': 'application/json' };
