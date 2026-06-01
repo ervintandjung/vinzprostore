@@ -145,17 +145,34 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 .fs-var-card .vn{font-size:10px;font-weight:700;color:var(--accent2);margin-bottom:4px;}
 .fs-var-card .vp{font-size:18px;font-weight:900;color:#fff;}
 .fs-var-card .vs{font-size:9px;margin-top:5px;display:flex;align-items:center;gap:4px;}
-.fs-order-box{background:var(--card2);border-radius:14px;padding:16px;margin-bottom:16px;border:1px solid var(--border);}
-.fs-o-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;}
-.fs-o-row .lbl{color:var(--muted);font-weight:600;}
-.fs-o-row .val{color:#fff;font-weight:700;}
+.fs-order-box{background:linear-gradient(135deg,#0d1f3c,#091628);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid rgba(26,111,255,0.35);box-shadow:0 4px 20px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05);}
+.fs-o-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px;}
+.fs-o-row .lbl{color:var(--muted);font-weight:600;letter-spacing:.4px;font-size:11px;text-transform:uppercase;}
+.fs-o-row .val{color:#fff;font-weight:800;font-size:13px;max-width:55%;text-align:right;line-height:1.3;}
 .fs-qty-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:0;}
 .fs-qty-ctrl{display:flex;align-items:center;background:var(--secondary);border-radius:10px;border:1px solid var(--border);overflow:hidden;}
 .fs-qty-btn{background:transparent;border:none;color:var(--accent);font-size:20px;width:38px;height:38px;cursor:pointer;font-weight:900;}
 .fs-qty-val{padding:0 14px;font-size:16px;font-weight:700;color:#fff;}
-.fs-total-row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
-.fs-total-lbl{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.5px;}
-.fs-total-amt{font-size:22px;font-weight:900;color:#fff;font-family:'Orbitron',sans-serif;}
+.fs-total-row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1.5px solid rgba(26,111,255,0.3);}
+.fs-total-lbl{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.8px;text-transform:uppercase;}
+.fs-total-amt{font-size:24px;font-weight:900;color:#fff;font-family:'Orbitron',sans-serif;background:linear-gradient(90deg,#fff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+
+/* PAYMENT CONFIRM POPUP MODAL */
+#payConfirmModal{display:none;position:fixed;inset:0;z-index:600;align-items:center;justify-content:center;background:rgba(2,8,20,0.88);backdrop-filter:blur(8px);}
+#payConfirmModal.open{display:flex;animation:pcFadeIn .22s ease;}
+@keyframes pcFadeIn{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+.pay-confirm-box{background:linear-gradient(155deg,#0d1f3c,#081628);border-radius:22px;border:1.5px solid rgba(0,170,255,0.3);padding:24px 20px 20px;width:calc(100% - 32px);max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.7),0 0 40px rgba(0,120,255,0.12);}
+.pcm-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.pcm-title{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;color:#fff;text-align:center;margin-bottom:4px;}
+.pcm-sub{font-size:11px;color:var(--muted);text-align:center;margin-bottom:16px;line-height:1.6;}
+.pcm-info-row{background:rgba(0,0,0,0.25);border-radius:10px;padding:10px 14px;margin-bottom:8px;}
+.pcm-info-label{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px;}
+.pcm-info-val{font-size:13px;color:#fff;font-weight:700;}
+.pcm-total-row{background:linear-gradient(135deg,rgba(0,80,221,0.22),rgba(0,170,255,0.12));border:1px solid rgba(0,170,255,0.3);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.pcm-total-label{font-size:11px;color:var(--accent2);font-weight:700;letter-spacing:.5px;}
+.pcm-total-amt{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;color:#fff;}
+.pcm-btn-confirm{width:100%;background:linear-gradient(135deg,#0050dd,#00aaff);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 18px rgba(0,100,255,0.4);margin-bottom:8px;}
+.pcm-btn-cancel{width:100%;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:12px;padding:11px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
 .fs-bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:10px 14px 20px;background:linear-gradient(to top,var(--primary) 80%,transparent);z-index:20;}
 .fs-btn-dl{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;background:linear-gradient(135deg,#0050dd,#00aaff);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 18px rgba(0,100,255,0.35);text-decoration:none;}
 .fs-btn-wa{width:100%;background:var(--wa);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;letter-spacing:1px;box-shadow:0 4px 18px rgba(37,211,102,0.35);}
@@ -378,6 +395,24 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
 .apk-info-inp:focus{border-color:var(--accent2);}
 .apk-info-inp::placeholder{color:var(--muted);}
 .apk-info-warn{background:rgba(255,68,85,0.07);border:1px solid rgba(255,68,85,0.25);border-radius:8px;padding:8px 12px;font-size:11px;color:rgba(255,100,110,0.9);line-height:1.6;}
+
+/* APK INFO MODAL POPUP (muncul di tengah saat pilih QRIS) */
+#apkInfoModal{display:none;position:fixed;inset:0;z-index:700;align-items:center;justify-content:center;background:rgba(2,8,20,0.85);backdrop-filter:blur(10px);padding:20px;}
+#apkInfoModal.open{display:flex;animation:apkPopIn .25s cubic-bezier(.34,1.56,.64,1);}
+@keyframes apkPopIn{from{opacity:0;transform:scale(.88) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.apk-modal-box{background:linear-gradient(155deg,#0d1f3c,#071420);border-radius:22px;border:1.5px solid rgba(0,212,255,0.3);padding:22px 18px 18px;width:100%;max-width:380px;box-shadow:0 24px 64px rgba(0,0,0,0.75),0 0 40px rgba(0,170,255,0.1);}
+.apk-modal-header{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.apk-modal-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(0,212,255,0.2),rgba(26,111,255,0.2));border:1px solid rgba(0,212,255,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.apk-modal-ttl{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;color:#fff;letter-spacing:.6px;}
+.apk-modal-sub{font-size:10px;color:var(--accent2);margin-top:2px;font-weight:600;}
+.apk-modal-lbl{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+.apk-modal-inp{width:100%;background:rgba(0,0,0,0.3);border:1.5px solid rgba(26,111,255,0.25);border-radius:10px;padding:11px 14px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;transition:.2s;margin-bottom:14px;}
+.apk-modal-inp:focus{border-color:var(--accent2);background:rgba(0,212,255,0.05);}
+.apk-modal-inp::placeholder{color:var(--muted);}
+.apk-modal-warn{background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.25);border-radius:10px;padding:10px 13px;font-size:10.5px;color:rgba(255,200,80,0.9);line-height:1.65;margin-bottom:16px;}
+.apk-modal-warn strong{color:#ffb020;}
+.apk-modal-btn{width:100%;background:linear-gradient(135deg,#0050dd,#00aaff);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 18px rgba(0,100,255,0.4);margin-bottom:8px;}
+.apk-modal-btn-cancel{width:100%;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:10px;padding:10px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -735,8 +770,9 @@ renderBannerSlider();
     <!-- Order Summary -->
     <div class="fs-order-box">
       <div class="fs-o-row"><span class="lbl">ITEM TERPILIH</span><span class="val" id="fsOItem">-</span></div>
+      <div style="height:1px;background:rgba(26,111,255,0.15);margin:8px 0;"></div>
       <div class="fs-qty-row">
-        <span class="lbl" style="font-size:12px;color:var(--muted);font-weight:600">JUMLAH <span style="color:var(--accent)">Maks.10</span></span>
+        <span class="lbl" style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.4px;text-transform:uppercase;">JUMLAH <span style="color:var(--accent)">Maks.10</span></span>
         <div class="fs-qty-ctrl">
           <button class="fs-qty-btn" onclick="fsChgQty(-1)">−</button>
           <span class="fs-qty-val" id="fsQtyVal">1</span>
@@ -779,24 +815,46 @@ renderBannerSlider();
     </div>
   </div>
 
-  <!-- Fixed Bottom: PESAN button (gray → blue when method selected) -->
+  <!-- Fixed Bottom: PESAN button -->
   <div class="fs-bottom" style="display:flex;flex-direction:column;gap:8px;">
-    <!-- APK PREMIUM: form nomor WA & email (muncul otomatis kalau kategori apk premium & metode QRIS/Xendit) -->
-    <div class="apk-info-form" id="apkInfoForm">
-      <div class="apk-info-title">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Info Aktivasi APK Premium
-      </div>
-      <label class="apk-info-lbl">Nomor WhatsApp Aktif</label>
-      <input class="apk-info-inp" id="apkWaInput" type="tel" inputmode="numeric" placeholder="Contoh: 08123456789 atau 628xxx">
-      <label class="apk-info-lbl">Email Akun Aktif (untuk login premium)</label>
-      <input class="apk-info-inp" id="apkEmailInput" type="email" placeholder="Contoh: email@kamu.com">
-      <div class="apk-info-warn">⚠️ Pastikan nomor WA dan email yang kamu masukkan <strong>aktif dan benar</strong>. Jika nomor/email tidak aktif atau salah, <strong>risiko ditanggung sendiri</strong> — admin tidak bertanggung jawab atas aktivasi yang gagal.
-      </div>
+    <!-- apkInfoForm hidden (dipindah ke modal popup) -->
+    <div id="apkInfoForm" style="display:none;">
+      <input id="apkWaInput" type="tel">
+      <input id="apkEmailInput" type="email">
     </div>
     <button id="fsPesanBtn" class="fs-btn-dl" disabled onclick="doPesan()" style="background:#3a3f4b;color:#9ba3b3;cursor:not-allowed;transition:.25s;">
       🛒 PESAN SEKARANG
     </button>
+  </div>
+</div>
+
+<!-- APK INFO MODAL POPUP -->
+<div id="apkInfoModal">
+  <div class="apk-modal-box">
+    <div class="apk-modal-header">
+      <div class="apk-modal-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div>
+        <div class="apk-modal-ttl">INFO AKTIVASI APK PREMIUM</div>
+        <div class="apk-modal-sub" id="apkModalSub">Isi data untuk aktivasi akun</div>
+      </div>
+    </div>
+
+    <div class="apk-modal-lbl">Nomor WhatsApp Aktif</div>
+    <input class="apk-modal-inp" id="apkModalWa" type="tel" inputmode="numeric" placeholder="Contoh: 08123456789 atau 628xxx">
+
+    <div class="apk-modal-lbl">Email Akun Aktif (untuk login premium)</div>
+    <input class="apk-modal-inp" id="apkModalEmail" type="email" placeholder="Contoh: email@kamu.com">
+
+    <div class="apk-modal-warn">
+      ⚠️ Pastikan nomor WA dan email yang kamu masukkan <strong>aktif dan benar</strong>. Jika nomor/email tidak aktif atau salah, <strong>risiko ditanggung sendiri</strong> — admin tidak bertanggung jawab atas aktivasi yang gagal.
+    </div>
+
+    <button class="apk-modal-btn" onclick="window._apkModalConfirm && window._apkModalConfirm()">
+      ✅ LANJUT BAYAR
+    </button>
+    <button class="apk-modal-btn-cancel" onclick="window.closeApkModal()">Batal</button>
   </div>
 </div>
 
@@ -3550,6 +3608,40 @@ document.addEventListener('visibilitychange', ()=>{ if(document.hidden) hideBuyN
 <script>
 // Payment method selection (gray → blue)
 let selectedPayMethod = null;
+
+// ── APK Info Modal Popup ──
+window.closeApkModal = function(){
+  const m = document.getElementById('apkInfoModal');
+  if(m){ m.classList.remove('open'); setTimeout(()=>{ m.style.display='none'; },250); }
+  window._apkModalConfirm = null;
+};
+window._openApkModal = function(methodLabel, onConfirm){
+  const m = document.getElementById('apkInfoModal');
+  if(!m) return onConfirm && onConfirm();
+  const sub = document.getElementById('apkModalSub');
+  if(sub) sub.textContent = 'Isi data sebelum lanjut bayar via ' + methodLabel;
+  // Reset input
+  const wa = document.getElementById('apkModalWa');
+  const em = document.getElementById('apkModalEmail');
+  if(wa) wa.value = '';
+  if(em) em.value = '';
+  window._apkModalConfirm = function(){
+    const waVal = (document.getElementById('apkModalWa').value||'').trim();
+    const emVal = (document.getElementById('apkModalEmail').value||'').trim();
+    if(!waVal){ showNotif('⚠️ Masukkan nomor WhatsApp aktif dulu!'); document.getElementById('apkModalWa').focus(); return; }
+    if(!emVal||!emVal.includes('@')){ showNotif('⚠️ Masukkan email aktif yang valid!'); document.getElementById('apkModalEmail').focus(); return; }
+    // Sync ke input lama (dipakai kode lain)
+    try{ document.getElementById('apkWaInput').value = waVal; }catch(e){}
+    try{ document.getElementById('apkEmailInput').value = emVal; }catch(e){}
+    window._apkOrderWa = waVal;
+    window._apkOrderEmail = emVal;
+    window.closeApkModal();
+    onConfirm && onConfirm();
+  };
+  m.style.display = 'flex';
+  requestAnimationFrame(()=>{ m.classList.add('open'); });
+};
+
 function selectPayMethod(m){
   selectedPayMethod = m;
   document.querySelectorAll('.pm-card').forEach(c => {
@@ -3568,20 +3660,6 @@ function selectPayMethod(m){
       chk.style.boxShadow = 'none';
     }
   });
-  // Show APK info form if: apk premium product + QRIS/Xendit method
-  try {
-    const apkForm = document.getElementById('apkInfoForm');
-    if (apkForm) {
-      const prod = getProducts().find(x => x.id === selProdId);
-      const isApk = prod && prod.cat && prod.cat.toLowerCase().includes('apk');
-      const isQris = (m === 'qris' || m === 'qris_xendit');
-      if (isApk && isQris) {
-        apkForm.classList.add('visible');
-      } else {
-        apkForm.classList.remove('visible');
-      }
-    }
-  } catch(e){}
   const btn = document.getElementById('fsPesanBtn');
   if (btn){
     btn.disabled = false;
@@ -3593,7 +3671,6 @@ function selectPayMethod(m){
 }
 function resetPayMethod(){
   selectedPayMethod = null;
-  try { const f=document.getElementById('apkInfoForm'); if(f) f.classList.remove('visible'); } catch(e){}
   document.querySelectorAll('.pm-card').forEach(c => {
     c.style.border = '2px solid var(--border)';
     c.style.background = 'var(--card2)';
@@ -3610,26 +3687,24 @@ function resetPayMethod(){
     btn.style.boxShadow = 'none';
   }
 }
+function _execOrder(){
+  if (selectedPayMethod === 'qris_xendit') orderQRISXendit();
+  else if (selectedPayMethod === 'qris') orderQRIS();
+  else if (selectedPayMethod === 'wa') orderWA();
+}
 function doPesan(){
   if (!selectedPayMethod){ showNotif('⚠️ Pilih cara pembayaran dulu'); return; }
-  // Validasi form APK Premium jika kategori APK + QRIS
   const isQris = (selectedPayMethod === 'qris' || selectedPayMethod === 'qris_xendit');
   try {
     const prod = getProducts().find(x => x.id === selProdId);
     const isApk = prod && prod.cat && prod.cat.toLowerCase().includes('apk');
     if (isApk && isQris) {
-      const wa = (document.getElementById('apkWaInput').value || '').trim();
-      const em = (document.getElementById('apkEmailInput').value || '').trim();
-      if (!wa) { showNotif('⚠️ Masukkan nomor WhatsApp aktif dulu!'); document.getElementById('apkWaInput').focus(); return; }
-      if (!em || !em.includes('@')) { showNotif('⚠️ Masukkan email aktif yang valid!'); document.getElementById('apkEmailInput').focus(); return; }
-      // Simpan ke window untuk dipakai saat order selesai
-      window._apkOrderWa = wa;
-      window._apkOrderEmail = em;
+      const label = selectedPayMethod === 'qris_xendit' ? 'QRIS Xendit' : 'QRIS Duitku';
+      window._openApkModal(label, _execOrder);
+      return;
     }
   } catch(e){}
-  if (selectedPayMethod === 'qris_xendit') orderQRISXendit();
-  else if (selectedPayMethod === 'qris') orderQRIS();
-  else if (selectedPayMethod === 'wa') orderWA();
+  _execOrder();
 }
 // Reset whenever product fullscreen opens
 (function(){
@@ -7290,6 +7365,108 @@ function payXenditDone(){
   showNotif('Pembayaran sukses!');
   setTimeout(()=>alert('PEMBAYARAN SUKSES\n\nKey:\n'+keys.join('\n')+'\n\nSimpan baik-baik!'),300);
 }
+
+// ===== PAYMENT CONFIRM MODAL =====
+(function(){
+  // Inject HTML modal
+  const modalHtml = `
+  <div id="payConfirmModal">
+    <div class="pay-confirm-box">
+      <div class="pcm-icon" id="pcmIcon"></div>
+      <div class="pcm-title" id="pcmTitle">Konfirmasi Pembayaran</div>
+      <div class="pcm-sub" id="pcmSub"></div>
+      <div class="pcm-info-row">
+        <div class="pcm-info-label">Produk</div>
+        <div class="pcm-info-val" id="pcmProd">-</div>
+      </div>
+      <div class="pcm-info-row">
+        <div class="pcm-info-label">Jumlah</div>
+        <div class="pcm-info-val" id="pcmQty">-</div>
+      </div>
+      <div class="pcm-total-row">
+        <div class="pcm-total-label">TOTAL BAYAR</div>
+        <div class="pcm-total-amt" id="pcmTotal">Rp 0</div>
+      </div>
+      <button class="pcm-btn-confirm" id="pcmConfirmBtn" onclick="window._pcmConfirm && window._pcmConfirm()">
+        🔐 BAYAR SEKARANG
+      </button>
+      <button class="pcm-btn-cancel" onclick="window.closePayConfirm()">Batal</button>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+  window.closePayConfirm = function(){
+    const m = document.getElementById('payConfirmModal');
+    if(m){ m.classList.remove('open'); m.style.display='none'; }
+    window._pcmConfirm = null;
+  };
+
+  window.showPayConfirm = function({ method, prodName, qty, total, onConfirm }){
+    const m = document.getElementById('payConfirmModal');
+    if(!m) return onConfirm && onConfirm();
+
+    const isXendit = method === 'qris_xendit';
+    const isDuitku = method === 'qris';
+
+    const iconHtml = isXendit
+      ? `<div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#6b3fa0,#9b59b6);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg></div>`
+      : `<div style="width:56px;height:56px;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0050dd" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg></div>`;
+
+    const title = isXendit ? 'QRIS · XENDIT' : 'QRIS · DUITKU';
+    const sub = isXendit
+      ? 'Pembayaran otomatis via GoPay, OVO, Dana, dll.\nScan QR yang akan muncul setelah konfirmasi.'
+      : 'Pembayaran via scan QR · Semua e-wallet.\nScan QR yang akan muncul setelah konfirmasi.';
+
+    const iconEl = document.getElementById('pcmIcon');
+    const titleEl = document.getElementById('pcmTitle');
+    const subEl = document.getElementById('pcmSub');
+    const prodEl = document.getElementById('pcmProd');
+    const qtyEl = document.getElementById('pcmQty');
+    const totalEl = document.getElementById('pcmTotal');
+    const badge = isXendit
+      ? '<span style="font-size:9px;background:#6b3fa0;color:#fff;padding:2px 8px;border-radius:4px;margin-left:6px;font-weight:700;">XENDIT</span>'
+      : '<span style="font-size:9px;background:#0050dd;color:#fff;padding:2px 8px;border-radius:4px;margin-left:6px;font-weight:700;">DUITKU</span>';
+
+    if(iconEl) iconEl.outerHTML = iconHtml + '<div id="pcmIcon" style="display:none"></div>';
+    if(titleEl) titleEl.innerHTML = 'QRIS ' + badge;
+    if(subEl) subEl.textContent = sub;
+    if(prodEl) prodEl.textContent = prodName || '-';
+    if(qtyEl) qtyEl.textContent = qty + ' item';
+    if(totalEl) totalEl.textContent = total || 'Rp 0';
+
+    window._pcmConfirm = function(){
+      window.closePayConfirm();
+      onConfirm && onConfirm();
+    };
+
+    m.style.display = 'flex';
+    requestAnimationFrame(() => m.classList.add('open'));
+  };
+
+  // Override doPesan agar muncul popup dulu saat QRIS
+  const _origDoPesan = window.doPesan;
+  window.doPesan = function(){
+    const sel = window.selectedPayMethod;
+    if(sel === 'qris_xendit' || sel === 'qris'){
+      // Ambil info dari UI
+      const prodName = (document.getElementById('fsOItem') || {}).textContent || '-';
+      const qty = (document.getElementById('fsQtyVal') || {}).textContent || '1';
+      const total = (document.getElementById('fsTotalAmt') || {}).textContent || 'Rp 0';
+      window.showPayConfirm({
+        method: sel,
+        prodName,
+        qty,
+        total,
+        onConfirm: function(){
+          if(sel === 'qris_xendit' && typeof window.orderQRISXendit === 'function') window.orderQRISXendit();
+          else if(sel === 'qris' && typeof window.orderQRIS === 'function') window.orderQRIS();
+        }
+      });
+    } else {
+      _origDoPesan && _origDoPesan();
+    }
+  };
+})();
 
 // ===== FIX loadYoutube pakai ytInner bukan ytContainer innerHTML =====
 window.loadYoutube = function(){
