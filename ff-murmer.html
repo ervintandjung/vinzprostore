@@ -478,6 +478,7 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
     <button class="adm-tab" onclick="admTab('trx',this)">🧾 Transaksi</button>
     <button class="adm-tab" onclick="admTab('add',this)">➕ Tambah</button>
     <button class="adm-tab" onclick="admTab('ui',this)">🎨 Tampilan</button>
+    <button class="adm-tab" onclick="admTab('wa',this)">📱 WhatsApp</button>
   </div>
   <div class="panel-body">
     <!-- Dashboard -->
@@ -557,8 +558,33 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
       </div>
       <button class="btn-submit" id="btn-submit-akun" onclick="doAddAkun()">TAMBAH AKUN</button>
     </div>
-  </div>
-</div>
+    <!-- WhatsApp -->
+    <div id="adm-wa" style="display:none">
+      <div class="adm-sec">
+        <div class="adm-sec-title">📱 Nomor WhatsApp Admin</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6">Nomor ini digunakan saat pembeli memilih metode pembayaran via WhatsApp. Gunakan format internasional tanpa + (contoh: <strong style="color:var(--accent2)">628xxxx</strong>).</p>
+        <label class="lbl">Nomor WA (format: 628xxxxxxxxxx)</label>
+        <input class="adm-inp" id="wa-number-inp" placeholder="Contoh: 628123456789" type="tel" inputmode="numeric">
+        <div id="wa-preview" style="display:none;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:13px;">
+          <span style="color:var(--muted)">Preview link: </span>
+          <span id="wa-link-preview" style="color:var(--success);font-weight:700;word-break:break-all;"></span>
+        </div>
+        <button class="btn-submit" onclick="saveWaNumber()">💾 SIMPAN NOMOR WA</button>
+        <div id="wa-save-info" style="margin-top:10px;font-size:12px;color:var(--muted);text-align:center;display:none"></div>
+      </div>
+      <div class="adm-sec" style="margin-top:4px">
+        <div class="adm-sec-title">ℹ️ Nomor Aktif Saat Ini</div>
+        <div style="background:var(--card);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:3px">Nomor tersimpan</div>
+            <div id="wa-current-num" style="font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;color:var(--accent2)">-</div>
+          </div>
+          <a id="wa-test-link" href="#" target="_blank" style="background:rgba(0,255,136,0.15);border:1px solid rgba(0,255,136,0.4);color:var(--success);border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;font-family:'Orbitron',sans-serif;text-decoration:none;">TEST WA</a>
+        </div>
+      </div>
+    </div>
+  </div><!-- panel-body -->
+</div><!-- admin-panel -->
 
 <script>
 // ============================================================
@@ -1227,7 +1253,7 @@ async function openAdminPanel() {
 }
 
 function admTab(tab, btn) {
-  ['dashboard','accounts','trx','add','ui'].forEach(t => {
+  ['dashboard','accounts','trx','add','ui','wa'].forEach(t => {
     const el = document.getElementById('adm-'+t);
     if (el) el.style.display = t===tab ? 'block' : 'none';
   });
@@ -1235,6 +1261,48 @@ function admTab(tab, btn) {
   btn.classList.add('on');
   if (tab==='trx') loadAdmTrx();
   if (tab==='ui') loadUiSettings();
+  if (tab==='wa') loadWaPanel();
+}
+
+function loadWaPanel() {
+  const num = SETTINGS.wa_number || '';
+  const inp = document.getElementById('wa-number-inp');
+  const cur = document.getElementById('wa-current-num');
+  const testLink = document.getElementById('wa-test-link');
+  if (inp) inp.value = num;
+  if (cur) cur.textContent = num || '(belum diatur)';
+  if (testLink) testLink.href = num ? `https://wa.me/${num}?text=Halo+admin+FF+Store` : '#';
+  // Live preview on input
+  if (inp) {
+    inp.oninput = function() {
+      const v = this.value.replace(/\D/g,'');
+      this.value = v;
+      const prev = document.getElementById('wa-preview');
+      const link = document.getElementById('wa-link-preview');
+      if (v.length >= 8) {
+        prev.style.display = 'block';
+        link.textContent = `https://wa.me/${v}`;
+      } else {
+        prev.style.display = 'none';
+      }
+    };
+  }
+}
+
+async function saveWaNumber() {
+  const inp = document.getElementById('wa-number-inp');
+  const info = document.getElementById('wa-save-info');
+  if (!inp) return;
+  const num = inp.value.replace(/\D/g,'');
+  if (!num || num.length < 8) { notif('❌ Nomor WA tidak valid!'); return; }
+  await upsertSetting('wa_number', num);
+  SETTINGS.wa_number = num;
+  const cur = document.getElementById('wa-current-num');
+  const testLink = document.getElementById('wa-test-link');
+  if (cur) cur.textContent = num;
+  if (testLink) testLink.href = `https://wa.me/${num}?text=Halo+admin+FF+Store`;
+  if (info) { info.textContent = '✅ Nomor WA berhasil disimpan: ' + num; info.style.display = 'block'; }
+  notif('✅ Nomor WA tersimpan: +' + num);
 }
 
 function setDbStatus(s) {
