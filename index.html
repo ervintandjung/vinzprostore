@@ -96,7 +96,7 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 .prod-info{padding:7px;flex:1;display:flex;flex-direction:column;gap:3px;}
 .prod-name{font-size:10px;font-weight:700;color:#fff;line-height:1.2;min-height:24px;}
 .prod-sold{font-size:9px;color:var(--muted);flex:1;}
-.btn-beli{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:5px 0;font-size:10px;font-weight:700;cursor:pointer;width:100%;font-family:'Rajdhani',sans-serif;letter-spacing:.5px;transition:.2s;margin-top:2px;}
+.btn-beli{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:7px 0;font-size:12px;font-weight:700;cursor:pointer;width:100%;font-family:'Rajdhani',sans-serif;letter-spacing:.5px;transition:.2s;margin-top:3px;}
 .btn-beli:hover{background:#0050dd;}
 
 /* MODAL - FULLSCREEN */
@@ -5236,8 +5236,8 @@ function doPesan(){
         const sel = (i === selVarIdx) ? 'sel' : '';
         const dotCls = qrisHabis ? 'dy' : 'dg';
         const dotStyle = qrisHabis ? 'background:#ffb020;box-shadow:0 0 6px rgba(255,176,32,.7);' : '';
-        const label = qrisHabis ? 'QRIS HABIS · WA OK' : 'TERSEDIA';
-        const labelStyle = qrisHabis ? 'color:#ffb020;font-weight:800;' : '';
+        const label = qrisHabis ? 'TERSEDIA' : 'TERSEDIA';
+        const labelStyle = '';
         return '<div class="fs-var-card '+sel+'" onclick="fSelVar('+i+')">'+
           '<div class="vn">'+p.name+' '+v.n+'</div>'+
           '<div class="vp">'+rp(v.p)+'</div>'+
@@ -5376,7 +5376,7 @@ function doPesan(){
       let label, color, clickAttr;
       if (both){ label='TERSEDIA'; color='#00ff88'; clickAttr='onclick="fSelVar('+i+')"'; }
       else if (none){ label='HABIS TOTAL'; color='#ff4757'; clickAttr=''; }
-      else if (qrisHabis && waOk){ label='QRIS HABIS · WA OK'; color='#ffb020'; clickAttr='onclick="fSelVar('+i+')"'; }
+      else if (qrisHabis && waOk){ label='TERSEDIA'; color='#00ff88'; clickAttr='onclick="fSelVar('+i+')"'; }
       else { label='WA HABIS · QRIS OK'; color='#4dabff'; clickAttr='onclick="fSelVar('+i+')"'; }
       const disStyle = none ? 'opacity:.5;cursor:not-allowed;' : '';
       return '<div class="fs-var-card '+sel+'" '+clickAttr+' style="'+disStyle+'">'+
