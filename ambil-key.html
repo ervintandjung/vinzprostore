@@ -454,7 +454,7 @@ $('claimBtn').addEventListener('click', async () => {
     const { data: keyValue, error: claimErr } = await sb.rpc('reseller_claim_key', {
       p_device_id:   DEVICE_ID,
       p_fingerprint: FP,
-      p_face:        Array.from(desc),
+      p_face:        Array.from(desc).map(Number),
       p_product:     pid,
       p_variant:     v,
       p_email:       $('emailInp').value.trim() || null,
