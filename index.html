@@ -367,6 +367,17 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
 .buy-notif-close{position:absolute;top:4px;right:6px;background:transparent;border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:2px 4px;}
 .buy-notif-close:hover{color:var(--danger);}
 
+
+/* APK PREMIUM ORDER FORM */
+.apk-info-form{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.25);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:none;}
+.apk-info-form.visible{display:block;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.apk-info-title{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;color:var(--accent2);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.apk-info-lbl{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.apk-info-inp{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;outline:none;transition:.2s;margin-bottom:10px;}
+.apk-info-inp:focus{border-color:var(--accent2);}
+.apk-info-inp::placeholder{color:var(--muted);}
+.apk-info-warn{background:rgba(255,68,85,0.07);border:1px solid rgba(255,68,85,0.25);border-radius:8px;padding:8px 12px;font-size:11px;color:rgba(255,100,110,0.9);line-height:1.6;}
 </style>
 </head>
 <body>
@@ -770,6 +781,19 @@ renderBannerSlider();
 
   <!-- Fixed Bottom: PESAN button (gray → blue when method selected) -->
   <div class="fs-bottom" style="display:flex;flex-direction:column;gap:8px;">
+    <!-- APK PREMIUM: form nomor WA & email (muncul otomatis kalau kategori apk premium & metode QRIS/Xendit) -->
+    <div class="apk-info-form" id="apkInfoForm">
+      <div class="apk-info-title">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Info Aktivasi APK Premium
+      </div>
+      <label class="apk-info-lbl">Nomor WhatsApp Aktif</label>
+      <input class="apk-info-inp" id="apkWaInput" type="tel" inputmode="numeric" placeholder="Contoh: 08123456789 atau 628xxx">
+      <label class="apk-info-lbl">Email Akun Aktif (untuk login premium)</label>
+      <input class="apk-info-inp" id="apkEmailInput" type="email" placeholder="Contoh: email@kamu.com">
+      <div class="apk-info-warn">⚠️ Pastikan nomor WA dan email yang kamu masukkan <strong>aktif dan benar</strong>. Jika nomor/email tidak aktif atau salah, <strong>risiko ditanggung sendiri</strong> — admin tidak bertanggung jawab atas aktivasi yang gagal.
+      </div>
+    </div>
     <button id="fsPesanBtn" class="fs-btn-dl" disabled onclick="doPesan()" style="background:#3a3f4b;color:#9ba3b3;cursor:not-allowed;transition:.25s;">
       🛒 PESAN SEKARANG
     </button>
@@ -3075,7 +3099,9 @@ function orderQRIS(){
     return;
   }
   const orderId = 'VPS' + Date.now().toString().slice(-8) + Math.floor(Math.random()*100);
-  qrPending = { pid: p.id, vn: v.n, qty: qty, total: total, orderId: orderId, productName: p.name };
+  const _apkWa = window._apkOrderWa || '';
+  const _apkEmail = window._apkOrderEmail || '';
+  qrPending = { pid: p.id, vn: v.n, qty: qty, total: total, orderId: orderId, productName: p.name, apkWa: _apkWa, apkEmail: _apkEmail };
   const qrText = encodeURIComponent('VINZSTORE|MERCHANT:VPS|TRX:' + orderId + '|TOTAL:Rp' + total);
   document.getElementById('qrImg').src = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + qrText;
   document.getElementById('qrOrderId').textContent = orderId;
@@ -3119,6 +3145,10 @@ function closeQrPayment(){
   document.body.style.overflow = '';
   if (qrTimer) { clearInterval(qrTimer); qrTimer = null; }
   qrPending = null;
+  // Reset APK fields
+  window._apkOrderWa = ''; window._apkOrderEmail = '';
+  try { document.getElementById('apkWaInput').value=''; document.getElementById('apkEmailInput').value=''; } catch(e){}
+  try { document.getElementById('apkInfoForm').classList.remove('visible'); } catch(e){}
 }
 function payQrisDone(){
   if (!qrPending) return;
@@ -3538,6 +3568,20 @@ function selectPayMethod(m){
       chk.style.boxShadow = 'none';
     }
   });
+  // Show APK info form if: apk premium product + QRIS/Xendit method
+  try {
+    const apkForm = document.getElementById('apkInfoForm');
+    if (apkForm) {
+      const prod = getProducts().find(x => x.id === selProdId);
+      const isApk = prod && prod.cat && prod.cat.toLowerCase().includes('apk');
+      const isQris = (m === 'qris' || m === 'qris_xendit');
+      if (isApk && isQris) {
+        apkForm.classList.add('visible');
+      } else {
+        apkForm.classList.remove('visible');
+      }
+    }
+  } catch(e){}
   const btn = document.getElementById('fsPesanBtn');
   if (btn){
     btn.disabled = false;
@@ -3549,6 +3593,7 @@ function selectPayMethod(m){
 }
 function resetPayMethod(){
   selectedPayMethod = null;
+  try { const f=document.getElementById('apkInfoForm'); if(f) f.classList.remove('visible'); } catch(e){}
   document.querySelectorAll('.pm-card').forEach(c => {
     c.style.border = '2px solid var(--border)';
     c.style.background = 'var(--card2)';
@@ -3567,6 +3612,21 @@ function resetPayMethod(){
 }
 function doPesan(){
   if (!selectedPayMethod){ showNotif('⚠️ Pilih cara pembayaran dulu'); return; }
+  // Validasi form APK Premium jika kategori APK + QRIS
+  const isQris = (selectedPayMethod === 'qris' || selectedPayMethod === 'qris_xendit');
+  try {
+    const prod = getProducts().find(x => x.id === selProdId);
+    const isApk = prod && prod.cat && prod.cat.toLowerCase().includes('apk');
+    if (isApk && isQris) {
+      const wa = (document.getElementById('apkWaInput').value || '').trim();
+      const em = (document.getElementById('apkEmailInput').value || '').trim();
+      if (!wa) { showNotif('⚠️ Masukkan nomor WhatsApp aktif dulu!'); document.getElementById('apkWaInput').focus(); return; }
+      if (!em || !em.includes('@')) { showNotif('⚠️ Masukkan email aktif yang valid!'); document.getElementById('apkEmailInput').focus(); return; }
+      // Simpan ke window untuk dipakai saat order selesai
+      window._apkOrderWa = wa;
+      window._apkOrderEmail = em;
+    }
+  } catch(e){}
   if (selectedPayMethod === 'qris_xendit') orderQRISXendit();
   else if (selectedPayMethod === 'qris') orderQRIS();
   else if (selectedPayMethod === 'wa') orderWA();
