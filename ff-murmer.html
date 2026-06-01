@@ -262,6 +262,7 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
 .admin-search::placeholder{color:var(--muted);}
 .btn-refresh{background:var(--card);border:1px solid var(--border);color:var(--accent2);padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;}
 .btn-refresh:hover{background:rgba(0,212,255,.1);}
+.admin-input textarea,.admin-input[rows]{height:auto;line-height:1.5;padding:10px 12px;}
 </style>
 </head>
 <body>
@@ -284,9 +285,9 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
 <!-- BANNER -->
 <div style="padding:14px 14px 0">
   <div class="banner">
-    <div class="banner-tag">⚡ INSTAN DELIVERY</div>
-    <h2>Akun FF <span>Premium</span></h2>
-    <p class="banner-sub">Beli langsung dapat email, pw &amp; kode keamanan!</p>
+    <div class="banner-tag" id="banner-tag">⚡ INSTAN DELIVERY</div>
+    <h2 id="banner-h2">Akun FF <span id="banner-h2-highlight">Premium</span></h2>
+    <p class="banner-sub" id="banner-sub">Beli langsung dapat email, pw &amp; kode keamanan!</p>
     <div class="banner-tags">
       <span class="bf">⚡ Instan</span>
       <span class="bf">🔒 Aman</span>
@@ -298,7 +299,7 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
 
 <!-- TICKER -->
 <div class="ticker-bar">
-  <span class="ticker-inner">&nbsp;&nbsp;&nbsp;⚡ Pembelian instan otomatis &nbsp;•&nbsp; 💎 Akun sultan tersedia &nbsp;•&nbsp; 🔒 Transaksi aman &nbsp;•&nbsp; 📱 Support 24 jam via WA &nbsp;•&nbsp; 🎮 Ratusan skin tersedia &nbsp;•&nbsp; ⭐ Terpercaya &nbsp;&nbsp;&nbsp;⚡ Pembelian instan otomatis &nbsp;•&nbsp; 💎 Akun sultan tersedia &nbsp;•&nbsp; 🔒 Transaksi aman</span>
+  <span class="ticker-inner" id="ticker-inner">&nbsp;&nbsp;&nbsp;⚡ Pembelian instan otomatis &nbsp;•&nbsp; 💎 Akun sultan tersedia &nbsp;•&nbsp; 🔒 Transaksi aman &nbsp;•&nbsp; 📱 Support 24 jam via WA &nbsp;•&nbsp; 🎮 Ratusan skin tersedia &nbsp;•&nbsp; ⭐ Terpercaya &nbsp;&nbsp;&nbsp;⚡ Pembelian instan otomatis &nbsp;•&nbsp; 💎 Akun sultan tersedia &nbsp;•&nbsp; 🔒 Transaksi aman</span>
 </div>
 
 <!-- SEARCH -->
@@ -468,6 +469,7 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
       <button class="admin-tab-btn" onclick="switchAdminTab('accounts',this)">📋 Akun</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('transactions',this)">🧾 Transaksi</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('add',this)">➕ Tambah</button>
+      <button class="admin-tab-btn" onclick="switchAdminTab('konten',this)">✏️ Konten</button>
     </div>
 
     <!-- TAB: DASHBOARD -->
@@ -510,6 +512,34 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
       </div>
       <div id="admin-trx-list"><div style="color:var(--muted);font-size:12px;padding:16px;text-align:center">Klik Refresh untuk memuat</div></div>
     </div>
+
+    <!-- TAB: KONTEN -->
+    <div id="admin-tab-konten" class="admin-tab-content">
+      <div style="color:var(--accent2);font-size:10px;font-weight:700;margin-bottom:14px;font-family:'Orbitron',sans-serif">✏️ EDIT KONTEN TOKO</div>
+
+      <div class="admin-section">
+        <div style="color:var(--accent);font-size:10px;font-weight:700;margin-bottom:12px;font-family:'Orbitron',sans-serif">🎯 BANNER UTAMA</div>
+        <label class="form-lbl">BADGE ATAS (contoh: ⚡ INSTAN DELIVERY)</label>
+        <input class="admin-input" id="edit-banner-tag" style="margin-bottom:10px" placeholder="⚡ INSTAN DELIVERY">
+        <label class="form-lbl">JUDUL BANNER (teks biasa)</label>
+        <input class="admin-input" id="edit-banner-title" style="margin-bottom:10px" placeholder="Akun FF">
+        <label class="form-lbl">JUDUL — KATA HIGHLIGHT (warna emas)</label>
+        <input class="admin-input" id="edit-banner-highlight" style="margin-bottom:10px" placeholder="Premium">
+        <label class="form-lbl">SUBTITLE</label>
+        <input class="admin-input" id="edit-banner-sub" placeholder="Beli langsung dapat email, pw & kode keamanan!">
+      </div>
+
+      <div class="admin-section">
+        <div style="color:var(--accent);font-size:10px;font-weight:700;margin-bottom:12px;font-family:'Orbitron',sans-serif">📢 TEKS BERJALAN (TICKER)</div>
+        <label class="form-lbl">ISI TEKS BERJALAN</label>
+        <textarea class="admin-input" id="edit-ticker" rows="3" style="resize:vertical;margin-bottom:6px;height:80px" placeholder="⚡ Pembelian instan • 💎 Akun sultan tersedia • 🔒 Transaksi aman"></textarea>
+        <p style="color:var(--muted);font-size:10px;margin-bottom:10px">Pisahkan item dengan &nbsp;•&nbsp; (spasi-bullet-spasi). Teks akan otomatis diulang.</p>
+      </div>
+
+      <button onclick="saveKonten()" style="width:100%;background:var(--accent);border:none;color:white;padding:13px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;font-family:'Orbitron',sans-serif;letter-spacing:1px;margin-bottom:8px;">💾 SIMPAN PERUBAHAN</button>
+      <button onclick="resetKonten()" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:'Rajdhani',sans-serif;">↩ Reset ke Default</button>
+    </div>
+
 
     <!-- TAB: ADD ACCOUNT -->
     <div id="admin-tab-add" class="admin-tab-content">
@@ -623,19 +653,28 @@ const PM = {
 // SUPABASE HELPERS
 // ============================================================
 async function sb(path, opts = {}) {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
-    ...opts,
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': opts.prefer || 'return=representation',
-      ...(opts.headers||{})
+  const method = (opts.method || 'GET').toUpperCase();
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json',
+    ...(opts.headers||{})
+  };
+  if (method !== 'GET') headers['Prefer'] = opts.prefer || 'return=representation';
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, { ...opts, headers });
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error('SB error', res.status, errText);
+      window._lastSbError = 'HTTP ' + res.status + ': ' + errText.slice(0,150);
+      return null;
     }
-  });
-  if (!res.ok) { console.error('SB error', res.status, await res.text()); return null; }
-  if (res.status === 204) return true;
-  return res.json();
+    if (res.status === 204) return true;
+    return res.json();
+  } catch(e) {
+    window._lastSbError = 'Network: ' + e.message;
+    return null;
+  }
 }
 
 // ============================================================
@@ -1260,6 +1299,7 @@ function switchAdminTab(tab, btn) {
   document.getElementById('admin-tab-' + tab).classList.add('active');
   btn.classList.add('active');
   if (tab === 'transactions') loadAdminTransactions();
+  if (tab === 'konten') openKontenEditor();
 }
 
 function setDbStatus(s) {
@@ -1267,8 +1307,19 @@ function setDbStatus(s) {
   el.className = 'db-badge db-'+s;
   el.textContent = s==='ok'?'● Connected':s==='err'?'● Error':'● ...';
   const il = document.getElementById('db-status-inline');
-  if (il) il.textContent = s==='ok'?'✓ Connected':s==='err'?'✗ Error':'Connecting...';
-  if (il) il.style.color = s==='ok'?'var(--success)':s==='err'?'var(--danger)':'var(--accent2)';
+  if (il) {
+    if (s==='err') {
+      const errMsg = window._lastSbError || 'Gagal terhubung ke database';
+      il.textContent = '✗ ' + errMsg;
+      il.style.color = 'var(--danger)';
+      il.style.fontSize = '10px';
+      il.style.wordBreak = 'break-all';
+    } else {
+      il.textContent = s==='ok'?'✓ Connected':'Connecting...';
+      il.style.color = s==='ok'?'var(--success)':'var(--accent2)';
+      il.style.fontSize = '';
+    }
+  }
 }
 
 function renderAdminList(list) {
@@ -1425,9 +1476,86 @@ function showNotif(msg, dur=3000) {
   setTimeout(() => el.classList.remove('show'), dur);
 }
 
+
+// ============================================================
+// KONTEN EDITOR (Banner + Ticker)
+// ============================================================
+const KONTEN_DEFAULTS = {
+  bannerTag:       '⚡ INSTAN DELIVERY',
+  bannerTitle:     'Akun FF',
+  bannerHighlight: 'Premium',
+  bannerSub:       'Beli langsung dapat email, pw & kode keamanan!',
+  ticker:          '⚡ Pembelian instan otomatis &nbsp;•&nbsp; 💎 Akun sultan tersedia &nbsp;•&nbsp; 🔒 Transaksi aman &nbsp;•&nbsp; 📱 Support 24 jam via WA &nbsp;•&nbsp; 🎮 Ratusan skin tersedia &nbsp;•&nbsp; ⭐ Terpercaya'
+};
+
+function applyKonten(k) {
+  const tag = document.getElementById('banner-tag');
+  if (tag) tag.textContent = k.bannerTag || KONTEN_DEFAULTS.bannerTag;
+  const h2 = document.getElementById('banner-h2');
+  const hl = document.getElementById('banner-h2-highlight');
+  if (h2 && hl) {
+    h2.childNodes[0].textContent = (k.bannerTitle || KONTEN_DEFAULTS.bannerTitle) + ' ';
+    hl.textContent = k.bannerHighlight || KONTEN_DEFAULTS.bannerHighlight;
+  }
+  const sub = document.getElementById('banner-sub');
+  if (sub) sub.textContent = k.bannerSub || KONTEN_DEFAULTS.bannerSub;
+  const ticker = document.getElementById('ticker-inner');
+  if (ticker) {
+    const t = k.ticker || KONTEN_DEFAULTS.ticker;
+    ticker.innerHTML = '&nbsp;&nbsp;&nbsp;' + t + '&nbsp;&nbsp;&nbsp;' + t;
+  }
+}
+
+function loadKonten() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('ff_konten') || '{}');
+    applyKonten({...KONTEN_DEFAULTS, ...saved});
+    return saved;
+  } catch(e) { return {}; }
+}
+
+function openKontenEditor() {
+  // Fill editor inputs with current saved values
+  const saved = JSON.parse(localStorage.getItem('ff_konten') || '{}');
+  const k = {...KONTEN_DEFAULTS, ...saved};
+  const fields = [
+    ['edit-banner-tag', k.bannerTag],
+    ['edit-banner-title', k.bannerTitle],
+    ['edit-banner-highlight', k.bannerHighlight],
+    ['edit-banner-sub', k.bannerSub],
+    ['edit-ticker', k.ticker],
+  ];
+  fields.forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  });
+}
+
+function saveKonten() {
+  const k = {
+    bannerTag:       document.getElementById('edit-banner-tag')?.value.trim() || KONTEN_DEFAULTS.bannerTag,
+    bannerTitle:     document.getElementById('edit-banner-title')?.value.trim() || KONTEN_DEFAULTS.bannerTitle,
+    bannerHighlight: document.getElementById('edit-banner-highlight')?.value.trim() || KONTEN_DEFAULTS.bannerHighlight,
+    bannerSub:       document.getElementById('edit-banner-sub')?.value.trim() || KONTEN_DEFAULTS.bannerSub,
+    ticker:          document.getElementById('edit-ticker')?.value.trim() || KONTEN_DEFAULTS.ticker,
+  };
+  localStorage.setItem('ff_konten', JSON.stringify(k));
+  applyKonten(k);
+  showNotif('✅ Konten berhasil disimpan!');
+}
+
+function resetKonten() {
+  if (!confirm('Reset semua konten ke default?')) return;
+  localStorage.removeItem('ff_konten');
+  applyKonten(KONTEN_DEFAULTS);
+  openKontenEditor(); // refresh inputs
+  showNotif('↩ Konten direset ke default');
+}
+
 // ============================================================
 // INIT
 // ============================================================
+loadKonten();
 loadAccounts();
 renderHeader();
 renderPhotoFields();
