@@ -236,9 +236,26 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
 .btn-gate-cancel{width:100%;background:transparent;border:none;color:var(--muted);padding:10px;font-size:13px;cursor:pointer;font-family:'Rajdhani',sans-serif;}
 
 /* ===== ADMIN PANEL ENHANCED ===== */
-.admin-tabs{display:flex;gap:6px;padding:0 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px;}
-.admin-tab-btn{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Orbitron',sans-serif;transition:.2s;}
+.admin-tabs{display:flex;gap:6px;padding:0 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.admin-tabs::-webkit-scrollbar{display:none;}
+.admin-tab-btn{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Orbitron',sans-serif;transition:.2s;white-space:nowrap;flex-shrink:0;}
 .admin-tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.wa-order-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+.wa-order-id{font-family:'Orbitron',sans-serif;font-size:10px;color:var(--accent2);margin-bottom:4px;letter-spacing:1px;}
+.wa-order-name{color:var(--text);font-size:13px;font-weight:700;font-family:'Rajdhani',sans-serif;margin-bottom:2px;}
+.wa-order-meta{color:var(--muted);font-size:11px;margin-bottom:10px;}
+.wa-order-actions{display:flex;gap:7px;}
+.btn-wa-konfirm{flex:1;background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.35);color:var(--success);padding:8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Orbitron',sans-serif;transition:.2s;}
+.btn-wa-konfirm:hover{background:rgba(0,255,136,.25);}
+.btn-wa-batal{flex:1;background:rgba(255,68,85,.1);border:1px solid rgba(255,68,85,.3);color:var(--danger);padding:8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Orbitron',sans-serif;transition:.2s;}
+.btn-wa-batal:hover{background:rgba(255,68,85,.2);}
+.wa-status-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;font-family:'Orbitron',sans-serif;}
+.wa-status-menunggu{background:rgba(255,215,0,.12);color:var(--gold);border:1px solid rgba(255,215,0,.3);}
+.wa-status-konfirmasi{background:rgba(0,255,136,.12);color:var(--success);border:1px solid rgba(0,255,136,.3);}
+.wa-status-batal{background:rgba(255,68,85,.1);color:var(--danger);border:1px solid rgba(255,68,85,.3);}
+.wa-filter-tabs{display:flex;gap:6px;margin-bottom:12px;}
+.wa-filter-btn{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Rajdhani',sans-serif;transition:.2s;white-space:nowrap;}
+.wa-filter-btn.active{background:var(--gold);border-color:var(--gold);color:#000;}
 .admin-tab-content{display:none;}
 .admin-tab-content.active{display:block;}
 .admin-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
@@ -474,6 +491,7 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
       <button class="admin-tab-btn active" onclick="switchAdminTab('dashboard',this)">📊 Statistik</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('accounts',this)">📋 Akun</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('transactions',this)">🧾 Transaksi</button>
+      <button class="admin-tab-btn" onclick="switchAdminTab('waorders',this)">📱 Pesanan WA</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('add',this)">➕ Tambah</button>
       <button class="admin-tab-btn" onclick="switchAdminTab('konten',this)">✏️ Konten</button>
     </div>
@@ -484,7 +502,7 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
         <div class="admin-stat-box"><div class="admin-stat-num" id="stat-total">0</div><div class="admin-stat-lbl">TOTAL AKUN</div></div>
         <div class="admin-stat-box"><div class="admin-stat-num green" id="stat-active">0</div><div class="admin-stat-lbl">TERSEDIA</div></div>
         <div class="admin-stat-box"><div class="admin-stat-num red" id="stat-sold">0</div><div class="admin-stat-lbl">TERJUAL</div></div>
-        <div class="admin-stat-box"><div class="admin-stat-num gold" id="stat-revenue">0</div><div class="admin-stat-lbl">TRANSAKSI</div></div>
+        <div class="admin-stat-box" style="cursor:pointer" onclick="document.querySelector('[onclick*=waorders]').click()"><div class="admin-stat-num gold" id="stat-wa-pending">0</div><div class="admin-stat-lbl">PESANAN WA ⏳</div></div>
       </div>
       <div class="panel-card" style="margin-top:4px">
         <h3>ℹ️ INFO SUPERADMIN</h3>
@@ -517,6 +535,21 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
         <button class="btn-refresh" onclick="loadAdminTransactions()">↻ Refresh</button>
       </div>
       <div id="admin-trx-list"><div style="color:var(--muted);font-size:12px;padding:16px;text-align:center">Klik Refresh untuk memuat</div></div>
+    </div>
+
+    <!-- TAB: PESANAN WA -->
+    <div id="admin-tab-waorders" class="admin-tab-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="color:var(--gold);font-size:11px;font-weight:700;font-family:'Orbitron',sans-serif">📱 PESANAN WA (<span id="wa-order-count">0</span>)</div>
+        <button class="btn-refresh" onclick="loadWaOrders()">↻ Refresh</button>
+      </div>
+      <div class="wa-filter-tabs">
+        <button class="wa-filter-btn active" onclick="filterWaOrders('semua',this)">Semua</button>
+        <button class="wa-filter-btn" onclick="filterWaOrders('menunggu',this)">⏳ Menunggu</button>
+        <button class="wa-filter-btn" onclick="filterWaOrders('konfirmasi',this)">✅ Konfirmasi</button>
+        <button class="wa-filter-btn" onclick="filterWaOrders('batal',this)">❌ Batal</button>
+      </div>
+      <div id="wa-order-list"><div style="color:var(--muted);font-size:12px;padding:16px;text-align:center">Klik Refresh untuk memuat</div></div>
     </div>
 
     <!-- TAB: KONTEN -->
@@ -1006,7 +1039,11 @@ async function loadAccountsAdmin() {
       const stRev = document.getElementById('stat-revenue');
       if (stRev) stRev.textContent = (trx||[]).length;
     });
-    // also update full accounts with credentials for success screen
+    // fetch WA pending count for stats
+    sb('ff_transactions?method=eq.wa&status=eq.MENUNGGU&select=id').then(waTrx => {
+      const stWa = document.getElementById('stat-wa-pending');
+      if (stWa) stWa.textContent = (waTrx||[]).length;
+    });
     accounts = data.map(r => ({
       id:r.id, name:r.name, price:r.price, originalPrice:r.original_price,
       level:r.level, diamonds:r.diamonds, skins:r.skins, rank:r.rank,
@@ -1181,27 +1218,74 @@ function showPayStep(step) {
     el.innerHTML = `
       <div style="text-align:center;padding:30px 0">
         <div style="font-size:52px;margin-bottom:16px">⏳</div>
-        <h3 style="color:var(--text);margin-bottom:8px;font-family:'Orbitron',sans-serif;font-size:15px">${isWa?'Menghubungi Admin...':'Memproses Pembayaran...'}</h3>
-        <p style="color:var(--muted);font-size:13px">${isWa?'Redirect ke WhatsApp...':'Menunggu konfirmasi gateway...'}</p>
+        <h3 style="color:var(--text);margin-bottom:8px;font-family:'Orbitron',sans-serif;font-size:15px">${isWa?'Membuat Pesanan WA...':'Memproses Pembayaran...'}</h3>
+        <p style="color:var(--muted);font-size:13px">${isWa?'Menyiapkan pesanan kamu...':'Menunggu konfirmasi gateway...'}</p>
         <div class="progress-bar"><div class="progress-fill"></div></div>
       </div>`;
-    setTimeout(async () => {
-      await markSold(acc.id);
-      // save transaction
-      await sb('ff_transactions', { method:'POST', body: JSON.stringify({
-        user_email: currentUser.email,
-        account_id: acc.id,
-        account_name: acc.name,
-        price: acc.price,
-        method: _payMethod,
-        status: 'SUKSES',
-      }) }).catch(()=>{});
-      acc.sold = true;
-      accounts = accounts.map(a => a.id===acc.id ? {...a, sold:true} : a);
-      renderAccounts(accounts); renderHeader();
-      showPayStep('success');
-    }, _payMethod==='wa' ? 1500 : 3000);
+    if (isWa) {
+      // WA order: create pending order, do NOT mark sold yet
+      const trxId = generateTrxId();
+      setTimeout(async () => {
+        await sb('ff_transactions', { method:'POST', body: JSON.stringify({
+          trx_id: trxId,
+          user_email: currentUser.email,
+          account_id: acc.id,
+          account_name: acc.name,
+          price: acc.price,
+          method: 'wa',
+          status: 'MENUNGGU',
+        }) }).catch(()=>{});
+        showPayStep('wa_pending', trxId);
+      }, 1500);
+    } else {
+      setTimeout(async () => {
+        const trxId = generateTrxId();
+        await markSold(acc.id);
+        await sb('ff_transactions', { method:'POST', body: JSON.stringify({
+          trx_id: trxId,
+          user_email: currentUser.email,
+          account_id: acc.id,
+          account_name: acc.name,
+          price: acc.price,
+          method: _payMethod,
+          status: 'SUKSES',
+        }) }).catch(()=>{});
+        acc.sold = true;
+        accounts = accounts.map(a => a.id===acc.id ? {...a, sold:true} : a);
+        renderAccounts(accounts); renderHeader();
+        showPayStep('success');
+      }, 3000);
+    }
   }
+
+  if (step === 'wa_pending') {
+    const trxId = arguments[1] || '';
+    const waNum = '6281234567890'; // ganti dengan nomor WA admin
+    const waMsg = encodeURIComponent(`Halo Admin FF Store!\n\nSaya ingin konfirmasi pesanan:\nID Transaksi: ${trxId}\nNama: ${acc.name}\nHarga: Rp ${acc.price.toLocaleString()}\nEmail: ${currentUser.email}\n\nMohon segera dikonfirmasi. Terima kasih!`);
+    el.innerHTML = `
+      <div style="text-align:center">
+        <div style="font-size:52px;margin-bottom:12px">📱</div>
+        <h2 style="color:var(--gold);margin-bottom:6px;font-family:'Orbitron',sans-serif;font-size:15px">PESANAN DIBUAT!</h2>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:18px">Hubungi admin WA untuk konfirmasi pembayaran</p>
+        <div style="background:var(--card);border:1px solid rgba(255,215,0,.3);border-radius:12px;padding:16px;margin-bottom:16px;text-align:left">
+          <div style="color:var(--muted);font-size:10px;font-family:'Orbitron',sans-serif;margin-bottom:8px">🆔 ID TRANSAKSI</div>
+          <div style="font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--gold);letter-spacing:2px;margin-bottom:4px">${trxId}</div>
+          <div style="color:var(--muted);font-size:10px">Simpan ID ini untuk konfirmasi ke admin</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;text-align:left">
+          <div style="color:var(--muted);font-size:10px;font-family:'Orbitron',sans-serif;margin-bottom:8px">📦 DETAIL PESANAN</div>
+          <div style="color:var(--text);font-size:13px;font-weight:700;margin-bottom:4px">${acc.name}</div>
+          <div style="color:var(--gold);font-weight:900;font-size:16px;font-family:'Orbitron',sans-serif">Rp ${acc.price.toLocaleString()}</div>
+        </div>
+        <a href="https://wa.me/${waNum}?text=${waMsg}" target="_blank"
+          style="display:block;background:#25D366;border:none;color:white;padding:14px;border-radius:10px;font-weight:800;font-size:14px;text-decoration:none;font-family:'Orbitron',sans-serif;letter-spacing:.5px;margin-bottom:10px">
+          💬 CHAT ADMIN WA
+        </a>
+        <div style="background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.2);border-radius:10px;padding:10px;margin-bottom:14px">
+          <p style="color:var(--gold);font-size:11px;margin:0">⚠️ Akun akan dikirim setelah admin konfirmasi pembayaran kamu.</p>
+        </div>
+        <button onclick="closePayment()" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:11px 32px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;width:100%;font-family:'Rajdhani',sans-serif">Tutup</button>
+      </div>`;
 
   if (step === 'success') {
     const infos = [
@@ -1318,6 +1402,15 @@ function switchAdminTab(tab, btn) {
   btn.classList.add('active');
   if (tab === 'transactions') loadAdminTransactions();
   if (tab === 'konten') openKontenEditor();
+  if (tab === 'waorders') loadWaOrders();
+}
+
+// Generate transaction ID: FF-XXXXXXXX (8 random alphanumeric)
+function generateTrxId() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let r = '';
+  for (let i = 0; i < 8; i++) r += chars[Math.floor(Math.random() * chars.length)];
+  return 'FF-' + r;
 }
 
 function setDbStatus(s) {
@@ -1412,16 +1505,92 @@ async function loadAdminTransactions() {
     <div class="trx-admin-item">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
+          ${t.trx_id ? `<div style="font-family:'Orbitron',sans-serif;font-size:10px;color:var(--accent2);margin-bottom:3px;letter-spacing:1px">${t.trx_id}</div>` : ''}
           <div class="trx-admin-name">${t.account_name||'Akun FF'}</div>
           <div class="trx-admin-meta">👤 ${t.user_email} • ${PM[t.method]?.name||t.method}</div>
           <div class="trx-admin-meta" style="margin-top:2px">📅 ${new Date(t.created_at).toLocaleString('id-ID')}</div>
         </div>
         <div style="text-align:right">
           <div class="trx-admin-price">Rp ${(t.price||0).toLocaleString()}</div>
-          <div style="color:var(--success);font-size:10px;font-family:'Orbitron',sans-serif;margin-top:4px">✓ ${t.status||'SUKSES'}</div>
+          <div style="font-size:10px;font-family:'Orbitron',sans-serif;margin-top:4px;${t.status==='MENUNGGU'?'color:var(--gold)':t.status==='BATAL'?'color:var(--danger)':'color:var(--success)'}">${t.status==='MENUNGGU'?'⏳':t.status==='BATAL'?'✗':'✓'} ${t.status||'SUKSES'}</div>
         </div>
       </div>
     </div>`).join('');
+}
+
+// ============================================================
+// PESANAN WA
+// ============================================================
+let _allWaOrders = [];
+let _waFilter = 'semua';
+
+async function loadWaOrders() {
+  const el = document.getElementById('wa-order-list');
+  el.innerHTML = `<div class="loading-spinner"><div class="spinner"></div> Memuat...</div>`;
+  const data = await sb('ff_transactions?method=eq.wa&order=created_at.desc&limit=100');
+  const countEl = document.getElementById('wa-order-count');
+  if (!data || !data.length) {
+    if (countEl) countEl.textContent = '0';
+    el.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:16px;text-align:center">Belum ada pesanan WA</div>`;
+    _allWaOrders = [];
+    return;
+  }
+  _allWaOrders = data;
+  if (countEl) countEl.textContent = data.length;
+  renderWaOrders();
+}
+
+function filterWaOrders(filter, btn) {
+  _waFilter = filter;
+  document.querySelectorAll('.wa-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderWaOrders();
+}
+
+function renderWaOrders() {
+  const el = document.getElementById('wa-order-list');
+  let list = _allWaOrders;
+  if (_waFilter !== 'semua') list = list.filter(t => (t.status||'').toLowerCase() === _waFilter);
+  if (!list.length) {
+    el.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:16px;text-align:center">Tidak ada pesanan ${_waFilter}</div>`;
+    return;
+  }
+  el.innerHTML = list.map(t => {
+    const st = (t.status||'MENUNGGU').toUpperCase();
+    const stClass = st==='KONFIRMASI'?'wa-status-konfirmasi':st==='BATAL'?'wa-status-batal':'wa-status-menunggu';
+    const stLabel = st==='KONFIRMASI'?'✅ KONFIRMASI':st==='BATAL'?'❌ BATAL':'⏳ MENUNGGU';
+    const isPending = st === 'MENUNGGU';
+    return `<div class="wa-order-card">
+      <div class="wa-order-id">${t.trx_id || '—'}</div>
+      <div class="wa-order-name">${t.account_name||'Akun FF'}</div>
+      <div class="wa-order-meta">👤 ${t.user_email} • Rp ${(t.price||0).toLocaleString()}<br>📅 ${new Date(t.created_at).toLocaleString('id-ID')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${isPending?'10px':'0'}">
+        <span class="wa-status-pill ${stClass}">${stLabel}</span>
+      </div>
+      ${isPending ? `<div class="wa-order-actions">
+        <button class="btn-wa-konfirm" onclick="waKonfirmasi('${t.id}','${t.account_id}')">✅ Konfirmasi</button>
+        <button class="btn-wa-batal" onclick="waBatal('${t.id}')">❌ Batal</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function waKonfirmasi(trxId, accountId) {
+  if (!confirm('Konfirmasi pesanan ini? Akun akan ditandai SOLD dan pembayaran diterima.')) return;
+  // Mark sold
+  if (accountId) await sb(`ff_accounts?id=eq.${accountId}`, { method:'PATCH', body: JSON.stringify({sold:true}), prefer:'return=minimal' });
+  // Update transaction status
+  await sb(`ff_transactions?id=eq.${trxId}`, { method:'PATCH', body: JSON.stringify({status:'KONFIRMASI'}), prefer:'return=minimal' });
+  showNotif('✅ Pesanan dikonfirmasi!');
+  loadWaOrders();
+  loadAccountsAdmin();
+}
+
+async function waBatal(trxId) {
+  if (!confirm('Batalkan pesanan ini?')) return;
+  await sb(`ff_transactions?id=eq.${trxId}`, { method:'PATCH', body: JSON.stringify({status:'BATAL'}), prefer:'return=minimal' });
+  showNotif('❌ Pesanan dibatalkan');
+  loadWaOrders();
 }
 
 // Payment toggles
