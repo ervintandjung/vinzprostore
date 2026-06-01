@@ -1373,27 +1373,38 @@ async function loadAdmTrx() {
 }
 
 async function deleteAkun(id) {
-  if (!confirm('Hapus akun ini?')) return;
+  if (!confirm('Hapus akun ini? Semua transaksi terkait juga akan dihapus.')) return;
+  const headers = {
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + SB_KEY,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=minimal',
+  };
   try {
-    const res = await fetch(SB_URL + '/rest/v1/ff_accounts?id=eq.' + id, {
-      method: 'DELETE',
-      headers: {
-        'apikey': SB_KEY,
-        'Authorization': 'Bearer ' + SB_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal',
-      }
+    // Step 1: Hapus transaksi terkait dulu (foreign key)
+    const resTrx = await fetch(SB_URL + '/rest/v1/ff_transactions?account_id=eq.' + id, {
+      method: 'DELETE', headers
     });
-    if (res.ok || res.status === 204 || res.status === 200) {
+    if (!resTrx.ok && resTrx.status !== 204) {
+      const t = await resTrx.text();
+      console.warn('Hapus transaksi gagal (mungkin tidak ada):', resTrx.status, t);
+    }
+    // Step 2: Hapus akun
+    const resAcc = await fetch(SB_URL + '/rest/v1/ff_accounts?id=eq.' + id, {
+      method: 'DELETE', headers
+    });
+    if (resAcc.ok || resAcc.status === 204 || resAcc.status === 200) {
       notif('🗑 Akun berhasil dihapus!');
       await loadAccountsAdmin();
     } else {
-      const errText = await res.text();
-      console.error('Delete error:', res.status, errText);
-      if (res.status === 403 || res.status === 401) {
-        notif('❌ Akses ditolak! Cek RLS Supabase.');
+      const errText = await resAcc.text();
+      console.error('Delete akun error:', resAcc.status, errText);
+      if (resAcc.status === 403 || resAcc.status === 401) {
+        notif('❌ Akses ditolak! Aktifkan DELETE policy di Supabase RLS.');
+      } else if (resAcc.status === 409) {
+        notif('❌ Masih ada data terkait yang tidak bisa dihapus otomatis.');
       } else {
-        notif('❌ Gagal hapus! Status: ' + res.status);
+        notif('❌ Gagal hapus! Status: ' + resAcc.status);
       }
     }
   } catch(e) {
