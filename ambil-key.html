@@ -450,9 +450,8 @@ $('claimBtn').addEventListener('click', async () => {
   $('result').innerHTML='';
 
   try {
-    // Pakai RPC admin_claim_key_v2 (bypass RLS, atomic, anti race condition)
-    const { data: keyValue, error: claimErr } = await sb.rpc('admin_claim_key_v2', {
-      p_pass:        ADMIN_PW,
+    // Pakai RPC reseller_claim_key (bypass RLS, atomic, face verify, tidak butuh pw admin)
+    const { data: keyValue, error: claimErr } = await sb.rpc('reseller_claim_key', {
       p_device_id:   DEVICE_ID,
       p_fingerprint: FP,
       p_face:        Array.from(desc),
