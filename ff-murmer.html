@@ -540,7 +540,7 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
         <div class="adm-sec-title">Kredensial Akun</div>
         <input class="adm-inp" id="a-email" type="email" placeholder="Email akun FF">
         <input class="adm-inp" id="a-pass" type="password" placeholder="Password akun FF">
-        <input class="adm-inp" id="a-security" placeholder="Kode keamanan">
+        <textarea class="adm-inp" id="a-security" rows="4" style="resize:vertical;font-family:monospace;letter-spacing:1px" placeholder="Kode keamanan&#10;(1 kode per baris, contoh:&#10;9881&#10;9272&#10;791)"></textarea>
       </div>
       <div class="adm-sec">
         <div class="adm-sec-title">Foto Akun (Upload)</div>
@@ -1138,7 +1138,7 @@ async function doPayment() {
     <div style="font-size:11px;color:var(--muted);font-family:'Orbitron',sans-serif;margin-bottom:8px">KREDENSIAL AKUN</div>
     ${infoRow('Email', c.email||'-')}
     ${infoRow('Password', c.password||'-')}
-    ${infoRow('Kode Keamanan', c.security_code||'-')}
+    ${infoRowMulti('Kode Keamanan', c.security_code||'-')}
     <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.6">Simpan data ini baik-baik!<br>Screenshot halaman ini sekarang.</div>
     <button class="btn-main" style="margin-top:16px" onclick="document.getElementById('pay-ov').classList.remove('open')">TUTUP</button>
   `;
@@ -1151,6 +1151,20 @@ function infoRow(label, val) {
       <div class="info-row">
         <span class="info-val">${val}</span>
         <button class="btn-copy" onclick="navigator.clipboard.writeText('${val}');notif('✅ Disalin!')">📋</button>
+      </div>
+    </div>`;
+}
+
+function infoRowMulti(label, val) {
+  const lines = val.split('\n').map(l=>l.trim()).filter(Boolean);
+  const display = lines.join('\n');
+  const displayHtml = lines.map(l=>`<div>${l}</div>`).join('');
+  return `
+    <div style="margin-bottom:6px">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${label}</div>
+      <div class="info-row" style="align-items:flex-start;gap:8px">
+        <div class="info-val" style="white-space:pre-line;line-height:1.8">${displayHtml}</div>
+        <button class="btn-copy" style="flex-shrink:0;margin-top:2px" onclick="navigator.clipboard.writeText(\`${display.replace(/`/g,"'")}\`);notif('✅ Disalin!')">📋</button>
       </div>
     </div>`;
 }
