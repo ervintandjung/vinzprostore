@@ -8,281 +8,236 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root {
-  --primary:#07111f; --secondary:#0d1f3c; --card:#0f2244; --card2:#0a1a35;
-  --accent:#1a6fff; --accent2:#00d4ff; --gold:#ffd700; --text:#e0eaff;
-  --muted:#6a8cb5; --success:#00ff88; --danger:#ff4455; --border:rgba(26,111,255,0.25); --wa:#25D366;
+  --bg: #07111f;
+  --bg2: #0d1f3c;
+  --card: #0f2244;
+  --card2: #0a1a35;
+  --accent: #1a6fff;
+  --accent2: #00d4ff;
+  --gold: #ffd700;
+  --text: #e0eaff;
+  --muted: #6a8cb5;
+  --success: #00ff88;
+  --danger: #ff4455;
+  --border: rgba(26,111,255,0.2);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--primary);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;}
-#app{max-width:480px;margin:0 auto;min-height:100vh;}
-::-webkit-scrollbar{width:4px;}
-::-webkit-scrollbar-track{background:var(--primary);}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;}
+#app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;}
+button{cursor:pointer;}
+input,button{font-family:'Rajdhani',sans-serif;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px;}
 
 /* HEADER */
-header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid var(--accent);padding:0 14px;position:sticky;top:0;z-index:100;box-shadow:0 4px 24px rgba(26,111,255,0.25);}
-.header-inner{display:flex;align-items:center;justify-content:space-between;height:56px;}
-.logo-wrap{display:flex;align-items:center;gap:9px;}
-.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-weight:900;font-size:11px;color:#fff;box-shadow:0 0 14px rgba(26,111,255,0.5);}
-.logo-text{font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;background:linear-gradient(90deg,#fff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.header-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.avail-dot{color:var(--success);font-size:10px;white-space:nowrap;}
-.btn-login-hdr{background:transparent;border:1.5px solid var(--accent);color:var(--accent);padding:5px 12px;border-radius:7px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;cursor:pointer;transition:.2s;}
-.btn-login-hdr:hover{background:rgba(26,111,255,0.1);}
-.btn-daftar-hdr{background:var(--accent);border:none;color:#fff;padding:5px 12px;border-radius:7px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;cursor:pointer;}
-.avatar-wrap{position:relative;}
-.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;cursor:pointer;border:2px solid var(--accent2);}
-.avatar.superadmin{border-color:var(--gold);background:linear-gradient(135deg,var(--gold),#ff9500);}
-.user-dropdown{display:none;position:absolute;top:44px;right:0;background:var(--secondary);border:1px solid var(--border);border-radius:12px;min-width:190px;box-shadow:0 8px 32px rgba(0,0,0,0.5);z-index:200;overflow:hidden;}
-.user-dropdown.open{display:block;animation:fadeDown .2s ease;}
-@keyframes fadeDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-.dd-user{padding:12px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);}
-.dd-user strong{display:block;color:#fff;font-size:13px;margin-bottom:2px;}
-.dd-item{display:flex;align-items:center;gap:10px;padding:11px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;border:none;background:none;color:var(--text);width:100%;text-align:left;}
-.dd-item:hover{background:rgba(26,111,255,0.12);}
-.dd-item.gold{color:var(--gold);}
-.dd-item.danger{color:var(--danger);}
+header{background:#040d1a;border-bottom:1.5px solid var(--accent);padding:0 14px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(26,111,255,0.2);}
+.hdr{display:flex;align-items:center;justify-content:space-between;height:56px;}
+.logo{display:flex;align-items:center;gap:9px;}
+.logo-box{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-weight:900;font-size:11px;color:#fff;box-shadow:0 0 14px rgba(26,111,255,0.4);}
+.logo-name{font-family:'Orbitron',sans-serif;font-weight:900;font-size:15px;background:linear-gradient(90deg,#fff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-avail{font-size:10px;color:var(--success);}
+.hdr-right{display:flex;gap:7px;align-items:center;}
+.btn-hdr{padding:6px 13px;border-radius:7px;font-weight:700;font-size:12px;font-family:'Rajdhani',sans-serif;}
+.btn-masuk{background:transparent;border:1.5px solid var(--accent);color:var(--accent);}
+.btn-daftar{background:var(--accent);border:none;color:#fff;}
+
+/* AVATAR DROPDOWN */
+.ava-wrap{position:relative;}
+.ava{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;border:2px solid var(--accent2);}
+.ava.sa{border-color:var(--gold);background:linear-gradient(135deg,var(--gold),#ff9500);}
+.ava-dd{display:none;position:absolute;top:42px;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:12px;min-width:180px;box-shadow:0 8px 30px rgba(0,0,0,0.6);z-index:200;overflow:hidden;}
+.ava-dd.open{display:block;animation:fadeDown .18s ease;}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.dd-head{padding:11px 14px;border-bottom:1px solid var(--border);}
+.dd-head strong{display:block;font-size:13px;color:#fff;}
+.dd-head span{font-size:11px;color:var(--muted);}
+.dd-btn{display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:13px;font-weight:600;background:none;border:none;color:var(--text);width:100%;text-align:left;transition:.15s;}
+.dd-btn:hover{background:rgba(26,111,255,0.1);}
+.dd-btn.gold{color:var(--gold);}
+.dd-btn.red{color:var(--danger);}
 
 /* BANNER */
-.banner{background:linear-gradient(135deg,#0c1f56,#1040a0,#0c1f56);border-radius:16px;padding:18px 14px;position:relative;overflow:hidden;border:1px solid rgba(0,212,255,0.3);box-shadow:0 8px 28px rgba(0,80,255,0.2);margin:14px 14px 0;}
-.banner-bg-overlay{position:absolute;inset:0;background-size:cover;background-position:center;border-radius:16px;transition:.3s;}
-.banner-bg-overlay.has-img{background-color:transparent;}
-.banner-bg-overlay.has-img::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(12,31,86,0.75),rgba(16,64,160,0.6));border-radius:16px;}
+.banner{background:linear-gradient(135deg,#0c1f56,#1040a0,#0c1f56);border-radius:16px;margin:12px 14px 0;padding:18px 14px;border:1px solid rgba(0,212,255,0.25);position:relative;overflow:hidden;}
 .banner-tag{background:var(--gold);color:#000;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:8px;letter-spacing:1px;}
-.banner h2{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:#fff;line-height:1.3;margin-bottom:4px;}
+.banner h2{font-family:'Orbitron',sans-serif;font-size:17px;font-weight:900;color:#fff;margin-bottom:4px;}
 .banner h2 span{color:var(--gold);}
 .banner-sub{font-size:11px;color:var(--accent2);margin-bottom:10px;}
-.banner-tags{display:flex;gap:6px;flex-wrap:wrap;}
-.bf{background:rgba(255,255,255,0.07);border-radius:6px;padding:3px 8px;font-size:10px;color:var(--text);}
-.banner-logo{position:absolute;top:14px;right:14px;background:linear-gradient(135deg,var(--gold),#ff9500);border-radius:10px;padding:6px 10px;box-shadow:0 4px 14px rgba(255,200,0,0.4);text-align:center;}
+.banner-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{background:rgba(255,255,255,0.08);border-radius:6px;padding:3px 9px;font-size:10px;}
+.banner-logo{position:absolute;top:14px;right:14px;background:linear-gradient(135deg,var(--gold),#ff9500);border-radius:10px;padding:6px 10px;text-align:center;}
 .banner-logo .t1{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:#000;line-height:1;}
 .banner-logo .t2{font-size:8px;font-weight:800;color:#000;}
 
 /* TICKER */
-.ticker-bar{background:#040d1a;border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;padding:7px 0;margin-top:12px;}
-.ticker-inner{white-space:nowrap;font-size:11px;color:var(--accent2);animation:marquee 22s linear infinite;display:inline-block;}
+.ticker{overflow:hidden;background:#040d1a;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:7px 0;margin-top:12px;}
+.ticker-in{white-space:nowrap;animation:marquee 22s linear infinite;display:inline-block;font-size:11px;color:var(--accent2);}
 @keyframes marquee{0%{transform:translateX(100vw)}100%{transform:translateX(-100%)}}
 
-/* SEARCH + TABS */
-.search-wrap{padding:12px 14px;}
-.search-box{background:var(--card);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:9px;padding:9px 14px;transition:border-color .2s;}
-.search-box:focus-within{border-color:var(--accent);}
-.search-input{background:none;border:none;outline:none;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;width:100%;}
-.search-input::placeholder{color:var(--muted);}
-.tabs-wrap{padding:0 14px 12px;display:flex;gap:7px;}
-.tab{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);font-family:'Rajdhani',sans-serif;letter-spacing:.5px;transition:.2s;}
-.tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+/* SEARCH */
+.search-wrap{padding:12px 14px 0;}
+.search{background:var(--card);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:9px;padding:9px 14px;transition:.2s;}
+.search:focus-within{border-color:var(--accent);}
+.search input{background:none;border:none;outline:none;color:var(--text);font-size:14px;font-family:'Rajdhani',sans-serif;width:100%;}
+.search input::placeholder{color:var(--muted);}
+
+/* TABS */
+.tabs{padding:10px 14px;display:flex;gap:7px;}
+.tab{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;color:var(--muted);font-family:'Rajdhani',sans-serif;transition:.2s;}
+.tab.on{background:var(--accent);border-color:var(--accent);color:#fff;}
 
 /* SECTION */
-.section{padding:0 14px 14px;}
+.section{padding:0 14px 60px;}
 .sec-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:#fff;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
 .sec-title::before{content:'';width:4px;height:16px;background:var(--accent);border-radius:2px;display:block;}
-
-/* GRID + CARD */
-.accounts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.empty{text-align:center;color:var(--muted);padding:48px;font-size:14px;grid-column:1/-1;}
-.loading-spinner{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--muted);font-size:13px;gap:10px;grid-column:1/-1;}
-.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.empty{grid-column:1/-1;text-align:center;padding:48px;color:var(--muted);font-size:14px;}
+.spinner-wrap{grid-column:1/-1;display:flex;justify-content:center;align-items:center;padding:48px;gap:10px;color:var(--muted);font-size:13px;}
+.spin{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.account-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all .2s;cursor:pointer;}
-.account-card:hover:not(.sold){border-color:var(--accent);transform:translateY(-3px);box-shadow:0 6px 24px rgba(26,111,255,0.25);}
-.account-card.sold{opacity:.6;cursor:not-allowed;}
-
-/* CAROUSEL */
-.carousel{position:relative;height:180px;overflow:hidden;border-radius:12px 12px 0 0;}
-.carousel img{width:100%;height:100%;object-fit:cover;display:block;}
-.carousel-grad{position:absolute;inset:0;background:linear-gradient(to top,rgba(7,17,31,0.85) 0%,transparent 55%);}
-.carousel-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(26,111,255,0.35);border:1px solid var(--border);color:white;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .2s;}
-.carousel-btn:hover{background:rgba(26,111,255,0.6);}
-.carousel-btn.prev{left:8px;} .carousel-btn.next{right:8px;}
-.carousel-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:4px;}
-.carousel-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.35);cursor:pointer;transition:all .2s;}
-.carousel-dot.active{background:var(--accent2);}
-.carousel-foto-badge{position:absolute;top:8px;right:8px;}
-.carousel-no-photo{height:180px;background:var(--card2);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;border-radius:12px 12px 0 0;}
-
-/* BADGE */
-.badge{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.5px;font-family:'Orbitron',sans-serif;white-space:nowrap;}
-
-/* CARD BODY */
-.card-body{padding:12px;}
-.card-name{color:var(--text);font-size:12px;font-weight:700;line-height:1.3;flex:1;margin-right:6px;font-family:'Rajdhani',sans-serif;}
-.card-name-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px;}
-.card-badges{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;}
-.card-pay-icons{display:flex;gap:5px;margin-bottom:10px;}
-.card-bottom{display:flex;justify-content:space-between;align-items:center;}
-.card-price{color:var(--gold);font-weight:900;font-size:18px;font-family:'Orbitron',sans-serif;}
-.card-orig{color:var(--muted);text-decoration:line-through;font-size:11px;}
-.btn-beli{background:var(--accent);border:none;color:white;padding:8px 16px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;font-family:'Rajdhani',sans-serif;letter-spacing:.5px;transition:all .2s;}
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:.2s;cursor:pointer;}
+.card:hover:not(.sold-card){border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,111,255,0.2);}
+.card.sold-card{opacity:.55;cursor:not-allowed;}
+.card-img{height:160px;background:var(--card2);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;position:relative;overflow:hidden;}
+.card-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.card-body{padding:11px;}
+.card-name{font-size:12px;font-weight:700;line-height:1.3;margin-bottom:6px;}
+.badges{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;}
+.bdg{padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;font-family:'Orbitron',sans-serif;}
+.card-bot{display:flex;justify-content:space-between;align-items:center;}
+.price{color:var(--gold);font-weight:900;font-size:17px;font-family:'Orbitron',sans-serif;}
+.orig{color:var(--muted);text-decoration:line-through;font-size:10px;}
+.btn-beli{background:var(--accent);border:none;color:#fff;padding:7px 14px;border-radius:8px;font-weight:700;font-size:12px;font-family:'Rajdhani',sans-serif;transition:.2s;}
 .btn-beli:hover{background:#2277ff;}
-.btn-beli.sold{background:var(--card2);cursor:not-allowed;}
+.btn-beli:disabled{background:var(--card2);cursor:not-allowed;}
 
 /* FOOTER */
 footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:var(--muted);font-size:11px;}
 
-/* ===== OVERLAY BASE ===== */
-.overlay{display:none;position:fixed;inset:0;background:rgba(2,8,20,0.88);z-index:300;backdrop-filter:blur(6px);}
-.overlay.open{display:flex;}
+/* OVERLAY */
+.ov{display:none;position:fixed;inset:0;background:rgba(2,8,20,0.85);z-index:300;backdrop-filter:blur(5px);align-items:flex-end;justify-content:center;}
+.ov.open{display:flex;}
 
-/* ===== MODAL SHEET (slide-up) ===== */
-.modal-sheet{background:var(--secondary);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:20px 20px 0 0;padding:8px 24px 32px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(26,111,255,0.2);animation:slideUp .3s ease;margin-top:auto;}
-@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
-.modal-handle{width:40px;height:4px;background:rgba(106,140,181,.4);border-radius:2px;margin:8px auto 20px;}
-.sheet-overlay{align-items:flex-end;justify-content:center;}
+/* SHEET */
+.sheet{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:20px 20px 0 0;padding:8px 22px 36px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;animation:slideUp .28s ease;margin-top:auto;}
+@keyframes slideUp{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.handle{width:40px;height:4px;background:rgba(106,140,181,.35);border-radius:2px;margin:8px auto 20px;}
 
-/* ===== AUTH MODAL ===== */
-.auth-card{background:var(--secondary);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:20px 20px 0 0;padding:8px 22px 36px;width:100%;max-width:480px;max-height:94vh;overflow-y:auto;margin-top:auto;animation:slideUp .3s ease;}
-.auth-tabs{display:flex;gap:8px;margin-bottom:20px;background:var(--card2);border-radius:12px;padding:4px;}
-.auth-tab{flex:1;padding:8px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:.2s;letter-spacing:.5px;}
-.auth-tab.active{background:var(--accent);color:#fff;}
-.auth-title{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
-.auth-err{font-size:12px;color:var(--danger);margin-bottom:8px;display:none;background:rgba(255,68,85,.1);border:1px solid rgba(255,68,85,.3);border-radius:8px;padding:8px 12px;}
-.form-lbl{color:var(--muted);font-size:11px;display:block;margin-bottom:6px;font-family:'Orbitron',sans-serif;letter-spacing:.5px;}
-.form-inp{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:14px;font-family:'Rajdhani',sans-serif;outline:none;transition:border-color .2s;margin-bottom:14px;}
-.form-inp:focus{border-color:var(--accent);}
-.form-inp::placeholder{color:var(--muted);}
-.btn-auth{width:100%;background:var(--accent);border:none;color:white;padding:12px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Orbitron',sans-serif;letter-spacing:1px;transition:.2s;}
-.btn-auth:disabled{background:var(--card2);cursor:not-allowed;}
-.btn-auth:not(:disabled):hover{background:#2277ff;}
-.btn-secondary-auth{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:10px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;margin-top:8px;}
+/* AUTH */
+.auth-tabs{display:flex;gap:6px;background:var(--card2);border-radius:11px;padding:4px;margin-bottom:18px;}
+.auth-tab{flex:1;padding:8px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:.5px;transition:.2s;}
+.auth-tab.on{background:var(--accent);color:#fff;}
+.auth-title{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;color:var(--text);margin-bottom:14px;}
+.err-box{background:rgba(255,68,85,.08);border:1px solid rgba(255,68,85,.3);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--danger);margin-bottom:10px;display:none;}
+.lbl{display:block;color:var(--muted);font-size:11px;font-family:'Orbitron',sans-serif;letter-spacing:.5px;margin-bottom:5px;}
+.inp{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:14px;font-family:'Rajdhani',sans-serif;outline:none;transition:.2s;margin-bottom:13px;}
+.inp:focus{border-color:var(--accent);}
+.inp::placeholder{color:var(--muted);}
+.btn-main{width:100%;background:var(--accent);border:none;color:#fff;padding:12px;border-radius:10px;font-weight:700;font-size:14px;font-family:'Orbitron',sans-serif;letter-spacing:1px;transition:.2s;}
+.btn-main:disabled{background:var(--card2);cursor:not-allowed;}
+.btn-main:not(:disabled):hover{background:#2277ff;}
+.btn-sec{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:10px;font-weight:700;margin-top:8px;}
 
 /* OTP */
-.otp-wrap{display:flex;gap:8px;justify-content:center;margin-bottom:16px;}
-.otp-box{width:42px;height:50px;background:var(--card2);border:2px solid var(--border);border-radius:10px;color:#fff;font-size:22px;font-weight:900;text-align:center;font-family:'Orbitron',sans-serif;display:flex;align-items:center;justify-content:center;cursor:text;}
-.otp-box.filled{border-color:var(--accent2);}
-.otp-hidden{position:absolute;opacity:0;width:0;height:0;pointer-events:none;}
-.otp-hint{font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px;}
-.lupa-pw{display:block;text-align:right;font-size:11px;color:var(--accent);font-weight:700;cursor:pointer;margin-top:-8px;margin-bottom:10px;text-decoration:underline;}
+.otp-row{display:flex;gap:8px;justify-content:center;margin-bottom:14px;position:relative;}
+.otp-hidden{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;}
+.otp-box{width:42px;height:50px;background:var(--card2);border:2px solid var(--border);border-radius:10px;color:#fff;font-size:22px;font-weight:900;text-align:center;font-family:'Orbitron',sans-serif;display:flex;align-items:center;justify-content:center;cursor:text;transition:.2s;}
+.otp-box.on{border-color:var(--accent2);}
+.otp-hint{text-align:center;font-size:11px;color:var(--muted);margin-bottom:12px;}
+.lupa{display:block;text-align:right;font-size:11px;color:var(--accent);font-weight:700;cursor:pointer;text-decoration:underline;margin:-6px 0 12px;}
 
-/* ===== PAYMENT MODAL ===== */
-.pay-method-item{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
-.pay-method-name{color:var(--text);font-weight:700;font-size:13px;font-family:'Rajdhani',sans-serif;}
-.pay-method-desc{color:var(--muted);font-size:11px;}
-.btn-pay{width:100%;background:var(--accent);border:none;color:white;padding:13px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;font-family:'Rajdhani',sans-serif;letter-spacing:1px;transition:.2s;margin-top:4px;}
+/* PAYMENT SHEET */
+.pay-item{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:.2s;}
+.pay-item:hover,.pay-item.on{border-color:var(--accent);}
+.pay-item.on{background:rgba(26,111,255,0.08);}
+.pay-name{font-weight:700;font-size:13px;}
+.pay-desc{font-size:11px;color:var(--muted);}
+.btn-pay{width:100%;background:var(--accent);border:none;color:#fff;padding:13px;border-radius:10px;font-weight:700;font-size:15px;font-family:'Rajdhani',sans-serif;letter-spacing:1px;margin-top:6px;transition:.2s;}
 .btn-pay:disabled{background:var(--card2);cursor:not-allowed;}
 .btn-pay:not(:disabled):hover{background:#2277ff;}
-.progress-bar{background:var(--card);border-radius:10px;height:4px;overflow:hidden;margin-top:24px;}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));animation:prog 3s linear forwards;width:0%;}
+.info-row{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:5px;}
+.info-val{font-family:monospace;font-size:13px;}
+.btn-copy{background:none;border:none;color:var(--accent2);font-size:16px;}
+.prog-bar{background:var(--card);border-radius:10px;height:4px;overflow:hidden;margin-top:20px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;animation:prog 3s linear forwards;}
 @keyframes prog{to{width:100%}}
-.success-info-row{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:4px;}
-.info-val{font-family:monospace;font-size:13px;color:var(--text);}
-.btn-copy{background:none;border:none;color:var(--accent2);cursor:pointer;font-size:15px;}
 
-/* ===== USER PANEL ===== */
-#userPanel{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;background:var(--primary);z-index:400;overflow-y:auto;}
-#userPanel.open{display:block;animation:fsSlide .3s ease;}
-@keyframes fsSlide{from{transform:translateX(100%)}to{transform:translateX(0)}}
-.panel-header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:2px solid var(--accent);padding:0 14px;display:flex;align-items:center;gap:12px;height:56px;position:sticky;top:0;z-index:10;}
-.panel-header.gold-border{border-bottom-color:var(--gold);}
-.panel-back{background:rgba(255,255,255,.08);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
-.panel-title{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;color:#fff;flex:1;}
-.panel-body{width:100%;padding:16px 14px 60px;}
-.panel-card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid var(--border);}
-.panel-card h3{font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:13px;text-transform:uppercase;letter-spacing:1px;font-family:'Orbitron',sans-serif;}
-.stat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
-.stat-row:last-child{border-bottom:none;}
-.stat-lbl{color:var(--muted);font-weight:600;}
-.stat-val{color:var(--text);font-weight:700;}
-.trx-item{background:var(--card2);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--border);}
-.trx-name{color:var(--text);font-size:13px;font-weight:700;font-family:'Rajdhani',sans-serif;}
-.trx-sub{color:var(--muted);font-size:11px;margin-top:2px;}
-.trx-status{font-size:10px;font-family:'Orbitron',sans-serif;}
-
-/* ===== ADMIN PANEL ===== */
-#adminPanel{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;background:var(--primary);z-index:400;overflow-y:auto;}
-#adminPanel.open{display:block;animation:fsSlide .3s ease;}
-.admin-section{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;}
-.admin-sec-title{color:var(--accent2);font-size:10px;font-weight:700;margin-bottom:10px;font-family:'Orbitron',sans-serif;}
-.admin-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px;font-family:'Rajdhani',sans-serif;outline:none;transition:border-color .2s;}
-.admin-input:focus{border-color:var(--accent);}
-.admin-input::placeholder{color:var(--muted);}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
-.pay-toggle{background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;}
-.pay-toggle span.tl{color:var(--text);font-size:12px;font-weight:600;font-family:'Rajdhani',sans-serif;}
-.photo-row{display:flex;gap:7px;align-items:center;margin-bottom:7px;}
-.photo-preview{width:32px;height:32px;border-radius:6px;object-fit:cover;border:1px solid var(--border);}
-.btn-rm-photo{background:rgba(255,68,85,.14);border:1px solid rgba(255,68,85,.35);color:var(--danger);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:13px;flex-shrink:0;}
-.btn-add-photo{margin-top:4px;background:var(--card);border:1px dashed var(--border);color:var(--muted);padding:8px;border-radius:8px;cursor:pointer;width:100%;font-size:12px;font-family:'Rajdhani',sans-serif;}
-.btn-submit-acc{width:100%;background:var(--accent);border:none;color:white;padding:13px;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer;font-family:'Orbitron',sans-serif;letter-spacing:1px;transition:.3s;}
-.btn-submit-acc:disabled{background:var(--card2);cursor:not-allowed;}
-.btn-submit-acc.ok{background:rgba(0,255,136,.85);color:#000;}
-.akun-list-item{background:var(--card);border-radius:8px;padding:8px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
-.db-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-family:'Orbitron',sans-serif;}
-.db-ok{color:var(--success);background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);}
-.db-err{color:var(--danger);background:rgba(255,68,85,.1);border:1px solid rgba(255,68,85,.3);}
-.db-loading{color:var(--accent2);background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);}
+/* DETAIL SHEET */
+.det-img{width:100%;height:200px;object-fit:cover;border-radius:12px;margin-bottom:14px;background:var(--card2);display:block;}
+.det-title{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;margin-bottom:10px;}
+.det-badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;}
+.stat-val{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:var(--accent2);}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+.price-row{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;}
+.price-big{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:900;color:var(--gold);}
+.price-orig{color:var(--muted);text-decoration:line-through;font-size:12px;}
 
 /* NOTIF */
-.notif{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;z-index:600;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5);white-space:nowrap;align-items:center;gap:8px;}
-.notif.show{display:flex;animation:fadeUp .3s ease;}
-@keyframes fadeUp{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.notif{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5);white-space:nowrap;}
+.notif.show{display:block;animation:notifUp .25s ease;}
+@keyframes notifUp{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 
-/* ===== LOGIN GATE (buy without login) ===== */
-.login-gate-card{background:var(--secondary);border:1px solid var(--border);border-top:2px solid var(--gold);border-radius:20px 20px 0 0;padding:8px 22px 36px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;margin-top:auto;animation:slideUp .3s ease;}
-.login-gate-acc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin:0 0 18px;}
-.login-gate-img{width:54px;height:54px;border-radius:10px;object-fit:cover;background:var(--card2);flex-shrink:0;}
-.login-gate-acc-name{color:var(--text);font-weight:700;font-size:14px;font-family:'Rajdhani',sans-serif;margin-bottom:4px;}
-.login-gate-price{color:var(--gold);font-weight:900;font-size:20px;font-family:'Orbitron',sans-serif;}
-.login-gate-notice{background:rgba(26,111,255,0.1);border:1px solid rgba(26,111,255,0.3);border-radius:12px;padding:14px 16px;margin-bottom:20px;text-align:center;}
-.login-gate-notice p{color:var(--text);font-size:13px;line-height:1.6;margin:0;}
-.login-gate-notice p strong{color:var(--accent2);}
-.login-gate-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
-.btn-gate-masuk{background:var(--accent);border:none;color:#fff;padding:13px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;font-family:'Orbitron',sans-serif;letter-spacing:.5px;transition:.2s;}
-.btn-gate-masuk:hover{background:#2277ff;}
-.btn-gate-daftar{background:transparent;border:1.5px solid var(--accent);color:var(--accent);padding:12px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;font-family:'Orbitron',sans-serif;letter-spacing:.5px;transition:.2s;}
-.btn-gate-daftar:hover{background:rgba(26,111,255,0.1);}
-.btn-gate-cancel{width:100%;background:transparent;border:none;color:var(--muted);padding:10px;font-size:13px;cursor:pointer;font-family:'Rajdhani',sans-serif;}
+/* USER PANEL */
+.panel{display:none;position:fixed;inset:0;background:var(--bg);z-index:400;overflow-y:auto;}
+.panel.open{display:block;animation:slideIn .28s ease;}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.panel-hdr{background:#040d1a;border-bottom:2px solid var(--accent);padding:0 14px;display:flex;align-items:center;gap:12px;height:56px;position:sticky;top:0;z-index:10;}
+.panel-hdr.gold{border-bottom-color:var(--gold);}
+.back-btn{background:rgba(255,255,255,.08);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.panel-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;flex:1;}
+.panel-body{padding:16px 14px 60px;}
+.pcard{background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid var(--border);}
+.pcard h3{font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;font-family:'Orbitron',sans-serif;}
+.prow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.prow:last-child{border-bottom:none;}
+.prow-l{color:var(--muted);font-weight:600;}
+.prow-r{color:var(--text);font-weight:700;}
+.trx{background:var(--card2);border-radius:10px;padding:11px;margin-bottom:7px;border:1px solid var(--border);}
+.trx-name{font-size:13px;font-weight:700;}
+.trx-sub{font-size:11px;color:var(--muted);margin-top:2px;}
 
-/* ===== ADMIN PANEL ENHANCED ===== */
-.admin-tabs{display:flex;gap:6px;padding:0 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
-.admin-tabs::-webkit-scrollbar{display:none;}
-.admin-tab-btn{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Orbitron',sans-serif;transition:.2s;white-space:nowrap;flex-shrink:0;}
-.admin-tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
-.wa-order-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
-.wa-order-id{font-family:'Orbitron',sans-serif;font-size:10px;color:var(--accent2);margin-bottom:4px;letter-spacing:1px;}
-.wa-order-name{color:var(--text);font-size:13px;font-weight:700;font-family:'Rajdhani',sans-serif;margin-bottom:2px;}
-.wa-order-meta{color:var(--muted);font-size:11px;margin-bottom:10px;}
-.wa-order-actions{display:flex;gap:7px;}
-.btn-wa-konfirm{flex:1;background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.35);color:var(--success);padding:8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Orbitron',sans-serif;transition:.2s;}
-.btn-wa-konfirm:hover{background:rgba(0,255,136,.25);}
-.btn-wa-batal{flex:1;background:rgba(255,68,85,.1);border:1px solid rgba(255,68,85,.3);color:var(--danger);padding:8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Orbitron',sans-serif;transition:.2s;}
-.btn-wa-batal:hover{background:rgba(255,68,85,.2);}
-.wa-status-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;font-family:'Orbitron',sans-serif;}
-.wa-status-menunggu{background:rgba(255,215,0,.12);color:var(--gold);border:1px solid rgba(255,215,0,.3);}
-.wa-status-konfirmasi{background:rgba(0,255,136,.12);color:var(--success);border:1px solid rgba(0,255,136,.3);}
-.wa-status-batal{background:rgba(255,68,85,.1);color:var(--danger);border:1px solid rgba(255,68,85,.3);}
-.wa-filter-tabs{display:flex;gap:6px;margin-bottom:12px;}
-.wa-filter-btn{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Rajdhani',sans-serif;transition:.2s;white-space:nowrap;}
-.wa-filter-btn.active{background:var(--gold);border-color:var(--gold);color:#000;}
-.admin-tab-content{display:none;}
-.admin-tab-content.active{display:block;}
-.admin-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.admin-stat-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
-.admin-stat-num{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--accent2);}
-.admin-stat-num.gold{color:var(--gold);}
-.admin-stat-num.green{color:var(--success);}
-.admin-stat-num.red{color:var(--danger);}
-.admin-stat-lbl{color:var(--muted);font-size:10px;margin-top:4px;font-family:'Orbitron',sans-serif;}
-.akun-list-item-full{background:var(--card);border-radius:10px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--border);}
-.akun-item-name{color:var(--text);font-size:13px;font-weight:700;font-family:'Rajdhani',sans-serif;margin-bottom:3px;}
-.akun-item-meta{color:var(--muted);font-size:10px;margin-bottom:8px;}
-.akun-item-actions{display:flex;gap:6px;}
-.btn-akn-act{border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;transition:.2s;}
-.btn-akn-sold{background:rgba(255,215,0,.12);color:var(--gold);border:1px solid rgba(255,215,0,.3);}
-.btn-akn-unsold{background:rgba(0,255,136,.1);color:var(--success);border:1px solid rgba(0,255,136,.3);}
-.btn-akn-del{background:rgba(255,68,85,.12);color:var(--danger);border:1px solid rgba(255,68,85,.3);}
-.trx-admin-item{background:var(--card);border-radius:10px;padding:11px 14px;margin-bottom:8px;border:1px solid var(--border);}
-.trx-admin-name{color:var(--text);font-size:13px;font-weight:700;}
-.trx-admin-meta{color:var(--muted);font-size:11px;margin-top:3px;}
-.trx-admin-price{color:var(--gold);font-weight:900;font-size:14px;font-family:'Orbitron',sans-serif;}
-.admin-search{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px;font-family:'Rajdhani',sans-serif;outline:none;margin-bottom:10px;}
-.admin-search:focus{border-color:var(--accent);}
-.admin-search::placeholder{color:var(--muted);}
-.btn-refresh{background:var(--card);border:1px solid var(--border);color:var(--accent2);padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;}
-.btn-refresh:hover{background:rgba(0,212,255,.1);}
-.admin-input textarea,.admin-input[rows]{height:auto;line-height:1.5;padding:10px 12px;}
+/* ADMIN */
+.adm-tabs{display:flex;flex-wrap:wrap;gap:6px;padding:14px;background:var(--card2);border-bottom:1px solid var(--border);}
+.adm-tab{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;font-family:'Orbitron',sans-serif;color:var(--muted);transition:.2s;}
+.adm-tab.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.adm-sec{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;}
+.adm-sec-title{color:var(--accent2);font-size:10px;font-weight:700;margin-bottom:10px;font-family:'Orbitron',sans-serif;text-transform:uppercase;}
+.adm-inp{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font-size:13px;font-family:'Rajdhani',sans-serif;outline:none;transition:.2s;margin-bottom:8px;}
+.adm-inp:focus{border-color:var(--accent);}
+.adm-inp::placeholder{color:var(--muted);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+.pay-tog{background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.2s;font-size:12px;font-weight:600;font-family:'Rajdhani',sans-serif;color:var(--text);}
+.pay-tog.on{border-color:var(--accent);background:rgba(26,111,255,0.1);}
+.btn-submit{width:100%;background:var(--accent);border:none;color:#fff;padding:13px;border-radius:10px;font-weight:800;font-size:14px;font-family:'Orbitron',sans-serif;letter-spacing:.8px;transition:.3s;margin-top:4px;}
+.btn-submit:disabled{background:var(--card2);cursor:not-allowed;}
+.btn-submit.ok{background:rgba(0,255,136,.8);color:#000;}
+.akun-item{background:var(--card);border-radius:8px;padding:9px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.stat-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-family:'Orbitron',sans-serif;}
+.badge-ok{color:var(--success);background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);}
+.badge-sold{color:var(--danger);background:rgba(255,68,85,.1);border:1px solid rgba(255,68,85,.3);}
+.badge-load{color:var(--accent2);background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);}
+.stat-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
+.stat-num{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--accent2);}
+.stat-lbl2{font-size:11px;color:var(--muted);margin-top:4px;}
+.trx-adm{background:var(--card2);border-radius:10px;padding:11px;margin-bottom:7px;border:1px solid var(--border);}
+.trx-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.photo-row{display:flex;gap:7px;align-items:center;margin-bottom:7px;}
+.photo-prev{width:32px;height:32px;border-radius:6px;object-fit:cover;border:1px solid var(--border);}
+.btn-rmpho{background:rgba(255,68,85,.12);border:1px solid rgba(255,68,85,.3);color:var(--danger);border-radius:6px;width:28px;height:28px;font-size:12px;flex-shrink:0;}
+.btn-addpho{margin-top:4px;background:var(--card);border:1px dashed var(--border);color:var(--muted);padding:8px;border-radius:8px;width:100%;font-size:12px;font-family:'Rajdhani',sans-serif;}
+.db-dot{font-size:10px;padding:2px 8px;border-radius:10px;font-family:'Orbitron',sans-serif;}
+
+/* LOGIN GATE */
+.gate-notice{background:rgba(26,111,255,0.08);border:1px solid rgba(26,111,255,0.25);border-radius:12px;padding:14px;margin-bottom:18px;text-align:center;font-size:13px;line-height:1.6;color:var(--text);}
+.gate-notice strong{color:var(--accent2);}
+.gate-acc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:16px;}
 </style>
 </head>
 <body>
@@ -290,55 +245,50 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
 
 <!-- HEADER -->
 <header>
-  <div class="header-inner">
-    <div class="logo-wrap">
-      <div class="logo-icon">FF</div>
+  <div class="hdr">
+    <div class="logo">
+      <div class="logo-box">FF</div>
       <div>
-        <span class="logo-text">FF STORE</span>
-        <div style="color:var(--success);font-size:9px;font-weight:700;margin-top:1px">● <span class="avail-count-val">0</span> Tersedia</div>
+        <div class="logo-name">FF STORE</div>
+        <div class="logo-avail">● <span id="avail-count">0</span> Tersedia</div>
       </div>
     </div>
-    <div class="header-right" id="header-right">
-      <button class="btn-login-hdr" onclick="openAuth('masuk')">Masuk</button>
-      <button class="btn-daftar-hdr" onclick="openAuth('daftar')">Daftar</button>
+    <div class="hdr-right" id="hdr-right">
+      <button class="btn-hdr btn-masuk" onclick="openAuth('masuk')">Masuk</button>
+      <button class="btn-hdr btn-daftar" onclick="openAuth('daftar')">Daftar</button>
     </div>
   </div>
 </header>
 
 <!-- BANNER -->
-<div style="padding:14px 14px 0">
-  <div class="banner" id="main-banner">
-    <div class="banner-bg-overlay" id="banner-bg-overlay"></div>
-    <div style="position:relative;z-index:1">
-      <div class="banner-tag" id="banner-tag">⚡ INSTAN DELIVERY</div>
-      <h2 id="banner-h2">Akun FF <span id="banner-h2-highlight">Premium</span></h2>
-      <p class="banner-sub" id="banner-sub">Beli langsung dapat email, pw &amp; kode keamanan!</p>
-      <div class="banner-tags">
-        <span class="bf">⚡ Instan</span>
-        <span class="bf">🔒 Aman</span>
-        <span class="bf">💳 Multi Payment</span>
-      </div>
-    </div>
-    <div class="banner-logo" style="position:absolute;top:14px;right:14px;z-index:1"><div class="t1">FF</div><div class="t2">STORE</div></div>
+<div class="banner">
+  <div class="banner-tag">⚡ INSTAN DELIVERY</div>
+  <h2>Akun FF <span>Premium</span></h2>
+  <div class="banner-sub">Beli langsung dapat email, pw & kode keamanan!</div>
+  <div class="banner-chips">
+    <span class="chip">⚡ Instan</span>
+    <span class="chip">🔒 Aman</span>
+    <span class="chip">💳 Multi Payment</span>
   </div>
+  <div class="banner-logo"><div class="t1">FF</div><div class="t2">STORE</div></div>
 </div>
 
 <!-- TICKER -->
-<div class="ticker-bar">
-  <span class="ticker-inner" id="ticker-inner">&nbsp;&nbsp;&nbsp;⚡ Pembelian instan otomatis &nbsp;•&nbsp; 💎 Akun sultan tersedia &nbsp;•&nbsp; 🔒 Transaksi aman &nbsp;•&nbsp; 📱 Support 24 jam via WA &nbsp;•&nbsp; 🎮 Ratusan skin tersedia &nbsp;•&nbsp; ⭐ Terpercaya &nbsp;&nbsp;&nbsp;⚡ Pembelian instan otomatis &nbsp;•&nbsp; 💎 Akun sultan tersedia &nbsp;•&nbsp; 🔒 Transaksi aman</span>
+<div class="ticker">
+  <div class="ticker-in">⚡ Pembelian instan otomatis &nbsp;•&nbsp; 💎 Akun sultan tersedia &nbsp;•&nbsp; 🔒 Transaksi aman &nbsp;•&nbsp; 📱 Support 24 jam via WA &nbsp;•&nbsp; 🎮 Ratusan skin tersedia &nbsp;•&nbsp; ⭐ Terpercaya &nbsp;&nbsp;&nbsp;⚡ Pembelian instan otomatis &nbsp;•&nbsp; 💎 Akun sultan tersedia &nbsp;•&nbsp; 🔒 Transaksi aman</div>
 </div>
 
 <!-- SEARCH -->
 <div class="search-wrap">
-  <div class="search-box">
+  <div class="search">
     <span style="color:var(--muted)">🔍</span>
-    <input class="search-input" id="search-input" placeholder="Cari akun, rank..." oninput="filterAccounts()">
+    <input id="search-inp" placeholder="Cari akun, rank..." oninput="renderAccounts()">
   </div>
 </div>
 
 <!-- TABS -->
-<div class="tabs-wrap">
-  <button class="tab active" onclick="setFilter('all',this)">Semua</button>
+<div class="tabs">
+  <button class="tab on" onclick="setFilter('all',this)">Semua</button>
   <button class="tab" onclick="setFilter('available',this)">Tersedia</button>
   <button class="tab" onclick="setFilter('sold',this)">Sold Out</button>
 </div>
@@ -346,1508 +296,965 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
 <!-- GRID -->
 <div class="section">
   <div class="sec-title">Akun Tersedia</div>
-  <div id="accounts-grid" class="accounts-grid">
-    <div class="loading-spinner"><div class="spinner"></div><span>Memuat akun...</span></div>
+  <div id="grid" class="grid">
+    <div class="spinner-wrap"><div class="spin"></div><span>Memuat akun...</span></div>
   </div>
 </div>
 
-<!-- FOOTER -->
 <footer>
-  <p style="font-family:'Orbitron',sans-serif;font-size:10px;margin:0">FF STORE — Jual akun Free Fire terpercaya</p>
-  <p style="margin:4px 0 0">Xendit QRIS • Duitku • WhatsApp Manual</p>
+  <p style="font-family:'Orbitron',sans-serif;font-size:10px">FF STORE — Jual akun Free Fire terpercaya</p>
+  <p style="margin-top:4px">Xendit QRIS • Duitku • WhatsApp Manual</p>
 </footer>
-
 </div><!-- /app -->
 
-<!-- ===================== AUTH OVERLAY ===================== -->
-<div class="overlay sheet-overlay" id="auth-overlay" onclick="overlayClose(event,'auth-overlay')">
-  <div class="auth-card">
-    <div class="modal-handle"></div>
-    <div id="auth-step1">
+<!-- NOTIF -->
+<div class="notif" id="notif"></div>
+
+<!-- ===== AUTH OVERLAY ===== -->
+<div class="ov" id="auth-ov" onclick="if(e=>e.target===document.getElementById('auth-ov'))closeAuth()">
+  <div class="sheet" id="auth-sheet">
+    <div class="handle"></div>
+
+    <!-- STEP 1: Login / Daftar -->
+    <div id="step1">
       <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-masuk" onclick="switchAuth('masuk')">MASUK</button>
-        <button class="auth-tab" id="tab-daftar" onclick="switchAuth('daftar')">DAFTAR</button>
+        <button class="auth-tab on" id="tab-masuk" onclick="switchTab('masuk')">MASUK</button>
+        <button class="auth-tab" id="tab-daftar" onclick="switchTab('daftar')">DAFTAR</button>
       </div>
 
-      <!-- FORM MASUK -->
+      <!-- Form Masuk -->
       <div id="form-masuk">
         <div class="auth-title">🔐 Masuk ke Akun</div>
-        <div class="auth-err" id="login-err"></div>
-        <label class="form-lbl">EMAIL</label>
-        <input class="form-inp" id="login-email" type="email" placeholder="email@kamu.com" onkeydown="if(event.key==='Enter')doLogin()">
-        <label class="form-lbl">PASSWORD</label>
-        <input class="form-inp" id="login-pass" type="password" placeholder="Password kamu" onkeydown="if(event.key==='Enter')doLogin()">
-        <span class="lupa-pw" onclick="openResetPw()">Lupa password?</span>
-        <button class="btn-auth" id="btn-login" onclick="doLogin()">MASUK SEKARANG</button>
-        <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:14px">
-          Belum punya akun? <span style="color:var(--accent);cursor:pointer;font-weight:700" onclick="switchAuth('daftar')">Daftar sekarang</span>
-        </div>
+        <div class="err-box" id="err-masuk"></div>
+        <label class="lbl">EMAIL</label>
+        <input class="inp" id="in-email" type="email" placeholder="email@kamu.com" onkeydown="if(event.key==='Enter')doLogin()">
+        <label class="lbl">PASSWORD</label>
+        <input class="inp" id="in-pass" type="password" placeholder="Password kamu" onkeydown="if(event.key==='Enter')doLogin()">
+        <span class="lupa" onclick="showStep('step3')">Lupa password?</span>
+        <button class="btn-main" id="btn-login" onclick="doLogin()">MASUK SEKARANG</button>
+        <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:12px">Belum punya akun? <span style="color:var(--accent);cursor:pointer;font-weight:700" onclick="switchTab('daftar')">Daftar sekarang</span></div>
       </div>
 
-      <!-- FORM DAFTAR -->
+      <!-- Form Daftar -->
       <div id="form-daftar" style="display:none">
         <div class="auth-title">✨ Buat Akun Baru</div>
-        <div class="auth-err" id="reg-err"></div>
-        <label class="form-lbl">NAMA</label>
-        <input class="form-inp" id="reg-name" type="text" placeholder="Nama kamu">
-        <label class="form-lbl">EMAIL</label>
-        <input class="form-inp" id="reg-email" type="email" placeholder="email@kamu.com">
-        <label class="form-lbl">PASSWORD</label>
-        <input class="form-inp" id="reg-pass" type="password" placeholder="Min. 6 karakter">
-        <button class="btn-auth" id="btn-reg" onclick="doRegister()">DAFTAR SEKARANG</button>
-        <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:14px">
-          Sudah punya akun? <span style="color:var(--accent);cursor:pointer;font-weight:700" onclick="switchAuth('masuk')">Masuk</span>
-        </div>
+        <div class="err-box" id="err-daftar"></div>
+        <label class="lbl">NAMA</label>
+        <input class="inp" id="in-nama" type="text" placeholder="Nama kamu">
+        <label class="lbl">EMAIL</label>
+        <input class="inp" id="in-regemail" type="email" placeholder="email@kamu.com">
+        <label class="lbl">PASSWORD</label>
+        <input class="inp" id="in-regpass" type="password" placeholder="Min. 6 karakter">
+        <button class="btn-main" id="btn-daftar" onclick="doRegister()">DAFTAR SEKARANG</button>
+        <div style="text-align:center;font-size:12px;color:var(--muted);margin-top:12px">Sudah punya akun? <span style="color:var(--accent);cursor:pointer;font-weight:700" onclick="switchTab('masuk')">Masuk</span></div>
       </div>
     </div>
 
-    <!-- STEP OTP -->
-    <div id="auth-step2" style="display:none">
+    <!-- STEP 2: OTP -->
+    <div id="step2" style="display:none">
       <div class="auth-title">📧 Verifikasi Email</div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">Kode 6 digit dikirim ke<br><strong id="otp-email-show" style="color:var(--accent2)"></strong></p>
-      <div class="auth-err" id="otp-err"></div>
-      <div style="position:relative" onclick="document.getElementById('otp-hidden').focus()">
-        <input id="otp-hidden" type="tel" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
-          style="position:absolute;opacity:0;width:100%;height:50px;z-index:2;cursor:text;"
-          oninput="otpInput('otp')" onkeydown="otpBack(event,'otp')">
-        <div class="otp-wrap" id="otp-display">
-          <div class="otp-box" id="otp0"></div><div class="otp-box" id="otp1"></div><div class="otp-box" id="otp2"></div>
-          <div class="otp-box" id="otp3"></div><div class="otp-box" id="otp4"></div><div class="otp-box" id="otp5"></div>
-        </div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">Kode 6 digit dikirim ke<br><strong id="otp-email-lbl" style="color:var(--accent2)"></strong></p>
+      <div class="err-box" id="err-otp"></div>
+      <div class="otp-row" onclick="document.getElementById('otp-inp').focus()">
+        <input id="otp-inp" type="tel" maxlength="6" inputmode="numeric" autocomplete="one-time-code" class="otp-hidden" oninput="otpSync('otp')" onkeydown="otpDel(event,'otp')">
+        <div class="otp-box" id="otp0"></div><div class="otp-box" id="otp1"></div><div class="otp-box" id="otp2"></div>
+        <div class="otp-box" id="otp3"></div><div class="otp-box" id="otp4"></div><div class="otp-box" id="otp5"></div>
       </div>
-      <div class="otp-hint" id="otp-resend-area"><span id="otp-countdown"></span></div>
-      <button class="btn-auth" onclick="doVerifyOTP()">✅ VERIFIKASI SEKARANG</button>
-      <button class="btn-secondary-auth" onclick="backToStep1()">← Kembali</button>
+      <div class="otp-hint" id="otp-area"></div>
+      <button class="btn-main" onclick="doVerifyOTP()">✅ VERIFIKASI SEKARANG</button>
+      <button class="btn-sec" onclick="showStep('step1')">← Kembali</button>
     </div>
 
-    <!-- STEP RESET PW - step3 -->
-    <div id="auth-step3" style="display:none">
+    <!-- STEP 3: Reset PW - input email -->
+    <div id="step3" style="display:none">
       <div class="auth-title">🔑 Reset Password</div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Masukkan email akunmu, kami kirim kode OTP.</p>
-      <div class="auth-err" id="reset-err"></div>
-      <label class="form-lbl">EMAIL</label>
-      <input class="form-inp" id="reset-email" type="email" placeholder="email@kamu.com">
-      <button class="btn-auth" id="btn-send-reset" onclick="doSendResetOTP()">KIRIM KODE RESET</button>
-      <button class="btn-secondary-auth" onclick="backToStep1()">← Kembali</button>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Masukkan email akunmu, kami kirim kode OTP.</p>
+      <div class="err-box" id="err-reset"></div>
+      <label class="lbl">EMAIL</label>
+      <input class="inp" id="in-resetemail" type="email" placeholder="email@kamu.com">
+      <button class="btn-main" id="btn-sendreset" onclick="doSendReset()">KIRIM KODE RESET</button>
+      <button class="btn-sec" onclick="showStep('step1')">← Kembali</button>
     </div>
 
-    <!-- STEP RESET OTP - step4 -->
-    <div id="auth-step4" style="display:none">
+    <!-- STEP 4: Reset OTP -->
+    <div id="step4" style="display:none">
       <div class="auth-title">🔢 Kode Reset Password</div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Kode dikirim ke <strong id="reset-email-show" style="color:var(--accent2)"></strong></p>
-      <div class="auth-err" id="reset-err2"></div>
-      <div style="position:relative" onclick="document.getElementById('rotp-hidden').focus()">
-        <input id="rotp-hidden" type="tel" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
-          style="position:absolute;opacity:0;width:100%;height:50px;z-index:2;cursor:text;"
-          oninput="otpInput('rotp')" onkeydown="otpBack(event,'rotp')">
-        <div class="otp-wrap">
-          <div class="otp-box" id="rotp0"></div><div class="otp-box" id="rotp1"></div><div class="otp-box" id="rotp2"></div>
-          <div class="otp-box" id="rotp3"></div><div class="otp-box" id="rotp4"></div><div class="otp-box" id="rotp5"></div>
-        </div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Kode dikirim ke <strong id="reset-email-lbl" style="color:var(--accent2)"></strong></p>
+      <div class="err-box" id="err-reset2"></div>
+      <div class="otp-row" onclick="document.getElementById('rotp-inp').focus()">
+        <input id="rotp-inp" type="tel" maxlength="6" inputmode="numeric" autocomplete="one-time-code" class="otp-hidden" oninput="otpSync('rotp')" onkeydown="otpDel(event,'rotp')">
+        <div class="otp-box" id="rotp0"></div><div class="otp-box" id="rotp1"></div><div class="otp-box" id="rotp2"></div>
+        <div class="otp-box" id="rotp3"></div><div class="otp-box" id="rotp4"></div><div class="otp-box" id="rotp5"></div>
       </div>
-      <div class="otp-hint" id="reset-resend-area"></div>
-      <button class="btn-auth" onclick="doVerifyResetOTP()" style="margin-top:12px">VERIFIKASI KODE</button>
-      <button class="btn-secondary-auth" onclick="openResetPw()">← Kembali</button>
+      <div class="otp-hint" id="rotp-area"></div>
+      <button class="btn-main" style="margin-top:10px" onclick="doVerifyReset()">VERIFIKASI KODE</button>
+      <button class="btn-sec" onclick="showStep('step3')">← Kembali</button>
     </div>
 
-    <!-- STEP NEW PW - step5 -->
-    <div id="auth-step5" style="display:none">
+    <!-- STEP 5: New Password -->
+    <div id="step5" style="display:none">
       <div class="auth-title">🆕 Password Baru</div>
-      <div class="auth-err" id="reset-err3"></div>
-      <label class="form-lbl">PASSWORD BARU</label>
-      <input class="form-inp" id="new-pass1" type="password" placeholder="Min. 6 karakter">
-      <label class="form-lbl">KONFIRMASI PASSWORD</label>
-      <input class="form-inp" id="new-pass2" type="password" placeholder="Ulangi password baru">
-      <button class="btn-auth" onclick="doResetPassword()">SIMPAN PASSWORD BARU</button>
+      <div class="err-box" id="err-newpass"></div>
+      <label class="lbl">PASSWORD BARU</label>
+      <input class="inp" id="in-newpass1" type="password" placeholder="Min. 6 karakter">
+      <label class="lbl">KONFIRMASI PASSWORD</label>
+      <input class="inp" id="in-newpass2" type="password" placeholder="Ulangi password baru">
+      <button class="btn-main" onclick="doNewPassword()">SIMPAN PASSWORD BARU</button>
     </div>
   </div>
 </div>
 
-<!-- ===================== PAYMENT OVERLAY ===================== -->
-<div class="overlay sheet-overlay" id="payment-overlay" onclick="overlayClose(event,'payment-overlay')">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div id="payment-content"></div>
-  </div>
+<!-- ===== DETAIL OVERLAY ===== -->
+<div class="ov" id="det-ov" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="sheet" id="det-sheet"></div>
 </div>
 
-<!-- ===================== USER PANEL ===================== -->
-<div id="userPanel">
-  <div class="panel-header">
-    <button class="panel-back" onclick="closeUserPanel()">←</button>
-    <span class="panel-title" id="user-panel-title">PROFIL</span>
+<!-- ===== PAYMENT OVERLAY ===== -->
+<div class="ov" id="pay-ov" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="sheet" id="pay-sheet"></div>
+</div>
+
+<!-- ===== LOGIN GATE OVERLAY ===== -->
+<div class="ov" id="gate-ov" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="sheet" id="gate-sheet"></div>
+</div>
+
+<!-- ===== USER PANEL ===== -->
+<div class="panel" id="user-panel">
+  <div class="panel-hdr">
+    <button class="back-btn" onclick="document.getElementById('user-panel').classList.remove('open')">←</button>
+    <span class="panel-title">PROFIL & RIWAYAT</span>
   </div>
   <div class="panel-body" id="user-panel-body"></div>
 </div>
 
-<!-- ===================== ADMIN PANEL ===================== -->
-<div id="adminPanel">
-  <div class="panel-header gold-border">
-    <button class="panel-back" onclick="closeAdminPanel()">←</button>
-    <span class="panel-title" style="color:var(--gold)">⚙️ SUPERADMIN PANEL</span>
-    <span class="db-badge db-loading" id="db-status">● ...</span>
+<!-- ===== ADMIN PANEL ===== -->
+<div class="panel" id="admin-panel">
+  <div class="panel-hdr gold">
+    <button class="back-btn" onclick="document.getElementById('admin-panel').classList.remove('open')">←</button>
+    <span class="panel-title" style="color:var(--gold)">⚙️ ADMIN PANEL</span>
+    <span class="db-dot badge-load" id="db-dot">● ...</span>
+  </div>
+  <div class="adm-tabs">
+    <button class="adm-tab on" onclick="admTab('dashboard',this)">📊 Statistik</button>
+    <button class="adm-tab" onclick="admTab('accounts',this)">📋 Akun</button>
+    <button class="adm-tab" onclick="admTab('trx',this)">🧾 Transaksi</button>
+    <button class="adm-tab" onclick="admTab('add',this)">➕ Tambah</button>
   </div>
   <div class="panel-body">
-
-    <!-- ADMIN TABS -->
-    <div class="admin-tabs">
-      <button class="admin-tab-btn active" onclick="switchAdminTab('dashboard',this)">📊 Statistik</button>
-      <button class="admin-tab-btn" onclick="switchAdminTab('accounts',this)">📋 Akun</button>
-      <button class="admin-tab-btn" onclick="switchAdminTab('transactions',this)">🧾 Transaksi</button>
-      <button class="admin-tab-btn" onclick="switchAdminTab('waorders',this)">📱 Pesanan WA</button>
-      <button class="admin-tab-btn" onclick="switchAdminTab('add',this)">➕ Tambah</button>
-      <button class="admin-tab-btn" onclick="switchAdminTab('konten',this)">✏️ Konten</button>
-    </div>
-
-    <!-- TAB: DASHBOARD -->
-    <div id="admin-tab-dashboard" class="admin-tab-content active">
-      <div class="admin-stat-grid">
-        <div class="admin-stat-box"><div class="admin-stat-num" id="stat-total">0</div><div class="admin-stat-lbl">TOTAL AKUN</div></div>
-        <div class="admin-stat-box"><div class="admin-stat-num green" id="stat-active">0</div><div class="admin-stat-lbl">TERSEDIA</div></div>
-        <div class="admin-stat-box"><div class="admin-stat-num red" id="stat-sold">0</div><div class="admin-stat-lbl">TERJUAL</div></div>
-        <div class="admin-stat-box" style="cursor:pointer" onclick="document.querySelector('[onclick*=waorders]').click()"><div class="admin-stat-num gold" id="stat-wa-pending">0</div><div class="admin-stat-lbl">PESANAN WA ⏳</div></div>
-      </div>
-      <div class="panel-card" style="margin-top:4px">
-        <h3>ℹ️ INFO SUPERADMIN</h3>
-        <div class="stat-row"><span class="stat-lbl">Email</span><span class="stat-val" style="color:var(--gold)">alpintandjung@gmail.com</span></div>
-        <div class="stat-row"><span class="stat-lbl">Level</span><span class="stat-val" style="color:var(--gold)">⭐ SUPERADMIN</span></div>
-        <div class="stat-row"><span class="stat-lbl">Status DB</span><span class="stat-val"><span id="db-status-inline">Connecting...</span></span></div>
-      </div>
-      <div class="panel-card">
-        <h3>🔐 EMAILJS CONFIG</h3>
-        <div class="stat-row"><span class="stat-lbl">Service ID</span><span class="stat-val" style="font-family:monospace;font-size:11px">service_se0ap1m</span></div>
-        <div class="stat-row"><span class="stat-lbl">Template</span><span class="stat-val" style="font-family:monospace;font-size:11px">template_eh0gt7b</span></div>
-        <div class="stat-row"><span class="stat-lbl">OTP Status</span><span class="stat-val" style="color:var(--success)">✓ Aktif</span></div>
+    <!-- Dashboard -->
+    <div id="adm-dashboard">
+      <div class="stat-grid2">
+        <div class="stat-card"><div class="stat-num" id="s-total">-</div><div class="stat-lbl2">Total Akun</div></div>
+        <div class="stat-card"><div class="stat-num" id="s-active">-</div><div class="stat-lbl2">Tersedia</div></div>
+        <div class="stat-card"><div class="stat-num" id="s-sold">-</div><div class="stat-lbl2">Terjual</div></div>
+        <div class="stat-card"><div class="stat-num" id="s-trx">-</div><div class="stat-lbl2">Transaksi</div></div>
       </div>
     </div>
-
-    <!-- TAB: ACCOUNTS -->
-    <div id="admin-tab-accounts" class="admin-tab-content">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="color:var(--accent2);font-size:11px;font-weight:700;font-family:'Orbitron',sans-serif">📋 DAFTAR AKUN (<span id="admin-akun-count">0</span>)</div>
-        <button class="btn-refresh" onclick="loadAccountsAdmin()">↻ Refresh</button>
-      </div>
-      <input class="admin-search" placeholder="🔍 Cari nama akun..." oninput="filterAdminList(this.value)">
-      <div id="admin-akun-list"></div>
+    <!-- Accounts List -->
+    <div id="adm-accounts" style="display:none">
+      <div id="adm-akun-list"></div>
     </div>
-
-    <!-- TAB: TRANSACTIONS -->
-    <div id="admin-tab-transactions" class="admin-tab-content">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="color:var(--accent2);font-size:11px;font-weight:700;font-family:'Orbitron',sans-serif">🧾 SEMUA TRANSAKSI (<span id="admin-trx-count">0</span>)</div>
-        <button class="btn-refresh" onclick="loadAdminTransactions()">↻ Refresh</button>
-      </div>
-      <div id="admin-trx-list"><div style="color:var(--muted);font-size:12px;padding:16px;text-align:center">Klik Refresh untuk memuat</div></div>
+    <!-- Transactions -->
+    <div id="adm-trx" style="display:none">
+      <div id="adm-trx-list"></div>
     </div>
-
-    <!-- TAB: PESANAN WA -->
-    <div id="admin-tab-waorders" class="admin-tab-content">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="color:var(--gold);font-size:11px;font-weight:700;font-family:'Orbitron',sans-serif">📱 PESANAN WA (<span id="wa-order-count">0</span>)</div>
-        <button class="btn-refresh" onclick="loadWaOrders()">↻ Refresh</button>
-      </div>
-      <div class="wa-filter-tabs">
-        <button class="wa-filter-btn active" onclick="filterWaOrders('semua',this)">Semua</button>
-        <button class="wa-filter-btn" onclick="filterWaOrders('menunggu',this)">⏳ Menunggu</button>
-        <button class="wa-filter-btn" onclick="filterWaOrders('konfirmasi',this)">✅ Konfirmasi</button>
-        <button class="wa-filter-btn" onclick="filterWaOrders('batal',this)">❌ Batal</button>
-      </div>
-      <div id="wa-order-list"><div style="color:var(--muted);font-size:12px;padding:16px;text-align:center">Klik Refresh untuk memuat</div></div>
-    </div>
-
-    <!-- TAB: KONTEN -->
-    <div id="admin-tab-konten" class="admin-tab-content">
-      <div style="color:var(--accent2);font-size:10px;font-weight:700;margin-bottom:14px;font-family:'Orbitron',sans-serif">✏️ EDIT KONTEN TOKO</div>
-
-      <div class="admin-section">
-        <div style="color:var(--accent);font-size:10px;font-weight:700;margin-bottom:12px;font-family:'Orbitron',sans-serif">🖼️ FOTO BANNER</div>
-        <div id="banner-img-preview-wrap" style="display:none;margin-bottom:10px;border-radius:10px;overflow:hidden;max-height:120px;">
-          <img id="banner-img-preview" style="width:100%;object-fit:cover;max-height:120px;border-radius:10px;display:block;">
+    <!-- Add Account -->
+    <div id="adm-add" style="display:none">
+      <div class="adm-sec">
+        <div class="adm-sec-title">Info Akun</div>
+        <input class="adm-inp" id="a-name" placeholder="Nama akun (misal: Akun Sultan OG)">
+        <div class="g2">
+          <input class="adm-inp" id="a-price" type="number" placeholder="Harga jual">
+          <input class="adm-inp" id="a-orig" type="number" placeholder="Harga asli (coret)">
         </div>
-        <label style="display:block;background:var(--card);border:1px dashed var(--border);border-radius:10px;padding:12px;text-align:center;cursor:pointer;color:var(--muted);font-size:12px;font-family:'Rajdhani',sans-serif;font-weight:700;transition:.2s;" id="banner-upload-label">
-          📷 Pilih Foto Banner (JPG/PNG)
-          <input type="file" accept="image/*" id="banner-img-input" style="display:none" onchange="handleBannerUpload(this)">
-        </label>
-        <button onclick="removeBannerImage()" id="btn-remove-banner" style="display:none;width:100%;margin-top:7px;background:rgba(255,68,85,.12);border:1px solid rgba(255,68,85,.3);color:var(--danger);padding:8px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">✕ Hapus Foto Banner</button>
-      </div>
-
-      <div class="admin-section">
-        <div style="color:var(--accent);font-size:10px;font-weight:700;margin-bottom:12px;font-family:'Orbitron',sans-serif">🎯 BANNER UTAMA</div>
-        <label class="form-lbl">BADGE ATAS (contoh: ⚡ INSTAN DELIVERY)</label>
-        <input class="admin-input" id="edit-banner-tag" style="margin-bottom:10px" placeholder="⚡ INSTAN DELIVERY">
-        <label class="form-lbl">JUDUL BANNER (teks biasa)</label>
-        <input class="admin-input" id="edit-banner-title" style="margin-bottom:10px" placeholder="Akun FF">
-        <label class="form-lbl">JUDUL — KATA HIGHLIGHT (warna emas)</label>
-        <input class="admin-input" id="edit-banner-highlight" style="margin-bottom:10px" placeholder="Premium">
-        <label class="form-lbl">SUBTITLE</label>
-        <input class="admin-input" id="edit-banner-sub" placeholder="Beli langsung dapat email, pw & kode keamanan!">
-      </div>
-
-      <div class="admin-section">
-        <div style="color:var(--accent);font-size:10px;font-weight:700;margin-bottom:12px;font-family:'Orbitron',sans-serif">📢 TEKS BERJALAN (TICKER)</div>
-        <label class="form-lbl">ISI TEKS BERJALAN</label>
-        <textarea class="admin-input" id="edit-ticker" rows="3" style="resize:vertical;margin-bottom:6px;height:80px" placeholder="⚡ Pembelian instan • 💎 Akun sultan tersedia • 🔒 Transaksi aman"></textarea>
-        <p style="color:var(--muted);font-size:10px;margin-bottom:10px">Pisahkan item dengan &nbsp;•&nbsp; (spasi-bullet-spasi). Teks akan otomatis diulang.</p>
-      </div>
-
-      <button onclick="saveKonten()" style="width:100%;background:var(--accent);border:none;color:white;padding:13px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;font-family:'Orbitron',sans-serif;letter-spacing:1px;margin-bottom:8px;">💾 SIMPAN PERUBAHAN</button>
-      <button onclick="resetKonten()" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:'Rajdhani',sans-serif;">↩ Reset ke Default</button>
-    </div>
-
-
-    <!-- TAB: ADD ACCOUNT -->
-    <div id="admin-tab-add" class="admin-tab-content">
-      <div style="color:var(--accent2);font-size:10px;font-weight:700;margin-bottom:14px;font-family:'Orbitron',sans-serif">➕ TAMBAH AKUN BARU</div>
-
-      <div class="admin-section">
-        <div style="margin-bottom:10px">
-          <label class="form-lbl">NAMA AKUN *</label>
-          <input class="admin-input" id="f-name" placeholder="Sultan Account - Mythic Level">
+        <div class="g2">
+          <input class="adm-inp" id="a-level" type="number" placeholder="Level">
+          <input class="adm-inp" id="a-diamonds" type="number" placeholder="Diamonds">
         </div>
-        <div class="grid2">
-          <div><label class="form-lbl">HARGA JUAL (Rp) *</label><input class="admin-input" id="f-price" type="number" placeholder="2000"></div>
-          <div><label class="form-lbl">HARGA CORET (Rp)</label><input class="admin-input" id="f-orig" type="number" placeholder="50000"></div>
+        <div class="g2">
+          <input class="adm-inp" id="a-skins" type="number" placeholder="Jumlah skin">
+          <input class="adm-inp" id="a-rank" placeholder="Rank (misal: Heroic)">
         </div>
       </div>
-
-      <div class="admin-section" style="border-color:rgba(26,111,255,.4)">
-        <div style="color:var(--accent);font-size:10px;font-weight:700;margin-bottom:12px;font-family:'Orbitron',sans-serif">🔐 KREDENSIAL AKUN</div>
-        <label class="form-lbl">📧 EMAIL *</label><input class="admin-input" id="f-email" placeholder="akun@gmail.com" style="margin-bottom:10px">
-        <label class="form-lbl">🔑 PASSWORD *</label><input class="admin-input" id="f-password" placeholder="Password akun FF" style="margin-bottom:10px">
-        <label class="form-lbl">🛡️ KODE KEAMANAN *</label><input class="admin-input" id="f-security" placeholder="PIN / Kode keamanan">
+      <div class="adm-sec">
+        <div class="adm-sec-title">Kredensial Akun</div>
+        <input class="adm-inp" id="a-email" type="email" placeholder="Email akun FF">
+        <input class="adm-inp" id="a-pass" type="password" placeholder="Password akun FF">
+        <input class="adm-inp" id="a-security" placeholder="Kode keamanan">
       </div>
-
-      <div class="admin-section">
-        <div style="color:var(--muted);font-size:10px;font-weight:700;margin-bottom:12px;font-family:'Orbitron',sans-serif">📊 DETAIL AKUN</div>
-        <div class="grid3">
-          <div><label class="form-lbl">RANK</label><input class="admin-input" id="f-rank" placeholder="Mythic"></div>
-          <div><label class="form-lbl">💎 DIAMOND</label><input class="admin-input" id="f-diamonds" type="number" placeholder="5000"></div>
-          <div><label class="form-lbl">🎮 SKIN</label><input class="admin-input" id="f-skins" type="number" placeholder="20"></div>
+      <div class="adm-sec">
+        <div class="adm-sec-title">Foto Akun (URL)</div>
+        <div id="photo-fields"></div>
+        <button class="btn-addpho" onclick="addPhotoField()">+ Tambah URL Foto</button>
+      </div>
+      <div class="adm-sec">
+        <div class="adm-sec-title">Metode Pembayaran</div>
+        <div class="g3" id="pay-toggles">
+          <div class="pay-tog on" id="tog-xendit" onclick="togPay('xendit')">💳 QRIS</div>
+          <div class="pay-tog" id="tog-duitku" onclick="togPay('duitku')">🏦 Duitku</div>
+          <div class="pay-tog" id="tog-wa" onclick="togPay('wa')">📱 WA</div>
         </div>
       </div>
-
-      <div class="admin-section">
-        <div style="color:var(--muted);font-size:10px;font-weight:700;margin-bottom:12px;font-family:'Orbitron',sans-serif">💳 OPSI PEMBAYARAN</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap" id="pay-toggles">
-          <div class="pay-toggle" data-key="xendit" onclick="togglePayment('xendit',this)"><span>💳</span><span class="tl">QRIS/Xendit</span></div>
-          <div class="pay-toggle" data-key="duitku" onclick="togglePayment('duitku',this)"><span>🏦</span><span class="tl">Duitku</span></div>
-          <div class="pay-toggle" data-key="wa" onclick="togglePayment('wa',this)"><span>📱</span><span class="tl">WhatsApp</span></div>
-        </div>
-      </div>
-
-      <div class="admin-section">
-        <div style="color:var(--muted);font-size:10px;font-weight:700;margin-bottom:10px;font-family:'Orbitron',sans-serif">📷 FOTO AKUN — <span id="photo-count">0</span>/15</div>
-        <div id="photo-list"></div>
-        <button class="btn-add-photo" onclick="addPhotoField()">+ Tambah Foto (<span id="photo-count-btn">0</span>/15)</button>
-      </div>
-
-      <button class="btn-submit-acc" id="btn-submit-acc" onclick="submitAccount()">TAMBAH AKUN</button>
+      <button class="btn-submit" id="btn-submit-akun" onclick="doAddAkun()">TAMBAH AKUN</button>
     </div>
-
   </div>
 </div>
-
-<!-- ===================== LOGIN GATE (Buy without login) ===================== -->
-<div class="overlay sheet-overlay" id="login-gate-overlay" onclick="overlayClose(event,'login-gate-overlay')">
-  <div class="login-gate-card">
-    <div class="modal-handle"></div>
-    <div class="auth-title" style="margin-bottom:16px">🔐 Masuk untuk Membeli</div>
-    <div class="login-gate-acc" id="gate-acc-info">
-      <!-- filled by JS -->
-    </div>
-    <div class="login-gate-notice">
-      <p>Kamu perlu <strong>login</strong> atau <strong>buat akun</strong> terlebih dahulu untuk melanjutkan pembelian. Proses hanya butuh 1 menit!</p>
-    </div>
-    <div class="login-gate-btns">
-      <button class="btn-gate-masuk" onclick="gateGoAuth('masuk')">🔐 MASUK</button>
-      <button class="btn-gate-daftar" onclick="gateGoAuth('daftar')">✨ DAFTAR</button>
-    </div>
-    <button class="btn-gate-cancel" onclick="closeLoginGate()">Batal, kembali ke toko</button>
-  </div>
-</div>
-
-<!-- NOTIF -->
-<div class="notif" id="notif"></div>
 
 <script>
 // ============================================================
 // CONFIG
 // ============================================================
-const SUPABASE_URL = 'https://qlozoubmribwcnyvlcad.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsb3pvdWJtcmlid2NueXZsY2FkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MDQ4MTksImV4cCI6MjA5NTE4MDgxOX0.3xKq2sJhTJmZEG_-hUILqS-7JVYK23hgfVZa8cp3qh4';
-const EJS_PUBLIC_KEY  = 'BArF6YtuyZwG5auHl';
-const EJS_SERVICE_ID  = 'service_se0ap1m';
-const EJS_TEMPLATE_ID = 'template_eh0gt7b';
-const SUPERADMIN_EMAIL = 'alpintandjung@gmail.com';
+const SB_URL = 'https://qlozoubmribwcnyvlcad.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsb3pvdWJtcmlid2NueXZsY2FkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MDQ4MTksImV4cCI6MjA5NTE4MDgxOX0.3xKq2sJhTJmZEG_-hUILqS-7JVYK23hgfVZa8cp3qh4';
+const EJS_PUB  = 'BArF6YtuyZwG5auHl';
+const EJS_SVC  = 'service_se0ap1m';
+const EJS_TPL  = 'template_eh0gt7b';
+const SA_EMAIL = 'alpintandjung@gmail.com';
 
-try { emailjs.init({ publicKey: EJS_PUBLIC_KEY }); } catch(e) {}
-
-// DEBUG
-window.addEventListener("DOMContentLoaded", async () => {
-  const dbg = document.createElement("div");
-  dbg.id = "sb-debug";
-  dbg.style.cssText = "position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#0f2244;border:2px solid #1a6fff;border-radius:12px;padding:12px 18px;font-size:12px;color:#e0eaff;z-index:9999;max-width:90vw;word-break:break-word;font-family:monospace;";
-  document.body.appendChild(dbg);
-  dbg.textContent = "⏳ Testing Supabase connection...";
-  try {
-    const res = await fetch(SUPABASE_URL + "/rest/v1/users?select=email&limit=1", {
-      headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY }
-    });
-    const text = await res.text();
-    if (res.ok) {
-      dbg.style.borderColor = "#00ff88";
-      dbg.innerHTML = "✅ Supabase OK ("+res.status+")<br>"+text.slice(0,100);
-    } else {
-      dbg.style.borderColor = "#ff4455";
-      dbg.innerHTML = "❌ Supabase Error "+res.status+"<br>"+text.slice(0,200);
-    }
-  } catch(e) {
-    dbg.style.borderColor = "#ff4455";
-    dbg.textContent = "❌ Network Error: " + e.message;
-  }
-  setTimeout(() => { if(dbg) dbg.remove(); }, 15000);
-});
+const PM = {
+  xendit: { name:'QRIS / Xendit', icon:'💳', desc:'Bayar via QRIS, Transfer Bank, e-Wallet' },
+  duitku: { name:'Duitku',        icon:'🏦', desc:'Bayar via berbagai metode Duitku' },
+  wa:     { name:'WhatsApp Manual',icon:'📱', desc:'Konfirmasi bayar via WA Admin' },
+};
 
 // ============================================================
 // STATE
 // ============================================================
-let accounts = [];
-let currentFilter = 'all';
-let selectedPayments = ['xendit'];
-let photoFields = [];
-let buyingAccount = null;
-let currentUser = null;
-try { currentUser = JSON.parse(localStorage.getItem('ff_user') || 'null'); } catch(e) {}
+let accounts = [], filter = 'all', user = null;
+let otpCode='', otpEmail='', otpPending=null;
+let rstCode='', rstEmail='';
+let selPays = ['xendit'], photoFields = [];
+let buyAcc = null, selPayMethod = null;
 
-let otpCode = '', otpEmail = '', otpPending = null, otpTimer = null;
-let resetOtpCode = '', resetOtpEmail = '', resetOtpTimer = null;
-let _payMethod = null;
-
-const PM = {
-  xendit: { name:'QRIS / Xendit', icon:'💳', color:'#1a6fff', desc:'Bayar via QRIS, Transfer Bank, e-Wallet' },
-  duitku: { name:'Duitku',        icon:'🏦', color:'#00c49a', desc:'Bayar via berbagai metode Duitku' },
-  wa:     { name:'WhatsApp Manual',icon:'📱', color:'#25D366', desc:'Konfirmasi bayar via WA Admin' },
-};
+try { user = JSON.parse(localStorage.getItem('ff_user')||'null'); } catch(e){}
+try { emailjs.init({ publicKey: EJS_PUB }); } catch(e){}
 
 // ============================================================
-// SUPABASE HELPERS
+// SUPABASE
 // ============================================================
-async function sb(path, opts = {}) {
-  const method = (opts.method || 'GET').toUpperCase();
+async function sb(path, opts={}) {
+  const method = (opts.method||'GET').toUpperCase();
   const headers = {
-    'apikey': SUPABASE_KEY,
-    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + SB_KEY,
     'Content-Type': 'application/json',
-    ...(opts.headers||{})
   };
   if (method !== 'GET') headers['Prefer'] = opts.prefer || 'return=representation';
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, { ...opts, headers });
+    const res = await fetch(SB_URL + '/rest/v1/' + path, { method, headers, body: opts.body });
     if (!res.ok) {
-      const errText = await res.text();
-      console.error('SB error', res.status, errText);
-      window._lastSbError = 'HTTP ' + res.status + ': ' + errText.slice(0,150);
+      const t = await res.text();
+      console.error('SB', res.status, t);
       return null;
     }
     if (res.status === 204) return true;
-    return res.json();
+    return await res.json();
   } catch(e) {
-    window._lastSbError = 'Network: ' + e.message;
+    console.error('SB network', e);
     return null;
   }
 }
 
 // ============================================================
-// EMAILJS
+// EMAIL OTP
 // ============================================================
-async function sendOTP(toEmail, toName, code, subject) {
+async function sendOTP(email, name, code, subj) {
   try {
-    await emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {
-      to_email: toEmail, to_name: toName || toEmail,
-      otp_code: code, subject: subject || 'Kode Verifikasi FF Store'
-    });
-    return true;
+    await emailjs.send(EJS_SVC, EJS_TPL, { to_email:email, to_name:name||email, otp_code:code, subject:subj||'Kode Verifikasi FF Store' });
   } catch(err) {
-    const d = err?.text || err?.message || 'unknown';
-    showNotif('⚠️ Email error: ' + d);
-    setTimeout(() => alert('⚠️ Email gagal!\nKode OTP darurat:\n' + code), 400);
-    return true;
+    const msg = err?.text||err?.message||'unknown';
+    console.warn('EmailJS error:', msg);
+    // Fallback: show code in alert
+    setTimeout(() => alert('⚠️ Email gagal terkirim!\nKode OTP darurat:\n' + code), 300);
   }
 }
 
 // ============================================================
-// HEADER RENDER
+// NOTIF
 // ============================================================
-function renderHeader() {
-  try {
-  const el = document.getElementById('header-right'); if(!el) return;
-  const availCount = accounts.filter(a=>!a.sold).length;
-  // update standalone avail count (in logo area)
-  document.querySelectorAll('.avail-count-val').forEach(e=>e.textContent=availCount);
-  if (!currentUser) {
-    el.innerHTML =
-      `<button class="btn-login-hdr" onclick="openAuth('masuk')">Masuk</button>` +
-      `<button class="btn-daftar-hdr" onclick="openAuth('daftar')">Daftar</button>`;
+let notifTimer;
+function notif(msg, dur=3000) {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+// ============================================================
+// HEADER
+// ============================================================
+function renderHdr() {
+  const el = document.getElementById('hdr-right');
+  const cnt = accounts.filter(a=>!a.sold).length;
+  document.getElementById('avail-count').textContent = cnt;
+  if (!user) {
+    el.innerHTML = `
+      <button class="btn-hdr btn-masuk" onclick="openAuth('masuk')">Masuk</button>
+      <button class="btn-hdr btn-daftar" onclick="openAuth('daftar')">Daftar</button>`;
   } else {
-    const isSA = currentUser.email === SUPERADMIN_EMAIL;
-    const initials = (currentUser.name||'?').charAt(0).toUpperCase();
-    el.innerHTML = `<div class="avatar-wrap">
-        <div class="avatar${isSA?' superadmin':''}" onclick="toggleUserDD()">${initials}</div>
-        <div class="user-dropdown" id="user-dd">
-          <div class="dd-user"><strong>${currentUser.name}</strong>${currentUser.email}</div>
-          <button class="dd-item" onclick="openUserPanel()">Profil & Riwayat</button>
-          ${isSA ? `<button class="dd-item gold" onclick="openAdminPanel()">Admin Panel</button>` : ''}
-          <button class="dd-item danger" onclick="doLogout()">Keluar</button>
+    const isSA = user.email === SA_EMAIL;
+    const init = (user.name||'?')[0].toUpperCase();
+    el.innerHTML = `
+      <div class="ava-wrap">
+        <div class="ava${isSA?' sa':''}" onclick="toggleDD()">${init}</div>
+        <div class="ava-dd" id="ava-dd">
+          <div class="dd-head"><strong>${user.name}</strong><span>${user.email}</span></div>
+          <button class="dd-btn" onclick="openUserPanel()">👤 Profil & Riwayat</button>
+          ${isSA ? `<button class="dd-btn gold" onclick="openAdminPanel()">⚙️ Admin Panel</button>` : ''}
+          <button class="dd-btn red" onclick="doLogout()">🚪 Keluar</button>
         </div>
       </div>`;
   }
-  } catch(e) { console.error("renderHeader error:", e); }
 }
-function toggleUserDD() {
-  document.getElementById('user-dd')?.classList.toggle('open');
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('.avatar-wrap')) document.getElementById('user-dd')?.classList.remove('open');
-});
+function toggleDD() { document.getElementById('ava-dd')?.classList.toggle('open'); }
+document.addEventListener('click', e => { if (!e.target.closest('.ava-wrap')) document.getElementById('ava-dd')?.classList.remove('open'); });
 
 // ============================================================
-// AUTH MODAL
+// AUTH
 // ============================================================
 function openAuth(mode) {
-  showStep('auth-step1');
-  switchAuth(mode);
-  document.getElementById('auth-overlay').classList.add('open');
+  showStep('step1');
+  switchTab(mode);
+  document.getElementById('auth-ov').classList.add('open');
 }
-function closeAuth() { document.getElementById('auth-overlay').classList.remove('open'); }
+function closeAuth() { document.getElementById('auth-ov').classList.remove('open'); }
 
-function switchAuth(mode) {
+document.getElementById('auth-ov').addEventListener('click', e => {
+  if (e.target === document.getElementById('auth-ov')) closeAuth();
+});
+
+function switchTab(mode) {
   document.getElementById('form-masuk').style.display = mode==='masuk' ? 'block' : 'none';
   document.getElementById('form-daftar').style.display = mode==='daftar' ? 'block' : 'none';
-  document.getElementById('tab-masuk').classList.toggle('active', mode==='masuk');
-  document.getElementById('tab-daftar').classList.toggle('active', mode==='daftar');
-  document.getElementById('login-err').style.display = 'none';
-  document.getElementById('reg-err').style.display = 'none';
+  document.getElementById('tab-masuk').classList.toggle('on', mode==='masuk');
+  document.getElementById('tab-daftar').classList.toggle('on', mode==='daftar');
+  hideErr('err-masuk'); hideErr('err-daftar');
 }
 
+const STEPS = ['step1','step2','step3','step4','step5'];
 function showStep(s) {
-  ['auth-step1','auth-step2','auth-step3','auth-step4','auth-step5'].forEach(id => {
-    document.getElementById(id).style.display = id === s ? 'block' : 'none';
+  STEPS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id===s ? 'block' : 'none';
   });
 }
 
-function backToStep1() { showStep('auth-step1'); }
-
-function authErr(id, msg) {
+function showErr(id, msg) {
   const el = document.getElementById(id);
-  el.textContent = msg; el.style.display = 'block';
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideErr(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
 }
 
 // LOGIN
 async function doLogin() {
-  const email = document.getElementById('login-email').value.trim().toLowerCase();
-  const pass  = document.getElementById('login-pass').value;
-  if (!email || !pass) { authErr('login-err','Email dan password wajib diisi!'); return; }
+  const email = document.getElementById('in-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('in-pass').value;
+  if (!email || !pass) { showErr('err-masuk','Email dan password wajib diisi!'); return; }
   const btn = document.getElementById('btn-login');
   btn.disabled = true; btn.textContent = '⏳ Memproses...';
+  hideErr('err-masuk');
   try {
-    const data = await sb(`users?email=eq.${encodeURIComponent(email)}&select=name,password,verified`);
-    if (!data || !data.length) { authErr('login-err','Email belum terdaftar! Silakan daftar dulu.'); return; }
-    if (data[0].password !== pass) { authErr('login-err','Password salah!'); return; }
-    currentUser = { email, name: data[0].name, verified: data[0].verified };
-    localStorage.setItem('ff_user', JSON.stringify(currentUser));
+    const data = await sb(`users?email=eq.${encodeURIComponent(email)}&select=name,password`);
+    if (!data) { showErr('err-masuk','Gagal terhubung ke server. Coba lagi.'); return; }
+    if (!data.length) { showErr('err-masuk','Email belum terdaftar!'); return; }
+    if (data[0].password !== pass) { showErr('err-masuk','Password salah!'); return; }
+    user = { email, name: data[0].name };
+    localStorage.setItem('ff_user', JSON.stringify(user));
     closeAuth();
-    renderHeader();
-    showNotif('✅ Selamat datang, ' + currentUser.name + '!');
-  } catch(e) { authErr('login-err','Error: ' + e.message); }
-  finally { btn.disabled = false; btn.textContent = 'MASUK SEKARANG'; }
+    renderHdr();
+    notif('✅ Selamat datang, ' + user.name + '!');
+  } catch(e) {
+    showErr('err-masuk', 'Error: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'MASUK SEKARANG';
+  }
 }
 
 // DAFTAR
 async function doRegister() {
-  const name  = document.getElementById('reg-name').value.trim();
-  const email = document.getElementById('reg-email').value.trim().toLowerCase();
-  const pass  = document.getElementById('reg-pass').value;
-  if (!name||!email||!pass) { authErr('reg-err','Semua field wajib diisi!'); return; }
-  if (pass.length < 6)      { authErr('reg-err','Password minimal 6 karakter!'); return; }
-  if (!email.includes('@')) { authErr('reg-err','Format email tidak valid!'); return; }
-  const btn = document.getElementById('btn-reg');
+  const name  = document.getElementById('in-nama').value.trim();
+  const email = document.getElementById('in-regemail').value.trim().toLowerCase();
+  const pass  = document.getElementById('in-regpass').value;
+  if (!name||!email||!pass) { showErr('err-daftar','Semua field wajib diisi!'); return; }
+  if (pass.length < 6)      { showErr('err-daftar','Password minimal 6 karakter!'); return; }
+  if (!email.includes('@')) { showErr('err-daftar','Format email tidak valid!'); return; }
+  const btn = document.getElementById('btn-daftar');
   btn.disabled = true; btn.textContent = '⏳ Memeriksa...';
+  hideErr('err-daftar');
   try {
-    const existing = await sb(`users?email=eq.${encodeURIComponent(email)}&select=email`);
-    if (existing && existing.length) { authErr('reg-err','Email sudah terdaftar! Silakan masuk.'); return; }
-  } catch(e) {}
-  otpPending = { name, email, pass };
-  otpCode = String(Math.floor(100000 + Math.random() * 900000));
-  otpEmail = email;
-  btn.textContent = '⏳ Mengirim OTP...';
-  await sendOTP(email, name, otpCode, 'Kode Verifikasi FF Store');
-  btn.disabled = false; btn.textContent = 'DAFTAR SEKARANG';
-  document.getElementById('otp-email-show').textContent = email;
-  otpClear('otp');
-  showStep('auth-step2');
-  startCountdown('otp-countdown', 'otp-resend-area', () => resendOTP());
-  showNotif('📧 Kode OTP dikirim ke email!');
+    const ex = await sb(`users?email=eq.${encodeURIComponent(email)}&select=email`);
+    if (ex && ex.length) { showErr('err-daftar','Email sudah terdaftar! Silakan masuk.'); return; }
+    otpPending = { name, email, pass };
+    otpCode    = String(Math.floor(100000 + Math.random() * 900000));
+    otpEmail   = email;
+    btn.textContent = '⏳ Mengirim OTP...';
+    await sendOTP(email, name, otpCode, 'Kode Verifikasi FF Store');
+    document.getElementById('otp-email-lbl').textContent = email;
+    otpClear('otp');
+    showStep('step2');
+    countdown('otp-area', () => {
+      otpCode = String(Math.floor(100000 + Math.random() * 900000));
+      sendOTP(email, name, otpCode, 'Kode Verifikasi FF Store');
+      notif('✅ Kode baru dikirim!');
+    });
+    notif('📧 Kode OTP dikirim ke email!');
+  } finally {
+    btn.disabled = false; btn.textContent = 'DAFTAR SEKARANG';
+  }
 }
 
 // VERIFY OTP
 async function doVerifyOTP() {
-  const entered = otpGetVal('otp');
-  if (entered.length < 6) { authErr('otp-err','Masukkan 6 digit kode OTP!'); return; }
-  if (entered !== otpCode)  { authErr('otp-err','Kode OTP salah! Coba lagi.'); return; }
-  try {
-    if (otpPending) {
-      const r = await sb('users', { method:'POST', body: JSON.stringify({ email: otpPending.email, name: otpPending.name, password: otpPending.pass, verified: true }) });
-      if (!r) { authErr('otp-err','Gagal daftar, coba lagi.'); return; }
-      currentUser = { email: otpPending.email, name: otpPending.name, verified: true };
-    } else {
-      await sb(`users?email=eq.${encodeURIComponent(otpEmail)}`, { method:'PATCH', body: JSON.stringify({ verified: true }), prefer:'return=minimal' });
-      if (currentUser) currentUser.verified = true;
-    }
-  } catch(e) { authErr('otp-err','Error: '+e.message); return; }
-  if (otpTimer) clearInterval(otpTimer);
-  localStorage.setItem('ff_user', JSON.stringify(currentUser));
-  closeAuth(); renderHeader();
-  showNotif('✅ Email terverifikasi! Selamat datang, ' + currentUser.name + '!');
+  const val = otpGetVal('otp');
+  if (val.length < 6) { showErr('err-otp','Masukkan 6 digit kode OTP!'); return; }
+  if (val !== otpCode)  { showErr('err-otp','Kode OTP salah! Coba lagi.'); return; }
+  hideErr('err-otp');
+  if (otpPending) {
+    const r = await sb('users', { method:'POST', body: JSON.stringify({ email:otpPending.email, name:otpPending.name, password:otpPending.pass, verified:true }) });
+    if (!r) { showErr('err-otp','Gagal daftar, coba lagi.'); return; }
+    user = { email:otpPending.email, name:otpPending.name };
+  }
+  localStorage.setItem('ff_user', JSON.stringify(user));
+  closeAuth(); renderHdr();
+  notif('✅ Berhasil daftar! Selamat datang, ' + user.name + '!');
   otpPending = null;
 }
 
-function resendOTP() {
-  otpCode = String(Math.floor(100000 + Math.random() * 900000));
-  const tgt = otpPending ? otpPending.email : otpEmail;
-  const nm  = otpPending ? otpPending.name  : (currentUser?.name || '');
-  sendOTP(tgt, nm, otpCode, 'Kode Verifikasi FF Store');
-  startCountdown('otp-countdown', 'otp-resend-area', () => resendOTP());
-  showNotif('✅ Kode baru dikirim!');
-}
-
-// RESET PW
-function openResetPw() {
-  showStep('auth-step3');
-  document.getElementById('reset-err').style.display = 'none';
-  document.getElementById('reset-email').value = '';
-}
-
-async function doSendResetOTP() {
-  const email = document.getElementById('reset-email').value.trim().toLowerCase();
-  if (!email.includes('@')) { authErr('reset-err','Masukkan email yang valid!'); return; }
+// RESET - send
+async function doSendReset() {
+  const email = document.getElementById('in-resetemail').value.trim().toLowerCase();
+  if (!email.includes('@')) { showErr('err-reset','Masukkan email yang valid!'); return; }
+  const btn = document.getElementById('btn-sendreset');
+  btn.disabled = true; btn.textContent = '⏳ Mengirim...';
+  hideErr('err-reset');
   const data = await sb(`users?email=eq.${encodeURIComponent(email)}&select=name`);
-  if (!data || !data.length) { authErr('reset-err','Email tidak terdaftar!'); return; }
-  const btn = document.getElementById('btn-send-reset');
-  btn.disabled = true; btn.textContent = 'Mengirim...';
-  resetOtpCode  = String(Math.floor(100000 + Math.random() * 900000));
-  resetOtpEmail = email;
-  await sendOTP(email, data[0].name||email, resetOtpCode, 'Reset Password FF Store');
-  btn.disabled = false; btn.textContent = 'KIRIM KODE RESET';
-  document.getElementById('reset-email-show').textContent = email;
+  if (!data || !data.length) { showErr('err-reset','Email tidak terdaftar!'); btn.disabled=false; btn.textContent='KIRIM KODE RESET'; return; }
+  rstCode  = String(Math.floor(100000 + Math.random() * 900000));
+  rstEmail = email;
+  await sendOTP(email, data[0].name||email, rstCode, 'Reset Password FF Store');
+  document.getElementById('reset-email-lbl').textContent = email;
   otpClear('rotp');
-  showStep('auth-step4');
-  startCountdown('reset-countdown', 'reset-resend-area', () => resendResetOTP());
-  showNotif('📧 Kode reset dikirim!');
+  showStep('step4');
+  countdown('rotp-area', () => {
+    rstCode = String(Math.floor(100000 + Math.random() * 900000));
+    sendOTP(rstEmail, '', rstCode, 'Reset Password FF Store');
+    notif('✅ Kode baru dikirim!');
+  });
+  notif('📧 Kode reset dikirim!');
+  btn.disabled=false; btn.textContent='KIRIM KODE RESET';
 }
 
-function resendResetOTP() {
-  resetOtpCode = String(Math.floor(100000 + Math.random() * 900000));
-  sendOTP(resetOtpEmail, '', resetOtpCode, 'Reset Password FF Store');
-  startCountdown('reset-countdown', 'reset-resend-area', () => resendResetOTP());
-  showNotif('✅ Kode baru dikirim!');
+// RESET - verify
+function doVerifyReset() {
+  const val = otpGetVal('rotp');
+  if (val.length < 6) { showErr('err-reset2','Masukkan 6 digit kode!'); return; }
+  if (val !== rstCode)  { showErr('err-reset2','Kode salah! Coba lagi.'); return; }
+  showStep('step5');
+  document.getElementById('in-newpass1').value = '';
+  document.getElementById('in-newpass2').value = '';
 }
 
-function doVerifyResetOTP() {
-  const entered = otpGetVal('rotp');
-  if (entered.length < 6) { authErr('reset-err2','Masukkan 6 digit kode!'); return; }
-  if (entered !== resetOtpCode) { authErr('reset-err2','Kode salah! Coba lagi.'); return; }
-  if (resetOtpTimer) clearInterval(resetOtpTimer);
-  showStep('auth-step5');
-  document.getElementById('new-pass1').value = '';
-  document.getElementById('new-pass2').value = '';
+// RESET - new password
+async function doNewPassword() {
+  const p1 = document.getElementById('in-newpass1').value;
+  const p2 = document.getElementById('in-newpass2').value;
+  if (!p1||p1.length<6) { showErr('err-newpass','Password minimal 6 karakter!'); return; }
+  if (p1!==p2)           { showErr('err-newpass','Password tidak cocok!'); return; }
+  const r = await sb(`users?email=eq.${encodeURIComponent(rstEmail)}`, { method:'PATCH', body:JSON.stringify({password:p1}), prefer:'return=minimal' });
+  if (!r) { showErr('err-newpass','Gagal simpan, coba lagi.'); return; }
+  closeAuth(); showStep('step1'); switchTab('masuk');
+  notif('✅ Password berhasil direset! Silakan login.');
 }
 
-async function doResetPassword() {
-  const p1 = document.getElementById('new-pass1').value;
-  const p2 = document.getElementById('new-pass2').value;
-  if (!p1 || p1.length < 6) { authErr('reset-err3','Password minimal 6 karakter!'); return; }
-  if (p1 !== p2)              { authErr('reset-err3','Password tidak cocok!'); return; }
-  const r = await sb(`users?email=eq.${encodeURIComponent(resetOtpEmail)}`, { method:'PATCH', body: JSON.stringify({ password: p1 }), prefer:'return=minimal' });
-  if (!r) { authErr('reset-err3','Gagal simpan, coba lagi.'); return; }
-  closeAuth(); showStep('auth-step1'); switchAuth('masuk');
-  showNotif('✅ Password berhasil direset! Silakan login.');
-}
-
+// LOGOUT
 function doLogout() {
-  currentUser = null; localStorage.removeItem('ff_user');
-  renderHeader(); showNotif('👋 Berhasil keluar.');
-  document.getElementById('user-dd')?.classList.remove('open');
+  user = null;
+  localStorage.removeItem('ff_user');
+  renderHdr();
+  document.getElementById('ava-dd')?.classList.remove('open');
+  notif('👋 Berhasil keluar.');
 }
 
 // ============================================================
 // OTP HELPERS
 // ============================================================
-function otpInput(prefix) {
-  const hidden = document.getElementById(prefix === 'otp' ? 'otp-hidden' : 'rotp-hidden');
-  if (!hidden) return;
-  const digits = hidden.value.replace(/\D/g,'').slice(0,6);
-  hidden.value = digits;
-  for (let i = 0; i < 6; i++) {
-    const box = document.getElementById(prefix + i);
-    if (!box) continue;
-    box.textContent = digits[i] || '';
-    box.classList.toggle('filled', !!digits[i]);
+function otpSync(p) {
+  const inp = document.getElementById(p==='otp' ? 'otp-inp' : 'rotp-inp');
+  if (!inp) return;
+  const digits = inp.value.replace(/\D/g,'').slice(0,6);
+  inp.value = digits;
+  for (let i=0;i<6;i++) {
+    const b = document.getElementById(p+i);
+    if (!b) continue;
+    b.textContent = digits[i]||'';
+    b.classList.toggle('on', !!digits[i]);
   }
 }
-function otpBack(e, prefix) {
-  if (e.key === 'Backspace') {
-    const hidden = document.getElementById(prefix === 'otp' ? 'otp-hidden' : 'rotp-hidden');
-    if (hidden) { hidden.value = hidden.value.slice(0,-1); otpInput(prefix); }
+function otpDel(e, p) {
+  if (e.key==='Backspace') {
+    const inp = document.getElementById(p==='otp'?'otp-inp':'rotp-inp');
+    if (inp) { inp.value = inp.value.slice(0,-1); otpSync(p); }
   }
 }
-function otpClear(prefix) {
-  const hidden = document.getElementById(prefix === 'otp' ? 'otp-hidden' : 'rotp-hidden');
-  if (hidden) hidden.value = '';
-  for (let i = 0; i < 6; i++) {
-    const box = document.getElementById(prefix + i);
-    if (box) { box.textContent = ''; box.classList.remove('filled'); box.style.borderColor = ''; }
+function otpClear(p) {
+  const inp = document.getElementById(p==='otp'?'otp-inp':'rotp-inp');
+  if (inp) inp.value = '';
+  for (let i=0;i<6;i++) {
+    const b = document.getElementById(p+i);
+    if (b) { b.textContent=''; b.classList.remove('on'); }
   }
 }
-function otpGetVal(prefix) {
-  let v = '';
-  for (let i = 0; i < 6; i++) { const b = document.getElementById(prefix+i); v += b ? (b.textContent||'') : ''; }
+function otpGetVal(p) {
+  let v='';
+  for (let i=0;i<6;i++) { const b=document.getElementById(p+i); v+=b?(b.textContent||''):''; }
   return v;
 }
-function startCountdown(cdId, areaId, resendFn) {
-  let secs = 60;
+function countdown(areaId, resendFn) {
+  let s=60;
   const area = document.getElementById(areaId);
   if (!area) return;
-  area.innerHTML = `<span id="${cdId}" style="color:var(--accent2);font-weight:700">Kirim ulang dalam ${secs}s</span>`;
-  const t = setInterval(() => {
-    secs--;
-    const el = document.getElementById(cdId);
-    if (secs > 0) { if (el) el.textContent = `Kirim ulang dalam ${secs}s`; }
+  area.innerHTML = `<span id="cd-${areaId}" style="color:var(--accent2);font-weight:700">Kirim ulang dalam ${s}s</span>`;
+  const t = setInterval(()=>{
+    s--;
+    const el = document.getElementById('cd-'+areaId);
+    if (s>0) { if(el) el.textContent=`Kirim ulang dalam ${s}s`; }
     else {
       clearInterval(t);
       const a = document.getElementById(areaId);
-      if (a) a.innerHTML = `<button onclick="(${resendFn.toString()})()" style="background:transparent;border:none;color:var(--accent);font-family:Rajdhani,sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-decoration:underline;">Kirim Ulang OTP</button>`;
+      if (a) a.innerHTML = `<button onclick="(${resendFn.toString()})()" style="background:none;border:none;color:var(--accent);font-weight:700;font-size:12px;cursor:pointer;text-decoration:underline;font-family:Rajdhani,sans-serif;">Kirim Ulang OTP</button>`;
     }
-  }, 1000);
+  },1000);
 }
 
 // ============================================================
-// OVERLAY CLOSE ON BACKDROP
-// ============================================================
-function overlayClose(e, id) {
-  if (e.target === document.getElementById(id)) {
-    document.getElementById(id).classList.remove('open');
-  }
-}
-
-// ============================================================
-// SUPABASE: LOAD ACCOUNTS
+// LOAD ACCOUNTS
 // ============================================================
 async function loadAccounts() {
   const data = await sb('ff_accounts?select=id,name,price,original_price,level,diamonds,skins,rank,photos,sold,payment_options&order=id.asc');
   if (data) {
-    accounts = data.map(r => ({
-      id: r.id, name: r.name, price: r.price, originalPrice: r.original_price,
-      level: r.level, diamonds: r.diamonds, skins: r.skins, rank: r.rank,
-      photos: r.photos||[], sold: r.sold, paymentOptions: r.payment_options||[],
-    }));
-  } else { accounts = []; }
-  renderAccounts(accounts); renderHeader();
-}
-
-async function loadAccountsAdmin() {
-  const data = await sb('ff_accounts?select=*&order=id.asc');
-  if (data) {
-    setDbStatus('ok');
-    renderAdminList(data);
-    document.getElementById('admin-akun-count').textContent = data.length;
-    const active = data.filter(a=>!a.sold).length;
-    const sold   = data.filter(a=>a.sold).length;
-    const stTotal = document.getElementById('stat-total'); if(stTotal) stTotal.textContent = data.length;
-    const stAct   = document.getElementById('stat-active'); if(stAct) stAct.textContent = active;
-    const stSold  = document.getElementById('stat-sold'); if(stSold) stSold.textContent = sold;
-    // fetch transaction count for stats
-    sb('ff_transactions?select=id').then(trx => {
-      const stRev = document.getElementById('stat-revenue');
-      if (stRev) stRev.textContent = (trx||[]).length;
-    });
-    // fetch WA pending count for stats
-    sb('ff_transactions?method=eq.wa&status=eq.MENUNGGU&select=id').then(waTrx => {
-      const stWa = document.getElementById('stat-wa-pending');
-      if (stWa) stWa.textContent = (waTrx||[]).length;
-    });
-    accounts = data.map(r => ({
-      id:r.id, name:r.name, price:r.price, originalPrice:r.original_price,
+    accounts = data.map(r=>({
+      id:r.id, name:r.name, price:r.price, origPrice:r.original_price,
       level:r.level, diamonds:r.diamonds, skins:r.skins, rank:r.rank,
-      photos:r.photos||[], sold:r.sold, paymentOptions:r.payment_options||[],
-      email:r.email, password:r.password, securityCode:r.security_code,
+      photos:r.photos||[], sold:r.sold, pays:r.payment_options||[],
     }));
-    renderAccounts(accounts); renderHeader();
-  } else { setDbStatus('err'); }
-}
-
-async function markSold(id) {
-  return sb(`ff_accounts?id=eq.${id}`, { method:'PATCH', body:JSON.stringify({sold:true}), prefer:'return=minimal' });
+  } else {
+    accounts = [];
+  }
+  renderAccounts();
+  renderHdr();
 }
 
 // ============================================================
-// RENDER
+// RENDER ACCOUNTS
 // ============================================================
-function badge(text, color) {
-  return `<span class="badge" style="background:${color}22;color:${color};border:1px solid ${color}55">${text}</span>`;
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  renderAccounts();
 }
 
-const CI = {}; // carousel index per account id
-function buildCarousel(id, photos) {
-  if (!photos||!photos.length) return `<div class="carousel-no-photo">📷 No Photos</div>`;
-  CI[id] = 0;
-  const dots = photos.length > 1 ? photos.map((_,i)=>`<div class="carousel-dot${i===0?' active':''}" onclick="carouselGo(${id},${i},${photos.length})"></div>`).join('') : '';
-  const nav  = photos.length > 1 ? `<button class="carousel-btn prev" onclick="event.stopPropagation();carouselPrev(${id},${photos.length})">‹</button><button class="carousel-btn next" onclick="event.stopPropagation();carouselNext(${id},${photos.length})">›</button><div class="carousel-dots">${dots}</div>` : '';
-  return `<div class="carousel" id="cr-${id}" data-photos="${photos.join('|||')}"><img src="${photos[0]}" onerror="this.style.display='none'"><div class="carousel-grad"></div>${nav}<div class="carousel-foto-badge">${badge(photos.length+' foto','#00d4ff')}</div></div>`;
-}
-function carouselPrev(id,len){CI[id]=((CI[id]||0)-1+len)%len;crUpdate(id);}
-function carouselNext(id,len){CI[id]=((CI[id]||0)+1)%len;crUpdate(id);}
-function carouselGo(id,i){CI[id]=i;crUpdate(id);}
-function crUpdate(id){
-  const wrap=document.getElementById('cr-'+id); if(!wrap)return;
-  const photos=wrap.getAttribute('data-photos').split('|||');
-  const img=wrap.querySelector('img'); if(img)img.src=photos[CI[id]||0];
-  wrap.querySelectorAll('.carousel-dot').forEach((d,i)=>d.classList.toggle('active',i===(CI[id]||0)));
-}
-
-function updateAvailCount() {
-  const n = accounts.filter(a=>!a.sold).length;
-  document.querySelectorAll('.avail-count-val').forEach(el=>el.textContent=n);
-}
-
-function renderAccounts(list) {
-  const search = (document.getElementById('search-input')?.value||'').toLowerCase();
-  const filtered = list.filter(a => {
-    const ms = !search || (a.name||'').toLowerCase().includes(search) || (a.rank||'').toLowerCase().includes(search);
-    const mf = currentFilter==='all' || (currentFilter==='available'&&!a.sold) || (currentFilter==='sold'&&a.sold);
-    return ms && mf;
+function renderAccounts() {
+  const grid = document.getElementById('grid');
+  const q = (document.getElementById('search-inp')?.value||'').toLowerCase();
+  let list = accounts.filter(a => {
+    const mq = !q || (a.name||'').toLowerCase().includes(q) || (a.rank||'').toLowerCase().includes(q);
+    const mf = filter==='all' || (filter==='available'&&!a.sold) || (filter==='sold'&&a.sold);
+    return mq && mf;
   });
-  const grid = document.getElementById('accounts-grid');
-  if (!filtered.length) { grid.innerHTML=`<div class="empty">😔 Tidak ada akun ditemukan</div>`; return; }
-  grid.innerHTML = filtered.map(a => {
-    const payIcons = (a.paymentOptions||[]).map(p => PM[p]?`<span title="${PM[p].name}" style="font-size:14px">${PM[p].icon}</span>`:'').join('');
-    const orig = a.originalPrice > a.price ? `<div class="card-orig">Rp ${a.originalPrice.toLocaleString()}</div>` : '';
+  if (!list.length) { grid.innerHTML = `<div class="empty">Tidak ada akun ditemukan</div>`; return; }
+
+  grid.innerHTML = list.map(a => {
+    const img = a.photos[0]
+      ? `<img src="${a.photos[0]}" onerror="this.style.display='none'">`
+      : `<div style="height:160px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;background:var(--card2)">📷 No Photo</div>`;
+    const bdgs = [
+      a.level   ? bdg('Lv '+a.level,'#1a6fff') : '',
+      a.diamonds ? bdg('💎 '+a.diamonds,'#9b59b6') : '',
+      a.skins   ? bdg(a.skins+' Skin','#e67e22') : '',
+      a.rank    ? bdg(a.rank,'#00d4ff') : '',
+      a.sold    ? bdg('SOLD','#ff4455') : bdg('READY','#00ff88'),
+    ].filter(Boolean).join('');
     return `
-    <div class="account-card${a.sold?' sold':''}" onclick="${a.sold?'':('openBuy('+a.id+')')}">
-      ${buildCarousel(a.id, a.photos)}
-      <div class="card-body">
-        <div class="card-name-row"><div class="card-name">${a.name}</div>${a.sold?badge('SOLD','#6a8cb5'):''}</div>
-        <div class="card-badges">${badge(a.rank,'#ffd700')}${badge('💎 '+(a.diamonds||0).toLocaleString(),'#00d4ff')}${badge('🎮 '+(a.skins||0),'#1a6fff')}</div>
-        <div class="card-pay-icons">${payIcons}</div>
-        <div class="card-bottom">
-          <div><div class="card-price">Rp ${(a.price||0).toLocaleString()}</div>${orig}</div>
-          <button class="btn-beli${a.sold?' sold':''}" ${a.sold?'disabled':''} onclick="event.stopPropagation();${a.sold?'':('openBuy('+a.id+')')}">
-            ${a.sold?'Habis':'Beli'}
-          </button>
+      <div class="card${a.sold?' sold-card':''}" onclick="openDetail(${a.id})">
+        <div class="card-img">${img}</div>
+        <div class="card-body">
+          <div class="card-name">${a.name||'Akun FF'}</div>
+          <div class="badges">${bdgs}</div>
+          <div class="card-bot">
+            <div>
+              <div class="price">Rp${(a.price||0).toLocaleString('id')}</div>
+              ${a.origPrice ? `<div class="orig">Rp${a.origPrice.toLocaleString('id')}</div>` : ''}
+            </div>
+            <button class="btn-beli${a.sold?' ':''}" ${a.sold?'disabled':''} onclick="event.stopPropagation();buyNow(${a.id})">${a.sold?'SOLD':'BELI'}</button>
+          </div>
         </div>
-      </div>
-    </div>`;
+      </div>`;
   }).join('');
 }
 
-function filterAccounts(){ renderAccounts(accounts); }
-function setFilter(k,el){
-  currentFilter=k;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  renderAccounts(accounts);
+function bdg(text, color) {
+  return `<span class="bdg" style="background:${color}22;color:${color};border:1px solid ${color}55">${text}</span>`;
 }
 
 // ============================================================
-// PAYMENT FLOW
+// DETAIL
 // ============================================================
-let _pendingBuyId = null; // account ID waiting after login
+function openDetail(id) {
+  const a = accounts.find(x=>x.id===id);
+  if (!a) return;
+  const sheet = document.getElementById('det-sheet');
+  const img = a.photos[0] ? `<img class="det-img" src="${a.photos[0]}">` : '';
+  const bdgs = [
+    a.level   ? bdg('Level '+a.level,'#1a6fff') : '',
+    a.diamonds ? bdg('💎 '+a.diamonds+' Diamonds','#9b59b6') : '',
+    a.skins   ? bdg(a.skins+' Skin','#e67e22') : '',
+    a.rank    ? bdg('🏆 '+a.rank,'#00d4ff') : '',
+    a.sold    ? bdg('SOLD OUT','#ff4455') : bdg('READY','#00ff88'),
+  ].filter(Boolean).join('');
+  sheet.innerHTML = `
+    <div class="handle"></div>
+    ${img}
+    <div class="det-title">${a.name||'Akun FF'}</div>
+    <div class="det-badges">${bdgs}</div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-val">${a.level||'-'}</div><div class="stat-lbl">Level</div></div>
+      <div class="stat-box"><div class="stat-val">${a.diamonds||'-'}</div><div class="stat-lbl">Diamonds</div></div>
+      <div class="stat-box"><div class="stat-val">${a.skins||'-'}</div><div class="stat-lbl">Skins</div></div>
+      <div class="stat-box"><div class="stat-val">${a.rank||'-'}</div><div class="stat-lbl">Rank</div></div>
+    </div>
+    <div class="price-row">
+      <div class="price-big">Rp${(a.price||0).toLocaleString('id')}</div>
+      ${a.origPrice ? `<div class="price-orig">Rp${a.origPrice.toLocaleString('id')}</div>` : ''}
+    </div>
+    <button class="btn-main" ${a.sold?'disabled':''} onclick="buyNow(${a.id})">${a.sold?'SOLD OUT':'🛒 BELI SEKARANG'}</button>
+  `;
+  document.getElementById('det-ov').classList.add('open');
+}
 
-function openBuy(id) {
-  if (!currentUser) {
-    // Show login gate with account preview
-    _pendingBuyId = id;
-    const acc = accounts.find(a=>a.id===id);
-    if (!acc) return;
-    const img = acc.photos && acc.photos[0]
-      ? `<img class="login-gate-img" src="${acc.photos[0]}" onerror="this.style.background='var(--card2)';">`
-      : `<div class="login-gate-img" style="display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:20px">🎮</div>`;
-    document.getElementById('gate-acc-info').innerHTML = `
-      ${img}
-      <div>
-        <div class="login-gate-acc-name">${acc.name}</div>
-        ${badge(acc.rank,'#ffd700')} ${badge('💎 '+(acc.diamonds||0).toLocaleString(),'#00d4ff')}
-        <div class="login-gate-price" style="margin-top:6px">Rp ${acc.price.toLocaleString()}</div>
-      </div>`;
-    document.getElementById('login-gate-overlay').classList.add('open');
+// ============================================================
+// BUY
+// ============================================================
+function buyNow(id) {
+  const a = accounts.find(x=>x.id===id);
+  if (!a || a.sold) return;
+  document.getElementById('det-ov').classList.remove('open');
+  if (!user) {
+    showLoginGate(a);
     return;
   }
-  buyingAccount = accounts.find(a=>a.id===id);
-  if (!buyingAccount) return;
-  _payMethod = null;
-  showPayStep('choose');
-  document.getElementById('payment-overlay').classList.add('open');
+  buyAcc = a;
+  showPaySheet(a);
 }
 
-function closeLoginGate() {
-  document.getElementById('login-gate-overlay').classList.remove('open');
-  _pendingBuyId = null;
-}
-
-function gateGoAuth(mode) {
-  document.getElementById('login-gate-overlay').classList.remove('open');
-  showStep('auth-step1');
-  switchAuth(mode);
-  document.getElementById('auth-overlay').classList.add('open');
-}
-
-// After login, check if there's a pending buy
-const _origCloseAuth = () => {
-  document.getElementById('auth-overlay').classList.remove('open');
-};
-function closeAuth() {
-  document.getElementById('auth-overlay').classList.remove('open');
-  // If user just logged in and had a pending buy
-  if (currentUser && _pendingBuyId !== null) {
-    const pid = _pendingBuyId;
-    _pendingBuyId = null;
-    setTimeout(() => openBuy(pid), 400);
-  }
-}
-
-function closePayment(){ document.getElementById('payment-overlay').classList.remove('open'); buyingAccount=null; }
-
-function showPayStep(step) {
-  const acc = buyingAccount; if(!acc)return;
-  const el = document.getElementById('payment-content');
-  if (step === 'choose') {
-    const methods = (acc.paymentOptions||[]).map(p => PM[p]&&{key:p,...PM[p]}).filter(Boolean);
-    el.innerHTML = `
-      <div style="display:flex;justify-content:space-between;margin-bottom:18px">
-        <h2 style="color:var(--text);margin:0;font-size:16px;font-family:'Orbitron',sans-serif">🛒 Beli Akun</h2>
-        <button onclick="closePayment()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer">×</button>
+function showLoginGate(a) {
+  buyAcc = a;
+  const sheet = document.getElementById('gate-sheet');
+  const img = a.photos[0] ? `<img src="${a.photos[0]}" style="width:52px;height:52px;border-radius:10px;object-fit:cover;background:var(--card2)">` : `<div style="width:52px;height:52px;border-radius:10px;background:var(--card2);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:20px;">🎮</div>`;
+  sheet.innerHTML = `
+    <div class="handle"></div>
+    <div class="gate-acc">
+      ${img}
+      <div>
+        <div style="font-weight:700;font-size:14px">${a.name}</div>
+        <div style="color:var(--gold);font-weight:900;font-size:18px;font-family:'Orbitron',sans-serif">Rp${(a.price||0).toLocaleString('id')}</div>
       </div>
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:18px">
-        <div style="color:var(--muted);font-size:11px;margin-bottom:4px">Akun yang dibeli:</div>
-        <div style="color:var(--text);font-weight:700;font-size:13px;font-family:'Rajdhani',sans-serif">${acc.name}</div>
-        <div style="color:var(--gold);font-weight:900;font-size:20px;margin-top:4px;font-family:'Orbitron',sans-serif">Rp ${acc.price.toLocaleString()}</div>
-      </div>
-      <div style="margin-bottom:20px">
-        <label class="form-lbl" style="display:block;margin-bottom:10px">METODE PEMBAYARAN *</label>
-        ${methods.map(m=>`
-          <div class="pay-method-item" id="pm-${m.key}" onclick="selectPM('${m.key}','${m.color}')">
-            <span style="font-size:22px">${m.icon}</span>
-            <div style="flex:1"><div class="pay-method-name">${m.name}</div><div class="pay-method-desc">${m.desc}</div></div>
-            <span id="pmck-${m.key}" style="display:none;color:${m.color};font-size:18px">✓</span>
-          </div>`).join('')}
-      </div>
-      <button class="btn-pay" id="btn-pay" disabled onclick="doPay()">BAYAR Rp ${acc.price.toLocaleString()}</button>
-      <p id="wa-hint" style="color:var(--muted);font-size:11px;text-align:center;margin-top:10px;display:none">Admin WA akan konfirmasi dalam 1-5 menit</p>`;
-  }
+    </div>
+    <div class="gate-notice"><p>Kamu perlu <strong>login atau daftar</strong> dulu untuk melanjutkan pembelian.<br>Gratis & cepat!</p></div>
+    <button class="btn-main" onclick="document.getElementById('gate-ov').classList.remove('open');openAuth('masuk')">🔐 MASUK SEKARANG</button>
+    <button class="btn-sec" style="margin-top:8px" onclick="document.getElementById('gate-ov').classList.remove('open');openAuth('daftar')">✨ DAFTAR GRATIS</button>
+  `;
+  document.getElementById('gate-ov').classList.add('open');
+}
 
-  if (step === 'process') {
-    const isWa = _payMethod === 'wa';
-    el.innerHTML = `
-      <div style="text-align:center;padding:30px 0">
-        <div style="font-size:52px;margin-bottom:16px">⏳</div>
-        <h3 style="color:var(--text);margin-bottom:8px;font-family:'Orbitron',sans-serif;font-size:15px">${isWa?'Membuat Pesanan WA...':'Memproses Pembayaran...'}</h3>
-        <p style="color:var(--muted);font-size:13px">${isWa?'Menyiapkan pesanan kamu...':'Menunggu konfirmasi gateway...'}</p>
-        <div class="progress-bar"><div class="progress-fill"></div></div>
-      </div>`;
-    if (isWa) {
-      // WA order: create pending order, do NOT mark sold yet
-      const trxId = generateTrxId();
-      setTimeout(async () => {
-        await sb('ff_transactions', { method:'POST', body: JSON.stringify({
-          trx_id: trxId,
-          user_email: currentUser.email,
-          account_id: acc.id,
-          account_name: acc.name,
-          price: acc.price,
-          method: 'wa',
-          status: 'MENUNGGU',
-        }) }).catch(()=>{});
-        showPayStep('wa_pending', trxId);
-      }, 1500);
-    } else {
-      setTimeout(async () => {
-        const trxId = generateTrxId();
-        await markSold(acc.id);
-        await sb('ff_transactions', { method:'POST', body: JSON.stringify({
-          trx_id: trxId,
-          user_email: currentUser.email,
-          account_id: acc.id,
-          account_name: acc.name,
-          price: acc.price,
-          method: _payMethod,
-          status: 'SUKSES',
-        }) }).catch(()=>{});
-        acc.sold = true;
-        accounts = accounts.map(a => a.id===acc.id ? {...a, sold:true} : a);
-        renderAccounts(accounts); renderHeader();
-        showPayStep('success');
-      }, 3000);
-    }
-  }
+function showPaySheet(a) {
+  selPayMethod = null;
+  const pays = a.pays||['xendit'];
+  const sheet = document.getElementById('pay-sheet');
+  sheet.innerHTML = `
+    <div class="handle"></div>
+    <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;margin-bottom:14px">🛒 Pilih Pembayaran</div>
+    <div style="background:var(--card);border-radius:12px;padding:11px 14px;display:flex;justify-content:space-between;margin-bottom:14px;">
+      <span style="color:var(--muted);font-size:12px">${a.name}</span>
+      <span style="color:var(--gold);font-weight:900;font-family:'Orbitron',sans-serif">Rp${(a.price||0).toLocaleString('id')}</span>
+    </div>
+    <div id="pay-methods">
+      ${pays.map(p => `
+        <div class="pay-item" id="pitem-${p}" onclick="selPay('${p}')">
+          <span style="font-size:22px">${PM[p]?.icon||'💳'}</span>
+          <div>
+            <div class="pay-name">${PM[p]?.name||p}</div>
+            <div class="pay-desc">${PM[p]?.desc||''}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <button class="btn-pay" id="btn-pay" disabled onclick="doPayment()">BAYAR SEKARANG</button>
+  `;
+  document.getElementById('pay-ov').classList.add('open');
+}
 
-  if (step === 'wa_pending') {
-    const trxId = arguments[1] || '';
+function selPay(p) {
+  selPayMethod = p;
+  document.querySelectorAll('.pay-item').forEach(el => el.classList.remove('on'));
+  document.getElementById('pitem-'+p)?.classList.add('on');
+  document.getElementById('btn-pay').disabled = false;
+}
+
+async function doPayment() {
+  if (!selPayMethod || !buyAcc) return;
+  const sheet = document.getElementById('pay-sheet');
+
+  if (selPayMethod === 'wa') {
+    // WA Order
     const waNum = '6281234567890'; // ganti dengan nomor WA admin
-    const waMsg = encodeURIComponent(`Halo Admin FF Store!\n\nSaya ingin konfirmasi pesanan:\nID Transaksi: ${trxId}\nNama: ${acc.name}\nHarga: Rp ${acc.price.toLocaleString()}\nEmail: ${currentUser.email}\n\nMohon segera dikonfirmasi. Terima kasih!`);
-    el.innerHTML = `
-      <div style="text-align:center">
-        <div style="font-size:52px;margin-bottom:12px">📱</div>
-        <h2 style="color:var(--gold);margin-bottom:6px;font-family:'Orbitron',sans-serif;font-size:15px">PESANAN DIBUAT!</h2>
-        <p style="color:var(--muted);font-size:12px;margin-bottom:18px">Hubungi admin WA untuk konfirmasi pembayaran</p>
-        <div style="background:var(--card);border:1px solid rgba(255,215,0,.3);border-radius:12px;padding:16px;margin-bottom:16px;text-align:left">
-          <div style="color:var(--muted);font-size:10px;font-family:'Orbitron',sans-serif;margin-bottom:8px">🆔 ID TRANSAKSI</div>
-          <div style="font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--gold);letter-spacing:2px;margin-bottom:4px">${trxId}</div>
-          <div style="color:var(--muted);font-size:10px">Simpan ID ini untuk konfirmasi ke admin</div>
-        </div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;text-align:left">
-          <div style="color:var(--muted);font-size:10px;font-family:'Orbitron',sans-serif;margin-bottom:8px">📦 DETAIL PESANAN</div>
-          <div style="color:var(--text);font-size:13px;font-weight:700;margin-bottom:4px">${acc.name}</div>
-          <div style="color:var(--gold);font-weight:900;font-size:16px;font-family:'Orbitron',sans-serif">Rp ${acc.price.toLocaleString()}</div>
-        </div>
-        <a href="https://wa.me/${waNum}?text=${waMsg}" target="_blank"
-          style="display:block;background:#25D366;border:none;color:white;padding:14px;border-radius:10px;font-weight:800;font-size:14px;text-decoration:none;font-family:'Orbitron',sans-serif;letter-spacing:.5px;margin-bottom:10px">
-          💬 CHAT ADMIN WA
-        </a>
-        <div style="background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.2);border-radius:10px;padding:10px;margin-bottom:14px">
-          <p style="color:var(--gold);font-size:11px;margin:0">⚠️ Akun akan dikirim setelah admin konfirmasi pembayaran kamu.</p>
-        </div>
-        <button onclick="closePayment()" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:11px 32px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;width:100%;font-family:'Rajdhani',sans-serif">Tutup</button>
-      </div>`;
-
-  if (step === 'success') {
-    const infos = [
-      {lbl:'EMAIL',     icon:'📧', val: acc.email        || '(cek email konfirmasi)'},
-      {lbl:'PASSWORD',  icon:'🔑', val: acc.password     || '(cek email konfirmasi)'},
-      {lbl:'KODE KEAMANAN',icon:'🛡️', val: acc.securityCode || '(cek email konfirmasi)'},
-    ];
-    el.innerHTML = `
-      <div style="text-align:center">
-        <div style="font-size:52px;margin-bottom:12px">🎉</div>
-        <h2 style="color:var(--success);margin-bottom:6px;font-family:'Orbitron',sans-serif;font-size:16px">PEMBAYARAN SUKSES!</h2>
-        <p style="color:var(--muted);font-size:12px;margin-bottom:20px">Simpan info akun di bawah. Jangan share ke siapapun!</p>
-        <div style="background:var(--card);border:1px solid rgba(26,111,255,.25);border-radius:14px;padding:18px;text-align:left;margin-bottom:16px">
-          <div style="color:var(--accent2);font-weight:700;font-size:11px;margin-bottom:14px;letter-spacing:1px;font-family:'Orbitron',sans-serif">🔐 INFORMASI AKUN</div>
-          ${infos.map(it=>`
-            <div style="margin-bottom:12px">
-              <div style="color:var(--muted);font-size:10px;margin-bottom:4px;font-family:'Orbitron',sans-serif">${it.icon} ${it.lbl}</div>
-              <div class="success-info-row">
-                <span class="info-val" id="si-${it.lbl}">${it.val}</span>
-                <button class="btn-copy" onclick="copyText('si-${it.lbl}')">📋</button>
-              </div>
-            </div>`).join('')}
-        </div>
-        <div style="background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.25);border-radius:10px;padding:12px;margin-bottom:16px">
-          <p style="color:var(--gold);font-size:12px;margin:0">⚠️ Screenshot sekarang! Info ini tidak tersimpan setelah kamu tutup halaman.</p>
-        </div>
-        <button onclick="closePayment()" style="background:var(--accent);border:none;color:white;padding:12px 32px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;width:100%;font-family:'Rajdhani',sans-serif;letter-spacing:1px">SELESAI ✓</button>
-      </div>`;
+    const msg = `Halo admin, saya mau beli:\n*${buyAcc.name}*\nHarga: Rp${(buyAcc.price||0).toLocaleString('id')}\nEmail: ${user.email}`;
+    await sb('ff_transactions', { method:'POST', body:JSON.stringify({ user_email:user.email, account_id:buyAcc.id, account_name:buyAcc.name, price:buyAcc.price, method:'wa', status:'MENUNGGU' }) });
+    document.getElementById('pay-ov').classList.remove('open');
+    window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank');
+    notif('📱 Mengarahkan ke WhatsApp...');
+    return;
   }
+
+  // Simulate Xendit / Duitku (tampil info sukses)
+  sheet.innerHTML = `
+    <div class="handle"></div>
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:48px;margin-bottom:12px">⏳</div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;margin-bottom:6px">Memproses Pembayaran</div>
+      <div style="font-size:12px;color:var(--muted)">Harap tunggu sebentar...</div>
+      <div class="prog-bar"><div class="prog-fill"></div></div>
+    </div>`;
+  
+  await new Promise(r=>setTimeout(r,3200));
+  
+  // Save transaction & mark sold
+  await sb('ff_transactions', { method:'POST', body:JSON.stringify({ user_email:user.email, account_id:buyAcc.id, account_name:buyAcc.name, price:buyAcc.price, method:selPayMethod, status:'SUKSES' }) });
+  await sb(`ff_accounts?id=eq.${buyAcc.id}`, { method:'PATCH', body:JSON.stringify({sold:true}), prefer:'return=minimal' });
+  buyAcc.sold = true;
+  renderAccounts(); renderHdr();
+
+  // Get account credentials
+  const creds = await sb(`ff_accounts?id=eq.${buyAcc.id}&select=email,password,security_code`);
+  const c = creds?.[0]||{};
+
+  sheet.innerHTML = `
+    <div class="handle"></div>
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:48px;margin-bottom:10px">✅</div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;color:var(--success)">PEMBAYARAN SUKSES!</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px">${buyAcc.name}</div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);font-family:'Orbitron',sans-serif;margin-bottom:8px">KREDENSIAL AKUN</div>
+    ${infoRow('Email', c.email||'-')}
+    ${infoRow('Password', c.password||'-')}
+    ${infoRow('Kode Keamanan', c.security_code||'-')}
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.6">Simpan data ini baik-baik!<br>Screenshot halaman ini sekarang.</div>
+    <button class="btn-main" style="margin-top:16px" onclick="document.getElementById('pay-ov').classList.remove('open')">TUTUP</button>
+  `;
 }
 
-function selectPM(key, color) {
-  _payMethod = key;
-  document.querySelectorAll('.pay-method-item').forEach(el => { el.style.background='var(--card)'; el.style.borderColor='var(--border)'; });
-  document.querySelectorAll('[id^="pmck-"]').forEach(el => el.style.display='none');
-  const item = document.getElementById('pm-'+key);
-  if (item) { item.style.background=color+'18'; item.style.borderColor=color; }
-  const ck = document.getElementById('pmck-'+key);
-  if (ck) ck.style.display='block';
-  const waH = document.getElementById('wa-hint');
-  if (waH) waH.style.display = key==='wa' ? 'block' : 'none';
-  const btn = document.getElementById('btn-pay');
-  if (btn) btn.disabled = false;
-}
-
-function doPay() {
-  if (!_payMethod) return;
-  showPayStep('process');
-}
-
-function copyText(id) {
-  const el = document.getElementById(id);
-  if (el) navigator.clipboard?.writeText(el.textContent).catch(()=>{});
+function infoRow(label, val) {
+  return `
+    <div style="margin-bottom:6px">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${label}</div>
+      <div class="info-row">
+        <span class="info-val">${val}</span>
+        <button class="btn-copy" onclick="navigator.clipboard.writeText('${val}');notif('✅ Disalin!')">📋</button>
+      </div>
+    </div>`;
 }
 
 // ============================================================
 // USER PANEL
 // ============================================================
 async function openUserPanel() {
-  document.getElementById('user-dd')?.classList.remove('open');
-  const panel = document.getElementById('userPanel');
-  document.getElementById('user-panel-title').textContent = currentUser?.name?.toUpperCase() || 'PROFIL';
-  panel.classList.add('open');
+  document.getElementById('ava-dd')?.classList.remove('open');
   const body = document.getElementById('user-panel-body');
-  body.innerHTML = `<div class="loading-spinner" style="grid-column:1/-1"><div class="spinner"></div> Memuat...</div>`;
+  body.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)"><div class="spin" style="margin:0 auto 10px"></div>Memuat...</div>`;
+  document.getElementById('user-panel').classList.add('open');
 
-  // fetch transactions
-  const trxData = await sb(`ff_transactions?user_email=eq.${encodeURIComponent(currentUser.email)}&order=created_at.desc&limit=20`);
+  const trxData = await sb(`ff_transactions?user_email=eq.${encodeURIComponent(user.email)}&order=id.desc&limit=20`);
 
   body.innerHTML = `
-    <div class="panel-card">
-      <h3>👤 INFO AKUN</h3>
-      <div class="stat-row"><span class="stat-lbl">Nama</span><span class="stat-val">${currentUser.name}</span></div>
-      <div class="stat-row"><span class="stat-lbl">Email</span><span class="stat-val">${currentUser.email}</span></div>
-      <div class="stat-row"><span class="stat-lbl">Status</span><span class="stat-val" style="color:var(--success)">✓ Terverifikasi</span></div>
+    <div class="pcard">
+      <h3>Profil</h3>
+      <div class="prow"><span class="prow-l">Nama</span><span class="prow-r">${user.name}</span></div>
+      <div class="prow"><span class="prow-l">Email</span><span class="prow-r">${user.email}</span></div>
     </div>
-    <div class="panel-card">
-      <h3>🧾 RIWAYAT PEMBELIAN</h3>
-      ${!trxData || !trxData.length
-        ? `<p style="color:var(--muted);font-size:13px;text-align:center;padding:16px">Belum ada pembelian</p>`
+    <div class="pcard">
+      <h3>Riwayat Pembelian</h3>
+      ${!trxData||!trxData.length
+        ? '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Belum ada transaksi</div>'
         : trxData.map(t=>`
-          <div class="trx-item">
-            <div class="trx-name">${t.account_name||'Akun FF'}</div>
-            <div class="trx-sub">Rp ${(t.price||0).toLocaleString()} • ${PM[t.method]?.name||t.method} • ${new Date(t.created_at).toLocaleDateString('id-ID')}</div>
-            <div class="trx-status" style="color:var(--success);margin-top:4px">✓ ${t.status}</div>
+          <div class="trx">
+            <div class="trx-name">${t.account_name||'-'}</div>
+            <div class="trx-sub">Rp${(t.price||0).toLocaleString('id')} • ${t.method?.toUpperCase()||'-'} • <span style="color:${t.status==='SUKSES'?'var(--success)':'var(--gold)'}">${t.status}</span></div>
           </div>`).join('')
       }
-    </div>`;
+    </div>
+  `;
 }
-
-function closeUserPanel() { document.getElementById('userPanel').classList.remove('open'); }
 
 // ============================================================
-// ADMIN PANEL (superadmin only)
+// ADMIN PANEL
 // ============================================================
-let _adminAllAccounts = [];
-
-function openAdminPanel() {
-  if (!currentUser || currentUser.email !== SUPERADMIN_EMAIL) return;
-  document.getElementById('user-dd')?.classList.remove('open');
-  document.getElementById('adminPanel').classList.add('open');
-  setDbStatus('loading');
-  loadAccountsAdmin();
-  // Init xendit toggle style
-  const xEl = document.querySelector('[data-key="xendit"]');
-  if (xEl) { xEl.style.background=PM.xendit.color+'18'; xEl.style.borderColor=PM.xendit.color; }
-}
-function closeAdminPanel() { document.getElementById('adminPanel').classList.remove('open'); }
-
-function switchAdminTab(tab, btn) {
-  document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.admin-tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('admin-tab-' + tab).classList.add('active');
-  btn.classList.add('active');
-  if (tab === 'transactions') loadAdminTransactions();
-  if (tab === 'konten') openKontenEditor();
-  if (tab === 'waorders') loadWaOrders();
+async function openAdminPanel() {
+  document.getElementById('ava-dd')?.classList.remove('open');
+  document.getElementById('admin-panel').classList.add('open');
+  setDbStatus('load');
+  await loadAccountsAdmin();
 }
 
-// Generate transaction ID: FF-XXXXXXXX (8 random alphanumeric)
-function generateTrxId() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let r = '';
-  for (let i = 0; i < 8; i++) r += chars[Math.floor(Math.random() * chars.length)];
-  return 'FF-' + r;
+function admTab(tab, btn) {
+  ['dashboard','accounts','trx','add'].forEach(t => {
+    const el = document.getElementById('adm-'+t);
+    if (el) el.style.display = t===tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.adm-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  if (tab==='trx') loadAdmTrx();
 }
 
 function setDbStatus(s) {
-  const el = document.getElementById('db-status');
-  el.className = 'db-badge db-'+s;
-  el.textContent = s==='ok'?'● Connected':s==='err'?'● Error':'● ...';
-  const il = document.getElementById('db-status-inline');
-  if (il) {
-    if (s==='err') {
-      const errMsg = window._lastSbError || 'Gagal terhubung ke database';
-      il.textContent = '✗ ' + errMsg;
-      il.style.color = 'var(--danger)';
-      il.style.fontSize = '10px';
-      il.style.wordBreak = 'break-all';
-    } else {
-      il.textContent = s==='ok'?'✓ Connected':'Connecting...';
-      il.style.color = s==='ok'?'var(--success)':'var(--accent2)';
-      il.style.fontSize = '';
-    }
-  }
+  const el = document.getElementById('db-dot');
+  if (!el) return;
+  el.className = 'db-dot';
+  if (s==='ok') { el.classList.add('badge-ok'); el.textContent='● ONLINE'; }
+  else if (s==='err') { el.classList.add('badge-sold'); el.textContent='● ERROR'; }
+  else { el.classList.add('badge-load'); el.textContent='● ...'; }
 }
 
-function renderAdminList(list) {
-  _adminAllAccounts = list;
-  const el = document.getElementById('admin-akun-list');
-  if (!list || !list.length) {
-    el.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:8px">Belum ada akun</div>`;
-    return;
-  }
-  el.innerHTML = list.map(a=>`
-    <div class="akun-list-item-full">
-      <div class="akun-item-name">${a.name}</div>
-      <div class="akun-item-meta">Rp ${(a.price||0).toLocaleString()} • 💎${a.diamonds||0} • 🎮${a.skins||0} skin • ${a.email||'-'}</div>
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        ${badge(a.sold?'SOLD':'AKTIF', a.sold?'#6a8cb5':'#00ff88')}
-        <div class="akun-item-actions">
-          ${a.sold
-            ? `<button class="btn-akn-act btn-akn-unsold" onclick="adminToggleSold(${a.id}, false)">↩ Aktifkan</button>`
-            : `<button class="btn-akn-act btn-akn-sold" onclick="adminToggleSold(${a.id}, true)">✓ Tandai Sold</button>`
-          }
-          <button class="btn-akn-act btn-akn-del" onclick="adminDeleteAcc(${a.id}, '${(a.name||'').replace(/'/g,'')}')">🗑 Hapus</button>
-        </div>
-      </div>
-    </div>`).join('');
-}
+async function loadAccountsAdmin() {
+  const data = await sb('ff_accounts?select=*&order=id.asc');
+  if (!data) { setDbStatus('err'); return; }
+  setDbStatus('ok');
+  accounts = data.map(r=>({
+    id:r.id, name:r.name, price:r.price, origPrice:r.original_price,
+    level:r.level, diamonds:r.diamonds, skins:r.skins, rank:r.rank,
+    photos:r.photos||[], sold:r.sold, pays:r.payment_options||[],
+    email:r.email, password:r.password, securityCode:r.security_code,
+  }));
+  renderAccounts(); renderHdr();
+  document.getElementById('s-total').textContent = data.length;
+  document.getElementById('s-active').textContent = data.filter(a=>!a.sold).length;
+  document.getElementById('s-sold').textContent = data.filter(a=>a.sold).length;
+  const trx = await sb('ff_transactions?select=id');
+  document.getElementById('s-trx').textContent = (trx||[]).length;
 
-function filterAdminList(q) {
-  const filtered = _adminAllAccounts.filter(a => !q || (a.name||'').toLowerCase().includes(q.toLowerCase()));
-  const el = document.getElementById('admin-akun-list');
-  el.innerHTML = filtered.map(a=>`
-    <div class="akun-list-item-full">
-      <div class="akun-item-name">${a.name}</div>
-      <div class="akun-item-meta">Rp ${(a.price||0).toLocaleString()} • 💎${a.diamonds||0} • 🎮${a.skins||0} skin</div>
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        ${badge(a.sold?'SOLD':'AKTIF', a.sold?'#6a8cb5':'#00ff88')}
-        <div class="akun-item-actions">
-          ${a.sold
-            ? `<button class="btn-akn-act btn-akn-unsold" onclick="adminToggleSold(${a.id}, false)">↩ Aktifkan</button>`
-            : `<button class="btn-akn-act btn-akn-sold" onclick="adminToggleSold(${a.id}, true)">✓ Sold</button>`
-          }
-          <button class="btn-akn-act btn-akn-del" onclick="adminDeleteAcc(${a.id}, '${(a.name||'').replace(/'/g,'')}')">🗑</button>
-        </div>
-      </div>
-    </div>`).join('') || `<div style="color:var(--muted);font-size:12px;padding:8px">Tidak ditemukan</div>`;
-}
-
-async function adminToggleSold(id, sold) {
-  await sb(`ff_accounts?id=eq.${id}`, { method:'PATCH', body: JSON.stringify({sold}), prefer:'return=minimal' });
-  showNotif(sold ? '✓ Akun ditandai SOLD' : '✓ Akun diaktifkan kembali');
-  loadAccountsAdmin();
-}
-
-async function adminDeleteAcc(id, name) {
-  if (!confirm(`Hapus akun "${name}"? Tindakan ini tidak bisa dibatalkan.`)) return;
-  await sb(`ff_accounts?id=eq.${id}`, { method:'DELETE', prefer:'return=minimal' });
-  showNotif('🗑 Akun berhasil dihapus');
-  loadAccountsAdmin();
-}
-
-async function loadAdminTransactions() {
-  const el = document.getElementById('admin-trx-list');
-  el.innerHTML = `<div class="loading-spinner"><div class="spinner"></div> Memuat...</div>`;
-  const data = await sb('ff_transactions?order=created_at.desc&limit=50');
-  const countEl = document.getElementById('admin-trx-count');
-  if (!data || !data.length) {
-    if (countEl) countEl.textContent = '0';
-    el.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:16px;text-align:center">Belum ada transaksi</div>`;
-    return;
-  }
-  if (countEl) countEl.textContent = data.length;
-  el.innerHTML = data.map(t=>`
-    <div class="trx-admin-item">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+  const list = document.getElementById('adm-akun-list');
+  if (list) {
+    list.innerHTML = data.length ? data.map(a=>`
+      <div class="akun-item">
         <div>
-          ${t.trx_id ? `<div style="font-family:'Orbitron',sans-serif;font-size:10px;color:var(--accent2);margin-bottom:3px;letter-spacing:1px">${t.trx_id}</div>` : ''}
-          <div class="trx-admin-name">${t.account_name||'Akun FF'}</div>
-          <div class="trx-admin-meta">👤 ${t.user_email} • ${PM[t.method]?.name||t.method}</div>
-          <div class="trx-admin-meta" style="margin-top:2px">📅 ${new Date(t.created_at).toLocaleString('id-ID')}</div>
+          <div style="font-size:12px;font-weight:700">${a.name||'-'}</div>
+          <div style="font-size:11px;color:var(--muted)">Rp${(a.price||0).toLocaleString('id')}</div>
         </div>
-        <div style="text-align:right">
-          <div class="trx-admin-price">Rp ${(t.price||0).toLocaleString()}</div>
-          <div style="font-size:10px;font-family:'Orbitron',sans-serif;margin-top:4px;${t.status==='MENUNGGU'?'color:var(--gold)':t.status==='BATAL'?'color:var(--danger)':'color:var(--success)'}">${t.status==='MENUNGGU'?'⏳':t.status==='BATAL'?'✗':'✓'} ${t.status||'SUKSES'}</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="stat-badge ${a.sold?'badge-sold':'badge-ok'}">${a.sold?'SOLD':'READY'}</span>
+          <button onclick="deleteAkun(${a.id})" style="background:rgba(255,68,85,.1);border:1px solid rgba(255,68,85,.3);color:var(--danger);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;">🗑</button>
         </div>
+      </div>`).join('')
+    : '<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Belum ada akun</div>';
+  }
+}
+
+async function loadAdmTrx() {
+  const list = document.getElementById('adm-trx-list');
+  if (!list) return;
+  list.innerHTML = `<div style="color:var(--muted);text-align:center;padding:20px"><div class="spin" style="margin:0 auto 10px"></div>Memuat...</div>`;
+  const data = await sb('ff_transactions?order=id.desc&limit=50');
+  if (!data||!data.length) { list.innerHTML='<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Belum ada transaksi</div>'; return; }
+  list.innerHTML = data.map(t=>`
+    <div class="trx-adm">
+      <div class="trx-head">
+        <span style="font-size:12px;font-weight:700">${t.account_name||'-'}</span>
+        <span class="stat-badge ${t.status==='SUKSES'?'badge-ok':'badge-load'}">${t.status}</span>
       </div>
+      <div style="font-size:11px;color:var(--muted)">${t.user_email} • Rp${(t.price||0).toLocaleString('id')} • ${t.method?.toUpperCase()||'-'}</div>
     </div>`).join('');
 }
 
+async function deleteAkun(id) {
+  if (!confirm('Hapus akun ini?')) return;
+  const r = await sb(`ff_accounts?id=eq.${id}`, { method:'DELETE', prefer:'return=minimal' });
+  if (r !== null) { notif('🗑 Akun dihapus!'); await loadAccountsAdmin(); }
+  else notif('❌ Gagal hapus!');
+}
+
 // ============================================================
-// PESANAN WA
+// ADD ACCOUNT
 // ============================================================
-let _allWaOrders = [];
-let _waFilter = 'semua';
-
-async function loadWaOrders() {
-  const el = document.getElementById('wa-order-list');
-  el.innerHTML = `<div class="loading-spinner"><div class="spinner"></div> Memuat...</div>`;
-  const data = await sb('ff_transactions?method=eq.wa&order=created_at.desc&limit=100');
-  const countEl = document.getElementById('wa-order-count');
-  if (!data || !data.length) {
-    if (countEl) countEl.textContent = '0';
-    el.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:16px;text-align:center">Belum ada pesanan WA</div>`;
-    _allWaOrders = [];
-    return;
-  }
-  _allWaOrders = data;
-  if (countEl) countEl.textContent = data.length;
-  renderWaOrders();
+let admPhotos = [];
+function addPhotoField() {
+  const idx = admPhotos.length;
+  admPhotos.push('');
+  renderPhotoFields();
 }
-
-function filterWaOrders(filter, btn) {
-  _waFilter = filter;
-  document.querySelectorAll('.wa-filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderWaOrders();
-}
-
-function renderWaOrders() {
-  const el = document.getElementById('wa-order-list');
-  let list = _allWaOrders;
-  if (_waFilter !== 'semua') list = list.filter(t => (t.status||'').toLowerCase() === _waFilter);
-  if (!list.length) {
-    el.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:16px;text-align:center">Tidak ada pesanan ${_waFilter}</div>`;
-    return;
-  }
-  el.innerHTML = list.map(t => {
-    const st = (t.status||'MENUNGGU').toUpperCase();
-    const stClass = st==='KONFIRMASI'?'wa-status-konfirmasi':st==='BATAL'?'wa-status-batal':'wa-status-menunggu';
-    const stLabel = st==='KONFIRMASI'?'✅ KONFIRMASI':st==='BATAL'?'❌ BATAL':'⏳ MENUNGGU';
-    const isPending = st === 'MENUNGGU';
-    return `<div class="wa-order-card">
-      <div class="wa-order-id">${t.trx_id || '—'}</div>
-      <div class="wa-order-name">${t.account_name||'Akun FF'}</div>
-      <div class="wa-order-meta">👤 ${t.user_email} • Rp ${(t.price||0).toLocaleString()}<br>📅 ${new Date(t.created_at).toLocaleString('id-ID')}</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${isPending?'10px':'0'}">
-        <span class="wa-status-pill ${stClass}">${stLabel}</span>
-      </div>
-      ${isPending ? `<div class="wa-order-actions">
-        <button class="btn-wa-konfirm" onclick="waKonfirmasi('${t.id}','${t.account_id}')">✅ Konfirmasi</button>
-        <button class="btn-wa-batal" onclick="waBatal('${t.id}')">❌ Batal</button>
-      </div>` : ''}
-    </div>`;
-  }).join('');
-}
-
-async function waKonfirmasi(trxId, accountId) {
-  if (!confirm('Konfirmasi pesanan ini? Akun akan ditandai SOLD dan pembayaran diterima.')) return;
-  // Mark sold
-  if (accountId) await sb(`ff_accounts?id=eq.${accountId}`, { method:'PATCH', body: JSON.stringify({sold:true}), prefer:'return=minimal' });
-  // Update transaction status
-  await sb(`ff_transactions?id=eq.${trxId}`, { method:'PATCH', body: JSON.stringify({status:'KONFIRMASI'}), prefer:'return=minimal' });
-  showNotif('✅ Pesanan dikonfirmasi!');
-  loadWaOrders();
-  loadAccountsAdmin();
-}
-
-async function waBatal(trxId) {
-  if (!confirm('Batalkan pesanan ini?')) return;
-  await sb(`ff_transactions?id=eq.${trxId}`, { method:'PATCH', body: JSON.stringify({status:'BATAL'}), prefer:'return=minimal' });
-  showNotif('❌ Pesanan dibatalkan');
-  loadWaOrders();
-}
-
-// Payment toggles
-function togglePayment(key, el) {
-  const i = selectedPayments.indexOf(key);
-  if (i >= 0) {
-    if (selectedPayments.length === 1) return;
-    selectedPayments.splice(i,1);
-    el.style.background='var(--card)'; el.style.borderColor='var(--border)';
-  } else {
-    selectedPayments.push(key);
-    el.style.background=PM[key].color+'18'; el.style.borderColor=PM[key].color;
-  }
-}
-
-// Photo fields — support file upload
 function renderPhotoFields() {
-  const list = document.getElementById('photo-list');
-  const n = photoFields.length;
-  document.getElementById('photo-count').textContent = n;
-  document.getElementById('photo-count-btn').textContent = n;
-  list.innerHTML = photoFields.map((url,i)=>`
-    <div class="photo-row" id="photo-row-${i}">
-      <div style="flex:1;position:relative">
-        ${url
-          ? `<img src="${url}" class="photo-preview" style="width:100%;height:72px;border-radius:8px;object-fit:cover;display:block;border:1px solid var(--border);" onerror="this.style.display='none'">`
-          : `<label style="display:flex;align-items:center;justify-content:center;width:100%;height:54px;background:var(--card);border:1px dashed var(--border);border-radius:8px;cursor:pointer;color:var(--muted);font-size:12px;gap:6px;font-family:'Rajdhani',sans-serif;font-weight:700;">
-              📷 Upload Foto ${i+1}
-              <input type="file" accept="image/*" style="display:none" onchange="handlePhotoUpload(${i},this)">
-            </label>`
-        }
-      </div>
-      <button class="btn-rm-photo" onclick="removePhoto(${i})">×</button>
+  const c = document.getElementById('photo-fields');
+  if (!c) return;
+  c.innerHTML = admPhotos.map((u,i)=>`
+    <div class="photo-row">
+      ${u ? `<img class="photo-prev" src="${u}" onerror="this.style.display='none'">` : ''}
+      <input class="adm-inp" style="flex:1;margin:0" placeholder="URL foto ${i+1}" value="${u}" oninput="admPhotos[${i}]=this.value;renderPhotoFields()" onfocus="this.select()">
+      <button class="btn-rmpho" onclick="admPhotos.splice(${i},1);renderPhotoFields()">✕</button>
     </div>`).join('');
 }
-function addPhotoField() { if(photoFields.length>=15)return; photoFields.push(''); renderPhotoFields(); }
-function removePhoto(i) { photoFields.splice(i,1); renderPhotoFields(); }
 
-function handlePhotoUpload(idx, input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    photoFields[idx] = e.target.result;
-    renderPhotoFields();
-  };
-  reader.readAsDataURL(file);
+function togPay(p) {
+  const idx = selPays.indexOf(p);
+  if (idx===-1) selPays.push(p); else selPays.splice(idx,1);
+  document.querySelectorAll('.pay-tog').forEach(el=>{
+    const id = el.id.replace('tog-','');
+    el.classList.toggle('on', selPays.includes(id));
+  });
 }
 
-// Banner image upload
-function handleBannerUpload(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const data = e.target.result;
-    applyBannerImage(data);
-    localStorage.setItem('ff_banner_img', data);
-  };
-  reader.readAsDataURL(file);
-}
-
-function applyBannerImage(src) {
-  const overlay = document.getElementById('banner-bg-overlay');
-  const preview = document.getElementById('banner-img-preview');
-  const previewWrap = document.getElementById('banner-img-preview-wrap');
-  const btnRemove = document.getElementById('btn-remove-banner');
-  if (src) {
-    overlay.style.backgroundImage = `url('${src}')`;
-    overlay.classList.add('has-img');
-    if (preview) { preview.src = src; previewWrap.style.display='block'; }
-    if (btnRemove) btnRemove.style.display='block';
-  } else {
-    overlay.style.backgroundImage = '';
-    overlay.classList.remove('has-img');
-    if (previewWrap) previewWrap.style.display='none';
-    if (btnRemove) btnRemove.style.display='none';
-  }
-}
-
-function removeBannerImage() {
-  localStorage.removeItem('ff_banner_img');
-  applyBannerImage('');
-  const input = document.getElementById('banner-img-input');
-  if (input) input.value = '';
-}
-
-// Submit account
-async function submitAccount() {
-  const name=document.getElementById('f-name').value.trim();
-  const price=parseInt(document.getElementById('f-price').value)||0;
-  const email=document.getElementById('f-email').value.trim();
-  const pass=document.getElementById('f-password').value.trim();
-  const sec=document.getElementById('f-security').value.trim();
-  if (!name||!price||!email||!pass||!sec) { alert('Lengkapi field wajib (*)'); return; }
-  const btn = document.getElementById('btn-submit-acc');
-  btn.disabled=true; btn.textContent='MENYIMPAN...';
-  const r = await sb('ff_accounts', { method:'POST', body: JSON.stringify({
-    name, price,
-    original_price: parseInt(document.getElementById('f-orig').value)||0,
-    email, password:pass, security_code:sec, level:'',
-    diamonds: parseInt(document.getElementById('f-diamonds').value)||0,
-    skins: parseInt(document.getElementById('f-skins').value)||0,
-    rank: document.getElementById('f-rank').value.trim(),
-    photos: photoFields.filter(u=>u),
-    payment_options: selectedPayments,
+async function doAddAkun() {
+  const name  = document.getElementById('a-name')?.value.trim();
+  const price = parseInt(document.getElementById('a-price')?.value)||0;
+  const orig  = parseInt(document.getElementById('a-orig')?.value)||0;
+  const level = parseInt(document.getElementById('a-level')?.value)||0;
+  const diamonds = parseInt(document.getElementById('a-diamonds')?.value)||0;
+  const skins = parseInt(document.getElementById('a-skins')?.value)||0;
+  const rank  = document.getElementById('a-rank')?.value.trim();
+  const email = document.getElementById('a-email')?.value.trim();
+  const pass  = document.getElementById('a-pass')?.value;
+  const sec   = document.getElementById('a-security')?.value.trim();
+  if (!name||!price) { notif('❌ Nama dan harga wajib diisi!'); return; }
+  const btn = document.getElementById('btn-submit-akun');
+  btn.disabled = true; btn.textContent = '⏳ Menyimpan...';
+  const r = await sb('ff_accounts', { method:'POST', body:JSON.stringify({
+    name, price, original_price:orig, level, diamonds, skins, rank,
+    email, password:pass, security_code:sec,
+    photos: admPhotos.filter(Boolean),
+    payment_options: selPays,
     sold: false,
   }) });
-  if (!r) { btn.disabled=false; btn.textContent='TAMBAH AKUN'; alert('Gagal menyimpan, coba lagi!'); return; }
-  btn.className='btn-submit-acc ok'; btn.textContent='✓ BERHASIL DITAMBAH!';
-  ['f-name','f-price','f-orig','f-email','f-password','f-security','f-rank','f-diamonds','f-skins'].forEach(id=>{
+  if (!r) { btn.disabled=false; btn.textContent='TAMBAH AKUN'; notif('❌ Gagal simpan!'); return; }
+  btn.classList.add('ok'); btn.textContent='✅ BERHASIL!';
+  // Reset form
+  ['a-name','a-price','a-orig','a-level','a-diamonds','a-skins','a-rank','a-email','a-pass','a-security'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
-  photoFields=[]; renderPhotoFields();
-  setTimeout(()=>{ btn.disabled=false; btn.textContent='TAMBAH AKUN'; btn.className='btn-submit-acc'; }, 2500);
-  loadAccountsAdmin();
-  showNotif('✅ Akun berhasil ditambah!');
-}
-
-// ============================================================
-// SHOW NOTIF
-// ============================================================
-function showNotif(msg, dur=3000) {
-  const el = document.getElementById('notif');
-  el.textContent = msg; el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), dur);
-}
-
-
-// ============================================================
-// KONTEN EDITOR (Banner + Ticker)
-// ============================================================
-const KONTEN_DEFAULTS = {
-  bannerTag:       '⚡ INSTAN DELIVERY',
-  bannerTitle:     'Akun FF',
-  bannerHighlight: 'Premium',
-  bannerSub:       'Beli langsung dapat email, pw & kode keamanan!',
-  ticker:          '⚡ Pembelian instan otomatis &nbsp;•&nbsp; 💎 Akun sultan tersedia &nbsp;•&nbsp; 🔒 Transaksi aman &nbsp;•&nbsp; 📱 Support 24 jam via WA &nbsp;•&nbsp; 🎮 Ratusan skin tersedia &nbsp;•&nbsp; ⭐ Terpercaya'
-};
-
-function applyKonten(k) {
-  const tag = document.getElementById('banner-tag');
-  if (tag) tag.textContent = k.bannerTag || KONTEN_DEFAULTS.bannerTag;
-  const h2 = document.getElementById('banner-h2');
-  const hl = document.getElementById('banner-h2-highlight');
-  if (h2 && hl) {
-    h2.childNodes[0].textContent = (k.bannerTitle || KONTEN_DEFAULTS.bannerTitle) + ' ';
-    hl.textContent = k.bannerHighlight || KONTEN_DEFAULTS.bannerHighlight;
-  }
-  const sub = document.getElementById('banner-sub');
-  if (sub) sub.textContent = k.bannerSub || KONTEN_DEFAULTS.bannerSub;
-  const ticker = document.getElementById('ticker-inner');
-  if (ticker) {
-    const t = k.ticker || KONTEN_DEFAULTS.ticker;
-    ticker.innerHTML = '&nbsp;&nbsp;&nbsp;' + t + '&nbsp;&nbsp;&nbsp;' + t;
-  }
-}
-
-function loadKonten() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('ff_konten') || '{}');
-    applyKonten({...KONTEN_DEFAULTS, ...saved});
-    return saved;
-  } catch(e) { return {}; }
-}
-
-function openKontenEditor() {
-  // Fill editor inputs with current saved values
-  const saved = JSON.parse(localStorage.getItem('ff_konten') || '{}');
-  const k = {...KONTEN_DEFAULTS, ...saved};
-  const fields = [
-    ['edit-banner-tag', k.bannerTag],
-    ['edit-banner-title', k.bannerTitle],
-    ['edit-banner-highlight', k.bannerHighlight],
-    ['edit-banner-sub', k.bannerSub],
-    ['edit-ticker', k.ticker],
-  ];
-  fields.forEach(([id, val]) => {
-    const el = document.getElementById(id);
-    if (el) el.value = val;
-  });
-  // Show banner image preview if exists
-  const savedImg = localStorage.getItem('ff_banner_img');
-  const previewWrap = document.getElementById('banner-img-preview-wrap');
-  const preview = document.getElementById('banner-img-preview');
-  const btnRemove = document.getElementById('btn-remove-banner');
-  if (savedImg && previewWrap) {
-    preview.src = savedImg;
-    previewWrap.style.display = 'block';
-    btnRemove.style.display = 'block';
-  } else if (previewWrap) {
-    previewWrap.style.display = 'none';
-    if (btnRemove) btnRemove.style.display = 'none';
-  }
-}
-
-function saveKonten() {
-  const k = {
-    bannerTag:       document.getElementById('edit-banner-tag')?.value.trim() || KONTEN_DEFAULTS.bannerTag,
-    bannerTitle:     document.getElementById('edit-banner-title')?.value.trim() || KONTEN_DEFAULTS.bannerTitle,
-    bannerHighlight: document.getElementById('edit-banner-highlight')?.value.trim() || KONTEN_DEFAULTS.bannerHighlight,
-    bannerSub:       document.getElementById('edit-banner-sub')?.value.trim() || KONTEN_DEFAULTS.bannerSub,
-    ticker:          document.getElementById('edit-ticker')?.value.trim() || KONTEN_DEFAULTS.ticker,
-  };
-  localStorage.setItem('ff_konten', JSON.stringify(k));
-  applyKonten(k);
-  showNotif('✅ Konten berhasil disimpan!');
-}
-
-function resetKonten() {
-  if (!confirm('Reset semua konten ke default?')) return;
-  localStorage.removeItem('ff_konten');
-  applyKonten(KONTEN_DEFAULTS);
-  openKontenEditor(); // refresh inputs
-  showNotif('↩ Konten direset ke default');
+  admPhotos=[]; renderPhotoFields();
+  setTimeout(()=>{ btn.disabled=false; btn.textContent='TAMBAH AKUN'; btn.classList.remove('ok'); },2500);
+  await loadAccountsAdmin();
+  notif('✅ Akun berhasil ditambah!');
 }
 
 // ============================================================
 // INIT
 // ============================================================
-loadKonten();
-// Load saved banner image
-const savedBannerImg = localStorage.getItem('ff_banner_img');
-if (savedBannerImg) applyBannerImage(savedBannerImg);
 loadAccounts();
-renderHeader();
+renderHdr();
 renderPhotoFields();
 </script>
 </body>
