@@ -6362,23 +6362,14 @@ function _dkGet(){ try{ return JSON.parse(localStorage.getItem('vinz_duitku_stoc
 function _dkSet(o){ try{ localStorage.setItem('vinz_duitku_stock', JSON.stringify(o)); }catch(e){} }
 function _key(pid,vn){ return pid+'::'+vn; }
 
-/* ── get all unique variant names across all products ── */
-function getAllVariantNames(){
-  try{
-    const prods = (typeof getProducts==='function') ? getProducts() : [];
-    const set = new Set();
-    prods.forEach(p=>{ (p.variants||[]).forEach(v=>{ if(v.n) set.add(v.n); }); });
-    return Array.from(set).sort();
-  }catch(e){ return []; }
-}
-
 /* ── core bulk action ── */
-window.vinzBulkSet = function(variantFilter, payTypes, isAvail){
+window.vinzBulkSet = function(prodFilter, variantFilter, payTypes, isAvail){
   try{
     const prods = (typeof getProducts==='function') ? getProducts() : [];
     const wa = _waGet(), xn = _xnGet(), dk = _dkGet();
     let count = 0;
     prods.forEach(p=>{
+      if(prodFilter !== '__ALL__' && p.id !== prodFilter) return;
       (p.variants||[]).forEach(v=>{
         if(variantFilter !== '__ALL__' && v.n !== variantFilter) return;
         const k = _key(p.id, v.n);
@@ -6414,15 +6405,21 @@ function injectBulkCard(){
     </div>
     <div style="padding:14px;">
 
-      <!-- Step 1: Pilih varian -->
+      <!-- Step 1: Pilih produk -->
       <div style="margin-bottom:12px;">
-        <div style="font-family:'Orbitron',sans-serif;font-size:10px;color:#00d4ff;letter-spacing:1px;margin-bottom:6px;">① PILIH VARIAN</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:10px;color:#00d4ff;letter-spacing:1px;margin-bottom:6px;">① PILIH PRODUK</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="bulkProdBtns"></div>
+      </div>
+
+      <!-- Step 2: Pilih varian (muncul setelah produk dipilih) -->
+      <div id="bulkVarSection" style="margin-bottom:12px;display:none;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:10px;color:#00d4ff;letter-spacing:1px;margin-bottom:6px;">② PILIH VARIAN</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;" id="bulkVarBtns"></div>
       </div>
 
-      <!-- Step 2: Pilih payment type -->
-      <div style="margin-bottom:12px;">
-        <div style="font-family:'Orbitron',sans-serif;font-size:10px;color:#00d4ff;letter-spacing:1px;margin-bottom:6px;">② PILIH PAYMENT</div>
+      <!-- Step 3: Pilih payment type (muncul setelah varian dipilih) -->
+      <div id="bulkPaySection" style="margin-bottom:12px;display:none;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:10px;color:#00d4ff;letter-spacing:1px;margin-bottom:6px;">③ PILIH PAYMENT</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button id="bpWa" onclick="vinzBulkTogglePay('wa')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #25D366;background:rgba(37,211,102,.15);color:#25D366;cursor:pointer;transition:.2s;">📱 WA</button>
           <button id="bpXendit" onclick="vinzBulkTogglePay('xendit')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #7c3aed;background:rgba(124,58,237,.15);color:#a78bfa;cursor:pointer;transition:.2s;">⚡ XENDIT</button>
@@ -6431,47 +6428,127 @@ function injectBulkCard(){
         </div>
       </div>
 
-      <!-- Step 3: Tombol aksi -->
-      <div style="display:flex;gap:8px;margin-top:4px;">
-        <button onclick="vinzBulkAction(false)" style="flex:1;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;padding:10px 0;border-radius:9px;border:none;background:#ff4757;color:#fff;cursor:pointer;letter-spacing:.5px;">🚫 TANDAI HABIS</button>
-        <button onclick="vinzBulkAction(true)" style="flex:1;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;padding:10px 0;border-radius:9px;border:none;background:#00ff88;color:#000;cursor:pointer;letter-spacing:.5px;">✅ TANDAI READY</button>
+      <!-- Step 4: Tombol aksi (muncul setelah payment dipilih) -->
+      <div id="bulkActionSection" style="display:none;">
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button onclick="vinzBulkAction(false)" style="flex:1;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;padding:10px 0;border-radius:9px;border:none;background:#ff4757;color:#fff;cursor:pointer;letter-spacing:.5px;">🚫 TANDAI HABIS</button>
+          <button onclick="vinzBulkAction(true)" style="flex:1;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;padding:10px 0;border-radius:9px;border:none;background:#00ff88;color:#000;cursor:pointer;letter-spacing:.5px;">✅ TANDAI READY</button>
+        </div>
       </div>
 
       <!-- Info -->
-      <div id="bulkInfo" style="margin-top:10px;font-size:10px;color:var(--muted);text-align:center;font-family:'Orbitron',sans-serif;letter-spacing:.5px;"></div>
+      <div id="bulkInfo" style="margin-top:10px;font-size:10px;color:var(--muted);text-align:center;font-family:'Orbitron',sans-serif;letter-spacing:.5px;">← Pilih produk dulu</div>
     </div>
   `;
   apBody.insertBefore(card, apBody.firstChild);
 
-  renderBulkVarBtns();
+  renderBulkProdBtns();
 }
 
 /* ── selected state ── */
-let _bulkVar = null;       // null = belum pilih
+let _bulkProd = null;      // null = belum pilih produk
+let _bulkVar = null;       // null = belum pilih varian
 let _bulkPay = new Set();  // set of 'wa','xendit','duitku'
 
-function renderBulkVarBtns(){
-  const wrap = document.getElementById('bulkVarBtns');
-  if(!wrap) return;
-  const names = getAllVariantNames();
-  const all = ['__ALL__', ...names];
+// Lookup tables — diisi saat render, dipakai oleh event listener
+let _bulkProdMap = {}; // index (string) -> id produk asli
+let _bulkVarMap  = {}; // index (string) -> nama varian
 
-  wrap.innerHTML = all.map(n=>{
-    const label = n === '__ALL__' ? '🌍 SEMUA VARIAN' : n;
-    const active = _bulkVar === n;
-    return `<button onclick="vinzBulkSelVar('${n}')"
-      style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 10px;border-radius:7px;cursor:pointer;transition:.2s;
+function renderBulkProdBtns(){
+  const wrap = document.getElementById('bulkProdBtns');
+  if(!wrap) return;
+  const prods = (typeof getProducts==='function') ? getProducts() : [];
+
+  const allBtns = [{id:'__ALL__', name:'🌍 SEMUA PRODUK', emoji:''},
+                   ...prods.map(p=>({id:p.id, name:p.name, emoji:p.emoji||''}))];
+
+  _bulkProdMap = {};
+  wrap.innerHTML = allBtns.map((p, i)=>{
+    _bulkProdMap[i] = p.id;
+    const active = _bulkProd === p.id;
+    const label = p.id === '__ALL__' ? p.name : (p.emoji ? p.emoji+' '+p.name : p.name);
+    return `<button data-bprod="${i}"
+      style="font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;transition:.2s;text-align:left;
         border:1.5px solid ${active?'#ffd700':'rgba(255,255,255,.15)'};
         background:${active?'rgba(255,215,0,.18)':'rgba(255,255,255,.04)'};
         color:${active?'#ffd700':'#a0b0c8'};">
       ${label}
     </button>`;
   }).join('');
+
+  // Event delegation — satu listener saja di wrapper
+  wrap.onclick = function(e){
+    const btn = e.target.closest('[data-bprod]');
+    if(!btn) return;
+    const pid = _bulkProdMap[btn.dataset.bprod];
+    if(pid !== undefined) vinzBulkSelProd(pid);
+  };
 }
 
-window.vinzBulkSelVar = function(n){
+function renderBulkVarBtns(){
+  const wrap = document.getElementById('bulkVarBtns');
+  if(!wrap) return;
+  const prods = (typeof getProducts==='function') ? getProducts() : [];
+
+  let varNames = [];
+  if(_bulkProd === '__ALL__'){
+    const set = new Set();
+    prods.forEach(p=>{ (p.variants||[]).forEach(v=>{ if(v.n) set.add(v.n); }); });
+    varNames = Array.from(set).sort();
+  } else {
+    const p = prods.find(x=>x.id === _bulkProd);
+    if(p) varNames = (p.variants||[]).map(v=>v.n).filter(Boolean);
+  }
+
+  _bulkVarMap = {};
+  const all = ['__ALL__', ...varNames];
+  wrap.innerHTML = all.map((n, i)=>{
+    _bulkVarMap[i] = n;
+    const label = n === '__ALL__' ? '🌍 SEMUA VARIAN' : n;
+    const active = _bulkVar === n;
+    return `<button data-bvar="${i}"
+      style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 10px;border-radius:7px;cursor:pointer;transition:.2s;
+        border:1.5px solid ${active?'#00ff88':'rgba(255,255,255,.15)'};
+        background:${active?'rgba(0,255,136,.12)':'rgba(255,255,255,.04)'};
+        color:${active?'#00ff88':'#a0b0c8'};">
+      ${label}
+    </button>`;
+  }).join('');
+
+  wrap.onclick = function(e){
+    const btn = e.target.closest('[data-bvar]');
+    if(!btn) return;
+    const vn = _bulkVarMap[btn.dataset.bvar];
+    if(vn !== undefined) vinzBulkSelVar(vn);
+  };
+}
+
+window.vinzBulkSelProd = function vinzBulkSelProd(pid){
+  _bulkProd = pid;
+  _bulkVar = null;
+  _bulkPay = new Set();
+  renderBulkProdBtns();
+  // Tampilkan section varian
+  const vs = document.getElementById('bulkVarSection');
+  if(vs) vs.style.display = 'block';
+  // Sembunyikan payment & aksi
+  const ps = document.getElementById('bulkPaySection');
+  if(ps) ps.style.display = 'none';
+  const as = document.getElementById('bulkActionSection');
+  if(as) as.style.display = 'none';
+  renderBulkVarBtns();
+  updateBulkInfo();
+};
+
+window.vinzBulkSelVar = function vinzBulkSelVar(n){
   _bulkVar = n;
   renderBulkVarBtns();
+  // Tampilkan section payment
+  const ps = document.getElementById('bulkPaySection');
+  if(ps) ps.style.display = 'block';
+  // Sembunyikan aksi sampai payment dipilih
+  const as = document.getElementById('bulkActionSection');
+  if(as) as.style.display = 'none';
   updateBulkInfo();
 };
 
@@ -6496,30 +6573,40 @@ window.vinzBulkTogglePay = function(type){
     allBtn.style.opacity = allOn ? '1' : '.45';
     allBtn.style.transform = allOn ? 'scale(1.04)' : 'scale(1)';
   }
+  // Tampilkan tombol aksi jika ada payment yang dipilih
+  const as = document.getElementById('bulkActionSection');
+  if(as) as.style.display = _bulkPay.size > 0 ? 'block' : 'none';
   updateBulkInfo();
 };
 
 function updateBulkInfo(){
   const el = document.getElementById('bulkInfo');
   if(!el) return;
-  if(!_bulkVar){ el.textContent = '← Pilih varian dulu'; return; }
-  if(_bulkPay.size===0){ el.textContent = '← Pilih payment dulu'; return; }
+  if(!_bulkProd){ el.textContent = '← Pilih produk dulu'; el.style.color=''; return; }
+  if(!_bulkVar){ el.textContent = '← Pilih varian dulu'; el.style.color=''; return; }
+  if(_bulkPay.size===0){ el.textContent = '← Pilih payment dulu'; el.style.color=''; return; }
   try{
     const prods = (typeof getProducts==='function') ? getProducts() : [];
     let count = 0;
     prods.forEach(p=>{
+      if(_bulkProd !== '__ALL__' && p.id !== _bulkProd) return;
       (p.variants||[]).forEach(v=>{
         if(_bulkVar === '__ALL__' || v.n === _bulkVar) count++;
       });
     });
+    const prodLabel = _bulkProd === '__ALL__' ? 'semua produk' : (prods.find(x=>x.id===_bulkProd)||{name:_bulkProd}).name;
     const varLabel = _bulkVar === '__ALL__' ? 'semua varian' : _bulkVar;
     const payLabel = Array.from(_bulkPay).join('+').toUpperCase();
-    el.textContent = `Akan update ${count} varian (${varLabel}) · Payment: ${payLabel}`;
+    el.textContent = `${prodLabel} · ${varLabel} · ${payLabel} → ${count} entri`;
     el.style.color = '#00d4ff';
   }catch(e){}
 }
 
 window.vinzBulkAction = function(isAvail){
+  if(!_bulkProd){
+    try{ showNotif('❌ Pilih produk dulu!'); }catch(e){ alert('Pilih produk dulu!'); }
+    return;
+  }
   if(!_bulkVar){
     try{ showNotif('❌ Pilih varian dulu!'); }catch(e){ alert('Pilih varian dulu!'); }
     return;
@@ -6528,13 +6615,15 @@ window.vinzBulkAction = function(isAvail){
     try{ showNotif('❌ Pilih payment dulu!'); }catch(e){ alert('Pilih payment dulu!'); }
     return;
   }
+  const prods = (typeof getProducts==='function') ? getProducts() : [];
+  const prodLabel = _bulkProd === '__ALL__' ? 'SEMUA PRODUK' : (prods.find(x=>x.id===_bulkProd)||{name:_bulkProd}).name;
   const varLabel = _bulkVar === '__ALL__' ? 'SEMUA VARIAN' : _bulkVar;
   const payLabel = Array.from(_bulkPay).join('+').toUpperCase();
   const statusLabel = isAvail ? 'READY ✅' : 'HABIS 🚫';
-  const confirm_ = confirm(`Tandai ${statusLabel} untuk:\nVarian: ${varLabel}\nPayment: ${payLabel}\n\nLanjutkan?`);
+  const confirm_ = confirm(`Tandai ${statusLabel} untuk:\nProduk: ${prodLabel}\nVarian: ${varLabel}\nPayment: ${payLabel}\n\nLanjutkan?`);
   if(!confirm_) return;
-  const n = window.vinzBulkSet(_bulkVar, Array.from(_bulkPay), isAvail);
-  try{ showNotif(`${isAvail?'✅':'🚫'} ${varLabel} · ${payLabel} → ${isAvail?'READY':'HABIS'}`); }catch(e){}
+  const n = window.vinzBulkSet(_bulkProd, _bulkVar, Array.from(_bulkPay), isAvail);
+  try{ showNotif(`${isAvail?'✅':'🚫'} ${prodLabel} · ${varLabel} · ${payLabel} → ${isAvail?'READY':'HABIS'}`); }catch(e){}
   updateBulkInfo();
 };
 
@@ -6550,7 +6639,7 @@ function tryInject(){
 }
 setInterval(()=>{
   tryInject();
-  if(_injected) renderBulkVarBtns(); // refresh varian list setiap 3 detik
+  if(_injected) renderBulkProdBtns(); // refresh produk list setiap 3 detik
 }, 3000);
 setTimeout(tryInject, 1500);
 
