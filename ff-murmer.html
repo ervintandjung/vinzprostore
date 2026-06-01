@@ -1374,9 +1374,32 @@ async function loadAdmTrx() {
 
 async function deleteAkun(id) {
   if (!confirm('Hapus akun ini?')) return;
-  const r = await sb(`ff_accounts?id=eq.${id}`, { method:'DELETE', prefer:'return=minimal' });
-  if (r !== null) { notif('🗑 Akun dihapus!'); await loadAccountsAdmin(); }
-  else notif('❌ Gagal hapus!');
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/ff_accounts?id=eq.' + id, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      }
+    });
+    if (res.ok || res.status === 204 || res.status === 200) {
+      notif('🗑 Akun berhasil dihapus!');
+      await loadAccountsAdmin();
+    } else {
+      const errText = await res.text();
+      console.error('Delete error:', res.status, errText);
+      if (res.status === 403 || res.status === 401) {
+        notif('❌ Akses ditolak! Cek RLS Supabase.');
+      } else {
+        notif('❌ Gagal hapus! Status: ' + res.status);
+      }
+    }
+  } catch(e) {
+    console.error('Delete exception:', e);
+    notif('❌ Gagal hapus: ' + e.message);
+  }
 }
 
 
