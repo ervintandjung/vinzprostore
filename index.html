@@ -1398,6 +1398,7 @@ function compressImage(dataUrl, maxWidth, maxHeight, quality, callback) {
 // ══════════════════════════════
 let _productsCache = null;
 let _productsSaveTimer = null;
+let _cloudLoaded = false; // Supabase products sudah ke-load? Guard untuk cegah overwrite.
 
 function getProducts() {
   if (_productsCache) return _productsCache;
@@ -1412,6 +1413,13 @@ function getProducts() {
 function setProducts(arr) {
   _productsCache = arr;
   try { localStorage.setItem('vp_prods', JSON.stringify(arr)); } catch(e) {}
+  // GUARD: jangan tulis ke Supabase kalau cloud belum selesai di-load.
+  // Mencegah defaultProducts/localStorage stale nimpa data cloud yang valid.
+  if (!_cloudLoaded) {
+    console.warn('[setProducts] Cloud belum ter-load, skip sync ke Supabase (cegah overwrite).');
+    try { showNotif('⏳ Menunggu sinkronisasi cloud, perubahan belum disimpan ke server', 'var(--gold)'); } catch(e){}
+    return false;
+  }
   if (_productsSaveTimer) clearTimeout(_productsSaveTimer);
   _productsSaveTimer = setTimeout(() => {
     const payload = JSON.stringify(arr);
@@ -1428,20 +1436,40 @@ function setProducts(arr) {
 async function loadProductsFromCloud() {
   try {
     const { data, error } = await _sb.from('settings').select('value').eq('key', 'products').maybeSingle();
-    if (error) { console.warn('Cloud products err:', error); return; }
+    if (error) { console.warn('Cloud products err:', error); _cloudLoaded = true; return; }
     if (data && data.value) {
       try {
         const parsed = JSON.parse(data.value);
         if (Array.isArray(parsed) && parsed.length) {
           _productsCache = parsed;
           try { localStorage.setItem('vp_prods', data.value); } catch(e){}
+          _cloudLoaded = true;
           if (typeof renderProducts === 'function') renderProducts();
           if (typeof renderApProds === 'function') renderApProds();
           if (typeof renderApDelete === 'function') renderApDelete();
+          return;
         }
       } catch(e){ console.warn('Parse cloud products err:', e); }
     }
-  } catch(e) { console.warn('loadProductsFromCloud err:', e); }
+    // Cloud kosong / belum pernah ke-save. Tandai cloud sebagai loaded
+    // supaya setProducts() berikutnya bisa nge-save (initial seed).
+    _cloudLoaded = true;
+    // RECOVERY one-time: kalau localStorage punya produk lebih banyak dari
+    // defaultProducts, push ke cloud sekali biar nggak hilang lagi.
+    try {
+      const raw = localStorage.getItem('vp_prods');
+      if (raw) {
+        const local = JSON.parse(raw);
+        if (Array.isArray(local) && local.length > defaultProducts.length) {
+          console.log('[recovery] Cloud kosong, push localStorage (' + local.length + ' produk) ke Supabase.');
+          _sb.from('settings').upsert({ key: 'products', value: raw }).then(({error}) => {
+            if (error) console.warn('Recovery push err:', error);
+            else { try { showNotif('✅ Produk lokal berhasil di-restore ke cloud', 'var(--success)'); } catch(e){} }
+          });
+        }
+      }
+    } catch(e) {}
+  } catch(e) { console.warn('loadProductsFromCloud err:', e); _cloudLoaded = true; }
 }
 
 // ══════════════════════════════
@@ -3001,9 +3029,10 @@ async function initApp() {
   if (typeof renderBannerSlider === 'function') renderBannerSlider();
   loadBannersFromCloud();
 
-  // Load products (global) — render dari cache lokal dulu, lalu sync dari cloud
+  // Load products (global) — TUNGGU cloud dulu agar render pertama pakai data Supabase
+  // (cegah race condition: setProducts dipanggil sebelum cloud loaded -> overwrite cloud)
+  await loadProductsFromCloud();
   await initProducts();
-  loadProductsFromCloud();
 }
 
 
