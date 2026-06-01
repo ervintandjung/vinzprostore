@@ -170,7 +170,7 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
 .btn-copy{background:none;border:none;color:var(--accent2);cursor:pointer;font-size:15px;}
 
 /* ===== USER PANEL ===== */
-#userPanel{display:none;position:fixed;inset:0;background:var(--primary);z-index:400;overflow-y:auto;}
+#userPanel{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;background:var(--primary);z-index:400;overflow-y:auto;}
 #userPanel.open{display:block;animation:fsSlide .3s ease;}
 @keyframes fsSlide{from{transform:translateX(100%)}to{transform:translateX(0)}}
 .panel-header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:2px solid var(--accent);padding:0 14px;display:flex;align-items:center;gap:12px;height:56px;position:sticky;top:0;z-index:10;}
@@ -190,7 +190,7 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
 .trx-status{font-size:10px;font-family:'Orbitron',sans-serif;}
 
 /* ===== ADMIN PANEL ===== */
-#adminPanel{display:none;position:fixed;inset:0;background:var(--primary);z-index:400;overflow-y:auto;}
+#adminPanel{display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;background:var(--primary);z-index:400;overflow-y:auto;}
 #adminPanel.open{display:block;animation:fsSlide .3s ease;}
 .admin-section{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;}
 .admin-sec-title{color:var(--accent2);font-size:10px;font-weight:700;margin-bottom:10px;font-family:'Orbitron',sans-serif;}
