@@ -858,6 +858,33 @@ renderBannerSlider();
   </div>
 </div>
 
+<!-- WA EMAIL MODAL (APK Premium — hanya email) -->
+<div id="waEmailModal" style="display:none;position:fixed;inset:0;z-index:700;align-items:center;justify-content:center;background:rgba(2,8,20,0.85);backdrop-filter:blur(10px);padding:20px;">
+  <div class="apk-modal-box">
+    <div class="apk-modal-header">
+      <div class="apk-modal-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--wa)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div>
+        <div class="apk-modal-ttl">ORDER VIA WHATSAPP</div>
+        <div class="apk-modal-sub" id="waEmailModalSub">Masukkan email sebelum lanjut ke WA</div>
+      </div>
+    </div>
+
+    <div class="apk-modal-lbl">Email Akun Aktif (untuk aktivasi premium)</div>
+    <input class="apk-modal-inp" id="waEmailModalInput" type="email" placeholder="Contoh: email@kamu.com">
+
+    <div class="apk-modal-warn">
+      ⚠️ Pastikan email yang kamu masukkan <strong>aktif dan benar</strong>. Email ini akan dikirim ke admin via WhatsApp untuk proses aktivasi akun premium.
+    </div>
+
+    <button class="apk-modal-btn" style="background:linear-gradient(135deg,#128C7E,#25D366);" onclick="window._waEmailModalConfirm && window._waEmailModalConfirm()">
+      💬 LANJUT KE WHATSAPP
+    </button>
+    <button class="apk-modal-btn-cancel" onclick="window.closeWaEmailModal()">Batal</button>
+  </div>
+</div>
+
 <!-- AUTH MODAL -->
 <div class="overlay" id="authOverlay">
   <div class="auth-modal">
@@ -3642,6 +3669,27 @@ window._openApkModal = function(methodLabel, onConfirm){
   requestAnimationFrame(()=>{ m.classList.add('open'); });
 };
 
+// ── WA Email Modal (APK Premium — hanya email) ──
+window.closeWaEmailModal = function(){
+  const m = document.getElementById('waEmailModal');
+  if(m){ m.style.display='none'; }
+  window._waEmailModalConfirm = null;
+};
+window._openWaEmailModal = function(onConfirm){
+  const m = document.getElementById('waEmailModal');
+  if(!m) return onConfirm && onConfirm('');
+  const inp = document.getElementById('waEmailModalInput');
+  if(inp) inp.value = '';
+  window._waEmailModalConfirm = function(){
+    const emVal = (document.getElementById('waEmailModalInput').value||'').trim();
+    if(!emVal || !emVal.includes('@')){ showNotif('⚠️ Masukkan email aktif yang valid!'); document.getElementById('waEmailModalInput').focus(); return; }
+    window.closeWaEmailModal();
+    onConfirm && onConfirm(emVal);
+  };
+  m.style.display = 'flex';
+  requestAnimationFrame(()=>{ m.style.display='flex'; });
+};
+
 function selectPayMethod(m){
   selectedPayMethod = m;
   document.querySelectorAll('.pm-card').forEach(c => {
@@ -3695,12 +3743,20 @@ function _execOrder(){
 function doPesan(){
   if (!selectedPayMethod){ showNotif('⚠️ Pilih cara pembayaran dulu'); return; }
   const isQris = (selectedPayMethod === 'qris' || selectedPayMethod === 'qris_xendit');
+  const isWa = (selectedPayMethod === 'wa');
   try {
     const prod = getProducts().find(x => x.id === selProdId);
     const isApk = prod && prod.cat && prod.cat.toLowerCase().includes('apk');
     if (isApk && isQris) {
       const label = selectedPayMethod === 'qris_xendit' ? 'QRIS Xendit' : 'QRIS Duitku';
       window._openApkModal(label, _execOrder);
+      return;
+    }
+    if (isApk && isWa) {
+      window._openWaEmailModal(function(email){
+        window._waOrderEmail = email;
+        _execOrder();
+      });
       return;
     }
   } catch(e){}
@@ -4575,9 +4631,11 @@ function doPesan(){
       `📦 *Produk:* ${p.name}\n`+
       `⏱️ *Varian:* ${v.n}\n`+
       `🔢 *Jumlah:* ${qty}x\n`+
-      `💰 *Total:* ${totalStr}\n\n`+
-      `Mohon konfirmasi & info pembayaran. Terima kasih! 🙏`
+      `💰 *Total:* ${totalStr}\n`+
+      (window._waOrderEmail ? `📧 *Email Akun:* ${window._waOrderEmail}\n` : ``)+
+      `\nMohon konfirmasi & info pembayaran. Terima kasih! 🙏`
     );
+    window._waOrderEmail = '';
     const wa = (typeof waNum!=='undefined' && waNum) ? waNum : '6285954741269';
     window.open('https://wa.me/'+wa+'?text='+msg, '_blank');
 
@@ -7532,7 +7590,7 @@ function payXenditDone(){
     requestAnimationFrame(() => m.classList.add('open'));
   };
 
-  // Override doPesan agar muncul popup dulu saat QRIS
+  // Override doPesan agar muncul popup dulu saat QRIS / WA
   const _origDoPesan = window.doPesan;
   window.doPesan = function(){
     const sel = window.selectedPayMethod;
@@ -7551,6 +7609,20 @@ function payXenditDone(){
           else if(sel === 'qris' && typeof window.orderQRIS === 'function') window.orderQRIS();
         }
       });
+    } else if(sel === 'wa'){
+      try {
+        const prod = (typeof getProducts==='function' && typeof selProdId!=='undefined')
+          ? getProducts().find(x => x.id === selProdId) : null;
+        const isApk = prod && prod.cat && prod.cat.toLowerCase().includes('apk');
+        if(isApk && typeof window._openWaEmailModal === 'function'){
+          window._openWaEmailModal(function(email){
+            window._waOrderEmail = email;
+            if(typeof window.orderWA === 'function') window.orderWA();
+          });
+          return;
+        }
+      } catch(e){}
+      _origDoPesan && _origDoPesan();
     } else {
       _origDoPesan && _origDoPesan();
     }
