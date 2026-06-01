@@ -247,8 +247,12 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 .ap-header h2{font-family:'Orbitron',sans-serif;font-size:15px;color:var(--gold);display:flex;align-items:center;gap:8px;}
 .btn-close-ap{background:var(--danger);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer;}
 .ap-body{max-width:480px;margin:0 auto;padding:16px 14px 60px;}
-.ap-card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid var(--border);}
-.ap-card h3{font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:13px;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:6px;}
+.ap-card{background:var(--card);border-radius:14px;padding:0;margin-bottom:14px;border:1px solid var(--border);overflow:hidden;}
+.ap-card h3{font-size:12px;font-weight:700;color:var(--accent2);margin:0;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:6px;padding:14px 16px;cursor:pointer;user-select:none;justify-content:space-between;}
+.ap-card h3 .ac-arrow{font-size:10px;color:var(--muted);transition:transform .25s;margin-left:auto;flex-shrink:0;}
+.ap-card.ac-open h3 .ac-arrow{transform:rotate(180deg);}
+.ap-card-body{display:none;padding:0 16px 16px;}
+.ap-card.ac-open .ap-card-body{display:block;}
 .ap-input{width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:9px 12px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:10px;}
 .ap-input:focus{outline:none;border-color:var(--accent);}
 .ap-save{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.8px;}
@@ -1062,30 +1066,39 @@ renderBannerSlider();
       <div id="devList" style="font-size:12px;color:var(--muted);">Klik Refresh buat muat data.</div>
     </div>
     <div class="ap-card">
-      <h3>📱 Nomor WhatsApp Order</h3>
+      <h3 onclick="toggleApCard(this)">📱 Nomor WhatsApp Order<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
       <input class="ap-input" id="apWa" placeholder="6285954741269">
       <button class="ap-save" onclick="apSaveWa()">💾 SIMPAN NOMOR WA</button>
+      </div>
     </div>
     <div class="ap-card">
-      <h3>📢 Teks Ticker Berjalan</h3>
+      <h3 onclick="toggleApCard(this)">📢 Teks Ticker Berjalan<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
       <input class="ap-input" id="apTicker" placeholder="Teks banner berjalan...">
       <button class="ap-save" onclick="apSaveTicker()">💾 SIMPAN TICKER</button>
+      </div>
     </div>
         <div class="ap-card">
-      <h3>🖼️ Banner Slideshow</h3>
+      <h3 onclick="toggleApCard(this)">🖼️ Banner Slideshow<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Upload gambar banner (bisa lebih dari 1). Banner ini tampil di halaman utama untuk SEMUA pengunjung.</div>
       <div id="apBannerList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
       <input type="file" id="apBannerFile" accept="image/*" style="display:none;" onchange="apBannerUpload()">
       <label for="apBannerFile" style="display:block;width:100%;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:10px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:6px;font-family:'Rajdhani',sans-serif;">📁 UPLOAD BANNER BARU</label>
       <input type="text" id="apBannerUrl" class="ap-input" placeholder="Atau paste URL gambar banner...">
       <button class="ap-save" onclick="apBannerAddUrl()" style="background:var(--accent2);color:#000;">➕ TAMBAH BANNER VIA URL</button>
+      </div>
     </div>
     <div class="ap-card">
-      <h3>💰 Edit Harga & Foto Produk</h3>
+      <h3 onclick="toggleApCard(this)">💰 Edit Harga & Foto Produk<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
       <div id="apProdList"></div>
+      </div>
     </div>
     <div class="ap-card">
-      <h3>➕ Tambah Produk Baru</h3>
+      <h3 onclick="toggleApCard(this)">➕ Tambah Produk Baru<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
       <input class="ap-input" id="npName" placeholder="Nama produk">
       <select class="ap-input" id="npCat" style="cursor:pointer" onchange="npCatToggle()">
         <option value="free fire">Free Fire</option>
@@ -1139,22 +1152,28 @@ renderBannerSlider();
         <img id="npImgPreview" style="display:none;width:60px;height:60px;border-radius:8px;object-fit:cover;">
       </div>
       <button class="ap-save" onclick="apAddProduct()" style="background:var(--success);color:#000;">➕ TAMBAH PRODUK</button>
+      </div>
     </div>
     <div class="ap-card">
-      <h3>🗑️ Hapus Produk</h3>
+      <h3 onclick="toggleApCard(this)">🗑️ Hapus Produk<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
       <div id="apDeleteList"></div>
+      </div>
     </div>
     <div class="ap-card">
-      <h3>🧪 QR Simulasi (Mock Payment)</h3>
+      <h3 onclick="toggleApCard(this)">🧪 QR Simulasi (Mock Payment)<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
       <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px;">Aktifkan saat gateway QRIS asli belum siap. Saat <b>ON</b>: user yg klik "Sudah Bayar" otomatis sukses + dapat key.</div>
       <label style="display:flex;align-items:center;gap:10px;background:var(--secondary);border:1px solid var(--border);border-radius:9px;padding:10px 12px;cursor:pointer;">
         <input type="checkbox" id="apQrSim" onchange="apSaveQrSim()" style="width:18px;height:18px;cursor:pointer;">
         <span style="flex:1;font-size:13px;font-weight:700;color:#fff;">Aktifkan QR Simulasi</span>
         <span id="apQrSimBadge" style="font-size:10px;font-weight:900;padding:3px 9px;border-radius:6px;background:var(--danger);color:#fff;font-family:'Orbitron',sans-serif;">OFF</span>
       </label>
+      </div>
     </div>
     <div class="ap-card">
-      <h3>🔑 Kelola Key Produk</h3>
+      <h3 onclick="toggleApCard(this)">🔑 Kelola Key Produk<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Pilih produk & varian, lalu tambah key (1 baris = 1 key). Key terjual otomatis ditandai <b>SOLD</b>.</div>
       <select class="ap-input" id="kmProd" onchange="renderKeyManager()"></select>
       <select class="ap-input" id="kmVar" onchange="renderKeyManager()"></select>
@@ -1163,6 +1182,7 @@ renderBannerSlider();
       <div id="kmStats" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;"></div>
       <button onclick="kmDeleteSold()" style="width:100%;background:var(--danger);color:#fff;border:none;border-radius:9px;padding:9px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;margin-bottom:10px;">🗑️ HAPUS SEMUA KEY YANG SOLD</button>
       <div id="kmList" style="max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:9px;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -2471,6 +2491,7 @@ function _openAdminPanelNow(){
   renderApProds();
   renderApDelete();
   if (typeof renderApBanners === 'function') renderApBanners();
+  setTimeout(wrapApCardBodies, 100);
 }
 
 // ── Admin password modal helpers ──
@@ -2732,6 +2753,31 @@ function updateImgPreview(id, src) {
   }
 }
 
+function toggleApCard(h3){
+  const card = h3.closest('.ap-card');
+  if(!card) return;
+  card.classList.toggle('ac-open');
+}
+// Auto-wrap dynamically injected ap-card h3 content with ac-body
+function wrapApCardBodies(){
+  document.querySelectorAll('.ap-card').forEach(card => {
+    if(card.querySelector('.ap-card-body')) return; // sudah dibungkus
+    const h3 = card.querySelector('h3');
+    if(!h3) return;
+    if(!h3.querySelector('.ac-arrow')){
+      const arrow = document.createElement('span');
+      arrow.className = 'ac-arrow';
+      arrow.textContent = '▼';
+      h3.appendChild(arrow);
+      h3.style.cursor = 'pointer';
+      h3.onclick = function(){ toggleApCard(this); };
+    }
+    const body = document.createElement('div');
+    body.className = 'ap-card-body';
+    while(h3.nextSibling) body.appendChild(h3.nextSibling);
+    card.appendChild(body);
+  });
+}
 function apSaveWa() {
   const v = document.getElementById('apWa').value.trim();
   if (v) {
@@ -4673,6 +4719,7 @@ function doPesan(){
       <div id="apTrxList" style="max-height:480px;overflow-y:auto;"></div>
     `;
     body.appendChild(card);
+    setTimeout(()=>{ if(typeof wrapApCardBodies==='function') wrapApCardBodies(); }, 50);
   }
 
   let _trxFilter = 'all';
@@ -6017,6 +6064,7 @@ function doPesan(){
       body.appendChild(card);
       renderAdminTopups();
       fetchTopupsFromDB();
+      setTimeout(()=>{ if(typeof wrapApCardBodies==='function') wrapApCardBodies(); }, 50);
     }
   }
   const _origOpenAdmin = window.openAdmin;
