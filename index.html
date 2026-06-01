@@ -6290,7 +6290,7 @@ function doPesan(){
   function _g(K){ try{ return JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){ return {}; } }
   function _s(K,o){ try{ localStorage.setItem(K, JSON.stringify(o)); }catch(e){} }
   function _k(p,v){ return p+'::'+v; }
-  window._xenditAvail  = (p,v)=>{ const o=_g(XN_KEY); const k=_k(p,v); return o[k]===undefined?true:!!o[k]; };
+  window._xenditAvail  = (p,v)=>{ const o=_g(XN_KEY); const k=_k(p,v); return o[k]===undefined?false:!!o[k]; };
   window._xenditSet    = (p,v,b)=>{ const o=_g(XN_KEY); o[_k(p,v)]=!!b; _s(XN_KEY,o); };
   window._duitkuAvail  = (p,v)=>{ const o=_g(DK_KEY); const k=_k(p,v); return o[k]===undefined?true:!!o[k]; };
   window._duitkuSet    = (p,v,b)=>{ const o=_g(DK_KEY); o[_k(p,v)]=!!b; _s(DK_KEY,o); };
