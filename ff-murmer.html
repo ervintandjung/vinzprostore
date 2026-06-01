@@ -25,8 +25,8 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 .logo-wrap{display:flex;align-items:center;gap:9px;}
 .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-weight:900;font-size:11px;color:#fff;box-shadow:0 0 14px rgba(26,111,255,0.5);}
 .logo-text{font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;background:linear-gradient(90deg,#fff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.header-right{display:flex;align-items:center;gap:8px;}
-.avail-dot{color:var(--success);font-size:11px;}
+.header-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.avail-dot{color:var(--success);font-size:10px;white-space:nowrap;}
 .btn-login-hdr{background:transparent;border:1.5px solid var(--accent);color:var(--accent);padding:5px 12px;border-radius:7px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;cursor:pointer;transition:.2s;}
 .btn-login-hdr:hover{background:rgba(26,111,255,0.1);}
 .btn-daftar-hdr{background:var(--accent);border:none;color:#fff;padding:5px 12px;border-radius:7px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;cursor:pointer;}
@@ -293,11 +293,14 @@ footer{border-top:1px solid var(--border);padding:16px;text-align:center;color:v
   <div class="header-inner">
     <div class="logo-wrap">
       <div class="logo-icon">FF</div>
-      <span class="logo-text">FF STORE</span>
+      <div>
+        <span class="logo-text">FF STORE</span>
+        <div style="color:var(--success);font-size:9px;font-weight:700;margin-top:1px">● <span class="avail-count-val">0</span> Tersedia</div>
+      </div>
     </div>
     <div class="header-right" id="header-right">
-      <span class="avail-dot">● <span id="avail-count">0</span> Tersedia</span>
-      <!-- rendered by renderHeader() -->
+      <button class="btn-login-hdr" onclick="openAuth('masuk')">Masuk</button>
+      <button class="btn-daftar-hdr" onclick="openAuth('daftar')">Daftar</button>
     </div>
   </div>
 </header>
@@ -750,28 +753,30 @@ async function sendOTP(toEmail, toName, code, subject) {
 // HEADER RENDER
 // ============================================================
 function renderHeader() {
-  const el = document.getElementById('header-right');
-  const avail = `<span class="avail-dot">● <span id="avail-count">${accounts.filter(a=>!a.sold).length}</span> Tersedia</span>`;
+  try {
+  const el = document.getElementById('header-right'); if(!el) return;
+  const availCount = accounts.filter(a=>!a.sold).length;
+  // update standalone avail count (in logo area)
+  document.querySelectorAll('.avail-count-val').forEach(e=>e.textContent=availCount);
   if (!currentUser) {
-    el.innerHTML = avail +
+    el.innerHTML =
       `<button class="btn-login-hdr" onclick="openAuth('masuk')">Masuk</button>` +
       `<button class="btn-daftar-hdr" onclick="openAuth('daftar')">Daftar</button>`;
   } else {
     const isSA = currentUser.email === SUPERADMIN_EMAIL;
     const initials = (currentUser.name||'?').charAt(0).toUpperCase();
-    el.innerHTML = avail +
-      `<div class="avatar-wrap">
+    el.innerHTML = `<div class="avatar-wrap">
         <div class="avatar${isSA?' superadmin':''}" onclick="toggleUserDD()">${initials}</div>
         <div class="user-dropdown" id="user-dd">
           <div class="dd-user"><strong>${currentUser.name}</strong>${currentUser.email}</div>
-          <button class="dd-item" onclick="openUserPanel()">👤 Profil & Riwayat</button>
-          ${isSA ? `<button class="dd-item gold" onclick="openAdminPanel()">⚙️ Admin Panel</button>` : ''}
-          <button class="dd-item danger" onclick="doLogout()">🚪 Keluar</button>
+          <button class="dd-item" onclick="openUserPanel()">Profil & Riwayat</button>
+          ${isSA ? `<button class="dd-item gold" onclick="openAdminPanel()">Admin Panel</button>` : ''}
+          <button class="dd-item danger" onclick="doLogout()">Keluar</button>
         </div>
       </div>`;
   }
+  } catch(e) { console.error("renderHeader error:", e); }
 }
-
 function toggleUserDD() {
   document.getElementById('user-dd')?.classList.toggle('open');
 }
@@ -1085,7 +1090,7 @@ function crUpdate(id){
 
 function updateAvailCount() {
   const n = accounts.filter(a=>!a.sold).length;
-  document.querySelectorAll('#avail-count').forEach(el=>el.textContent=n);
+  document.querySelectorAll('.avail-count-val').forEach(el=>el.textContent=n);
 }
 
 function renderAccounts(list) {
