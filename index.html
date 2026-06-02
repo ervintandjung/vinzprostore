@@ -6350,31 +6350,18 @@ function doPesan(){
         '<button onclick="'+toggleFn+'()" style="margin-left:auto;background:'+(isOk?'#ff4757':'#00ff88')+';color:'+(isOk?'#fff':'#000')+';border:none;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;cursor:pointer;">'+
           (isOk?offLbl:onLbl)+'</button>';
     }
-    rowFor('kmXendtToggle', '⚡ QRIS XENDIT:',
+    rowFor('kmQrisToggle', '💠 QRIS:',
       window._xenditAvail(pid, vn),
-      'TANDAI XENDIT READY', 'TANDAI XENDIT HABIS', 'kmToggleXendit');
-    rowFor('kmDuitkuToggle', '💚 QRIS DUITKU:',
-      window._duitkuAvail(pid, vn),
-      'TANDAI DUITKU READY', 'TANDAI DUITKU HABIS', 'kmToggleDuitku');
+      'TANDAI QRIS READY', 'TANDAI QRIS HABIS', 'kmToggleQris');
   }
-  window.kmToggleXendit = function(){
+  window.kmToggleQris = function(){
     const pid = parseInt(document.getElementById('kmProd').value);
     const vn  = document.getElementById('kmVar').value;
     if (!pid || !vn) return;
     const cur = window._xenditAvail(pid, vn);
     window._xenditSet(pid, vn, !cur);
-    try { showNotif(!cur?'✅ QRIS Xendit TERSEDIA':'⚠️ QRIS Xendit HABIS'); } catch(e){}
-    ensureExtraToggles();
-    try { refreshPayMethodAvailability(); } catch(e){}
-    try { const p = getProducts().find(x=>x.id===selProdId); if (p && typeof renderFsVars==='function') renderFsVars(p); } catch(e){}
-  };
-  window.kmToggleDuitku = function(){
-    const pid = parseInt(document.getElementById('kmProd').value);
-    const vn  = document.getElementById('kmVar').value;
-    if (!pid || !vn) return;
-    const cur = window._duitkuAvail(pid, vn);
     window._duitkuSet(pid, vn, !cur);
-    try { showNotif(!cur?'✅ QRIS Duitku TERSEDIA':'⚠️ QRIS Duitku HABIS'); } catch(e){}
+    try { showNotif(!cur?'✅ QRIS TERSEDIA':'⚠️ QRIS HABIS'); } catch(e){}
     ensureExtraToggles();
     try { refreshPayMethodAvailability(); } catch(e){}
     try { const p = getProducts().find(x=>x.id===selProdId); if (p && typeof renderFsVars==='function') renderFsVars(p); } catch(e){}
@@ -6486,8 +6473,7 @@ function injectBulkCard(){
         <div style="font-family:'Orbitron',sans-serif;font-size:10px;color:#00d4ff;letter-spacing:1px;margin-bottom:6px;">③ PILIH PAYMENT</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button id="bpWa" onclick="vinzBulkTogglePay('wa')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #25D366;background:rgba(37,211,102,.15);color:#25D366;cursor:pointer;transition:.2s;">📱 WA</button>
-          <button id="bpXendit" onclick="vinzBulkTogglePay('xendit')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #7c3aed;background:rgba(124,58,237,.15);color:#a78bfa;cursor:pointer;transition:.2s;">⚡ XENDIT</button>
-          <button id="bpDuitku" onclick="vinzBulkTogglePay('duitku')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #22c55e;background:rgba(34,197,94,.15);color:#22c55e;cursor:pointer;transition:.2s;">💚 DUITKU</button>
+          <button id="bpQris" onclick="vinzBulkTogglePay('qris')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #00d4ff;background:rgba(0,212,255,.15);color:#00d4ff;cursor:pointer;transition:.2s;">💠 QRIS</button>
           <button id="bpAll" onclick="vinzBulkTogglePay('all')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #ffd700;background:rgba(255,215,0,.1);color:#ffd700;cursor:pointer;transition:.2s;">🌟 SEMUA</button>
         </div>
       </div>
@@ -6617,17 +6603,26 @@ window.vinzBulkSelVar = function vinzBulkSelVar(n){
 };
 
 window.vinzBulkTogglePay = function(type){
+  const ALL = ['wa','xendit','duitku'];
   if(type === 'all'){
     if(_bulkPay.size === 3){ _bulkPay.clear(); }
-    else{ _bulkPay = new Set(['wa','xendit','duitku']); }
+    else{ _bulkPay = new Set(ALL); }
+  } else if(type === 'qris'){
+    const on = _bulkPay.has('xendit') && _bulkPay.has('duitku');
+    if(on){ _bulkPay.delete('xendit'); _bulkPay.delete('duitku'); }
+    else { _bulkPay.add('xendit'); _bulkPay.add('duitku'); }
   } else {
     if(_bulkPay.has(type)) _bulkPay.delete(type); else _bulkPay.add(type);
   }
   // update button styles
-  ['wa','xendit','duitku'].forEach(t=>{
-    const btn = document.getElementById('bp'+t.charAt(0).toUpperCase()+t.slice(1));
+  const btnStates = {
+    bpWa: _bulkPay.has('wa'),
+    bpQris: _bulkPay.has('xendit') && _bulkPay.has('duitku'),
+  };
+  Object.keys(btnStates).forEach(id=>{
+    const btn = document.getElementById(id);
     if(!btn) return;
-    const on = _bulkPay.has(t);
+    const on = btnStates[id];
     btn.style.opacity = on ? '1' : '.45';
     btn.style.transform = on ? 'scale(1.04)' : 'scale(1)';
   });
