@@ -774,11 +774,18 @@ renderBannerSlider();
   <div style="padding:8px 14px 130px;">
     <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:12px;color:#fff;letter-spacing:1.5px;margin-bottom:8px;">PILIH CARA PEMBAYARAN</div>
     <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="pm-card" data-method="qris_xendit" onclick="selectPayMethod('qris_xendit')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
+        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#6b3fa0,#9b59b6);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
+        </div>
+        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS <span style="font-size:9px;background:#6b3fa0;color:#fff;padding:1px 7px;border-radius:4px;margin-left:4px;">XENDIT</span></div><div style="font-size:10px;color:var(--muted);">Otomatis · GoPay, OVO, Dana, dll</div></div>
+        <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
+      </div>
       <div class="pm-card" data-method="qris" onclick="selectPayMethod('qris')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
         <div style="width:36px;height:36px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0050dd" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
         </div>
-        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS</div><div style="font-size:10px;color:var(--muted);">Bayar via scan QR · Semua e-wallet</div></div>
+        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS <span style="font-size:9px;background:#0050dd;color:#fff;padding:1px 7px;border-radius:4px;margin-left:4px;">DUITKU</span></div><div style="font-size:10px;color:var(--muted);">Bayar via scan QR · Semua e-wallet</div></div>
         <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
       </div>
       <div class="pm-card" data-method="wa" onclick="selectPayMethod('wa')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
@@ -6350,18 +6357,31 @@ function doPesan(){
         '<button onclick="'+toggleFn+'()" style="margin-left:auto;background:'+(isOk?'#ff4757':'#00ff88')+';color:'+(isOk?'#fff':'#000')+';border:none;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;cursor:pointer;">'+
           (isOk?offLbl:onLbl)+'</button>';
     }
-    rowFor('kmQrisToggle', '💠 QRIS:',
+    rowFor('kmXendtToggle', '⚡ QRIS XENDIT:',
       window._xenditAvail(pid, vn),
-      'TANDAI QRIS READY', 'TANDAI QRIS HABIS', 'kmToggleQris');
+      'TANDAI XENDIT READY', 'TANDAI XENDIT HABIS', 'kmToggleXendit');
+    rowFor('kmDuitkuToggle', '💚 QRIS DUITKU:',
+      window._duitkuAvail(pid, vn),
+      'TANDAI DUITKU READY', 'TANDAI DUITKU HABIS', 'kmToggleDuitku');
   }
-  window.kmToggleQris = function(){
+  window.kmToggleXendit = function(){
     const pid = parseInt(document.getElementById('kmProd').value);
     const vn  = document.getElementById('kmVar').value;
     if (!pid || !vn) return;
     const cur = window._xenditAvail(pid, vn);
     window._xenditSet(pid, vn, !cur);
+    try { showNotif(!cur?'✅ QRIS Xendit TERSEDIA':'⚠️ QRIS Xendit HABIS'); } catch(e){}
+    ensureExtraToggles();
+    try { refreshPayMethodAvailability(); } catch(e){}
+    try { const p = getProducts().find(x=>x.id===selProdId); if (p && typeof renderFsVars==='function') renderFsVars(p); } catch(e){}
+  };
+  window.kmToggleDuitku = function(){
+    const pid = parseInt(document.getElementById('kmProd').value);
+    const vn  = document.getElementById('kmVar').value;
+    if (!pid || !vn) return;
+    const cur = window._duitkuAvail(pid, vn);
     window._duitkuSet(pid, vn, !cur);
-    try { showNotif(!cur?'✅ QRIS TERSEDIA':'⚠️ QRIS HABIS'); } catch(e){}
+    try { showNotif(!cur?'✅ QRIS Duitku TERSEDIA':'⚠️ QRIS Duitku HABIS'); } catch(e){}
     ensureExtraToggles();
     try { refreshPayMethodAvailability(); } catch(e){}
     try { const p = getProducts().find(x=>x.id===selProdId); if (p && typeof renderFsVars==='function') renderFsVars(p); } catch(e){}
@@ -6473,7 +6493,8 @@ function injectBulkCard(){
         <div style="font-family:'Orbitron',sans-serif;font-size:10px;color:#00d4ff;letter-spacing:1px;margin-bottom:6px;">③ PILIH PAYMENT</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button id="bpWa" onclick="vinzBulkTogglePay('wa')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #25D366;background:rgba(37,211,102,.15);color:#25D366;cursor:pointer;transition:.2s;">📱 WA</button>
-          <button id="bpQris" onclick="vinzBulkTogglePay('qris')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #00d4ff;background:rgba(0,212,255,.15);color:#00d4ff;cursor:pointer;transition:.2s;">💠 QRIS</button>
+          <button id="bpXendit" onclick="vinzBulkTogglePay('xendit')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #7c3aed;background:rgba(124,58,237,.15);color:#a78bfa;cursor:pointer;transition:.2s;">⚡ XENDIT</button>
+          <button id="bpDuitku" onclick="vinzBulkTogglePay('duitku')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #22c55e;background:rgba(34,197,94,.15);color:#22c55e;cursor:pointer;transition:.2s;">💚 DUITKU</button>
           <button id="bpAll" onclick="vinzBulkTogglePay('all')" style="font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;border:1.5px solid #ffd700;background:rgba(255,215,0,.1);color:#ffd700;cursor:pointer;transition:.2s;">🌟 SEMUA</button>
         </div>
       </div>
@@ -6603,26 +6624,17 @@ window.vinzBulkSelVar = function vinzBulkSelVar(n){
 };
 
 window.vinzBulkTogglePay = function(type){
-  const ALL = ['wa','xendit','duitku'];
   if(type === 'all'){
     if(_bulkPay.size === 3){ _bulkPay.clear(); }
-    else{ _bulkPay = new Set(ALL); }
-  } else if(type === 'qris'){
-    const on = _bulkPay.has('xendit') && _bulkPay.has('duitku');
-    if(on){ _bulkPay.delete('xendit'); _bulkPay.delete('duitku'); }
-    else { _bulkPay.add('xendit'); _bulkPay.add('duitku'); }
+    else{ _bulkPay = new Set(['wa','xendit','duitku']); }
   } else {
     if(_bulkPay.has(type)) _bulkPay.delete(type); else _bulkPay.add(type);
   }
   // update button styles
-  const btnStates = {
-    bpWa: _bulkPay.has('wa'),
-    bpQris: _bulkPay.has('xendit') && _bulkPay.has('duitku'),
-  };
-  Object.keys(btnStates).forEach(id=>{
-    const btn = document.getElementById(id);
+  ['wa','xendit','duitku'].forEach(t=>{
+    const btn = document.getElementById('bp'+t.charAt(0).toUpperCase()+t.slice(1));
     if(!btn) return;
-    const on = btnStates[id];
+    const on = _bulkPay.has(t);
     btn.style.opacity = on ? '1' : '.45';
     btn.style.transform = on ? 'scale(1.04)' : 'scale(1)';
   });
@@ -7691,109 +7703,6 @@ function closePusatInfo(){
 }
 </script>
 
-<!-- ════════ QRIS.PW REAL PAYMENT INTEGRATION ════════ -->
-<script>
-(function(){
-  const QRIS_API_KEY = '573c25faa19efd4e03d8b29d9a191e66d99a12aae84f4b7787b20caa162a241c';
-  const QRIS_API_SECRET = 'bdd265660fe0e77c93dbf1f95722ccd3857ed59cd8a70be0c26ed01bbec1e263';
-  const QRIS_ENDPOINT = 'https://qris.pw/api/create-payment.php';
-  const QRIS_CHECK = 'https://qris.pw/api/check-payment.php';
-
-  // Disable simulasi blocker (so real QRIS works regardless of sim toggle)
-  try { if (typeof window.getQrSim === 'function') window.getQrSim = function(){ return true; }; } catch(e){}
-
-  // Helper: call create-payment
-  async function createQrisPayment(amount, orderId){
-    const res = await fetch(QRIS_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': QRIS_API_KEY,
-        'X-API-Secret': QRIS_API_SECRET
-      },
-      body: JSON.stringify({ amount: Math.round(amount), order_id: orderId })
-    });
-    if (!res.ok) throw new Error('HTTP '+res.status);
-    const data = await res.json();
-    if (!data.success) throw new Error(data.message || 'Failed');
-    return data; // { transaction_id, qris_url, qris_string, ... }
-  }
-
-  // Poll status
-  const _pollers = {};
-  function startPolling(trxId, onPaid){
-    if (_pollers[trxId]) return;
-    _pollers[trxId] = setInterval(async () => {
-      try {
-        const r = await fetch(QRIS_CHECK + '?transaction_id=' + encodeURIComponent(trxId), {
-          headers: { 'X-API-Key': QRIS_API_KEY, 'X-API-Secret': QRIS_API_SECRET }
-        });
-        const d = await r.json();
-        if (d && d.status === 'paid'){
-          clearInterval(_pollers[trxId]); delete _pollers[trxId];
-          onPaid();
-        } else if (d && (d.status === 'expired' || d.status === 'failed' || d.status === 'cancelled')){
-          clearInterval(_pollers[trxId]); delete _pollers[trxId];
-        }
-      } catch(e){}
-    }, 4000);
-  }
-
-  // Wait until openQrSim & orderQRIS overrides exist, then wrap them
-  function patchWhenReady(){
-    if (typeof window.openQrSim !== 'function' || typeof window.orderQRIS !== 'function'){
-      return setTimeout(patchWhenReady, 200);
-    }
-    const _origOpen = window.openQrSim;
-    window.openQrSim = function(p, v, total, orderId){
-      // Call original to render UI (it will set a placeholder QR first)
-      _origOpen.apply(this, arguments);
-      // Cancel the auto-success simulasi timer (we want REAL payment)
-      try { clearTimeout(window._qrAutoOk); } catch(e){}
-      const img = document.getElementById('qrImgSim');
-      if (img){
-        img.style.opacity = '.35';
-        img.removeAttribute('src');
-      }
-      // Show "loading" hint
-      try {
-        const wait = document.getElementById('qrSimWait');
-        if (wait && !wait.querySelector('.qris-loading')){
-          const hint = document.createElement('div');
-          hint.className = 'qris-loading';
-          hint.style.cssText = 'text-align:center;font-size:11px;color:#1a6fff;margin:6px 16px 0;font-weight:700;';
-          hint.textContent = '⏳ Membuat QRIS...';
-          wait.insertBefore(hint, wait.firstChild);
-        }
-      } catch(e){}
-
-      createQrisPayment(total, orderId).then(data => {
-        if (img){
-          img.onerror = null;
-          img.src = data.qris_url;
-          img.style.opacity = '1';
-        }
-        const hint = document.querySelector('.qris-loading');
-        if (hint) hint.remove();
-        // Save trx id for polling
-        try { if (window._qrPending) window._qrPending.trxId = data.transaction_id; } catch(e){}
-        // Start polling — when paid, trigger the existing success flow
-        startPolling(data.transaction_id, () => {
-          try {
-            if (typeof window.qrSimShowOk === 'function') window.qrSimShowOk();
-            else if (typeof window.payQrisDone === 'function') window.payQrisDone();
-          } catch(e){}
-        });
-      }).catch(err => {
-        const hint = document.querySelector('.qris-loading');
-        if (hint){ hint.style.color = '#ff4757'; hint.textContent = '❌ Gagal QRIS: '+err.message; }
-        alert('Gagal membuat QRIS: '+err.message+'\n\n(Mungkin diblokir CORS — perlu dijalankan via server/proxy.)');
-      });
-    };
-  }
-  patchWhenReady();
-})();
-</script>
 </body>
 </html>
 
