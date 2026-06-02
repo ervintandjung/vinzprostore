@@ -22,12 +22,79 @@ body{font-family:'Rajdhani',sans-serif;background:var(--primary);color:var(--tex
 body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
 
+
+
+/* PUSAT INFORMASI - HIDDEN FULLSCREEN PAGE */
+#pusatInformasi{display:none;position:fixed;inset:0;background:var(--primary);z-index:360;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:40px;}
+#pusatInformasi.open{display:block;animation:fsSlideIn .3s ease;}
+.pi-topbar{position:sticky;top:0;background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid var(--accent);height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;z-index:10;box-shadow:0 4px 24px rgba(26,111,255,0.25);}
+.pi-back{width:38px;height:38px;border-radius:10px;background:rgba(26,111,255,0.15);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--accent2);font-size:20px;cursor:pointer;flex-shrink:0;}
+.pi-back:active{transform:scale(.92);}
+.pi-topbar .tt{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;letter-spacing:2px;color:#fff;}
+
+/* FOOTER MENU */
+.foot-menu{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);text-align:left;}
+.foot-col h5{font-family:'Orbitron',sans-serif;font-weight:700;font-size:11px;letter-spacing:2.5px;color:var(--accent2);margin-bottom:10px;}
+.foot-col a{display:block;font-size:11.5px;font-weight:600;color:var(--text);letter-spacing:1px;padding:7px 0;text-decoration:none;text-transform:uppercase;cursor:pointer;transition:.15s;}
+.foot-col a:active{color:var(--accent2);transform:translateX(2px);}
+
+/* PUSAT INFORMASI */
+.pusat-wrap{padding:24px 14px 6px;}
+.pi-badge{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 auto 14px;width:fit-content;padding:7px 18px;border-radius:30px;background:rgba(26,111,255,0.12);border:1px solid var(--border);font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:3px;color:var(--accent2);font-weight:700;}
+.pi-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent2);box-shadow:0 0 10px var(--accent2);}
+.pi-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:28px;text-align:center;letter-spacing:1px;line-height:1.1;margin-bottom:12px;color:#fff;text-shadow:0 0 20px rgba(26,111,255,0.4);}
+.pi-title span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.pi-sub{text-align:center;font-size:11px;color:var(--muted);letter-spacing:2px;line-height:1.7;margin-bottom:20px;text-transform:uppercase;}
+.pi-card{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:18px;padding:18px 16px;margin-bottom:14px;box-shadow:0 6px 20px rgba(0,0,0,0.25);}
+.pi-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.pi-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.pi-icon.blue{background:rgba(26,111,255,0.15);border:1px solid rgba(26,111,255,0.4);color:var(--accent2);}
+.pi-icon.purple{background:rgba(155,89,255,0.12);border:1px solid rgba(155,89,255,0.35);color:#c79bff;}
+.pi-icon.gold{background:rgba(255,165,0,0.10);border:1px solid rgba(255,165,0,0.35);color:#ffb347;}
+.pi-icon.green{background:rgba(0,255,136,0.10);border:1px solid rgba(0,255,136,0.35);color:var(--success);}
+.pi-icon.cyan{background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.35);color:var(--accent2);}
+.pi-h{font-family:'Orbitron',sans-serif;font-weight:900;font-size:15px;letter-spacing:1px;color:#fff;}
+.pi-step{display:flex;gap:11px;align-items:flex-start;padding:7px 0;}
+.pi-num{width:24px;height:24px;border-radius:50%;background:rgba(26,111,255,0.18);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent2);flex-shrink:0;font-family:'Orbitron',sans-serif;}
+.pi-step p{font-size:12.5px;color:var(--text);font-weight:600;letter-spacing:.5px;line-height:1.45;padding-top:3px;text-transform:uppercase;}
+.pi-note{display:flex;align-items:center;gap:9px;margin-top:10px;padding:10px 12px;background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.3);border-radius:10px;}
+.pi-note .ico{color:var(--gold);font-size:16px;}
+.pi-note p{font-size:11px;color:var(--gold);font-weight:700;letter-spacing:1.2px;}
+.pi-faq{padding:11px 0;border-bottom:1px solid rgba(26,111,255,0.15);}
+.pi-faq:last-child{border-bottom:none;}
+.pi-faq .q{font-size:12.5px;font-weight:700;color:#fff;margin-bottom:5px;letter-spacing:.6px;text-transform:uppercase;}
+.pi-faq .q b{color:#c79bff;margin-right:6px;}
+.pi-faq .a{font-size:11.5px;color:var(--muted);line-height:1.55;letter-spacing:.4px;text-transform:uppercase;}
+.pi-faq .a b{color:var(--muted);margin-right:6px;opacity:.7;}
+.pi-list .it{display:flex;gap:10px;align-items:flex-start;padding:6px 0;}
+.pi-list .it .ck{font-size:13px;flex-shrink:0;padding-top:2px;}
+.pi-list .it.ok .ck{color:var(--success);}
+.pi-list .it.warn .ck{color:var(--gold);}
+.pi-list .it p{font-size:12px;color:var(--text);line-height:1.5;font-weight:600;letter-spacing:.4px;text-transform:uppercase;}
+.pi-contact-head{text-align:center;margin-bottom:14px;}
+.pi-contact-head .pi-icon{width:58px;height:58px;font-size:26px;margin:0 auto 10px;border-radius:16px;}
+.pi-contact-head h3{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;letter-spacing:1.5px;color:#fff;}
+.pi-contact-head p{font-size:11px;color:var(--muted);letter-spacing:1.5px;margin-top:6px;line-height:1.6;text-transform:uppercase;}
+.pi-channels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.pi-ch{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:16px 8px;text-align:center;text-decoration:none;color:var(--text);transition:.2s;}
+.pi-ch:active{transform:scale(.97);background:rgba(26,111,255,0.18);}
+.pi-ch .ci{font-size:24px;margin-bottom:6px;}
+.pi-ch .cn{font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:var(--muted);}
+.pi-ch.wa .ci{color:var(--wa);}
+.pi-ch.tg .ci{color:#229ED9;}
+.pi-ch.dc .ci{color:#5865F2;}
+.pi-ch.em .ci{color:var(--accent2);}
+.pi-coop{margin-top:14px;padding:12px;background:rgba(26,111,255,0.08);border:1px dashed var(--border);border-radius:12px;text-align:center;}
+.pi-coop .lbl{font-size:10px;color:var(--accent2);letter-spacing:2px;font-weight:700;font-family:'Orbitron',sans-serif;margin-bottom:4px;}
+.pi-coop a{color:var(--text);font-size:13px;font-weight:700;text-decoration:none;word-break:break-all;}
+
 /* HEADER */
 header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid var(--accent);padding:0 14px;position:sticky;top:0;z-index:100;box-shadow:0 4px 24px rgba(26,111,255,0.25);}
 .hdr{display:flex;align-items:center;justify-content:space-between;height:56px;}
 .logo{display:flex;align-items:center;gap:9px;text-decoration:none;}
-.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px;color:#fff;box-shadow:0 0 14px rgba(26,111,255,0.5);}
-.logo-text{font-family:'Orbitron',sans-serif;font-weight:900;font-size:17px;background:linear-gradient(90deg,#fff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-icon{width:44px;height:44px;background:linear-gradient(135deg,#1a6fff,#0d4fcc);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px;color:#fff;padding:2px;box-shadow:0 0 20px rgba(26,111,255,0.6),0 4px 12px rgba(0,0,0,0.3);}
+.logo-icon img{border-radius:10px;}
+.logo-text{font-family:'Orbitron',sans-serif;font-weight:900;font-size:17px;letter-spacing:1px;background:linear-gradient(90deg,#fff,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .hdr-right{display:flex;align-items:center;gap:8px;}
 .btn-masuk{background:transparent;border:1.5px solid var(--accent);color:var(--accent);padding:5px 12px;border-radius:7px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:.2s;}
 .btn-daftar{background:var(--accent);color:#fff;border:none;padding:5px 12px;border-radius:7px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer;}
@@ -295,8 +362,16 @@ input[type=file]{display:none;}
 @keyframes fadeUp{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 
 /* FOOTER */
-footer{padding:10px 14px 30px;}
-.footer-box{background:var(--card);border-radius:14px;padding:14px;text-align:center;border:1px solid var(--border);}
+footer{padding:24px 14px 30px;}
+.footer-box{background:transparent;border:none;border-radius:0;padding:14px 4px;text-align:left;}
+.footer-brand{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.footer-brand .logo-icon{width:44px;height:44px;}
+.footer-brand .fl{margin:0;font-size:20px;}
+.footer-contact{display:flex;gap:10px;margin:14px 0 16px;}
+.footer-contact a{width:44px;height:44px;border-radius:12px;background:transparent;border:none;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:transform .15s,opacity .15s;}
+.footer-contact a:active{transform:scale(.94);opacity:.8;}
+.footer-contact a.wa svg{color:var(--text);}
+.footer-contact a.tel svg{color:var(--text);}
 .footer-box .fl{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;}
 .footer-box p{font-size:11px;color:var(--muted);line-height:1.6;}
 
@@ -377,7 +452,7 @@ body.light-mode .dropdown{background:#ffffff;border-color:rgba(26,111,255,0.25);
 body.light-mode .dd-user strong{color:#0d1f3c !important;}
 
 /* ===== NOTIF POPUP "BARU BELI" ===== */
-.buy-notif{position:fixed;left:12px;bottom:88px;z-index:9000;background:var(--card);border:1px solid var(--accent);border-radius:12px;padding:10px 32px 10px 10px;display:flex;align-items:center;gap:10px;max-width:280px;box-shadow:0 6px 24px rgba(26,111,255,0.35);transform:translateX(-120%);opacity:0;transition:transform .45s cubic-bezier(.2,.9,.3,1.2),opacity .3s;pointer-events:auto;}
+.buy-notif{position:fixed;left:12px;bottom:88px;z-index:9000;background:var(--card);border:1px solid var(--accent);border-radius:999px;padding:8px 16px 8px 8px;display:flex;align-items:center;gap:10px;max-width:300px;box-shadow:0 6px 24px rgba(26,111,255,0.35);transform:translateX(-120%);opacity:0;transition:transform .45s cubic-bezier(.2,.9,.3,1.2),opacity .3s;pointer-events:auto;}
 .buy-notif.show{transform:translateX(0);opacity:1;}
 .buy-notif-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;flex-shrink:0;}
 .buy-notif-body{flex:1;min-width:0;line-height:1.25;}
@@ -386,8 +461,6 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
 .buy-notif-l2{font-size:12px;color:var(--text);margin-top:2px;}
 .buy-notif-l2 b{color:var(--accent);font-weight:700;}
 .buy-notif-l2 .t{color:var(--muted);font-size:11px;margin-left:4px;}
-.buy-notif-close{position:absolute;top:4px;right:6px;background:transparent;border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:2px 4px;}
-.buy-notif-close:hover{color:var(--danger);}
 
 
 /* APK PREMIUM ORDER FORM */
@@ -631,7 +704,7 @@ if(sessionStorage.getItem('splashDone')){
 <!-- HEADER -->
 <header>
   <div class="hdr">
-    <div class="logo"><div class="logo-icon" style="padding:0;overflow:hidden;background:transparent;box-shadow:0 0 14px rgba(0,180,255,0.5);"><img src="data:image/webp;base64,UklGRpwEAABXRUJQVlA4IJAEAABQEwCdASpAAEAAPpk8lkkloyIhN/gMALATCWwAnTMTAbSIrM2zgzEL3cKbkn/gb5LvNk+m5wfcsnCpegauX1is1HyQ6hrKR43q315iHxtepDP1+20CJ8tJCwhEVUgRn0DaaHZF5pvgtZYn0eNEYuJVVwU0Be0fvPXGnCmOxZ0PO1izuqr8d9sgqGEAzMtN0T9QzAxcklLQMlHozjq6n27zpDYAAP786utBOELeVJU6skrTdFdZSn4f2xHtsnkch8w4MLehl3jqqM3+wgXcWrSHl3DKAXhYC78Ypfe0i/p8WDW9cYTglvIgCvoVfg9KOL5t5xfbSUeIzSYvLMxbew3BMvsAlhrTehfv6A0ekPq78yt89RHuAuQVrlgCUfopYqqvReiAaSMsi4C8l/Qrh5DuTIdZk6e9IADLsOKBqwhWTZm1l1cN0R+AHEs3q2vdW3jNrfyRYs+1sgdg4rMRLyKb2wTykIM2KRCDGxKs1y15+26Kilvi20tLdYOjq+PIT8vL8zecq/wSOHe8ITILRLc4cOQSCxHjC9zfqRAONMsjBYIgDK6ddeFwvyck9RaX0JS5UvX5FjqLhdlfxzieSCKv7H6nob06uda0Zrzzg0ZjKQwNsDw0lufQ0iyOmgiOyRqaWQm9bMOcvVADeUsQA8kjIdZyQyWQjihaTyX+CFlrl96OicgADf3QINykgvNkLkAyJ1p/jgisO41siYUYi0lP1RHjcMn/mz57iTGi0reBW9Rh6Yf8GpEwUw1i5Fd4FKMeRJfuq820Bu0vRpE1euZC9TPrzP9N32fN3eXZUppzOGCAUd4ev4WMji5Tpl6P2nH3pUiUK6zn06noQr35kVGW+3Pvsp794MefoGP3J9iwKc/I39sC6wnvPCfu2YpXf2x8/XnP7aamO1xavSJEdiBLgf4s8YLUP0gTIXQSpcbTZCLLOgFnARnjhui52ybuzjaaxXVv0/PIlR5QoXnHpVtsLJhxXLMH/8sdi5vRdMHPH5wyOIkkW/o6f5ZxDUc6O4o94T8eUA2KF0lY36PbRiK/56LCu7jl13XfBw8YPB+rCR+P6kH7xxf9ld87zTZaX+LH0c2jI6+ksUBW4x0sxY1ZZoEGvrA7bmrDgNjCITuEkm9evdqxhKITAHAstcP2FXxWWEDpBGlJSVOwLiLqLbIVyNJnjHhsLvO1+Owfs2inLtnJI/maI7ZlqFxmJZr/exbIHksr+UB8KREoZMBTCR0yuFLMhbIvAHhEX4ZCIOJgJc7YfNFlRNUrp93ReQ5uHwDaWA3Uhd7Z2NC1/TyfWwIQe6qZshBFmkkexrHGR4uiOc3UXPoFoYmUqSpY+z9/A6PeO0mkXqjC9Mm6idkzAFLzvyunilhe+Cd7VQtqdC9ACgCqf/ztrgywc7AaC7TSJ0oSFFNd2au5fXZby9kYEg4XQVOjKpeXCG4V+a7tgxVcYrOGovCbnQbUuQix9m0bdybTyvWNXoSvZR9naB1QgRHfiIshfTW+5L3nuBZnC23YGAGpxqg+rwaSRD5Mvxk5zejFNP4wCf6MWBCLHrifZgAA" style="width:100%;height:100%;object-fit:cover;border-radius:9px;"></div><div style="display:flex;flex-direction:column;line-height:1;"><div class="logo-text">VINZPRO</div><div id="witaClock" style="font-family:'Rajdhani',monospace;font-size:9px;color:var(--accent2);margin-top:2px;letter-spacing:0.5px;font-variant-numeric:tabular-nums;min-width:90px;white-space:nowrap;opacity:0.85;">--:--:-- WITA</div></div></div>
+    <div class="logo"><div class="logo-icon" style="overflow:hidden;"><img src="data:image/webp;base64,UklGRpwEAABXRUJQVlA4IJAEAABQEwCdASpAAEAAPpk8lkkloyIhN/gMALATCWwAnTMTAbSIrM2zgzEL3cKbkn/gb5LvNk+m5wfcsnCpegauX1is1HyQ6hrKR43q315iHxtepDP1+20CJ8tJCwhEVUgRn0DaaHZF5pvgtZYn0eNEYuJVVwU0Be0fvPXGnCmOxZ0PO1izuqr8d9sgqGEAzMtN0T9QzAxcklLQMlHozjq6n27zpDYAAP786utBOELeVJU6skrTdFdZSn4f2xHtsnkch8w4MLehl3jqqM3+wgXcWrSHl3DKAXhYC78Ypfe0i/p8WDW9cYTglvIgCvoVfg9KOL5t5xfbSUeIzSYvLMxbew3BMvsAlhrTehfv6A0ekPq78yt89RHuAuQVrlgCUfopYqqvReiAaSMsi4C8l/Qrh5DuTIdZk6e9IADLsOKBqwhWTZm1l1cN0R+AHEs3q2vdW3jNrfyRYs+1sgdg4rMRLyKb2wTykIM2KRCDGxKs1y15+26Kilvi20tLdYOjq+PIT8vL8zecq/wSOHe8ITILRLc4cOQSCxHjC9zfqRAONMsjBYIgDK6ddeFwvyck9RaX0JS5UvX5FjqLhdlfxzieSCKv7H6nob06uda0Zrzzg0ZjKQwNsDw0lufQ0iyOmgiOyRqaWQm9bMOcvVADeUsQA8kjIdZyQyWQjihaTyX+CFlrl96OicgADf3QINykgvNkLkAyJ1p/jgisO41siYUYi0lP1RHjcMn/mz57iTGi0reBW9Rh6Yf8GpEwUw1i5Fd4FKMeRJfuq820Bu0vRpE1euZC9TPrzP9N32fN3eXZUppzOGCAUd4ev4WMji5Tpl6P2nH3pUiUK6zn06noQr35kVGW+3Pvsp794MefoGP3J9iwKc/I39sC6wnvPCfu2YpXf2x8/XnP7aamO1xavSJEdiBLgf4s8YLUP0gTIXQSpcbTZCLLOgFnARnjhui52ybuzjaaxXVv0/PIlR5QoXnHpVtsLJhxXLMH/8sdi5vRdMHPH5wyOIkkW/o6f5ZxDUc6O4o94T8eUA2KF0lY36PbRiK/56LCu7jl13XfBw8YPB+rCR+P6kH7xxf9ld87zTZaX+LH0c2jI6+ksUBW4x0sxY1ZZoEGvrA7bmrDgNjCITuEkm9evdqxhKITAHAstcP2FXxWWEDpBGlJSVOwLiLqLbIVyNJnjHhsLvO1+Owfs2inLtnJI/maI7ZlqFxmJZr/exbIHksr+UB8KREoZMBTCR0yuFLMhbIvAHhEX4ZCIOJgJc7YfNFlRNUrp93ReQ5uHwDaWA3Uhd7Z2NC1/TyfWwIQe6qZshBFmkkexrHGR4uiOc3UXPoFoYmUqSpY+z9/A6PeO0mkXqjC9Mm6idkzAFLzvyunilhe+Cd7VQtqdC9ACgCqf/ztrgywc7AaC7TSJ0oSFFNd2au5fXZby9kYEg4XQVOjKpeXCG4V+a7tgxVcYrOGovCbnQbUuQix9m0bdybTyvWNXoSvZR9naB1QgRHfiIshfTW+5L3nuBZnC23YGAGpxqg+rwaSRD5Mvxk5zejFNP4wCf6MWBCLHrifZgAA" style="width:100%;height:100%;object-fit:cover;border-radius:10px;"></div><div style="display:flex;flex-direction:column;line-height:1;"><div class="logo-text">VINZPRO</div><div id="witaClock" style="font-family:'Rajdhani',monospace;font-size:9px;color:var(--accent2);margin-top:2px;letter-spacing:0.5px;font-variant-numeric:tabular-nums;min-width:90px;white-space:nowrap;opacity:0.85;">--:--:-- WITA</div></div></div>
     <div class="hdr-right" id="hdrRight">
       <button class="btn-masuk" onclick="openAuth('masuk')">MASUK</button>
       <button class="btn-daftar" onclick="openAuth('daftar')">DAFTAR</button>
@@ -717,11 +790,122 @@ renderBannerSlider();
   <div class="product-grid" id="productGrid"></div>
 </div>
 
+
+<!-- PUSAT INFORMASI / LAYANAN -->
+<section id="pusatInformasi">
+  <div class="pi-topbar">
+    <div class="pi-back" onclick="closePusatInfo()">←</div>
+    <div class="tt">PUSAT INFORMASI</div>
+  </div>
+  <div class="pusat-wrap">
+  <div class="pi-badge">HELP CENTER</div>
+  <div class="pi-title">PUSAT <span>INFORMASI</span></div>
+  <div class="pi-sub">Temukan semua informasi yang anda butuhkan tentang Vinzprostore dalam satu tempat</div>
+
+  <!-- CARA PEMBELIAN -->
+  <div class="pi-card" id="pi-cara">
+    <div class="pi-head">
+      <div class="pi-icon blue">🛍️</div>
+      <div class="pi-h">CARA PEMBELIAN</div>
+    </div>
+    <div class="pi-step"><div class="pi-num">1</div><p>Pilih produk atau VIP Mods favoritmu.</p></div>
+    <div class="pi-step"><div class="pi-num">2</div><p>Masukkan data akun dengan benar.</p></div>
+    <div class="pi-step"><div class="pi-num">3</div><p>Pilih nominal / paket yang diinginkan.</p></div>
+    <div class="pi-step"><div class="pi-num">4</div><p>Pilih metode pembayaran yang tersedia.</p></div>
+    <div class="pi-step"><div class="pi-num">5</div><p>Lakukan pembayaran sesuai instruksi.</p></div>
+    <div class="pi-step"><div class="pi-num">6</div><p>Tunggu 1–10 detik — key/pesanan otomatis terkirim.</p></div>
+    <div class="pi-note"><div class="ico">⏱</div><p>SISTEM BEKERJA OTOMATIS 24 JAM.</p></div>
+  </div>
+
+  <!-- BANTUAN / FAQ -->
+  <div class="pi-card" id="pi-faq">
+    <div class="pi-head">
+      <div class="pi-icon purple">❓</div>
+      <div class="pi-h">BANTUAN / FAQ</div>
+    </div>
+    <div class="pi-faq"><div class="q"><b>Q:</b>TRANSAKSI AMAN?</div><div class="a"><b>A:</b>Sangat aman. Sistem otomatis tanpa perlu login akun game anda.</div></div>
+    <div class="pi-faq"><div class="q"><b>Q:</b>KEY BELUM MUNCUL?</div><div class="a"><b>A:</b>Hubungi admin dengan menyertakan bukti pembayaran sah anda.</div></div>
+    <div class="pi-faq"><div class="q"><b>Q:</b>BISA REFUND?</div><div class="a"><b>A:</b>Refund tidak dapat dilakukan apabila produk sudah terkirim.</div></div>
+  </div>
+
+  <!-- SYARAT & KETENTUAN -->
+  <div class="pi-card" id="pi-syarat">
+    <div class="pi-head">
+      <div class="pi-icon gold">📄</div>
+      <div class="pi-h">SYARAT &amp; KETENTUAN</div>
+    </div>
+    <div class="pi-list">
+      <div class="it warn"><div class="ck">✓</div><p>Pastikan data akun benar sebelum melakukan pembayaran.</p></div>
+      <div class="it warn"><div class="ck">✓</div><p>Tidak ada refund untuk kesalahan input dari pembeli.</p></div>
+      <div class="it warn"><div class="ck">✓</div><p>Simpan bukti pembayaran sebagai arsip transaksi.</p></div>
+      <div class="it warn"><div class="ck">✓</div><p>Proses manual dilakukan jika sistem mengalami gangguan.</p></div>
+    </div>
+  </div>
+
+  <!-- KEBIJAKAN PRIVASI -->
+  <div class="pi-card" id="pi-privasi">
+    <div class="pi-head">
+      <div class="pi-icon green">🔒</div>
+      <div class="pi-h">KEBIJAKAN PRIVASI</div>
+    </div>
+    <div class="pi-list">
+      <div class="it ok"><div class="ck">✓</div><p>Data akun hanya digunakan untuk proses transaksi.</p></div>
+      <div class="it ok"><div class="ck">✓</div><p>Kami tidak menyimpan data sensitif seperti password.</p></div>
+      <div class="it ok"><div class="ck">✓</div><p>Data pelanggan aman dan tidak dibagikan ke pihak ketiga.</p></div>
+    </div>
+  </div>
+
+  <!-- HUBUNGI KAMI -->
+  <div class="pi-card" id="pi-kontak">
+    <div class="pi-contact-head">
+      <div class="pi-icon cyan">📞</div>
+      <h3>HUBUNGI KAMI</h3>
+      <p>Tim kami siap membantu anda 24/7 melalui saluran resmi berikut</p>
+    </div>
+    <div class="pi-channels">
+      <a class="pi-ch wa" href="https://wa.me/6285954741269" target="_blank" rel="noopener"><div class="ci">💬</div><div class="cn">WHATSAPP</div></a>
+      <a class="pi-ch tg" href="https://whatsapp.com/channel/0029Vb8IGxu5q08Wge7eDQ3T" target="_blank" rel="noopener"><div class="ci">📢</div><div class="cn">CHANNEL</div></a>
+      <a class="pi-ch dc" href="mailto:alpintandjung@gmail.com"><div class="ci">✉️</div><div class="cn">EMAIL</div></a>
+      <a class="pi-ch em" href="mailto:alpintandjung@gmail.com?subject=Kerjasama%20Partnership"><div class="ci">🤝</div><div class="cn">KERJASAMA</div></a>
+    </div>
+    <div class="pi-coop">
+      <div class="lbl">KERJASAMA / PARTNERSHIP</div>
+      <a href="mailto:alpintandjung@gmail.com">alpintandjung@gmail.com</a>
+    </div>
+  </div>
+</div>
+</section>
+
 <footer>
   <div class="footer-box">
-    <div class="fl">VINZ PRO</div>
+    <div class="footer-brand">
+      <div class="logo-icon" style="overflow:hidden;"><img src="data:image/webp;base64,UklGRpwEAABXRUJQVlA4IJAEAABQEwCdASpAAEAAPpk8lkkloyIhN/gMALATCWwAnTMTAbSIrM2zgzEL3cKbkn/gb5LvNk+m5wfcsnCpegauX1is1HyQ6hrKR43q315iHxtepDP1+20CJ8tJCwhEVUgRn0DaaHZF5pvgtZYn0eNEYuJVVwU0Be0fvPXGnCmOxZ0PO1izuqr8d9sgqGEAzMtN0T9QzAxcklLQMlHozjq6n27zpDYAAP786utBOELeVJU6skrTdFdZSn4f2xHtsnkch8w4MLehl3jqqM3+wgXcWrSHl3DKAXhYC78Ypfe0i/p8WDW9cYTglvIgCvoVfg9KOL5t5xfbSUeIzSYvLMxbew3BMvsAlhrTehfv6A0ekPq78yt89RHuAuQVrlgCUfopYqqvReiAaSMsi4C8l/Qrh5DuTIdZk6e9IADLsOKBqwhWTZm1l1cN0R+AHEs3q2vdW3jNrfyRYs+1sgdg4rMRLyKb2wTykIM2KRCDGxKs1y15+26Kilvi20tLdYOjq+PIT8vL8zecq/wSOHe8ITILRLc4cOQSCxHjC9zfqRAONMsjBYIgDK6ddeFwvyck9RaX0JS5UvX5FjqLhdlfxzieSCKv7H6nob06uda0Zrzzg0ZjKQwNsDw0lufQ0iyOmgiOyRqaWQm9bMOcvVADeUsQA8kjIdZyQyWQjihaTyX+CFlrl96OicgADf3QINykgvNkLkAyJ1p/jgisO41siYUYi0lP1RHjcMn/mz57iTGi0reBW9Rh6Yf8GpEwUw1i5Fd4FKMeRJfuq820Bu0vRpE1euZC9TPrzP9N32fN3eXZUppzOGCAUd4ev4WMji5Tpl6P2nH3pUiUK6zn06noQr35kVGW+3Pvsp794MefoGP3J9iwKc/I39sC6wnvPCfu2YpXf2x8/XnP7aamO1xavSJEdiBLgf4s8YLUP0gTIXQSpcbTZCLLOgFnARnjhui52ybuzjaaxXVv0/PIlR5QoXnHpVtsLJhxXLMH/8sdi5vRdMHPH5wyOIkkW/o6f5ZxDUc6O4o94T8eUA2KF0lY36PbRiK/56LCu7jl13XfBw8YPB+rCR+P6kH7xxf9ld87zTZaX+LH0c2jI6+ksUBW4x0sxY1ZZoEGvrA7bmrDgNjCITuEkm9evdqxhKITAHAstcP2FXxWWEDpBGlJSVOwLiLqLbIVyNJnjHhsLvO1+Owfs2inLtnJI/maI7ZlqFxmJZr/exbIHksr+UB8KREoZMBTCR0yuFLMhbIvAHhEX4ZCIOJgJc7YfNFlRNUrp93ReQ5uHwDaWA3Uhd7Z2NC1/TyfWwIQe6qZshBFmkkexrHGR4uiOc3UXPoFoYmUqSpY+z9/A6PeO0mkXqjC9Mm6idkzAFLzvyunilhe+Cd7VQtqdC9ACgCqf/ztrgywc7AaC7TSJ0oSFFNd2au5fXZby9kYEg4XQVOjKpeXCG4V+a7tgxVcYrOGovCbnQbUuQix9m0bdybTyvWNXoSvZR9naB1QgRHfiIshfTW+5L3nuBZnC23YGAGpxqg+rwaSRD5Mvxk5zejFNP4wCf6MWBCLHrifZgAA" alt="Vinz Store" style="width:100%;height:100%;object-fit:cover;border-radius:10px;"></div>
+      <div class="fl">Vinz Store</div>
+    </div>
     <p style="margin-bottom:10px;">VINZPROSTORE adalah platform top-up & VIP Mods tercepat dan terpercaya. Dapatkan key, voucher, dan item game impianmu dengan harga terbaik dan proses instan 24 jam.</p>
-    <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:6px;font-size:10px;color:var(--muted);letter-spacing:.5px;">© 2026 VINZPROSTORE. HAK CIPTA DILINDUNGI.</div>
+    <div class="footer-contact">
+      <a class="wa" href="https://wa.me/6285954741269" target="_blank" rel="noopener" aria-label="WhatsApp">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.002-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      </a>
+      <a class="tel" href="tel:+6285954741269" aria-label="Telepon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      </a>
+    </div>
+    <div class="foot-menu">
+      <div class="foot-col">
+        <h5>INFORMASI</h5>
+        <a onclick="openPusatInfo('cara')">Cara Beli</a>
+        <a onclick="openPusatInfo('faq')">Bantuan / FAQ</a>
+        <a onclick="openPusatInfo('syarat')">Syarat Ketentuan</a>
+      </div>
+      <div class="foot-col">
+        <h5>LAYANAN</h5>
+        <a onclick="openPusatInfo('privasi')">Kebijakan Privasi</a>
+        <a onclick="openPusatInfo('kontak')">Hubungi Kami</a>
+        <a href="mailto:alpintandjung@gmail.com?subject=Kerjasama%20Partnership">Kerjasama</a>
+      </div>
+    </div>
+    <div style="border-top:1px solid rgba(106,140,181,0.15);padding-top:12px;margin-top:10px;font-size:13px;color:var(--muted);letter-spacing:.5px;text-align:center;">© 2026 VINZPROSTORE. HAK CIPTA DILINDUNGI.</div>
   </div>
 </footer>
 
@@ -3472,7 +3656,6 @@ setInterval(syncKeysFromCloud, 15000);
   <div class="buy-notif-body">
     <div class="buy-notif-l2"><b id="bnName">er***</b> membeli <b id="bnProduct">—</b><span class="t" id="bnTime">2 menit lalu</span></div>
   </div>
-  <button class="buy-notif-close" onclick="hideBuyNotif()">×</button>
 </div>
 
 <script>
@@ -3493,8 +3676,13 @@ function toggleTheme(){
 }
 
 // ===== BUY NOTIF POPUP =====
-const BN_NAMES = ['Budi','Andi','Rian','Joko','Dimas','Reza','Fajar','Bima','Hadi','Yoga','Aldi','Eko','Wahyu','Sari','Rina','Dewi','Putri','Citra','Maya','Nia','Tari','Lina','Vina','Anggi','Bayu'];
-function bnMask(n){ return (n.slice(0,2) + '***').toLowerCase(); }
+const BN_NAMES = ['Budi','Andi','Rian','Joko','Dimas','Reza','Fajar','Bima','Hadi','Yoga','Aldi','Eko','Wahyu','Sari','Rina','Dewi','Putri','Citra','Maya','Nia','Tari','Lina','Vina','Anggi','Bayu','Pandu','Reynaldi','Kurniawan','Setiawan','Hendrawan','Pratama','Saputra','Wijaya','Rahmat','Maulana','Firmansyah','Anggara','Permana','Yulianto','Hartono','Suryadi','Iskandar','Nugroho'];
+function bnMask(n){
+  n = n.toLowerCase();
+  const target = Math.min(n.length, 6 + Math.floor(Math.random()*5)); // 6..10
+  const stars = Math.max(target - 2, 3);
+  return n[0] + '*'.repeat(stars) + n[n.length-1];
+}
 const BN_TIMES = ['baru saja','1 menit lalu','2 menit lalu','4 menit lalu','7 menit lalu','11 menit lalu'];
 let bnTimer=null, bnHideTimer=null;
 function bnRand(a){ return a[Math.floor(Math.random()*a.length)]; }
@@ -7744,6 +7932,30 @@ window.closeNonton = function(){
   document.body.style.overflow='';
 };
 </script>
+
+<script>
+function openPusatInfo(sec){
+  const el=document.getElementById('pusatInformasi');
+  el.classList.add('open');
+  document.body.classList.add('panel-lock');
+  el.scrollTop=0;
+  if(sec){
+    setTimeout(()=>{
+      const t=document.getElementById('pi-'+sec);
+      if(t){
+        const top=t.offsetTop-66;
+        el.scrollTo({top:top,behavior:'smooth'});
+      }
+    },180);
+  }
+}
+function closePusatInfo(){
+  const el=document.getElementById('pusatInformasi');
+  el.classList.remove('open');
+  document.body.classList.remove('panel-lock');
+}
+</script>
+
 </body>
 </html>
 
