@@ -774,13 +774,33 @@ renderBannerSlider();
   <div style="padding:8px 14px 130px;">
     <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:12px;color:#fff;letter-spacing:1.5px;margin-bottom:8px;">PILIH CARA PEMBAYARAN</div>
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div class="pm-card" data-method="qris" onclick="window.selectedPayMethod='qris';document.querySelectorAll('.pm-card').forEach(c=>{const a=c.dataset.method==='qris';c.style.border=a?'2px solid #00aaff':'2px solid var(--border)';c.style.background=a?'linear-gradient(135deg,rgba(0,80,221,0.18),rgba(0,170,255,0.10))':'var(--card2)';c.style.boxShadow=a?'0 0 14px rgba(0,170,255,0.25)':'none';const k=c.querySelector('.pm-check');if(k){k.style.background=a?'#00aaff':'transparent';k.style.border=a?'2px solid #00aaff':'2px solid var(--border)';k.style.boxShadow=a?'inset 0 0 0 4px #0a1730':'none';}});const b=document.getElementById('fsPesanBtn');if(b){b.disabled=false;b.style.background='linear-gradient(135deg,#0050dd,#00aaff)';b.style.color='#fff';b.style.cursor='pointer';}" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
-        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#1a6fff,#00d4ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <div id="qrisPayCard" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;position:relative;z-index:1;">
+        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#1a6fff,#00d4ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;pointer-events:none;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
         </div>
-        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS <span style="font-size:9px;background:linear-gradient(90deg,#1a6fff,#00d4ff);color:#fff;padding:1px 7px;border-radius:4px;margin-left:4px;">OTOMATIS</span></div><div style="font-size:10px;color:var(--muted);">GoPay, OVO, Dana, dll · Auto konfirmasi</div></div>
-        <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
+        <div style="flex:1;pointer-events:none;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS <span style="font-size:9px;background:linear-gradient(90deg,#1a6fff,#00d4ff);color:#fff;padding:1px 7px;border-radius:4px;margin-left:4px;">OTOMATIS</span></div><div style="font-size:10px;color:var(--muted);">GoPay, OVO, Dana, dll · Auto konfirmasi</div></div>
+        <div id="qrisPayCheck" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);pointer-events:none;"></div>
       </div>
+      <script>
+      document.getElementById('qrisPayCard').addEventListener('click', function(){
+        window.selectedPayMethod = 'qris';
+        document.querySelectorAll('.pm-card').forEach(function(c){
+          c.style.border='2px solid var(--border)';
+          c.style.background='var(--card2)';
+          c.style.boxShadow='none';
+          var k=c.querySelector('.pm-check');
+          if(k){k.style.background='transparent';k.style.border='2px solid var(--border)';k.style.boxShadow='none';}
+        });
+        this.style.border='2px solid #00aaff';
+        this.style.background='linear-gradient(135deg,rgba(0,80,221,0.18),rgba(0,170,255,0.10))';
+        this.style.boxShadow='0 0 14px rgba(0,170,255,0.25)';
+        var chk=document.getElementById('qrisPayCheck');
+        if(chk){chk.style.background='#00aaff';chk.style.border='2px solid #00aaff';chk.style.boxShadow='inset 0 0 0 4px #0a1730';}
+        var btn=document.getElementById('fsPesanBtn');
+        if(btn){btn.disabled=false;btn.style.background='linear-gradient(135deg,#0050dd,#00aaff)';btn.style.color='#fff';btn.style.cursor='pointer';btn.style.boxShadow='0 6px 20px rgba(0,80,221,0.45)';}
+        if(typeof showNotif==='function') showNotif('✅ QRIS dipilih');
+      });
+      </script>
       <div class="pm-card" data-method="wa" onclick="selectPayMethod('wa')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
         <div style="width:36px;height:36px;border-radius:8px;background:#25D366;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.928 1.397 5.594L0 24l6.554-1.372A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
