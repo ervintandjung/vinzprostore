@@ -774,12 +774,12 @@ renderBannerSlider();
   <div style="padding:8px 14px 130px;">
     <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:12px;color:#fff;letter-spacing:1.5px;margin-bottom:8px;">PILIH CARA PEMBAYARAN</div>
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div id="qrisPayCard" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;position:relative;z-index:1;">
+      <div id="qrisPayCard" class="pm-card" data-method="qris" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;position:relative;z-index:1;">
         <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#1a6fff,#00d4ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;pointer-events:none;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
         </div>
         <div style="flex:1;pointer-events:none;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS <span style="font-size:9px;background:linear-gradient(90deg,#1a6fff,#00d4ff);color:#fff;padding:1px 7px;border-radius:4px;margin-left:4px;">OTOMATIS</span></div><div style="font-size:10px;color:var(--muted);">GoPay, OVO, Dana, dll · Auto konfirmasi</div></div>
-        <div id="qrisPayCheck" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);pointer-events:none;"></div>
+        <div id="qrisPayCheck" class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);pointer-events:none;"></div>
       </div>
       <script>
       document.getElementById('qrisPayCard').addEventListener('click', function(){
@@ -799,7 +799,7 @@ renderBannerSlider();
         if(chk){chk.style.background='#00aaff';chk.style.border='2px solid #00aaff';chk.style.boxShadow='inset 0 0 0 4px #0a1730';}
         var btn=document.getElementById('fsPesanBtn');
         if(btn){btn.disabled=false;btn.style.background='linear-gradient(135deg,#0050dd,#00aaff)';btn.style.color='#fff';btn.style.cursor='pointer';btn.style.boxShadow='0 6px 20px rgba(0,80,221,0.45)';}
-        if(typeof showNotif==='function') showNotif('✅ QRIS dipilih');
+        if(typeof showNotif==='function') {} // notif QRIS dipilih dihapus
       });
       </script>
       <script>
@@ -2398,6 +2398,9 @@ function openProd(id) {
   // Sembunyikan card download kalau produk tidak punya file pendukung
   const dlCard = document.querySelector('.fs-dl-card');
   if (dlCard) dlCard.style.display = (p.showDl !== false) ? '' : 'none';
+
+  // Reset pilihan pembayaran setiap produk baru dibuka (fix: QRIS nyangkut dari produk sebelumnya)
+  try { if (typeof resetPayMethod === 'function') resetPayMethod(); } catch(e){}
 
   // Show fullscreen
   const fs = document.getElementById('prodFullscreen');
@@ -4696,9 +4699,13 @@ function doPesan(){
           }
         </div>`;
       })() : '';
+      // Simpan ke store global supaya onclick tidak perlu inline JSON (double-quote merusak atribut HTML)
+      if (!window._riwDetailStore) window._riwDetailStore = {};
+      const _dtKey = 'rdt_' + (t.id||'x').replace(/[^a-z0-9]/gi,'');
+      window._riwDetailStore[_dtKey] = t;
       const detailBtn = (st==='sukses') ? `
         <div class="riw-divider"></div>
-        <button class="riw-detail-btn" onclick="window.__openRiwDetail(${JSON.stringify(t)})">🔍 LIHAT DETAIL &amp; KEY</button>` : '';
+        <button class="riw-detail-btn" onclick="window.__openRiwDetail(window._riwDetailStore['${_dtKey}'])">🔍 LIHAT DETAIL &amp; KEY</button>` : '';
       return `<div class="riw-card">
         <div class="riw-head">
           <div>
@@ -4859,7 +4866,7 @@ function doPesan(){
   window.renderRiwayat = renderRiwayat;
 
   // ───────── DETAIL SUKSES PANEL ─────────
-  window.__openRiwDetail = function(t) {
+  window.__openRiwDetail = async function(t) {
     if (!t) return;
     const panel = document.getElementById('riwDetailPanel');
     if (!panel) return;
@@ -4882,14 +4889,43 @@ function doPesan(){
       thumbEl.innerHTML = t.emoji || '📦';
     }
 
-    // Key
+    // Key — coba dari lokal dulu, fallback ke Supabase
     const keySection = document.getElementById('rdpKeySection');
     const keyVal = document.getElementById('rdpKeyVal');
-    if (t.key) {
-      keyVal.textContent = t.key;
+    let keyText = t.key || (Array.isArray(t.keys) ? t.keys.join('\n') : '');
+    if (!keyText && trxId) {
+      // Coba ambil dari Supabase
+      try {
+        keyVal.textContent = '⏳ Mengambil key...';
+        keySection.style.display = '';
+        panel.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        const _sbc = window._sb || supabase;
+        const { data: tx } = await _sbc.from('transactions')
+          .select('data').eq('trx_id', '#'+trxId).single();
+        if (tx?.data?.keys?.length) keyText = tx.data.keys.join('\n');
+        else if (tx?.data?.key) keyText = tx.data.key;
+        // Update localStorage juga
+        if (keyText) {
+          const _u = (typeof currentUser !== 'undefined' && currentUser) || JSON.parse(localStorage.getItem('vp_user')||'null');
+          if (_u?.email) {
+            try {
+              const lk = 'vp_riw_'+_u.email;
+              let cur = JSON.parse(localStorage.getItem(lk)||'[]');
+              const idx = cur.findIndex(x => (x.id||'').replace(/^#/,'') === trxId);
+              if (idx !== -1) { cur[idx].key = keyText; localStorage.setItem(lk, JSON.stringify(cur)); }
+            } catch(_){}
+          }
+        }
+      } catch(_){}
+    }
+
+    if (keyText) {
+      keyVal.textContent = keyText;
       keySection.style.display = '';
     } else {
-      keySection.style.display = 'none';
+      keyVal.textContent = '—';
+      keySection.style.display = '';
     }
 
     // Buka panel
@@ -4998,8 +5034,8 @@ function doPesan(){
     card.className = 'ap-card';
     card.id = 'apTrxCard';
     card.innerHTML = `
-      <h3>🧾 Konfirmasi Transaksi WhatsApp</h3>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5;">Hanya transaksi <b>WA</b> (manual) yang muncul di sini. Transaksi <b>QRIS</b> berjalan otomatis (auto-sukses bila bayar, auto-kadaluwarsa bila lewat 1 jam).</div>
+      <h3>🧾 Konfirmasi Transaksi</h3>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5;">Transaksi <b>WA</b> perlu konfirmasi manual. Transaksi <b>QRIS</b> otomatis — tapi key bisa diisi manual jika stok habis atau ada masalah.</div>
       <div style="display:flex;align-items:stretch;margin-bottom:10px;border:1.5px solid var(--border);border-radius:9px;overflow:hidden;background:var(--secondary);">
         <span style="display:flex;align-items:center;padding:0 10px;background:var(--card2);color:var(--accent2);font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px;letter-spacing:.5px;border-right:1.5px solid var(--border);">VPS-</span>
         <input id="apTrxSearch" placeholder="ketik angka ID..." inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'');window.__renderAdminTrx()" style="flex:1;background:transparent;border:none;padding:9px 12px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;">
@@ -5010,6 +5046,11 @@ function doPesan(){
         <button class="atrx-btn" onclick="window.__setTrxFilter('sukses',this)" data-f="sukses" style="background:var(--card2);color:#00ff88;border:1px solid #00ff88;">SUKSES</button>
         <button class="atrx-btn" onclick="window.__setTrxFilter('batal',this)" data-f="batal" style="background:var(--card2);color:#ff4455;border:1px solid #ff4455;">BATAL</button>
       </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+        <button class="atrx-btn" onclick="window.__setTrxMethod('all',this)" data-m="all" style="background:var(--accent);font-size:9px;">SEMUA METODE</button>
+        <button class="atrx-btn" onclick="window.__setTrxMethod('wa',this)" data-m="wa" style="background:var(--card2);color:#25D366;border:1px solid #25D366;font-size:9px;">WA</button>
+        <button class="atrx-btn" onclick="window.__setTrxMethod('qris',this)" data-m="qris" style="background:var(--card2);color:#1a6fff;border:1px solid #1a6fff;font-size:9px;">QRIS</button>
+      </div>
       <div id="apTrxList" style="max-height:480px;overflow-y:auto;"></div>
     `;
     body.appendChild(card);
@@ -5017,10 +5058,18 @@ function doPesan(){
   }
 
   let _trxFilter = 'all';
+  let _trxMethod = 'all';
   window.__setTrxFilter = function(f, btn){
     _trxFilter = f;
     document.querySelectorAll('#apTrxCard [data-f]').forEach(b=>{
       b.style.outline = (b.dataset.f===f) ? '2px solid #fff' : 'none';
+    });
+    window.__renderAdminTrx();
+  };
+  window.__setTrxMethod = function(m, btn){
+    _trxMethod = m;
+    document.querySelectorAll('#apTrxCard [data-m]').forEach(b=>{
+      b.style.outline = (b.dataset.m===m) ? '2px solid #fff' : 'none';
     });
     window.__renderAdminTrx();
   };
@@ -5031,9 +5080,13 @@ function doPesan(){
     const qRaw = (document.getElementById('apTrxSearch')?.value||'').trim();
     const q = qRaw ? ('vps-' + qRaw.toLowerCase()) : '';
     const filtered = list.filter(t=>{
-      // Panel ini KHUSUS WA. QRIS otomatis, tidak perlu konfirmasi admin.
-      if ((t.method||'').toUpperCase()!=='WA') return false;
+      const mt = (t.method||'').toUpperCase();
+      // Filter metode
+      if (_trxMethod === 'wa' && mt !== 'WA') return false;
+      if (_trxMethod === 'qris' && mt !== 'QRIS') return false;
+      // Filter status
       if (['menunggu','sukses','batal'].includes(_trxFilter) && (t.status||'menunggu').toLowerCase()!==_trxFilter) return false;
+      // Search by ID
       if (q && !(t.id||'').toLowerCase().includes(q)) return false;
       return true;
     });
@@ -5096,6 +5149,17 @@ function doPesan(){
     const k = (inp?.value||'').trim();
     if (!k){ if(typeof showNotif==='function') showNotif('❌ Key kosong'); return; }
     _updateInBoth(id, email, t => { t.key = k; t.status = 'sukses'; });
+    // Juga update Supabase transactions (untuk QRIS)
+    try {
+      const cleanId = String(id).replace(/^#/,'');
+      const _sbc = window._sb || supabase;
+      _sbc.from('transactions').select('id,data').eq('trx_id', '#'+cleanId).single().then(({data:tx})=>{
+        if (tx) {
+          const newData = {...(tx.data||{}), key: k, keys: [k], status: 'sukses'};
+          _sbc.from('transactions').update({data: newData}).eq('trx_id', '#'+cleanId).then(()=>{});
+        }
+      });
+    } catch(_){}
     if (typeof showNotif==='function') showNotif('🔑 Key terkirim ke '+email);
     window.__renderAdminTrx();
   };
@@ -8155,7 +8219,7 @@ window.closePusatInfo = closePusatInfo;
       return;
     }
 
-    if(typeof showNotif==='function') showNotif('Membuat QRIS…');
+    // notif "Membuat QRIS…" dihapus — tidak profesional
     const res = await fetch(`${WORKER_URL}/create-qris`, {
       method: "POST",
       headers: {
@@ -8173,10 +8237,11 @@ window.closePusatInfo = closePusatInfo;
     document.getElementById("qrisTrxId").textContent = '#' + d.order_id;
     document.getElementById("qrisTrxTime").textContent = _fmtQrisTime(new Date());
 
-    // Info produk
-    const prod = (typeof getProducts==='function' && typeof selProdId!=='undefined') ? getProducts().find(x=>x.id===selProdId) : null;
-    const varIdx = (typeof selVarIdx!=='undefined') ? selVarIdx : 0;
-    const vari = prod ? (prod.variants||[])[varIdx] : null;
+    // Info produk — pakai product_id/variant_id dari parameter, bukan globals (fix bug produk salah)
+    const prod = (typeof getProducts==='function') ? (product_id ? getProducts().find(x=>x.id===product_id) : (typeof selProdId!=='undefined' ? getProducts().find(x=>x.id===selProdId) : null)) : null;
+    const vari = prod ? (variant_id ? (prod.variants||[]).find(v=>v.id===variant_id) : (prod.variants||[])[(typeof selVarIdx!=='undefined'?selVarIdx:0)]) : null;
+    // Cache untuk handlePaid — callback async bisa terjadi saat global sudah berubah (user buka produk lain)
+    window._qrisCurrent = { prod, vari, qty: (typeof selQty!=='undefined') ? selQty : 1 };
     document.getElementById("qrisProdName").textContent = prod ? prod.name : '—';
     document.getElementById("qrisProdVar").textContent = vari ? (vari.n||'').toUpperCase() : '—';
     const imgWrap = document.getElementById("qrisProdImgWrap");
@@ -8343,10 +8408,11 @@ window.closePusatInfo = closePusatInfo;
   async function handlePaid(orderId, orderData) {
     clearInterval(qrisTimerId);
 
-    const prod = (typeof getProducts==='function' && typeof selProdId!=='undefined') ? getProducts().find(x=>x.id===selProdId) : null;
-    const varIdx = (typeof selVarIdx!=='undefined') ? selVarIdx : 0;
-    const vari = prod ? (prod.variants||[])[varIdx] : null;
-    const qty = (typeof selQty!=='undefined') ? selQty : 1;
+    // Gunakan cache dari bayarQris — globals mungkin sudah berubah kalau user buka produk lain saat nunggu QR
+    const _cur = window._qrisCurrent || {};
+    const prod = _cur.prod || ((typeof getProducts==='function' && typeof selProdId!=='undefined') ? getProducts().find(x=>x.id===selProdId) : null);
+    const vari = _cur.vari || (prod ? (prod.variants||[])[(typeof selVarIdx!=='undefined'?selVarIdx:0)] : null);
+    const qty = _cur.qty || ((typeof selQty!=='undefined') ? selQty : 1);
     const amount = orderData.amount || 0;
     const paidTime = _fmtQrisTime(new Date());
     const _sbc = window._sb || supabase;
@@ -8483,7 +8549,17 @@ window.closePusatInfo = closePusatInfo;
       const amount = parseInt(totalTxt) || 0;
       if(amount < 1000){ if(typeof showNotif==='function') showNotif('Nominal terlalu kecil'); return; }
       const prod = (typeof getProducts==='function' && typeof selProdId!=='undefined') ? getProducts().find(x=>x.id===selProdId) : null;
-      const variant = (prod && typeof selVarId!=='undefined') ? (prod.variants||[]).find(v=>v.id===selVarId) : null;
+      const variant = prod ? ((typeof selVarId!=='undefined' && selVarId) ? (prod.variants||[]).find(v=>v.id===selVarId) : (prod.variants||[])[(typeof selVarIdx!=='undefined'?selVarIdx:0)]) : null;
+      const orderQty = parseInt((qtyEl?.textContent||'1')) || 1;
+
+      // Cek stok key sebelum buat QRIS
+      if (prod && variant && typeof getAvailableKeys==='function') {
+        const avail = getAvailableKeys(prod.id, variant.n||'').length;
+        if (avail < orderQty) {
+          if(typeof showNotif==='function') showNotif('❌ Stok key habis untuk varian ini (tersedia: '+avail+')');
+          return;
+        }
+      }
 
       // Ambil nama dari Supabase Auth session, fallback ke localStorage
       let uname = 'Customer';
