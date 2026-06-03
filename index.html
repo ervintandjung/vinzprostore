@@ -1624,7 +1624,7 @@ function showAuthErr2(msg) {
   el.textContent = msg; el.style.display = 'block';
 }
 
-// LOGIN — pakai Supabase Auth (signInWithPassword)
+// LOGIN — cek table users dulu (cepat), Auth Supabase di background
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const pass = document.getElementById('loginPass').value;
@@ -1632,35 +1632,30 @@ async function doLogin() {
   const btn = document.getElementById('btnLogin');
   btn.disabled = true; btn.textContent = '⏳ Memproses...';
   try {
-    // Login via Supabase Auth (dapat session + JWT)
-    const { data: authData, error: authErr } = await _sb.auth.signInWithPassword({ email, password: pass });
-    if (authErr) {
-      // Fallback: cek custom table users (untuk akun lama sebelum migrasi)
-      const { data: uData, error: uErr } = await _sb.from('users').select('name,password,verified').eq('email', email).single();
-      if (uErr || !uData) { showAuthErr('Email belum terdaftar! Silakan daftar dulu.'); return; }
-      if (uData.password !== pass) { showAuthErr('Password salah!'); return; }
-      // Akun lama: auto-migrate ke Supabase Auth
-      const { error: signUpErr } = await _sb.auth.signUp({ email, password: pass, options: { data: { username: uData.name }, emailRedirectTo: null } });
-      if (!signUpErr) {
-        // Coba login lagi setelah signup
-        await _sb.auth.signInWithPassword({ email, password: pass });
-      }
-      currentUser = { email, name: uData.name, verified: uData.verified };
-    } else {
-      // Login Auth berhasil — ambil nama dari table users
-      const { data: uData } = await _sb.from('users').select('name,verified').eq('email', email).single();
-      const name = uData?.name || authData.user?.user_metadata?.username || email.split('@')[0];
-      const verified = uData?.verified ?? true;
-      currentUser = { email, name, verified };
-      // Update table users kalau belum ada
-      if (!uData) {
-        await _sb.from('users').upsert({ email, name, password: pass, verified: true });
-      }
-    }
+    // Validasi via custom table users (cepat, sumber kebenaran password)
+    const { data: uData, error: uErr } = await _sb.from('users').select('name,password,verified').eq('email', email).single();
+    if (uErr || !uData) { showAuthErr('Email belum terdaftar! Silakan daftar dulu.'); return; }
+    if (uData.password !== pass) { showAuthErr('Password salah!'); return; }
+
+    // Set currentUser LANGSUNG — UI tidak lambat
+    currentUser = { email, name: uData.name, verified: uData.verified };
     localStorage.setItem('vp_user', JSON.stringify(currentUser));
     document.getElementById('authOverlay').classList.remove('open');
     renderHeader();
-    showNotif('✅ Selamat datang, ' + currentUser.name + '!');
+    showNotif('✅ Selamat datang, ' + uData.name + '!');
+
+    // Supabase Auth di background (untuk JWT QRIS)
+    (async () => {
+      try {
+        const { error: signInErr } = await _sb.auth.signInWithPassword({ email, password: pass });
+        if (signInErr) {
+          // Belum ada di Auth → signUp dulu
+          await _sb.auth.signUp({ email, password: pass, options: { data: { username: uData.name }, emailRedirectTo: null } });
+          await _sb.auth.signInWithPassword({ email, password: pass });
+        }
+      } catch(e) { console.warn('Auth background error:', e); }
+    })();
+
   } catch(e) {
     showAuthErr('Error: ' + e.message);
   } finally {
@@ -4592,19 +4587,34 @@ function doPesan(){
           <button class="riw-bayarwa" onclick="window.__riwOpenWa('${t.id}')">💬 CHAT WA</button>
         </div>` : '';
       const qrisBtn = (st==='menunggu' && mt==='QRIS') ? (() => {
-        // Hitung sisa waktu dari ts (10 menit = 600000ms)
         const elapsed = Date.now() - (t.ts||0);
-        const sisaMs = Math.max(0, 600000 - elapsed);
-        const sisaSec = Math.floor(sisaMs / 1000);
-        const mm = String(Math.floor(sisaSec/60)).padStart(2,'0');
-        const ss = String(sisaSec%60).padStart(2,'0');
+        const sisaSec = Math.max(0, Math.floor((600000 - elapsed) / 1000));
         const expired = sisaSec <= 0;
+        const safeId = t.id.replace(/^#/,'');
+        if (expired) {
+          // Auto-update status di localStorage jadi kadaluwarsa
+          setTimeout(() => {
+            try {
+              const _u = JSON.parse(localStorage.getItem('vp_user')||'null');
+              if (_u?.email) {
+                const lk = 'vp_riw_'+_u.email;
+                let cur = JSON.parse(localStorage.getItem(lk)||'[]');
+                const idx = cur.findIndex(x => x.id.replace(/^#/,'') === safeId);
+                if (idx !== -1 && cur[idx].status === 'menunggu') {
+                  cur[idx].status = 'kadaluwarsa';
+                  localStorage.setItem(lk, JSON.stringify(cur));
+                  if (typeof window.renderRiwayat==='function') window.renderRiwayat();
+                }
+              }
+            } catch(_){}
+          }, 100);
+        }
         return `<div class="riw-divider"></div>
-        <div class="riw-actions">
+        <div class="riw-actions" id="qrisact_${safeId}">
           ${expired
             ? `<div style="font-size:11px;color:#ff4455;">⚠️ QR sudah kadaluwarsa</div>`
-            : `<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Sisa waktu: <span style="color:#00d4ff;font-family:'Orbitron',sans-serif;font-weight:700;">${mm}:${ss}</span></div>
-               <button onclick="window.__riwBayarQris('${t.id.replace(/^#/,'')}')" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#1a6fff,#1559d6);color:#fff;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:12px;letter-spacing:1.5px;cursor:pointer;">💳 LANJUT BAYAR QRIS</button>`
+            : `<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Sisa waktu: <span class="riw-qris-timer" id="qtimer_${safeId}" data-ts="${t.ts||0}" style="color:#00d4ff;font-family:'Orbitron',sans-serif;font-weight:700;">--:--</span></div>
+               <button onclick="window.__riwBayarQris('${safeId}')" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#1a6fff,#1559d6);color:#fff;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:12px;letter-spacing:1.5px;cursor:pointer;">💳 LANJUT BAYAR QRIS</button>`
           }
         </div>`;
       })() : '';
@@ -4680,6 +4690,38 @@ function doPesan(){
 
     } catch(e) { showNotif('Error: ' + e.message); }
   };
+
+  // ── Global live timer untuk semua card MENUNGGU QRIS ──
+  if (window._riwTimerInterval) clearInterval(window._riwTimerInterval);
+  window._riwTimerInterval = setInterval(() => {
+    const timers = document.querySelectorAll('.riw-qris-timer');
+    if (!timers.length) return;
+    timers.forEach(el => {
+      const ts = parseInt(el.dataset.ts || '0');
+      const elapsed = Date.now() - ts;
+      const sisaSec = Math.max(0, Math.floor((600000 - elapsed) / 1000));
+      const mm = String(Math.floor(sisaSec/60)).padStart(2,'0');
+      const ss = String(sisaSec%60).padStart(2,'0');
+      el.textContent = mm+':'+ss;
+      // Kalau expired, update status dan re-render
+      if (sisaSec <= 0) {
+        const safeId = el.id.replace('qtimer_','');
+        try {
+          const _u = JSON.parse(localStorage.getItem('vp_user')||'null');
+          if (_u?.email) {
+            const lk = 'vp_riw_'+_u.email;
+            let cur = JSON.parse(localStorage.getItem(lk)||'[]');
+            const idx = cur.findIndex(x => x.id.replace(/^#/,'') === safeId);
+            if (idx !== -1 && cur[idx].status === 'menunggu') {
+              cur[idx].status = 'kadaluwarsa';
+              localStorage.setItem(lk, JSON.stringify(cur));
+              if (typeof window.renderRiwayat==='function') window.renderRiwayat();
+            }
+          }
+        } catch(_){}
+      }
+    });
+  }, 1000);
 
   window.__riwCopy = function(idSafe, btn){
     const el = document.getElementById('rk_'+idSafe);
@@ -7943,20 +7985,24 @@ function closePusatInfo(){
 
   async function bayarQris({ amount, product_id, variant_id, customer_name, customer_wa }) {
     // Ambil Supabase Auth session (JWT untuk Worker)
+    // Retry sampai 5 detik kalau Auth masih proses di background
     let session = null;
-    try {
-      const { data } = await (window._sb || supabase).auth.getSession();
-      session = data.session;
-    } catch(e) {}
+    for (let i = 0; i < 5; i++) {
+      try {
+        const { data } = await (window._sb || supabase).auth.getSession();
+        session = data.session;
+        if (session) break;
+      } catch(e) {}
+      if (i < 4) await new Promise(r => setTimeout(r, 1000));
+    }
 
-    // Kalau belum ada session Auth, coba login ulang pakai data dari localStorage
+    // Kalau masih belum ada session
     if (!session) {
       const localUser = JSON.parse(localStorage.getItem('vp_user') || 'null');
       if (!localUser) {
         if(typeof showNotif==='function') showNotif('Login dulu ya!');
         return;
       }
-      // Tidak bisa auto-login tanpa password, minta user login ulang
       if(typeof showNotif==='function') showNotif('⚠️ Sesi habis, silakan login ulang untuk bayar QRIS');
       if(typeof openAuth==='function') openAuth('masuk');
       return;
@@ -8089,137 +8135,139 @@ function closePusatInfo(){
   function listenPaid(orderId) {
     const _sbc = window._sb || supabase;
     if (qrisChannel) _sbc.removeChannel(qrisChannel);
+
+    // ── Polling fallback: cek status ke Worker setiap 4 detik ──
+    let pollDone = false;
+    if (window._qrisPollId) clearInterval(window._qrisPollId);
+    window._qrisPollId = setInterval(async () => {
+      if (pollDone) { clearInterval(window._qrisPollId); return; }
+      try {
+        const { data: order } = await _sbc.from('orders')
+          .select('status,transaction_id').eq('order_id', orderId).single();
+        if (!order) return;
+        if (order.status === 'paid') {
+          pollDone = true;
+          clearInterval(window._qrisPollId);
+          await handlePaid(orderId, order);
+        } else if (order.status === 'expired' || order.status === 'cancelled') {
+          pollDone = true;
+          clearInterval(window._qrisPollId);
+          if(typeof showNotif==='function') showNotif('❌ Pembayaran ' + order.status);
+          tutupQris();
+        }
+        // Kalau masih pending, cek juga langsung ke qris.pw via Worker
+        if (!pollDone && order.transaction_id) {
+          try {
+            const r = await fetch(`${WORKER_URL}/check-qris?transaction_id=${encodeURIComponent(order.transaction_id)}`);
+            const d = await r.json();
+            const st = String(d.status||d.payment_status||'').toLowerCase();
+            if (st === 'paid' || st === 'success' || st === 'settlement') {
+              // Update status di Supabase via Worker webhook manual
+              await _sbc.from('orders').update({
+                status: 'paid', paid_at: new Date().toISOString()
+              }).eq('order_id', orderId);
+            }
+          } catch(_){}
+        }
+      } catch(_){}
+    }, 4000);
+
+    // ── Realtime Supabase sebagai trigger utama ──
     qrisChannel = _sbc
       .channel("orders-" + orderId)
       .on("postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `order_id=eq.${orderId}` },
         async (payload) => {
           const s = payload.new.status;
-          if (s === "paid") {
-            clearInterval(qrisTimerId);
-
-            // Ambil data produk
-            const prod = (typeof getProducts==='function' && typeof selProdId!=='undefined') ? getProducts().find(x=>x.id===selProdId) : null;
-            const varIdx = (typeof selVarIdx!=='undefined') ? selVarIdx : 0;
-            const vari = prod ? (prod.variants||[])[varIdx] : null;
-            const qty = (typeof selQty!=='undefined') ? selQty : 1;
-            const amount = payload.new.amount;
-            const paidTime = _fmtQrisTime(new Date());
-
-            // Ambil key — cek dulu di transactions Supabase (anti-double)
-            let keys = [];
-            try {
-              // Cek apakah transaksi ini sudah pernah dapat key
-              const { data: existingTx } = await _sbc.from('transactions')
-                .select('data').eq('trx_id','#'+orderId).single();
-              if (existingTx?.data?.keys?.length) {
-                keys = existingTx.data.keys;
-              } else if (existingTx?.data?.key) {
-                keys = [existingTx.data.key];
-              }
-            } catch(_){}
-
-            // Kalau belum ada key, ambil dari orders table
-            if (!keys.length) {
-              try {
-                const { data: orderData } = await _sbc.from('orders').select('keys,key').eq('order_id', orderId).single();
-                if (orderData?.keys) keys = Array.isArray(orderData.keys) ? orderData.keys : [orderData.keys];
-                else if (orderData?.key) keys = [orderData.key];
-              } catch(_) {}
-            }
-
-            // Kalau masih belum ada, assign dari stok (1 key per transaksi)
-            if (!keys.length && prod && vari && typeof assignKeys==='function') {
-              const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
-              // Gunakan qty=1 per transaksi QRIS untuk hindari double
-              keys = assignKeys(prod.id, vari.n||'', Math.min(qty,1), _u?.email||'guest');
-            }
-
-            const keyStr = keys.join('\n') || '';
-
-            // Simpan ke localStorage riwayat user
-            try {
-              const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
-              if (_u?.email) {
-                const trxData = {
-                  id: '#'+orderId,
-                  prod: (prod?.name||'') + ' ' + (vari?.n||''),
-                  productName: prod?.name||'Produk', variantName: vari?.n||'',
-                  img: prod?.img||'', emoji: prod?.emoji||'📦',
-                  price: vari?.p||amount, qty, key: keyStr,
-                  status: 'sukses', method: 'QRIS',
-                  time: paidTime, ts: Date.now()
-                };
-                // Update/tambah ke riwayat user
-                const lsKey = 'vp_riw_'+_u.email;
-                let cur = JSON.parse(localStorage.getItem(lsKey)||'[]');
-                cur = cur.filter(x => x.id !== '#'+orderId); // hapus menunggu lama
-                cur.unshift(trxData);
-                localStorage.setItem(lsKey, JSON.stringify(cur.slice(0,200)));
-
-                // Simpan ke global trx (admin riwayat)
-                try {
-                  const all = JSON.parse(localStorage.getItem('vp_all_trx')||'[]')
-                    .filter(x => !(x.id==='#'+orderId && x.email===_u.email));
-                  all.unshift({...trxData, email: _u.email});
-                  localStorage.setItem('vp_all_trx', JSON.stringify(all.slice(0,500)));
-                } catch(_){}
-
-                // Simpan ke Supabase transactions (untuk admin cloud)
-                try {
-                  await _sbc.from('transactions').upsert({
-                    email: _u.email,
-                    trx_id: '#'+orderId,
-                    data: {
-                      productName: prod?.name||'Produk',
-                      variantName: vari?.n||'',
-                      qty, total: amount,
-                      keys, key: keyStr,
-                      status: 'sukses', method: 'QRIS',
-                      time: paidTime
-                    },
-                    created_at: new Date().toISOString()
-                  }, { onConflict: 'trx_id' });
-                } catch(_){}
-
-                // Update riwayat user jika panel terbuka
-                try { if (typeof window.renderRiwayat==='function') window.renderRiwayat(); } catch(_){}
-              }
-            } catch(_){}
-
-            // Tampilkan success state
-            document.getElementById("qrisWaitState").style.display = "none";
-            document.getElementById("qrisOkState").style.display = "";
-            document.getElementById("qrisOkTrx").textContent = "#" + orderId;
-            document.getElementById("qrisOkTime").textContent = paidTime;
-            document.getElementById("qrisOkProd").textContent = prod?.name || '—';
-            document.getElementById("qrisOkVar").textContent = (vari?.n||'').toUpperCase() || '—';
-            const imgWrap = document.getElementById("qrisProdImgWrap");
-            document.getElementById("qrisOkImgWrap").innerHTML = imgWrap ? imgWrap.outerHTML : '<div class="qpEmoji">📦</div>';
-            document.getElementById("qrisOkKeyList").innerHTML = keys.length
-              ? keys.map((k,i)=>`<div>${i+1}. ${k}</div>`).join('')
-              : '<div style="color:#6a8cb5">Key sedang diproses...</div>';
-
-            if(typeof showNotif==='function') showNotif('✅ Pembayaran berhasil! Terima kasih 🎉');
-
-          } else if (s === "expired" || s === "failed") {
-            clearInterval(qrisTimerId);
-            // Update status riwayat jadi kadaluwarsa/batal
-            try {
-              const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
-              if (_u?.email) {
-                const lsKey = 'vp_riw_'+_u.email;
-                let cur = JSON.parse(localStorage.getItem(lsKey)||'[]');
-                const idx = cur.findIndex(x => x.id==='#'+orderId);
-                if (idx !== -1) { cur[idx].status = s==='expired' ? 'kadaluwarsa' : 'batal'; }
-                localStorage.setItem(lsKey, JSON.stringify(cur));
-              }
-            } catch(_){}
+          if (s === "paid" && !pollDone) {
+            pollDone = true;
+            clearInterval(window._qrisPollId);
+            await handlePaid(orderId, payload.new);
+          } else if ((s === "expired" || s === "cancelled" || s === "failed") && !pollDone) {
+            pollDone = true;
+            clearInterval(window._qrisPollId);
             if(typeof showNotif==='function') showNotif('❌ Pembayaran ' + s);
             tutupQris();
           }
         })
       .subscribe();
+  }
+
+  async function handlePaid(orderId, orderData) {
+    clearInterval(qrisTimerId);
+
+    const prod = (typeof getProducts==='function' && typeof selProdId!=='undefined') ? getProducts().find(x=>x.id===selProdId) : null;
+    const varIdx = (typeof selVarIdx!=='undefined') ? selVarIdx : 0;
+    const vari = prod ? (prod.variants||[])[varIdx] : null;
+    const qty = (typeof selQty!=='undefined') ? selQty : 1;
+    const amount = orderData.amount || 0;
+    const paidTime = _fmtQrisTime(new Date());
+    const _sbc = window._sb || supabase;
+
+    // Anti-double: cek dulu di transactions
+    let keys = [];
+    try {
+      const { data: existingTx } = await _sbc.from('transactions')
+        .select('data').eq('trx_id','#'+orderId).single();
+      if (existingTx?.data?.keys?.length) keys = existingTx.data.keys;
+      else if (existingTx?.data?.key) keys = [existingTx.data.key];
+    } catch(_){}
+
+    // Assign key dari stok kalau belum ada
+    if (!keys.length && prod && vari && typeof assignKeys==='function') {
+      const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
+      keys = assignKeys(prod.id, vari.n||'', qty, _u?.email||'guest');
+    }
+
+    const keyStr = keys.join('\n') || '';
+
+    // Update localStorage riwayat
+    try {
+      const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
+      if (_u?.email) {
+        const lsKey = 'vp_riw_'+_u.email;
+        let cur = JSON.parse(localStorage.getItem(lsKey)||'[]');
+        const idx = cur.findIndex(x => x.id.replace(/^#/,'') === orderId);
+        const trxData = {
+          id: '#'+orderId,
+          prod: (prod?.name||'') + ' ' + (vari?.n||''),
+          productName: prod?.name||'Produk', variantName: vari?.n||'',
+          img: prod?.img||'', emoji: prod?.emoji||'📦',
+          price: vari?.p||amount, qty, key: keyStr,
+          status: 'sukses', method: 'QRIS',
+          time: paidTime, ts: Date.now()
+        };
+        if (idx !== -1) cur[idx] = trxData;
+        else cur.unshift(trxData);
+        localStorage.setItem(lsKey, JSON.stringify(cur.slice(0,200)));
+
+        // Update Supabase transactions
+        try {
+          await _sbc.from('transactions').upsert({
+            email: _u.email, trx_id: '#'+orderId,
+            data: { ...trxData, keys, total: amount },
+            created_at: new Date().toISOString()
+          }, { onConflict: 'trx_id' });
+        } catch(_){}
+
+        try { if (typeof window.renderRiwayat==='function') window.renderRiwayat(); } catch(_){}
+      }
+    } catch(_){}
+
+    // Tampilkan success state
+    document.getElementById("qrisWaitState").style.display = "none";
+    document.getElementById("qrisOkState").style.display = "";
+    document.getElementById("qrisOkTrx").textContent = "#" + orderId;
+    document.getElementById("qrisOkTime").textContent = paidTime;
+    document.getElementById("qrisOkProd").textContent = prod?.name || '—';
+    document.getElementById("qrisOkVar").textContent = (vari?.n||'').toUpperCase() || '—';
+    const imgWrap = document.getElementById("qrisProdImgWrap");
+    document.getElementById("qrisOkImgWrap").innerHTML = imgWrap ? imgWrap.outerHTML : '<div class="qpEmoji">📦</div>';
+    document.getElementById("qrisOkKeyList").innerHTML = keys.length
+      ? keys.map((k,i)=>`<div>${i+1}. ${k}</div>`).join('')
+      : '<div style="color:#6a8cb5">Key sedang diproses...</div>';
+
+    if(typeof showNotif==='function') showNotif('✅ Pembayaran berhasil! 🎉');
   }
 
   function tutupQris(isBatal = false) {
