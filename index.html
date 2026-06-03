@@ -1640,7 +1640,7 @@ async function doLogin() {
       if (uErr || !uData) { showAuthErr('Email belum terdaftar! Silakan daftar dulu.'); return; }
       if (uData.password !== pass) { showAuthErr('Password salah!'); return; }
       // Akun lama: auto-migrate ke Supabase Auth
-      const { error: signUpErr } = await _sb.auth.signUp({ email, password: pass, options: { data: { username: uData.name } } });
+      const { error: signUpErr } = await _sb.auth.signUp({ email, password: pass, options: { data: { username: uData.name }, emailRedirectTo: null } });
       if (!signUpErr) {
         // Coba login lagi setelah signup
         await _sb.auth.signInWithPassword({ email, password: pass });
@@ -2021,7 +2021,10 @@ async function doVerifyOTP() {
         await _sb.auth.signUp({
           email: targetEmail,
           password: otpPendingUser.pass,
-          options: { data: { username: otpPendingUser.name } }
+          options: {
+            data: { username: otpPendingUser.name },
+            emailRedirectTo: null  // matikan redirect email confirm
+          }
         });
         // Langsung login supaya session langsung ada
         await _sb.auth.signInWithPassword({ email: targetEmail, password: otpPendingUser.pass });
@@ -7922,6 +7925,41 @@ function closePusatInfo(){
       imgWrap.outerHTML = `<div class="qpEmoji" id="qrisProdImgWrap">${prod ? (prod.emoji||'📦') : '📦'}</div>`;
     }
 
+    // Simpan status MENUNGGU ke riwayat user
+    try {
+      const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
+      if (_u?.email) {
+        const qty = (typeof selQty!=='undefined') ? selQty : 1;
+        const paidTime = _fmtQrisTime(new Date());
+        const trxData = {
+          id: '#'+d.order_id,
+          prod: (prod?.name||'') + ' ' + (vari?.n||''),
+          productName: prod?.name||'Produk', variantName: vari?.n||'',
+          img: prod?.img||'', emoji: prod?.emoji||'📦',
+          price: vari?.p||amount, qty, key: '',
+          status: 'menunggu', method: 'QRIS',
+          time: paidTime, ts: Date.now()
+        };
+        const lsKey = 'vp_riw_'+_u.email;
+        const cur = JSON.parse(localStorage.getItem(lsKey)||'[]');
+        if (!cur.find(x=>x.id===trxData.id)) {
+          cur.unshift(trxData);
+          localStorage.setItem(lsKey, JSON.stringify(cur.slice(0,200)));
+        }
+        // Simpan ke Supabase transactions dengan status menunggu
+        try {
+          await (window._sb||supabase).from('transactions').upsert({
+            email: _u.email,
+            trx_id: '#'+d.order_id,
+            data: { productName: prod?.name||'Produk', variantName: vari?.n||'', qty, total: amount, status: 'menunggu', method: 'QRIS', time: paidTime },
+            created_at: new Date().toISOString()
+          }, { onConflict: 'trx_id' });
+        } catch(_){}
+        // Push ke global trx admin
+        try { if (typeof window.__pushAllTrx==='function') window.__pushAllTrx({...trxData, email: _u.email}); } catch(_){}
+      }
+    } catch(_){}
+
     // Tampilkan modal fullscreen
     document.getElementById("qrisWaitState").style.display = "";
     document.getElementById("qrisOkState").style.display = "none";
@@ -7963,27 +8001,113 @@ function closePusatInfo(){
       .channel("orders-" + orderId)
       .on("postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `order_id=eq.${orderId}` },
-        (payload) => {
+        async (payload) => {
           const s = payload.new.status;
           if (s === "paid") {
             clearInterval(qrisTimerId);
+
+            // Ambil data produk
+            const prod = (typeof getProducts==='function' && typeof selProdId!=='undefined') ? getProducts().find(x=>x.id===selProdId) : null;
+            const varIdx = (typeof selVarIdx!=='undefined') ? selVarIdx : 0;
+            const vari = prod ? (prod.variants||[])[varIdx] : null;
+            const qty = (typeof selQty!=='undefined') ? selQty : 1;
+            const amount = payload.new.amount;
+            const paidTime = _fmtQrisTime(new Date());
+
+            // Ambil key dari orders table
+            let keys = [];
+            try {
+              const { data: orderData } = await _sbc.from('orders').select('keys,key').eq('order_id', orderId).single();
+              if (orderData?.keys) keys = Array.isArray(orderData.keys) ? orderData.keys : [orderData.keys];
+              else if (orderData?.key) keys = [orderData.key];
+            } catch(_) {}
+
+            // Kalau tidak ada key di orders, ambil dari stok (assignKeys)
+            if (!keys.length && prod && vari && typeof assignKeys==='function') {
+              const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
+              keys = assignKeys(prod.id, vari.n||'', qty, _u?.email||'guest');
+            }
+
+            const keyStr = keys.join('\n') || '';
+
+            // Simpan ke localStorage riwayat user
+            try {
+              const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
+              if (_u?.email) {
+                const trxData = {
+                  id: '#'+orderId,
+                  prod: (prod?.name||'') + ' ' + (vari?.n||''),
+                  productName: prod?.name||'Produk', variantName: vari?.n||'',
+                  img: prod?.img||'', emoji: prod?.emoji||'📦',
+                  price: vari?.p||amount, qty, key: keyStr,
+                  status: 'sukses', method: 'QRIS',
+                  time: paidTime, ts: Date.now()
+                };
+                // Update/tambah ke riwayat user
+                const lsKey = 'vp_riw_'+_u.email;
+                let cur = JSON.parse(localStorage.getItem(lsKey)||'[]');
+                cur = cur.filter(x => x.id !== '#'+orderId); // hapus menunggu lama
+                cur.unshift(trxData);
+                localStorage.setItem(lsKey, JSON.stringify(cur.slice(0,200)));
+
+                // Simpan ke global trx (admin riwayat)
+                try {
+                  const all = JSON.parse(localStorage.getItem('vp_all_trx')||'[]')
+                    .filter(x => !(x.id==='#'+orderId && x.email===_u.email));
+                  all.unshift({...trxData, email: _u.email});
+                  localStorage.setItem('vp_all_trx', JSON.stringify(all.slice(0,500)));
+                } catch(_){}
+
+                // Simpan ke Supabase transactions (untuk admin cloud)
+                try {
+                  await _sbc.from('transactions').upsert({
+                    email: _u.email,
+                    trx_id: '#'+orderId,
+                    data: {
+                      productName: prod?.name||'Produk',
+                      variantName: vari?.n||'',
+                      qty, total: amount,
+                      keys, key: keyStr,
+                      status: 'sukses', method: 'QRIS',
+                      time: paidTime
+                    },
+                    created_at: new Date().toISOString()
+                  }, { onConflict: 'trx_id' });
+                } catch(_){}
+
+                // Update riwayat user jika panel terbuka
+                try { if (typeof window.renderRiwayat==='function') window.renderRiwayat(); } catch(_){}
+              }
+            } catch(_){}
+
             // Tampilkan success state
             document.getElementById("qrisWaitState").style.display = "none";
             document.getElementById("qrisOkState").style.display = "";
-            // Isi data success
             document.getElementById("qrisOkTrx").textContent = "#" + orderId;
-            document.getElementById("qrisOkTime").textContent = _fmtQrisTime(new Date());
-            // Copy produk info ke success state
-            document.getElementById("qrisOkProd").textContent = document.getElementById("qrisProdName").textContent;
-            document.getElementById("qrisOkVar").textContent = document.getElementById("qrisProdVar").textContent;
+            document.getElementById("qrisOkTime").textContent = paidTime;
+            document.getElementById("qrisOkProd").textContent = prod?.name || '—';
+            document.getElementById("qrisOkVar").textContent = (vari?.n||'').toUpperCase() || '—';
             const imgWrap = document.getElementById("qrisProdImgWrap");
             document.getElementById("qrisOkImgWrap").innerHTML = imgWrap ? imgWrap.outerHTML : '<div class="qpEmoji">📦</div>';
-            // Tampilkan key dari payload kalau ada
-            const key = payload.new.key || payload.new.license_key || '';
-            document.getElementById("qrisOkKeyList").textContent = key || '(Key akan dikirim via riwayat)';
+            document.getElementById("qrisOkKeyList").innerHTML = keys.length
+              ? keys.map((k,i)=>`<div>${i+1}. ${k}</div>`).join('')
+              : '<div style="color:#6a8cb5">Key sedang diproses...</div>';
+
             if(typeof showNotif==='function') showNotif('✅ Pembayaran berhasil! Terima kasih 🎉');
+
           } else if (s === "expired" || s === "failed") {
             clearInterval(qrisTimerId);
+            // Update status riwayat jadi kadaluwarsa/batal
+            try {
+              const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
+              if (_u?.email) {
+                const lsKey = 'vp_riw_'+_u.email;
+                let cur = JSON.parse(localStorage.getItem(lsKey)||'[]');
+                const idx = cur.findIndex(x => x.id==='#'+orderId);
+                if (idx !== -1) { cur[idx].status = s==='expired' ? 'kadaluwarsa' : 'batal'; }
+                localStorage.setItem(lsKey, JSON.stringify(cur));
+              }
+            } catch(_){}
             if(typeof showNotif==='function') showNotif('❌ Pembayaran ' + s);
             tutupQris();
           }
