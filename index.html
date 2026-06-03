@@ -4591,6 +4591,12 @@ function doPesan(){
           <div style="font-size:11px;color:var(--muted);">Belum dibayar? Hubungi WA:</div>
           <button class="riw-bayarwa" onclick="window.__riwOpenWa('${t.id}')">💬 CHAT WA</button>
         </div>` : '';
+      const qrisBtn = (st==='menunggu' && mt==='QRIS') ? `
+        <div class="riw-divider"></div>
+        <div class="riw-actions">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Belum selesai bayar?</div>
+          <button onclick="window.__riwBayarQris('${t.id.replace(/^#/,'')}')" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#1a6fff,#1559d6);color:#fff;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:12px;letter-spacing:1.5px;cursor:pointer;">💳 LANJUT BAYAR QRIS</button>
+        </div>` : '';
       return `<div class="riw-card">
         <div class="riw-head">
           <div>
@@ -4609,9 +4615,60 @@ function doPesan(){
         </div>
         ${keyBox}
         ${waBtn}
+        ${qrisBtn}
       </div>`;
     }).join('');
   }
+
+  // Buka kembali QR dari riwayat menunggu
+  window.__riwBayarQris = async function(orderId) {
+    const cleanId = String(orderId).replace(/^#/,'');
+    if(typeof showNotif==='function') showNotif('⏳ Mengambil QR...');
+    try {
+      // Ambil data order dari Supabase
+      const { data: order, error } = await (window._sb||supabase)
+        .from('orders').select('*').eq('order_id', cleanId).single();
+      if (error || !order) { showNotif('❌ Order tidak ditemukan'); return; }
+      if (order.status !== 'pending') { showNotif('⚠️ Order sudah ' + order.status); return; }
+      if (!order.qris_url) { showNotif('❌ QR tidak tersedia'); return; }
+
+      // Hitung sisa waktu
+      const expiresAt = order.expires_at ? new Date(order.expires_at) : null;
+      const sisaSec = expiresAt ? Math.max(0, Math.floor((expiresAt - Date.now()) / 1000)) : 0;
+      if (sisaSec <= 0) { showNotif('⚠️ QR sudah kadaluwarsa'); return; }
+
+      // Isi modal QRIS dengan data order
+      document.getElementById("qrisImg").src = order.qris_url;
+      document.getElementById("qrisTotalAmt").textContent = 'Rp ' + Number(order.amount).toLocaleString('id-ID');
+      document.getElementById("qrisTrxId").textContent = '#' + cleanId;
+      document.getElementById("qrisTrxTime").textContent = (typeof _fmtQrisTime==='function') ? _fmtQrisTime(new Date(order.created_at||Date.now())) : '';
+
+      // Info produk dari localStorage riwayat
+      const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
+      if (_u?.email) {
+        const riw = JSON.parse(localStorage.getItem('vp_riw_'+_u.email)||'[]');
+        const trx = riw.find(x => x.id.replace(/^#/,'') === cleanId);
+        if (trx) {
+          document.getElementById("qrisProdName").textContent = trx.productName || '—';
+          document.getElementById("qrisProdVar").textContent = (trx.variantName||'').toUpperCase();
+          const iw = document.getElementById("qrisProdImgWrap");
+          if (trx.img) iw.outerHTML = `<img id="qrisProdImgWrap" src="${trx.img}" alt="" style="width:64px;height:64px;border-radius:12px;object-fit:cover;flex-shrink:0;">`;
+          else iw.outerHTML = `<div class="qpEmoji" id="qrisProdImgWrap">${trx.emoji||'📦'}</div>`;
+        }
+      }
+
+      // Tampilkan modal & mulai timer + listener
+      document.getElementById("qrisWaitState").style.display = "";
+      document.getElementById("qrisOkState").style.display = "none";
+      document.getElementById("qrisModal").classList.add("open");
+      document.body.style.overflow = "hidden";
+      if (typeof closeRiwayat==='function') closeRiwayat();
+
+      if(typeof startQrisTimer==='function') startQrisTimer(sisaSec);
+      if(typeof listenPaid==='function') listenPaid(cleanId);
+
+    } catch(e) { showNotif('Error: ' + e.message); }
+  };
 
   window.__riwCopy = function(idSafe, btn){
     const el = document.getElementById('rk_'+idSafe);
