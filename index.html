@@ -7734,7 +7734,7 @@ function closePusatInfo(){
   let qrisChannel = null;
 
   async function bayarQris({ amount, product_id, variant_id, customer_name, customer_wa }) {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await (window._sb || supabase).auth.getSession();
     if (!session) { if(typeof showNotif==='function') showNotif('Login dulu ya!'); return; }
 
     if(typeof showNotif==='function') showNotif('Membuat QRIS…');
@@ -7777,8 +7777,9 @@ function closePusatInfo(){
   }
 
   function listenPaid(orderId) {
-    if (qrisChannel) supabase.removeChannel(qrisChannel);
-    qrisChannel = supabase
+    const _sbc = window._sb || supabase;
+    if (qrisChannel) _sbc.removeChannel(qrisChannel);
+    qrisChannel = _sbc
       .channel("orders-" + orderId)
       .on("postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `order_id=eq.${orderId}` },
@@ -7803,7 +7804,7 @@ function closePusatInfo(){
   function tutupQris() {
     document.getElementById("qrisModal").style.display = "none";
     clearInterval(qrisTimerId);
-    if (qrisChannel) { supabase.removeChannel(qrisChannel); qrisChannel = null; }
+    if (qrisChannel) { (window._sb || supabase).removeChannel(qrisChannel); qrisChannel = null; }
   }
 
   // Override orderQRIS agar pakai Worker
@@ -7817,7 +7818,7 @@ function closePusatInfo(){
       if(amount < 1000){ if(typeof showNotif==='function') showNotif('Nominal terlalu kecil'); return; }
       const prod = (typeof getProducts==='function' && typeof selProdId!=='undefined') ? getProducts().find(x=>x.id===selProdId) : null;
       const variant = (prod && typeof selVarId!=='undefined') ? (prod.variants||[]).find(v=>v.id===selVarId) : null;
-      const { data:{session} } = await supabase.auth.getSession();
+      const { data:{session} } = await (window._sb || supabase).auth.getSession();
       const uname = session?.user?.user_metadata?.username || session?.user?.email || 'Customer';
       await bayarQris({
         amount,
