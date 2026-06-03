@@ -3216,10 +3216,20 @@ async function renderKeyManager(){
     const avail = normed.filter(x=>x.status==='available').length;
     const sold  = normed.filter(x=>x.status==='sold').length;
 
-    // Update localStorage biar assignKeys (pembelian QRIS/saldo) tetap bisa pakai
-    const store = getKeyStore(); const k = _kKey(pid, vn);
-    store[k] = normed.map(r => ({ key: r.key, status: r.status, soldTo: r.status==='sold'?'cloud':null, soldAt: null }));
-    setKeyStore(store);
+    // NOTE: tidak overwrite vp_keys lokal — claim_key RPC sudah jadi source of truth
+    // (overwrite lama bikin status 'sold' di buyer ke-reset jadi available)
+    try {
+      const store = getKeyStore(); const k = _kKey(pid, vn);
+      const arr = store[k] || [];
+      const cloudMap = new Map(normed.map(r => [r.key, r.status]));
+      // Hanya merge: tambah key baru dari cloud, upgrade available→sold; jangan downgrade sold→available
+      for (const [kv, st] of cloudMap) {
+        const e = arr.find(x => x.key === kv);
+        if (!e) arr.push({ key: kv, status: st, soldTo: st==='sold'?'cloud':null, soldAt: st==='sold'?new Date().toISOString():null });
+        else if (st === 'sold' && e.status !== 'sold') { e.status='sold'; e.soldAt = e.soldAt || new Date().toISOString(); }
+      }
+      store[k] = arr; setKeyStore(store);
+    } catch(_){}
 
     statsEl.innerHTML = `
       <div style="background:var(--success);color:#000;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;">TERSEDIA: ${avail}</div>
@@ -4216,7 +4226,7 @@ function doPesan(){
     _qrAutoOk = setTimeout(()=>qrSimShowOk(), 8000);
   }
 
-  function qrSimShowOk(){
+  async function qrSimShowOk(){
     if (!_qrPending) return;
     clearInterval(_qrTimer);
     const { p, v, orderId, time, total } = _qrPending;
@@ -4227,13 +4237,44 @@ function doPesan(){
     try { _u = JSON.parse(localStorage.getItem('vp_user') || 'null'); } catch(e){}
     const _email = (_u && _u.email) ? _u.email : 'guest';
 
-    // Ambil key dari key store (pakai assignKeys vinz)
+    // Ambil key — prioritas: RPC claim_key (atomic di Supabase), fallback assignKeys lokal
     let keys = [];
     try {
-      if (typeof assignKeys === 'function') {
-        keys = assignKeys(p.id, v.n, qty, _email) || [];
+      const _sbc = window._sb || (typeof supabase!=='undefined' ? supabase : null);
+      if (_sbc && _sbc.rpc) {
+        const { data: cd, error: ce } = await _sbc.rpc('claim_key', {
+          p_product: p.id,
+          p_variant: v.n||'',
+          p_qty: qty,
+          p_email: _email,
+          p_order_id: orderId
+        });
+        if (ce) console.warn('claim_key error:', ce);
+        if (Array.isArray(cd)) keys = cd.map(r => r.key_value).filter(Boolean);
       }
     } catch(e){ console.warn(e); }
+    if (!keys.length) {
+      try {
+        if (typeof assignKeys === 'function') {
+          keys = assignKeys(p.id, v.n, qty, _email) || [];
+        }
+      } catch(e){ console.warn(e); }
+    }
+    // Sync vp_keys lokal
+    try {
+      if (keys.length && typeof getKeyStore==='function') {
+        const _store = getKeyStore();
+        const _kk = p.id + '__' + (v.n||'');
+        const _arr = _store[_kk] || [];
+        keys.forEach(kv => {
+          const e = _arr.find(x => x.key === kv);
+          if (e) { e.status='sold'; e.soldTo=_email; e.soldAt=new Date().toISOString(); }
+          else _arr.push({ key:kv, status:'sold', soldTo:_email, soldAt:new Date().toISOString() });
+        });
+        _store[_kk] = _arr;
+        if (typeof setKeyStore==='function') setKeyStore(_store);
+      }
+    } catch(_){}
 
     if (!keys.length){
       if (typeof showNotif==='function') showNotif('❌ Stok key habis');
@@ -8426,10 +8467,39 @@ window.closePusatInfo = closePusatInfo;
       else if (existingTx?.data?.key) keys = [existingTx.data.key];
     } catch(_){}
 
-    // Assign key dari stok kalau belum ada
-    if (!keys.length && prod && vari && typeof assignKeys==='function') {
+    // Assign key dari stok kalau belum ada — pakai RPC claim_key (atomic di Supabase)
+    if (!keys.length && prod && vari) {
       const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
-      keys = assignKeys(prod.id, vari.n||'', qty, _u?.email||'guest');
+      try {
+        const { data: cd, error: ce } = await _sbc.rpc('claim_key', {
+          p_product: prod.id,
+          p_variant: vari.n||'',
+          p_qty: qty,
+          p_email: _u?.email||'guest',
+          p_order_id: orderId
+        });
+        if (ce) console.warn('claim_key error:', ce);
+        if (Array.isArray(cd)) keys = cd.map(r => r.key_value).filter(Boolean);
+      } catch(e){ console.warn('claim_key exception:', e); }
+      // Fallback terakhir: assignKeys lokal (kalau RPC belum ada / error)
+      if (!keys.length && typeof assignKeys==='function') {
+        keys = assignKeys(prod.id, vari.n||'', qty, _u?.email||'guest');
+      }
+      // Sync hasil claim ke vp_keys lokal supaya admin panel di device buyer juga update
+      try {
+        if (keys.length) {
+          const _store = (typeof getKeyStore==='function') ? getKeyStore() : {};
+          const _kk = prod.id + '__' + (vari.n||'');
+          const _arr = _store[_kk] || [];
+          keys.forEach(kv => {
+            const e = _arr.find(x => x.key === kv);
+            if (e) { e.status='sold'; e.soldTo=_u?.email||'guest'; e.soldAt=new Date().toISOString(); }
+            else _arr.push({ key:kv, status:'sold', soldTo:_u?.email||'guest', soldAt:new Date().toISOString() });
+          });
+          _store[_kk] = _arr;
+          if (typeof setKeyStore==='function') setKeyStore(_store);
+        }
+      } catch(_){}
     }
 
     const keyStr = keys.join('\n') || '';
