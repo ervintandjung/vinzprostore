@@ -7703,6 +7703,119 @@ function closePusatInfo(){
 }
 </script>
 
+<!-- ===== Modal QRIS ===== -->
+<div id="qrisModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#0d1f3c;border:1.5px solid rgba(26,111,255,0.4);padding:24px 20px;border-radius:16px;max-width:340px;width:92%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.6);">
+    <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:15px;letter-spacing:2px;color:#fff;margin-bottom:4px;">SCAN QRIS</div>
+    <div style="font-size:11px;color:#6a8cb5;letter-spacing:1.5px;margin-bottom:14px;text-transform:uppercase;">Bayar pakai e-wallet apa saja</div>
+    <img id="qrisImg" alt="QRIS" style="width:100%;max-width:260px;display:block;margin:0 auto;border-radius:10px;border:3px solid rgba(26,111,255,0.3);" />
+    <div style="margin:14px 0 4px;font-size:13px;color:#e0eaff;">Sisa waktu: <span id="qrisTimer" style="color:#00d4ff;font-family:'Orbitron',sans-serif;font-weight:700;">10:00</span></div>
+    <div id="qrisStatus" style="margin:6px 0 14px;color:#6a8cb5;font-size:13px;font-weight:600;letter-spacing:1px;">Menunggu pembayaran…</div>
+    <button onclick="tutupQris()" style="background:transparent;border:1.5px solid rgba(26,111,255,0.4);color:#e0eaff;padding:8px 24px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">Batal</button>
+  </div>
+</div>
+
+<script>
+  const WORKER_URL = "https://qris-gateway.vinzprostore.workers.dev";
+  let qrisTimerId = null;
+  let qrisChannel = null;
+
+  async function bayarQris({ amount, product_id, variant_id, customer_name, customer_wa }) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { if(typeof showNotif==='function') showNotif('Login dulu ya!'); return; }
+
+    if(typeof showNotif==='function') showNotif('Membuat QRIS…');
+    const res = await fetch(`${WORKER_URL}/create-qris`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ amount, product_id, variant_id, customer_name, customer_wa }),
+    });
+    const d = await res.json();
+    if (!res.ok) { if(typeof showNotif==='function') showNotif(d.error || 'Gagal buat QRIS'); return; }
+
+    document.getElementById("qrisImg").src = d.qris_url;
+    document.getElementById("qrisStatus").textContent = "Menunggu pembayaran…";
+    document.getElementById("qrisStatus").style.color = "#6a8cb5";
+    const modal = document.getElementById("qrisModal");
+    modal.style.display = "flex";
+    startQrisTimer(d.expires_in);
+    listenPaid(d.order_id);
+  }
+
+  function startQrisTimer(seconds) {
+    clearInterval(qrisTimerId);
+    let s = seconds;
+    const el = document.getElementById("qrisTimer");
+    const tick = () => {
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      el.textContent = `${String(m).padStart(2,"0")}:${String(r).padStart(2,"0")}`;
+      if (s-- <= 0) {
+        clearInterval(qrisTimerId);
+        document.getElementById("qrisStatus").textContent = "QRIS expired";
+        document.getElementById("qrisStatus").style.color = "#ff4455";
+      }
+    };
+    tick();
+    qrisTimerId = setInterval(tick, 1000);
+  }
+
+  function listenPaid(orderId) {
+    if (qrisChannel) supabase.removeChannel(qrisChannel);
+    qrisChannel = supabase
+      .channel("orders-" + orderId)
+      .on("postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders", filter: `order_id=eq.${orderId}` },
+        (payload) => {
+          const s = payload.new.status;
+          if (s === "paid") {
+            document.getElementById("qrisStatus").textContent = "✅ Pembayaran sukses!";
+            document.getElementById("qrisStatus").style.color = "#00ff88";
+            clearInterval(qrisTimerId);
+            setTimeout(() => {
+              tutupQris();
+              if(typeof showNotif==='function') showNotif('Pembayaran berhasil! Terima kasih 🎉');
+            }, 2000);
+          } else if (s === "expired" || s === "failed") {
+            document.getElementById("qrisStatus").textContent = "❌ " + s.toUpperCase();
+            document.getElementById("qrisStatus").style.color = "#ff4455";
+          }
+        })
+      .subscribe();
+  }
+
+  function tutupQris() {
+    document.getElementById("qrisModal").style.display = "none";
+    clearInterval(qrisTimerId);
+    if (qrisChannel) { supabase.removeChannel(qrisChannel); qrisChannel = null; }
+  }
+
+  // Override orderQRIS agar pakai Worker
+  window.orderQRIS = async function() {
+    try {
+      const prodEl = document.getElementById('fsOItem');
+      const totalEl = document.getElementById('fsTotalAmt');
+      const qtyEl = document.getElementById('fsQtyVal');
+      const totalTxt = totalEl ? totalEl.textContent.replace(/[^0-9]/g,'') : '0';
+      const amount = parseInt(totalTxt) || 0;
+      if(amount < 1000){ if(typeof showNotif==='function') showNotif('Nominal terlalu kecil'); return; }
+      const prod = (typeof getProducts==='function' && typeof selProdId!=='undefined') ? getProducts().find(x=>x.id===selProdId) : null;
+      const variant = (prod && typeof selVarId!=='undefined') ? (prod.variants||[]).find(v=>v.id===selVarId) : null;
+      const { data:{session} } = await supabase.auth.getSession();
+      const uname = session?.user?.user_metadata?.username || session?.user?.email || 'Customer';
+      await bayarQris({
+        amount,
+        product_id: prod?.id || null,
+        variant_id: variant?.id || null,
+        customer_name: uname,
+      });
+    } catch(e){ if(typeof showNotif==='function') showNotif('Error: '+e.message); }
+  };
+</script>
+
 </body>
 </html>
 
