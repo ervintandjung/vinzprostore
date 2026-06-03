@@ -5231,21 +5231,8 @@ function doPesan(){
     }
   };
 
-  // --- Override selectPayMethod: tolak QRIS kalau habis ---
-  if (typeof window.selectPayMethod === 'function'){
-    const _origSel = window.selectPayMethod;
-    window.selectPayMethod = function(m){
-      if (m === 'qris'){
-        const avail = _avail();
-        const need  = _needed();
-        if (avail < need){
-          try { showNotif('❌ QRIS habis untuk varian ini. Silakan pilih WhatsApp.'); } catch(e){ alert('QRIS habis untuk varian ini. Silakan pilih WhatsApp.'); }
-          return;
-        }
-      }
-      return _origSel.apply(this, arguments);
-    };
-  }
+  // --- QRIS via qris.pw: selalu bisa dipilih, tidak cek stok key ---
+  // (konfirmasi pembayaran otomatis via Worker + Supabase Realtime)
 
   // --- Refresh ulang saat produk dibuka ---
   if (typeof window.openProdFullscreen === 'function'){
