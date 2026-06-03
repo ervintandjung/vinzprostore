@@ -784,6 +784,7 @@ renderBannerSlider();
       <script>
       document.getElementById('qrisPayCard').addEventListener('click', function(){
         window.selectedPayMethod = 'qris';
+        try { selectedPayMethod = 'qris'; } catch(e){}
         document.querySelectorAll('.pm-card').forEach(function(c){
           c.style.border='2px solid var(--border)';
           c.style.background='var(--card2)';
