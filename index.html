@@ -6758,6 +6758,13 @@ setTimeout(tryInject, 1500);
         if (act) method = act.dataset.method;
       } catch(e){}
     }
+    // fallback for qris card with id
+    if (!method){
+      try {
+        var qc = document.getElementById('qrisPayCard');
+        if (qc && qc.style.boxShadow && qc.style.boxShadow.includes('170')) method = 'qris';
+      } catch(e){}
+    }
     if (method !== 'saldo'){
       return (typeof _odp === 'function') ? _odp.apply(this, arguments) : null;
     }
@@ -7595,9 +7602,13 @@ function payXenditDone(){
   // Override doPesan agar muncul popup dulu saat QRIS / WA
   const _origDoPesan = window.doPesan;
   window.doPesan = function(){
-    const sel = window.selectedPayMethod;
+    var sel = window.selectedPayMethod;
+    // extra fallback
+    if(!sel && document.getElementById('qrisPayCard') && document.getElementById('qrisPayCard').style.border.includes('00aaff')) sel='qris';
     if(sel === 'qris'){
       if(typeof window.orderQRIS === 'function') window.orderQRIS();
+      else { if(typeof showNotif==='function') showNotif('orderQRIS not found'); }
+      return;
     } else if(sel === 'wa'){
       try {
         const prod = (typeof getProducts==='function' && typeof selProdId!=='undefined')
