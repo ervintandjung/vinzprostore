@@ -4591,12 +4591,23 @@ function doPesan(){
           <div style="font-size:11px;color:var(--muted);">Belum dibayar? Hubungi WA:</div>
           <button class="riw-bayarwa" onclick="window.__riwOpenWa('${t.id}')">💬 CHAT WA</button>
         </div>` : '';
-      const qrisBtn = (st==='menunggu' && mt==='QRIS') ? `
-        <div class="riw-divider"></div>
+      const qrisBtn = (st==='menunggu' && mt==='QRIS') ? (() => {
+        // Hitung sisa waktu dari ts (10 menit = 600000ms)
+        const elapsed = Date.now() - (t.ts||0);
+        const sisaMs = Math.max(0, 600000 - elapsed);
+        const sisaSec = Math.floor(sisaMs / 1000);
+        const mm = String(Math.floor(sisaSec/60)).padStart(2,'0');
+        const ss = String(sisaSec%60).padStart(2,'0');
+        const expired = sisaSec <= 0;
+        return `<div class="riw-divider"></div>
         <div class="riw-actions">
-          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Belum selesai bayar?</div>
-          <button onclick="window.__riwBayarQris('${t.id.replace(/^#/,'')}')" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#1a6fff,#1559d6);color:#fff;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:12px;letter-spacing:1.5px;cursor:pointer;">💳 LANJUT BAYAR QRIS</button>
-        </div>` : '';
+          ${expired
+            ? `<div style="font-size:11px;color:#ff4455;">⚠️ QR sudah kadaluwarsa</div>`
+            : `<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Sisa waktu: <span style="color:#00d4ff;font-family:'Orbitron',sans-serif;font-weight:700;">${mm}:${ss}</span></div>
+               <button onclick="window.__riwBayarQris('${t.id.replace(/^#/,'')}')" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#1a6fff,#1559d6);color:#fff;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:12px;letter-spacing:1.5px;cursor:pointer;">💳 LANJUT BAYAR QRIS</button>`
+          }
+        </div>`;
+      })() : '';
       return `<div class="riw-card">
         <div class="riw-head">
           <div>
@@ -7893,7 +7904,7 @@ function closePusatInfo(){
         <div class="pv" id="qrisProdVar">—</div>
       </div>
     </div>
-    <button class="qBtn cancel" onclick="tutupQris()">BATAL</button>
+    <button class="qBtn cancel" onclick="tutupQris(true)">BATAL</button>
   </div>
 
   <!-- SUCCESS state -->
@@ -8018,6 +8029,7 @@ function closePusatInfo(){
     } catch(_){}
 
     // Tampilkan modal fullscreen
+    window._currentQrisOrderId = d.order_id;
     document.getElementById("qrisWaitState").style.display = "";
     document.getElementById("qrisOkState").style.display = "none";
     document.getElementById("qrisModal").classList.add("open");
@@ -8045,6 +8057,29 @@ function closePusatInfo(){
         clearInterval(qrisTimerId);
         document.getElementById("qrisMin").textContent = "00";
         document.getElementById("qrisSec").textContent = "00";
+        // Auto kadaluwarsa
+        const orderId = window._currentQrisOrderId;
+        if (orderId) {
+          const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
+          if (_u?.email) {
+            try {
+              const lsKey = 'vp_riw_'+_u.email;
+              let cur = JSON.parse(localStorage.getItem(lsKey)||'[]');
+              const idx = cur.findIndex(x => x.id.replace(/^#/,'') === orderId);
+              if (idx !== -1) { cur[idx].status = 'kadaluwarsa'; localStorage.setItem(lsKey, JSON.stringify(cur)); }
+            } catch(_){}
+          }
+          try {
+            (window._sb||supabase).from('transactions').select('id,data').eq('trx_id','#'+orderId).single().then(({data:tx})=>{
+              if (tx) {
+                const newData = {...(tx.data||{}), status:'kadaluwarsa'};
+                (window._sb||supabase).from('transactions').update({data:newData}).eq('trx_id','#'+orderId).then(()=>{});
+              }
+            });
+          } catch(_){}
+        }
+        if(typeof showNotif==='function') showNotif('⚠️ Waktu pembayaran habis');
+        tutupQris();
       }
     };
     tick();
@@ -8071,18 +8106,33 @@ function closePusatInfo(){
             const amount = payload.new.amount;
             const paidTime = _fmtQrisTime(new Date());
 
-            // Ambil key dari orders table
+            // Ambil key — cek dulu di transactions Supabase (anti-double)
             let keys = [];
             try {
-              const { data: orderData } = await _sbc.from('orders').select('keys,key').eq('order_id', orderId).single();
-              if (orderData?.keys) keys = Array.isArray(orderData.keys) ? orderData.keys : [orderData.keys];
-              else if (orderData?.key) keys = [orderData.key];
-            } catch(_) {}
+              // Cek apakah transaksi ini sudah pernah dapat key
+              const { data: existingTx } = await _sbc.from('transactions')
+                .select('data').eq('trx_id','#'+orderId).single();
+              if (existingTx?.data?.keys?.length) {
+                keys = existingTx.data.keys;
+              } else if (existingTx?.data?.key) {
+                keys = [existingTx.data.key];
+              }
+            } catch(_){}
 
-            // Kalau tidak ada key di orders, ambil dari stok (assignKeys)
+            // Kalau belum ada key, ambil dari orders table
+            if (!keys.length) {
+              try {
+                const { data: orderData } = await _sbc.from('orders').select('keys,key').eq('order_id', orderId).single();
+                if (orderData?.keys) keys = Array.isArray(orderData.keys) ? orderData.keys : [orderData.keys];
+                else if (orderData?.key) keys = [orderData.key];
+              } catch(_) {}
+            }
+
+            // Kalau masih belum ada, assign dari stok (1 key per transaksi)
             if (!keys.length && prod && vari && typeof assignKeys==='function') {
               const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
-              keys = assignKeys(prod.id, vari.n||'', qty, _u?.email||'guest');
+              // Gunakan qty=1 per transaksi QRIS untuk hindari double
+              keys = assignKeys(prod.id, vari.n||'', Math.min(qty,1), _u?.email||'guest');
             }
 
             const keyStr = keys.join('\n') || '';
@@ -8172,12 +8222,45 @@ function closePusatInfo(){
       .subscribe();
   }
 
-  function tutupQris() {
-    document.getElementById("qrisModal").classList.remove("open");
+  function tutupQris(isBatal = false) {
+    const modal = document.getElementById("qrisModal");
+    const isSuccess = document.getElementById("qrisOkState")?.style.display !== "none";
+
+    // Kalau bukan success dan user pencet batal → update status jadi batal
+    if (isBatal && !isSuccess && window._currentQrisOrderId) {
+      const orderId = window._currentQrisOrderId;
+      const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
+      // Update localStorage
+      if (_u?.email) {
+        try {
+          const lsKey = 'vp_riw_'+_u.email;
+          let cur = JSON.parse(localStorage.getItem(lsKey)||'[]');
+          const idx = cur.findIndex(x => x.id.replace(/^#/,'') === orderId);
+          if (idx !== -1) { cur[idx].status = 'batal'; localStorage.setItem(lsKey, JSON.stringify(cur)); }
+        } catch(_){}
+      }
+      // Update Supabase orders status
+      try {
+        (window._sb||supabase).from('orders').update({status:'cancelled'}).eq('order_id', orderId).then(()=>{});
+      } catch(_){}
+      // Update Supabase transactions
+      try {
+        (window._sb||supabase).from('transactions').select('id,data').eq('trx_id','#'+orderId).single().then(({data:tx})=>{
+          if (tx) {
+            const newData = {...(tx.data||{}), status:'batal'};
+            (window._sb||supabase).from('transactions').update({data:newData}).eq('trx_id','#'+orderId).then(()=>{});
+          }
+        });
+      } catch(_){}
+      try { if (typeof window.renderRiwayat==='function') window.renderRiwayat(); } catch(_){}
+    }
+
+    modal.classList.remove("open");
     document.getElementById("qrisWaitState").style.display = "";
     document.getElementById("qrisOkState").style.display = "none";
     document.body.style.overflow = "";
     clearInterval(qrisTimerId);
+    window._currentQrisOrderId = null;
     if (qrisChannel) { (window._sb || supabase).removeChannel(qrisChannel); qrisChannel = null; }
   }
 
