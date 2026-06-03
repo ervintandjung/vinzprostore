@@ -4430,6 +4430,41 @@ function doPesan(){
 .riw-bayarwa{background:#25D366;border:none;color:#fff;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;padding:8px 14px;border-radius:8px;cursor:pointer;letter-spacing:.6px;display:flex;align-items:center;gap:6px;}
 .riw-empty{text-align:center;padding:40px 20px;color:var(--muted);}
 .riw-empty-ic{font-size:48px;margin-bottom:12px;}
+/* DETAIL SUKSES PANEL */
+#riwDetailPanel{display:none;position:fixed;inset:0;background:var(--primary);z-index:390;overflow-y:auto;max-width:480px;margin:0 auto;}
+#riwDetailPanel.open{display:block;animation:fsSlideIn .3s ease;}
+.rdp-topbar{position:sticky;top:0;background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid #10b981;height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;z-index:10;box-shadow:0 4px 24px rgba(16,185,129,0.2);}
+.rdp-back{width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);display:flex;align-items:center;justify-content:center;color:#10b981;font-size:20px;cursor:pointer;flex-shrink:0;}
+.rdp-back:active{transform:scale(.92);}
+.rdp-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px;letter-spacing:2px;color:#fff;flex:1;}
+.rdp-hero{margin:20px 16px 16px;background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(0,255,136,.06));border:1px solid rgba(16,185,129,.35);border-radius:20px;padding:22px 18px;text-align:center;}
+.rdp-check{width:60px;height:60px;border-radius:50%;background:rgba(16,185,129,.2);border:2px solid #10b981;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px;box-shadow:0 0 24px rgba(16,185,129,0.35);}
+.rdp-hero-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;color:#10b981;letter-spacing:2px;margin-bottom:4px;}
+.rdp-hero-sub{font-size:11px;color:rgba(16,185,129,.7);letter-spacing:1.5px;text-transform:uppercase;}
+.rdp-section{margin:0 16px 14px;background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:16px;padding:16px;}
+.rdp-sec-label{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--accent2);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.rdp-sec-label::before{content:'';width:3px;height:14px;background:var(--accent2);border-radius:2px;}
+.rdp-row{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:1px solid rgba(26,111,255,.1);}
+.rdp-row:last-child{border-bottom:none;}
+.rdp-k{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+.rdp-v{font-size:12px;color:#fff;font-weight:700;text-align:right;max-width:65%;word-break:break-all;}
+.rdp-prodrow{display:flex;gap:12px;align-items:center;}
+.rdp-prodthumb{width:58px;height:58px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#000;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.rdp-prodthumb img{width:100%;height:100%;object-fit:cover;}
+.rdp-prodinfo{flex:1;}
+.rdp-prodname{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#fff;margin-bottom:4px;}
+.rdp-prodmeta{font-size:11px;color:var(--accent2);font-weight:700;letter-spacing:.5px;}
+.rdp-keybox{margin:0 16px 14px;background:rgba(16,185,129,.06);border:1.5px dashed rgba(16,185,129,.4);border-radius:16px;padding:18px;}
+.rdp-keylabel{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.rdp-keylabel-txt{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;color:#10b981;letter-spacing:2px;}
+.rdp-keyval{font-family:'JetBrains Mono',monospace;font-size:13px;color:#00ff88;word-break:break-all;line-height:1.8;background:rgba(0,0,0,.3);border-radius:10px;padding:12px;border:1px solid rgba(0,255,136,.15);}
+.rdp-copybtn{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.5);color:#10b981;font-family:'Orbitron',sans-serif;font-weight:800;font-size:10px;letter-spacing:1px;padding:6px 14px;border-radius:8px;cursor:pointer;white-space:nowrap;}
+.rdp-copybtn:active{transform:scale(.96);}
+.rdp-closebtn{display:block;width:calc(100% - 32px);margin:4px 16px 32px;padding:14px;border:none;border-radius:14px;background:var(--accent);color:#fff;font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px;letter-spacing:2px;cursor:pointer;}
+.rdp-closebtn:active{opacity:.85;}
+/* tombol detail di riw-card */
+.riw-detail-btn{width:100%;margin-top:10px;padding:10px;border-radius:10px;border:1px solid #10b981;background:rgba(16,185,129,.1);color:#10b981;font-family:'Orbitron',sans-serif;font-weight:800;font-size:11px;letter-spacing:1.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.riw-detail-btn:active{background:rgba(16,185,129,.2);}
 /* admin trx */
 .atrx-item{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;}
 .atrx-row1{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;}
@@ -4455,6 +4490,47 @@ function doPesan(){
     <div class="sec-title" style="margin-bottom:14px;">RIWAYAT PEMBELIAN</div>
     <div id="riwList"></div>
   </div>
+</div>
+
+<!-- DETAIL SUKSES PANEL -->
+<div id="riwDetailPanel">
+  <div class="rdp-topbar">
+    <button class="rdp-back" onclick="window.__closeRiwDetail()">&#8592;</button>
+    <div class="rdp-title">DETAIL TRANSAKSI</div>
+  </div>
+  <div class="rdp-hero">
+    <div class="rdp-check">✓</div>
+    <div class="rdp-hero-title">SUKSES</div>
+    <div class="rdp-hero-sub">PEMBAYARAN BERHASIL</div>
+  </div>
+  <!-- Info Transaksi -->
+  <div class="rdp-section">
+    <div class="rdp-sec-label">INFO TRANSAKSI</div>
+    <div class="rdp-row"><span class="rdp-k">TRX ID</span><span class="rdp-v" id="rdpTrxId">—</span></div>
+    <div class="rdp-row"><span class="rdp-k">WAKTU</span><span class="rdp-v" id="rdpTime">—</span></div>
+    <div class="rdp-row"><span class="rdp-k">METODE</span><span class="rdp-v" id="rdpMethod">—</span></div>
+    <div class="rdp-row"><span class="rdp-k">TOTAL</span><span class="rdp-v" id="rdpTotal" style="color:#ffd700;font-family:'Orbitron',sans-serif;">—</span></div>
+  </div>
+  <!-- Produk -->
+  <div class="rdp-section">
+    <div class="rdp-sec-label">PRODUK</div>
+    <div class="rdp-prodrow">
+      <div class="rdp-prodthumb" id="rdpThumb">📦</div>
+      <div class="rdp-prodinfo">
+        <div class="rdp-prodname" id="rdpProdName">—</div>
+        <div class="rdp-prodmeta" id="rdpProdMeta">—</div>
+      </div>
+    </div>
+  </div>
+  <!-- Key -->
+  <div class="rdp-keybox" id="rdpKeySection">
+    <div class="rdp-keylabel">
+      <span class="rdp-keylabel-txt">🔑 KEY KAMU</span>
+      <button class="rdp-copybtn" id="rdpCopyBtn" onclick="window.__rdpCopyKey()">📋 SALIN KEY</button>
+    </div>
+    <div class="rdp-keyval" id="rdpKeyVal">—</div>
+  </div>
+  <button class="rdp-closebtn" onclick="window.__closeRiwDetail()">KEMBALI KE RIWAYAT</button>
 </div>
 
 <script>
@@ -4541,6 +4617,8 @@ function doPesan(){
   }
   function closeRiwayat(){
     document.getElementById('riwayatPanel').classList.remove('open');
+    const dp = document.getElementById('riwDetailPanel');
+    if (dp) dp.classList.remove('open');
     document.body.style.overflow = '';
   }
   function rp(n){ return 'Rp '+Number(n||0).toLocaleString('id-ID'); }
@@ -4618,6 +4696,9 @@ function doPesan(){
           }
         </div>`;
       })() : '';
+      const detailBtn = (st==='sukses') ? `
+        <div class="riw-divider"></div>
+        <button class="riw-detail-btn" onclick="window.__openRiwDetail(${JSON.stringify(t)})">🔍 LIHAT DETAIL &amp; KEY</button>` : '';
       return `<div class="riw-card">
         <div class="riw-head">
           <div>
@@ -4637,6 +4718,7 @@ function doPesan(){
         ${keyBox}
         ${waBtn}
         ${qrisBtn}
+        ${detailBtn}
       </div>`;
     }).join('');
   }
@@ -4775,6 +4857,66 @@ function doPesan(){
   window.openRiwayat = openRiwayat;
   window.closeRiwayat = closeRiwayat;
   window.renderRiwayat = renderRiwayat;
+
+  // ───────── DETAIL SUKSES PANEL ─────────
+  window.__openRiwDetail = function(t) {
+    if (!t) return;
+    const panel = document.getElementById('riwDetailPanel');
+    if (!panel) return;
+
+    // Isi info transaksi
+    const trxId = (t.id||'').replace(/^#/,'');
+    document.getElementById('rdpTrxId').textContent = '#' + trxId;
+    document.getElementById('rdpTime').textContent = t.time || '—';
+    document.getElementById('rdpMethod').textContent = (t.method||'QRIS').toUpperCase();
+    const totalRp = 'Rp ' + Number((t.price||0)*(t.qty||1)).toLocaleString('id-ID');
+    document.getElementById('rdpTotal').textContent = totalRp;
+
+    // Produk
+    document.getElementById('rdpProdName').textContent = (t.productName||t.prod||'PRODUK').toUpperCase();
+    document.getElementById('rdpProdMeta').textContent = ((t.variantName||'').toUpperCase() || '') + (t.qty ? ' • ' + t.qty + 'x' : '');
+    const thumbEl = document.getElementById('rdpThumb');
+    if (t.img) {
+      thumbEl.innerHTML = '<img src="'+t.img+'" onerror="this.parentNode.innerHTML=\''+(t.emoji||'📦')+'\';">';
+    } else {
+      thumbEl.innerHTML = t.emoji || '📦';
+    }
+
+    // Key
+    const keySection = document.getElementById('rdpKeySection');
+    const keyVal = document.getElementById('rdpKeyVal');
+    if (t.key) {
+      keyVal.textContent = t.key;
+      keySection.style.display = '';
+    } else {
+      keySection.style.display = 'none';
+    }
+
+    // Buka panel
+    panel.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.__closeRiwDetail = function() {
+    const panel = document.getElementById('riwDetailPanel');
+    if (panel) panel.classList.remove('open');
+    document.body.style.overflow = 'hidden'; // riwayatPanel masih buka
+  };
+
+  window.__rdpCopyKey = function() {
+    const el = document.getElementById('rdpKeyVal');
+    const btn = document.getElementById('rdpCopyBtn');
+    if (!el) return;
+    const txt = el.textContent.trim();
+    if (!txt || txt === '—') return;
+    const done = () => {
+      if (btn) { const o=btn.innerHTML; btn.innerHTML='✓ TERSALIN'; setTimeout(()=>btn.innerHTML=o, 1500); }
+      if (typeof showNotif==='function') showNotif('✅ Key tersalin!');
+    };
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done).catch(()=>{ _fb(txt); done(); });
+    else { _fb(txt); done(); }
+  };
+
   // Override existing showRiwayat
   window.showRiwayat = function(){
     const d = document.getElementById('userDropdown');
@@ -5736,10 +5878,12 @@ function doPesan(){
     { id: 'qrOverlay',       close: () => window.closeQrPayment && window.closeQrPayment() },
     { id: 'successOverlay',  close: () => window.closeSuccess   && window.closeSuccess() },
     { id: 'authOverlay',     close: () => { const el=document.getElementById('authOverlay'); if(el) el.classList.remove('open'); } },
+    { id: 'riwDetailPanel',  close: () => window.__closeRiwDetail && window.__closeRiwDetail() },
     { id: 'settingsPanel',   close: () => window.closePengaturan&& window.closePengaturan() },
     { id: 'adminPanel',      close: () => window.closeAdmin     && window.closeAdmin() },
     { id: 'riwayatPanel',    close: () => window.closeRiwayat   && window.closeRiwayat() },
-    { id: 'prodFullscreen',  close: () => window.closeProdFullscreen && window.closeProdFullscreen() }
+    { id: 'prodFullscreen',  close: () => window.closeProdFullscreen && window.closeProdFullscreen() },
+    { id: 'pusatInformasi',  close: () => window.closePusatInfo && window.closePusatInfo() },
   ];
 
   let stack = [];          // stack of panel ids yg sedang open (urutan dibuka)
@@ -7862,6 +8006,9 @@ function closePusatInfo(){
   el.classList.remove('open');
   document.body.classList.remove('panel-lock');
 }
+// Pastikan bisa dipanggil dari sistem PANELS
+window.openPusatInfo = openPusatInfo;
+window.closePusatInfo = closePusatInfo;
 </script>
 
 <!-- ===== Modal QRIS (Fullscreen Beautiful) ===== -->
