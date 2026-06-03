@@ -774,7 +774,7 @@ renderBannerSlider();
   <div style="padding:8px 14px 130px;">
     <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:12px;color:#fff;letter-spacing:1.5px;margin-bottom:8px;">PILIH CARA PEMBAYARAN</div>
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div class="pm-card" data-method="qris" onclick="selectPayMethod('qris')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
+      <div class="pm-card" data-method="qris" onclick="window.selectedPayMethod='qris';document.querySelectorAll('.pm-card').forEach(c=>{const a=c.dataset.method==='qris';c.style.border=a?'2px solid #00aaff':'2px solid var(--border)';c.style.background=a?'linear-gradient(135deg,rgba(0,80,221,0.18),rgba(0,170,255,0.10))':'var(--card2)';c.style.boxShadow=a?'0 0 14px rgba(0,170,255,0.25)':'none';const k=c.querySelector('.pm-check');if(k){k.style.background=a?'#00aaff':'transparent';k.style.border=a?'2px solid #00aaff':'2px solid var(--border)';k.style.boxShadow=a?'inset 0 0 0 4px #0a1730':'none';}});const b=document.getElementById('fsPesanBtn');if(b){b.disabled=false;b.style.background='linear-gradient(135deg,#0050dd,#00aaff)';b.style.color='#fff';b.style.cursor='pointer';}" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
         <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#1a6fff,#00d4ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
         </div>
@@ -6267,11 +6267,7 @@ function doPesan(){
           try { showNotif('❌ QRIS Duitku sedang HABIS. Pilih metode lain.'); } catch(e){}
           return;
         }
-        // Backward compat: blokir 'qris' jika semua provider habis
-        if (m === 'qris' && !window._qrisAvail(c.p.id, c.v.n)){
-          try { showNotif('❌ Semua QRIS sedang HABIS. Pilih metode lain.'); } catch(e){}
-          return;
-        }
+        // QRIS via qris.pw: selalu tersedia
       }
       return _origSel.apply(this, arguments);
     };
@@ -6282,12 +6278,9 @@ function doPesan(){
   window.refreshPayMethodAvailability = function(){
     if (typeof _origRA === 'function') try { _origRA.apply(this, arguments); } catch(e){}
     const c = _cur(); if (!c) return;
-    const xOk = window._qrisAvail(c.p.id, c.v.n);
-    const dOk = window._duitkuAvail(c.p.id, c.v.n);
-    const cardXendit = document.querySelector('.pm-card[data-method="qris"]');
-    const cardDuitku = document.querySelector('.pm-card[data-method="qris"]');
-    // Juga handle generic qris card jika semua provider habis
+    // QRIS qris.pw selalu available - skip disable logic
     const cardQ = document.querySelector('.pm-card[data-method="qris"]');
+    if(cardQ){ cardQ.dataset.disabled=''; cardQ.style.opacity='1'; cardQ.style.cursor='pointer'; }
     function force(card, ok, label){
       if (!card) return;
       let b = card.querySelector('.pm-stat-badge');
