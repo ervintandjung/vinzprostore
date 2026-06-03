@@ -7596,21 +7596,8 @@ function payXenditDone(){
   const _origDoPesan = window.doPesan;
   window.doPesan = function(){
     const sel = window.selectedPayMethod;
-    if(sel === 'qris' || sel === 'qris'){
-      // Ambil info dari UI
-      const prodName = (document.getElementById('fsOItem') || {}).textContent || '-';
-      const qty = (document.getElementById('fsQtyVal') || {}).textContent || '1';
-      const total = (document.getElementById('fsTotalAmt') || {}).textContent || 'Rp 0';
-      window.showPayConfirm({
-        method: sel,
-        prodName,
-        qty,
-        total,
-        onConfirm: function(){
-          if(sel === 'qris' && typeof window.orderQRISXendit === 'function') window.orderQRIS();
-          else if(sel === 'qris' && typeof window.orderQRIS === 'function') window.orderQRIS();
-        }
-      });
+    if(sel === 'qris'){
+      if(typeof window.orderQRIS === 'function') window.orderQRIS();
     } else if(sel === 'wa'){
       try {
         const prod = (typeof getProducts==='function' && typeof selProdId!=='undefined')
