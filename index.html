@@ -1624,7 +1624,7 @@ function showAuthErr2(msg) {
   el.textContent = msg; el.style.display = 'block';
 }
 
-// LOGIN — pakai Supabase
+// LOGIN — pakai Supabase Auth (signInWithPassword)
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const pass = document.getElementById('loginPass').value;
@@ -1632,10 +1632,31 @@ async function doLogin() {
   const btn = document.getElementById('btnLogin');
   btn.disabled = true; btn.textContent = '⏳ Memproses...';
   try {
-    const { data, error } = await _sb.from('users').select('name,password,verified').eq('email', email).single();
-    if (error || !data) { showAuthErr('Email belum terdaftar! Silakan daftar dulu.'); return; }
-    if (data.password !== pass) { showAuthErr('Password salah!'); return; }
-    currentUser = { email, name: data.name, verified: data.verified };
+    // Login via Supabase Auth (dapat session + JWT)
+    const { data: authData, error: authErr } = await _sb.auth.signInWithPassword({ email, password: pass });
+    if (authErr) {
+      // Fallback: cek custom table users (untuk akun lama sebelum migrasi)
+      const { data: uData, error: uErr } = await _sb.from('users').select('name,password,verified').eq('email', email).single();
+      if (uErr || !uData) { showAuthErr('Email belum terdaftar! Silakan daftar dulu.'); return; }
+      if (uData.password !== pass) { showAuthErr('Password salah!'); return; }
+      // Akun lama: auto-migrate ke Supabase Auth
+      const { error: signUpErr } = await _sb.auth.signUp({ email, password: pass, options: { data: { username: uData.name } } });
+      if (!signUpErr) {
+        // Coba login lagi setelah signup
+        await _sb.auth.signInWithPassword({ email, password: pass });
+      }
+      currentUser = { email, name: uData.name, verified: uData.verified };
+    } else {
+      // Login Auth berhasil — ambil nama dari table users
+      const { data: uData } = await _sb.from('users').select('name,verified').eq('email', email).single();
+      const name = uData?.name || authData.user?.user_metadata?.username || email.split('@')[0];
+      const verified = uData?.verified ?? true;
+      currentUser = { email, name, verified };
+      // Update table users kalau belum ada
+      if (!uData) {
+        await _sb.from('users').upsert({ email, name, password: pass, verified: true });
+      }
+    }
     localStorage.setItem('vp_user', JSON.stringify(currentUser));
     document.getElementById('authOverlay').classList.remove('open');
     renderHeader();
@@ -1648,7 +1669,7 @@ async function doLogin() {
   }
 }
 
-// DAFTAR — cek duplikat via Supabase, kirim OTP via EmailJS
+// DAFTAR — pakai Supabase Auth (signUp) + simpan ke table users
 async function doRegister() {
   const name  = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim().toLowerCase();
@@ -1661,7 +1682,7 @@ async function doRegister() {
   btn.disabled = true; btn.textContent = '⏳ Memeriksa...';
 
   try {
-    // Cek apakah email sudah ada
+    // Cek apakah email sudah ada di table users
     const { data: existing } = await _sb.from('users').select('email').eq('email', email).single();
     if (existing) { showAuthErr('Email sudah terdaftar! Silakan masuk.'); return; }
   } catch(e) { /* tidak ada = lanjut */ }
@@ -1976,7 +1997,7 @@ function setOtpNext(idx) {}
 function setOtpBack(e, idx) {}
 function otpPaste(e, prefix) {}
 
-// Verifikasi OTP — simpan user ke Supabase
+// Verifikasi OTP — simpan user ke Supabase + daftarkan ke Supabase Auth
 async function doVerifyOTP() {
   const entered = otpGetValue('otp');
   if (entered.length < 6) { showAuthErr2('Masukkan 6 digit kode OTP!'); return; }
@@ -1986,7 +2007,7 @@ async function doVerifyOTP() {
 
   try {
     if (otpPendingUser) {
-      // Daftar baru — insert ke Supabase
+      // Daftar baru — insert ke table users
       const { error } = await _sb.from('users').insert({
         email: targetEmail,
         name: otpPendingUser.name,
@@ -1994,6 +2015,18 @@ async function doVerifyOTP() {
         verified: true
       });
       if (error) { showAuthErr2('Gagal daftar: ' + error.message); return; }
+
+      // Daftarkan ke Supabase Auth agar dapat JWT session untuk QRIS
+      try {
+        await _sb.auth.signUp({
+          email: targetEmail,
+          password: otpPendingUser.pass,
+          options: { data: { username: otpPendingUser.name } }
+        });
+        // Langsung login supaya session langsung ada
+        await _sb.auth.signInWithPassword({ email: targetEmail, password: otpPendingUser.pass });
+      } catch(authErr) { console.warn('Supabase Auth signup warning:', authErr); }
+
     } else {
       // Verifikasi akun existing
       await _sb.from('users').update({ verified: true }).eq('email', targetEmail);
@@ -2032,6 +2065,8 @@ function backToAuth() {
 function doLogout() {
   currentUser = null;
   localStorage.removeItem('vp_user');
+  // Logout dari Supabase Auth juga (hapus session JWT)
+  try { _sb.auth.signOut(); } catch(e) {}
   renderHeader();
   showNotif('👋 Berhasil logout!');
 }
@@ -7734,8 +7769,25 @@ function closePusatInfo(){
   let qrisChannel = null;
 
   async function bayarQris({ amount, product_id, variant_id, customer_name, customer_wa }) {
-    const { data: { session } } = await (window._sb || supabase).auth.getSession();
-    if (!session) { if(typeof showNotif==='function') showNotif('Login dulu ya!'); return; }
+    // Ambil Supabase Auth session (JWT untuk Worker)
+    let session = null;
+    try {
+      const { data } = await (window._sb || supabase).auth.getSession();
+      session = data.session;
+    } catch(e) {}
+
+    // Kalau belum ada session Auth, coba login ulang pakai data dari localStorage
+    if (!session) {
+      const localUser = JSON.parse(localStorage.getItem('vp_user') || 'null');
+      if (!localUser) {
+        if(typeof showNotif==='function') showNotif('Login dulu ya!');
+        return;
+      }
+      // Tidak bisa auto-login tanpa password, minta user login ulang
+      if(typeof showNotif==='function') showNotif('⚠️ Sesi habis, silakan login ulang untuk bayar QRIS');
+      if(typeof openAuth==='function') openAuth('masuk');
+      return;
+    }
 
     if(typeof showNotif==='function') showNotif('Membuat QRIS…');
     const res = await fetch(`${WORKER_URL}/create-qris`, {
@@ -7818,8 +7870,18 @@ function closePusatInfo(){
       if(amount < 1000){ if(typeof showNotif==='function') showNotif('Nominal terlalu kecil'); return; }
       const prod = (typeof getProducts==='function' && typeof selProdId!=='undefined') ? getProducts().find(x=>x.id===selProdId) : null;
       const variant = (prod && typeof selVarId!=='undefined') ? (prod.variants||[]).find(v=>v.id===selVarId) : null;
-      const { data:{session} } = await (window._sb || supabase).auth.getSession();
-      const uname = session?.user?.user_metadata?.username || session?.user?.email || 'Customer';
+
+      // Ambil nama dari Supabase Auth session, fallback ke localStorage
+      let uname = 'Customer';
+      try {
+        const { data } = await (window._sb || supabase).auth.getSession();
+        uname = data.session?.user?.user_metadata?.username || data.session?.user?.email || uname;
+      } catch(e) {}
+      if (uname === 'Customer') {
+        const localUser = JSON.parse(localStorage.getItem('vp_user') || 'null');
+        if (localUser) uname = localUser.name || localUser.email || uname;
+      }
+
       await bayarQris({
         amount,
         product_id: prod?.id || null,
