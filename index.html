@@ -774,18 +774,11 @@ renderBannerSlider();
   <div style="padding:8px 14px 130px;">
     <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:12px;color:#fff;letter-spacing:1.5px;margin-bottom:8px;">PILIH CARA PEMBAYARAN</div>
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div class="pm-card" data-method="qris_xendit" onclick="selectPayMethod('qris_xendit')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
-        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#6b3fa0,#9b59b6);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <div class="pm-card" data-method="qris" onclick="selectPayMethod('qris')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
+        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#1a6fff,#00d4ff);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
         </div>
-        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS <span style="font-size:9px;background:#6b3fa0;color:#fff;padding:1px 7px;border-radius:4px;margin-left:4px;">XENDIT</span></div><div style="font-size:10px;color:var(--muted);">Otomatis · GoPay, OVO, Dana, dll</div></div>
-        <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
-      </div>
-      <div class="pm-card" data-method="qris" onclick="selectPayMethod('qris')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
-        <div style="width:36px;height:36px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0050dd" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
-        </div>
-        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS <span style="font-size:9px;background:#0050dd;color:#fff;padding:1px 7px;border-radius:4px;margin-left:4px;">DUITKU</span></div><div style="font-size:10px;color:var(--muted);">Bayar via scan QR · Semua e-wallet</div></div>
+        <div style="flex:1;"><div style="font-weight:700;font-size:13px;color:#fff;">QRIS <span style="font-size:9px;background:linear-gradient(90deg,#1a6fff,#00d4ff);color:#fff;padding:1px 7px;border-radius:4px;margin-left:4px;">OTOMATIS</span></div><div style="font-size:10px;color:var(--muted);">GoPay, OVO, Dana, dll · Auto konfirmasi</div></div>
         <div class="pm-check" style="width:20px;height:20px;border-radius:50%;border:2px solid var(--border);"></div>
       </div>
       <div class="pm-card" data-method="wa" onclick="selectPayMethod('wa')" style="background:var(--card2);border:2px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;">
@@ -3779,19 +3772,19 @@ function resetPayMethod(){
   }
 }
 function _execOrder(){
-  if (selectedPayMethod === 'qris_xendit') orderQRISXendit();
+  if (selectedPayMethod === 'qris') orderQRIS();
   else if (selectedPayMethod === 'qris') orderQRIS();
   else if (selectedPayMethod === 'wa') orderWA();
 }
 function doPesan(){
   if (!selectedPayMethod){ showNotif('⚠️ Pilih cara pembayaran dulu'); return; }
-  const isQris = (selectedPayMethod === 'qris' || selectedPayMethod === 'qris_xendit');
+  const isQris = (selectedPayMethod === 'qris' || selectedPayMethod === 'qris');
   const isWa = (selectedPayMethod === 'wa');
   try {
     const prod = getProducts().find(x => x.id === selProdId);
     const isApk = prod && prod.cat && prod.cat.toLowerCase().includes('apk');
     if (isApk && isQris) {
-      const label = selectedPayMethod === 'qris_xendit' ? 'QRIS Xendit' : 'QRIS Duitku';
+      const label = selectedPayMethod === 'qris' ? 'QRIS Xendit' : 'QRIS Duitku';
       window._openApkModal(label, _execOrder);
       return;
     }
@@ -6254,13 +6247,13 @@ function doPesan(){
   function _g(K){ try{ return JSON.parse(localStorage.getItem(K)||'{}'); }catch(e){ return {}; } }
   function _s(K,o){ try{ localStorage.setItem(K, JSON.stringify(o)); }catch(e){} }
   function _k(p,v){ return p+'::'+v; }
-  window._xenditAvail  = (p,v)=>{ const o=_g(XN_KEY); const k=_k(p,v); return o[k]===undefined?false:!!o[k]; };
-  window._xenditSet    = (p,v,b)=>{ const o=_g(XN_KEY); o[_k(p,v)]=!!b; _s(XN_KEY,o); };
+  window._qrisAvail    = (p,v)=>{ const o=_g(XN_KEY); const k=_k(p,v); return o[k]===undefined?true:!!o[k]; };
+  window._qrisSet      = (p,v,b)=>{ const o=_g(XN_KEY); o[_k(p,v)]=!!b; _s(XN_KEY,o); };
   window._duitkuAvail  = (p,v)=>{ const o=_g(DK_KEY); const k=_k(p,v); return o[k]===undefined?true:!!o[k]; };
   window._duitkuSet    = (p,v,b)=>{ const o=_g(DK_KEY); o[_k(p,v)]=!!b; _s(DK_KEY,o); };
   // Backward-compat aliases (agar tidak error kalau ada kode lama)
-  window._qrisManualAvail = window._xenditAvail;
-  window._qrisManualSet   = window._xenditSet;
+  window._qrisManualAvail = window._qrisAvail;
+  window._qrisManualSet   = window._qrisSet;
   window._saldoManualAvail = (p,v)=>true;
   window._saldoManualSet   = ()=>{};
 
@@ -6279,16 +6272,16 @@ function doPesan(){
     window.selectPayMethod = function(m){
       const c = _cur();
       if (c){
-        if (m === 'qris_xendit' && !window._xenditAvail(c.p.id, c.v.n)){
+        if (m === 'qris' && !window._xenditAvail(c.p.id, c.v.n)){
           try { showNotif('❌ QRIS Xendit sedang HABIS. Pilih metode lain.'); } catch(e){}
           return;
         }
-        if (m === 'qris_duitku' && !window._duitkuAvail(c.p.id, c.v.n)){
+        if (m === 'qris' && !window._duitkuAvail(c.p.id, c.v.n)){
           try { showNotif('❌ QRIS Duitku sedang HABIS. Pilih metode lain.'); } catch(e){}
           return;
         }
         // Backward compat: blokir 'qris' jika semua provider habis
-        if (m === 'qris' && !window._xenditAvail(c.p.id, c.v.n) && !window._duitkuAvail(c.p.id, c.v.n)){
+        if (m === 'qris' && !window._qrisAvail(c.p.id, c.v.n)){
           try { showNotif('❌ Semua QRIS sedang HABIS. Pilih metode lain.'); } catch(e){}
           return;
         }
@@ -6302,10 +6295,10 @@ function doPesan(){
   window.refreshPayMethodAvailability = function(){
     if (typeof _origRA === 'function') try { _origRA.apply(this, arguments); } catch(e){}
     const c = _cur(); if (!c) return;
-    const xOk = window._xenditAvail(c.p.id, c.v.n);
+    const xOk = window._qrisAvail(c.p.id, c.v.n);
     const dOk = window._duitkuAvail(c.p.id, c.v.n);
-    const cardXendit = document.querySelector('.pm-card[data-method="qris_xendit"]');
-    const cardDuitku = document.querySelector('.pm-card[data-method="qris_duitku"]');
+    const cardXendit = document.querySelector('.pm-card[data-method="qris"]');
+    const cardDuitku = document.querySelector('.pm-card[data-method="qris"]');
     // Juga handle generic qris card jika semua provider habis
     const cardQ = document.querySelector('.pm-card[data-method="qris"]');
     function force(card, ok, label){
@@ -6324,8 +6317,8 @@ function doPesan(){
     if (!dOk) force(cardDuitku, false, 'HABIS');
     if (!xOk && !dOk) force(cardQ, false, 'HABIS');
     try {
-      if ((window.selectedPayMethod==='qris_xendit' && !xOk ||
-           window.selectedPayMethod==='qris_duitku' && !dOk ||
+      if ((window.selectedPayMethod==='qris' && !xOk ||
+           window.selectedPayMethod==='qris' && !dOk ||
            window.selectedPayMethod==='qris' && !xOk && !dOk)
           && typeof resetPayMethod==='function') resetPayMethod();
     } catch(e){}
@@ -6357,19 +6350,16 @@ function doPesan(){
         '<button onclick="'+toggleFn+'()" style="margin-left:auto;background:'+(isOk?'#ff4757':'#00ff88')+';color:'+(isOk?'#fff':'#000')+';border:none;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;cursor:pointer;">'+
           (isOk?offLbl:onLbl)+'</button>';
     }
-    rowFor('kmXendtToggle', '⚡ QRIS XENDIT:',
-      window._xenditAvail(pid, vn),
-      'TANDAI XENDIT READY', 'TANDAI XENDIT HABIS', 'kmToggleXendit');
-    rowFor('kmDuitkuToggle', '💚 QRIS DUITKU:',
-      window._duitkuAvail(pid, vn),
-      'TANDAI DUITKU READY', 'TANDAI DUITKU HABIS', 'kmToggleDuitku');
+    rowFor('kmQrisToggle', '📲 QRIS (qris.pw):',
+      window._qrisAvail(pid, vn),
+      'TANDAI QRIS READY', 'TANDAI QRIS HABIS', 'kmToggleQris');
   }
   window.kmToggleXendit = function(){
     const pid = parseInt(document.getElementById('kmProd').value);
     const vn  = document.getElementById('kmVar').value;
     if (!pid || !vn) return;
-    const cur = window._xenditAvail(pid, vn);
-    window._xenditSet(pid, vn, !cur);
+    const cur = window._qrisAvail(pid, vn);
+    window._qrisSet(pid, vn, !cur);
     try { showNotif(!cur?'✅ QRIS Xendit TERSEDIA':'⚠️ QRIS Xendit HABIS'); } catch(e){}
     ensureExtraToggles();
     try { refreshPayMethodAvailability(); } catch(e){}
@@ -6379,8 +6369,7 @@ function doPesan(){
     const pid = parseInt(document.getElementById('kmProd').value);
     const vn  = document.getElementById('kmVar').value;
     if (!pid || !vn) return;
-    const cur = window._duitkuAvail(pid, vn);
-    window._duitkuSet(pid, vn, !cur);
+
     try { showNotif(!cur?'✅ QRIS Duitku TERSEDIA':'⚠️ QRIS Duitku HABIS'); } catch(e){}
     ensureExtraToggles();
     try { refreshPayMethodAvailability(); } catch(e){}
@@ -7429,7 +7418,7 @@ setTimeout(function(){
 // ===== XENDIT QRIS via Supabase Edge Function =====
 const SUPABASE_XENDIT_URL = 'https://niqjrwtolqszevopayir.supabase.co/functions/v1/xendit-qris';
 
-async function orderQRISXendit(){
+async function orderQRIS(){
   if (!currentUser){ closeProdModalBtn(); openAuth('masuk'); showNotif('Login dulu!'); return; }
   if (!currentUser.verified){ closeProdModalBtn(); openOtpVerifyModal(); return; }
 
@@ -7516,7 +7505,7 @@ function payXenditDone(){
     if(idx!==-1){ prods[idx].sold=(prods[idx].sold||0)+qty; setProducts(prods); renderProducts(); }
   } catch(e){}
   try {
-    const trx={id:orderId,type:'qris_xendit',productName,variantName:vn,qty,total,keys,status:'SUKSES',method:'QRIS Xendit',ts:Date.now(),email:currentUser?.email||''};
+    const trx={id:orderId,type:'qris',productName,variantName:vn,qty,total,keys,status:'SUKSES',method:'QRIS Xendit',ts:Date.now(),email:currentUser?.email||''};
     const riw=getUserRiw(currentUser.email); riw.unshift(trx); setUserRiw(currentUser.email,riw);
     const all=getAllTrx(); all.unshift({...trx}); setAllTrx(all);
     if(typeof _sb!=='undefined') _sb.from('transactions').insert({email:currentUser.email,trx_id:orderId,data:{productName,variantName:vn,qty,total,keys,status:'SUKSES',method:'QRIS Xendit'}}).then(()=>{}).catch(()=>{});
@@ -7565,7 +7554,7 @@ function payXenditDone(){
     const m = document.getElementById('payConfirmModal');
     if(!m) return onConfirm && onConfirm();
 
-    const isXendit = method === 'qris_xendit';
+    const isXendit = method === 'qris';
     const isDuitku = method === 'qris';
 
     const iconHtml = isXendit
@@ -7607,7 +7596,7 @@ function payXenditDone(){
   const _origDoPesan = window.doPesan;
   window.doPesan = function(){
     const sel = window.selectedPayMethod;
-    if(sel === 'qris_xendit' || sel === 'qris'){
+    if(sel === 'qris' || sel === 'qris'){
       // Ambil info dari UI
       const prodName = (document.getElementById('fsOItem') || {}).textContent || '-';
       const qty = (document.getElementById('fsQtyVal') || {}).textContent || '1';
@@ -7618,7 +7607,7 @@ function payXenditDone(){
         qty,
         total,
         onConfirm: function(){
-          if(sel === 'qris_xendit' && typeof window.orderQRISXendit === 'function') window.orderQRISXendit();
+          if(sel === 'qris' && typeof window.orderQRISXendit === 'function') window.orderQRIS();
           else if(sel === 'qris' && typeof window.orderQRIS === 'function') window.orderQRIS();
         }
       });
