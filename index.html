@@ -2359,7 +2359,10 @@ function openProd(id) {
   // Reset payment method + visual saat pindah produk
   try { resetPayMethod(); } catch(e) {}
   // Pastikan juga reset setelah DOM ready (50ms delay untuk patch script)
-  setTimeout(() => { try { resetPayMethod(); } catch(e) {} }, 80);
+  setTimeout(() => {
+    try { resetPayMethod(); } catch(e) {}
+    try { if(typeof window.refreshPayMethodAvailability==='function') window.refreshPayMethodAvailability(); } catch(e){}
+  }, 100);
 
   // Header title
   document.getElementById('fsHeaderTitle').textContent = p.name;
@@ -5481,10 +5484,21 @@ function doPesan(){
 
   // --- Refresh status card QRIS berdasar stok varian terpilih ---
   window.refreshPayMethodAvailability = function(){
-    const card = document.querySelector('.pm-card[data-method="qris"]');
+    // Cek apakah produk APK (tidak butuh key stok)
+    let isApk = false;
+    try {
+      const p = getProducts().find(x=>x.id===selProdId);
+      isApk = p && p.cat && p.cat.toLowerCase().includes('apk');
+    } catch(e){}
+
+    // Target: qrisPayCard (id asli) ATAU .pm-card[data-method="qris"]
+    const card = document.getElementById('qrisPayCard') || document.querySelector('.pm-card[data-method="qris"]');
     if (!card) return;
+
     const avail = _avail();
     const need  = _needed();
+    const habis = !isApk && (avail < need);
+
     let badge = card.querySelector('.pm-qris-status');
     if (!badge){
       badge = document.createElement('div');
@@ -5492,42 +5506,56 @@ function doPesan(){
       badge.style.cssText = 'margin-left:auto;font-size:9px;font-weight:800;padding:3px 7px;border-radius:6px;letter-spacing:.5px;';
       card.appendChild(badge);
     }
-    if (avail < need){
+
+    if (habis){
       card.dataset.disabled = '1';
       card.style.opacity = '.55';
+      card.style.pointerEvents = 'none';
       card.style.cursor = 'not-allowed';
       badge.style.background = 'rgba(255,68,85,.18)';
       badge.style.color = '#ff4757';
       badge.style.border = '1px solid #ff4757';
-      badge.textContent = 'HABIS';
-      // Kalau QRIS sudah ke-select, batalkan
+      badge.textContent = 'KEY HABIS';
+      // Reset kalau QRIS sudah ke-select
       if (typeof selectedPayMethod !== 'undefined' && selectedPayMethod === 'qris'){
+        try { resetPayMethod(); } catch(e){}
+      }
+      // Reset juga window.selectedPayMethod
+      if (window.selectedPayMethod === 'qris') {
+        window.selectedPayMethod = null;
         try { resetPayMethod(); } catch(e){}
       }
     } else {
       card.dataset.disabled = '';
       card.style.opacity = '';
+      card.style.pointerEvents = '';
       card.style.cursor = 'pointer';
       badge.style.background = 'rgba(0,255,136,.15)';
       badge.style.color = '#00ff88';
       badge.style.border = '1px solid #00ff88';
-      badge.textContent = 'TERSEDIA';
+      badge.textContent = isApk ? 'OTOMATIS' : 'TERSEDIA';
     }
   };
 
-  // --- QRIS via qris.pw: selalu bisa dipilih, tidak cek stok key ---
-  // (konfirmasi pembayaran otomatis via Worker + Supabase Realtime)
+  // ── Guard: qrisPayCard tidak bisa diklik kalau key habis ──
+  setTimeout(() => {
+    const qCard = document.getElementById('qrisPayCard');
+    if (!qCard) return;
+    // Simpan onclick asli
+    const origClick = qCard.onclick;
+    qCard.addEventListener('click', function(e) {
+      // Cek apakah card sedang disabled (key habis)
+      if (qCard.dataset.disabled === '1') {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        if(typeof showNotif==='function') showNotif('❌ Key habis, tidak bisa pakai QRIS');
+        return false;
+      }
+    }, true); // capture phase
+  }, 500);
 
-  // --- Refresh ulang saat produk dibuka ---
-  if (typeof window.openProdFullscreen === 'function'){
-    const _origOpen = window.openProdFullscreen;
-    window.openProdFullscreen = function(){
-      const r = _origOpen.apply(this, arguments);
-      setTimeout(()=>{ try { refreshPayMethodAvailability(); } catch(e){} }, 50);
-      return r;
-    };
-  }
-})();
+  // ── Jalankan refresh saat produk/varian pertama kali dibuka ──
+  setTimeout(() => { try { refreshPayMethodAvailability(); } catch(e){} }, 300);
 </script>
 
 
@@ -5554,9 +5582,37 @@ function doPesan(){
       return {p, v};
     } catch(e){ return null; }
   }
+  function _isApkProd(){
+    try {
+      const c = _curVar();
+      if (!c) return false;
+      const cat = (c.p.cat||'').toLowerCase();
+      return cat.includes('apk') || cat.includes('premium') || cat.includes('pc');
+    } catch(e){ return false; }
+  }
+
   function _qrisAvail(){
     const c = _curVar(); if (!c) return 999;
-    try { return getAvailableKeys(c.p.id, c.v.n).length; } catch(e){ return 999; }
+
+    // Produk APK/Premium/PC → tidak perlu stok key, selalu tersedia
+    if (_isApkProd()) return 999;
+
+    try {
+      const manualOk = (function(){
+        try {
+          const XN_KEY = 'vinz_xendit_stock';
+          const o = JSON.parse(localStorage.getItem(XN_KEY)||'{}');
+          const k = c.p.id + '::' + c.v.n;
+          if (o[k] === true) return true;   // admin tandai ready → bypass
+          if (o[k] === false) return false;  // admin paksa habis
+          return null; // tidak diset manual → cek key stok
+        } catch(e){ return null; }
+      })();
+      if (manualOk === true) return 999;
+      if (manualOk === false) return 0;
+      // Default: cek key stok
+      return getAvailableKeys(c.p.id, c.v.n).length;
+    } catch(e){ return 999; }
   }
   function _needed(){ try { return (typeof qty==='number'&&qty>0)?qty:1; } catch(e){ return 1; } }
 
@@ -5564,19 +5620,33 @@ function doPesan(){
   window.renderFsVars = function(p){
     const grid = document.getElementById('fsVarGrid');
     if (!grid) return;
+    const isApk = (p.cat||'').toLowerCase().match(/apk|premium|pc/);
     grid.innerHTML = p.variants.map((v,i)=>{
       let qrisStok = 0;
-      try { qrisStok = getAvailableKeys(p.id, v.n).length; } catch(e){}
+      try {
+        if (isApk) {
+          // APK/Premium: cek manual toggle saja
+          const XN_KEY = 'vinz_xendit_stock';
+          const o = JSON.parse(localStorage.getItem(XN_KEY)||'{}');
+          const manVal = o[p.id+'::'+v.n];
+          qrisStok = (manVal === false) ? 0 : 999;
+        } else {
+          // Non-APK: cek stok key + manual toggle
+          const XN_KEY = 'vinz_xendit_stock';
+          const o = JSON.parse(localStorage.getItem(XN_KEY)||'{}');
+          const manVal = o[p.id+'::'+v.n];
+          if (manVal === true) qrisStok = 999;
+          else if (manVal === false) qrisStok = 0;
+          else qrisStok = getAvailableKeys(p.id, v.n).length;
+        }
+      } catch(e){ qrisStok = 999; }
       const qrisHabis = qrisStok <= 0;
       const waOk = window._waAvail(p.id, v.n);
-      const both = !qrisHabis && waOk;
       const none = qrisHabis && !waOk;
       const sel = (i === selVarIdx) ? 'sel' : '';
       let label, color, clickAttr;
-      if (both){ label='TERSEDIA'; color='#00ff88'; clickAttr='onclick="fSelVar('+i+')"'; }
-      else if (none){ label='HABIS TOTAL'; color='#ff4757'; clickAttr=''; }
-      else if (qrisHabis && waOk){ label='TERSEDIA'; color='#00ff88'; clickAttr='onclick="fSelVar('+i+')"'; }
-      else { label='WA HABIS · QRIS OK'; color='#4dabff'; clickAttr='onclick="fSelVar('+i+')"'; }
+      if (!none){ label='TERSEDIA'; color='#00ff88'; clickAttr='onclick="fSelVar('+i+')"'; }
+      else { label='HABIS TOTAL'; color='#ff4757'; clickAttr=''; }
       const disStyle = none ? 'opacity:.5;cursor:not-allowed;' : '';
       return '<div class="fs-var-card '+sel+'" '+clickAttr+' style="'+disStyle+'">'+
         '<div class="vn">'+p.name+' '+v.n+'</div>'+
