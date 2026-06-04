@@ -4825,6 +4825,9 @@ function doPesan(){
       document.getElementById("qrisOkState").style.display = "none";
       document.getElementById("qrisModal").classList.add("open");
       document.body.style.overflow = "hidden";
+      // Simpan state riwayat terbuka agar bisa dibuka kembali saat QRIS ditutup
+      window._qrisFromRiwayat = true;
+
       // Tidak tutup riwayat — biarkan tetap di stack agar swipe back kembali ke riwayat
       // if (typeof closeRiwayat==='function') closeRiwayat();
 
@@ -8483,8 +8486,22 @@ function closePusatInfo(){
     if (window._qrisPollId) { clearInterval(window._qrisPollId); window._qrisPollId = null; }
     if (qrisChannel) { (window._sb || supabase).removeChannel(qrisChannel); qrisChannel = null; }
     window._qrisHistoryPushed = false;
-    // Refresh riwayat kalau terbuka
-    try { if (typeof window.renderRiwayat==='function') window.renderRiwayat(); } catch(_){}
+    // Kalau dibuka dari riwayat, buka kembali riwayat
+    if (window._qrisFromRiwayat) {
+      window._qrisFromRiwayat = false;
+      setTimeout(() => {
+        try {
+          const rp = document.getElementById('riwayatPanel');
+          if (rp && !rp.classList.contains('open')) {
+            if (typeof window.openRiwayat==='function') window.openRiwayat();
+            else rp.classList.add('open');
+          }
+          if (typeof window.renderRiwayat==='function') window.renderRiwayat();
+        } catch(_){}
+      }, 50);
+    } else {
+      try { if (typeof window.renderRiwayat==='function') window.renderRiwayat(); } catch(_){}
+    }
   }
 
   // ── Swipe back di QRIS modal = tutup modal (bukan keluar web) ──
