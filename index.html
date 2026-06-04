@@ -816,7 +816,7 @@ renderBannerSlider();
         if(chk){chk.style.background='#00aaff';chk.style.border='2px solid #00aaff';chk.style.boxShadow='inset 0 0 0 4px #0a1730';}
         var btn=document.getElementById('fsPesanBtn');
         if(btn){btn.disabled=false;btn.style.background='linear-gradient(135deg,#0050dd,#00aaff)';btn.style.color='#fff';btn.style.cursor='pointer';btn.style.boxShadow='0 6px 20px rgba(0,80,221,0.45)';}
-        if(typeof showNotif==='function') showNotif('✅ QRIS dipilih');
+        if(typeof showNotif==='function') {} // notif dihapus
       });
       </script>
       <script>
@@ -7657,16 +7657,25 @@ setTimeout(function(){
     } else {
       if(filterEl) filterEl.innerHTML = '';
       if(!qris.length){ if(summEl) summEl.innerHTML=''; listEl.innerHTML='<div style="padding:30px;text-align:center;color:#6a8cb5;">Belum ada transaksi QRIS</div>'; return; }
-      if(summEl) summEl.innerHTML = `<div style="background:#0d1f3c;border:1px solid rgba(255,180,0,.3);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#ffb400;font-weight:700;">Total transaksi: ${qris.length}</div>`;
+      const totalPaid = qris.filter(r=>(r.data?.status||'').toLowerCase()==='sukses').length;
+      const totalPending = qris.filter(r=>(r.data?.status||'').toLowerCase()==='menunggu').length;
+      if(summEl) summEl.innerHTML = `<div style="background:#0d1f3c;border:1px solid rgba(255,180,0,.3);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#ffb400;font-weight:700;">Total: ${qris.length} | ✅ Sukses: ${totalPaid} | ⏳ Menunggu: ${totalPending}</div>`;
       listEl.innerHTML = qris.map(r=>{
         const d=r.data||{};
+        const st = (d.status||'').toLowerCase();
+        const stColor = st==='sukses'?'#00ff88':st==='menunggu'?'#ffb400':st==='batal'||st==='kadaluwarsa'?'#ff4757':'#6a8cb5';
         return `<div style="background:linear-gradient(180deg,#0d1f3c,#0a1a30);border:1px solid rgba(255,180,0,.2);border-radius:12px;padding:12px;margin-bottom:8px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-            <div style="font-size:11px;font-weight:900;color:#ffb400;">${(d.method||'QRIS').toUpperCase()}</div>
+            <div style="font-size:11px;font-weight:900;color:#ffb400;">${r.trx_id||'-'}</div>
             <div style="font-size:10px;color:#6a8cb5;">${fmt(r.created_at)}</div>
           </div>
-          <div style="font-size:13px;color:#fff;">${d.productName||d.prod||'-'} ${d.variantName||''}</div>
-          <div style="font-size:11px;color:#6a8cb5;margin-top:4px;">Email: ${r.email||'-'} · TRX: ${r.trx_id||'-'}</div>
+          <div style="font-size:13px;color:#fff;margin-bottom:4px;">${d.productName||d.prod||'-'} ${d.variantName||''}</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;">
+            <span style="font-size:10px;font-weight:800;color:${stColor};background:rgba(255,255,255,.05);padding:2px 8px;border-radius:6px;border:1px solid ${stColor};">${(d.status||'?').toUpperCase()}</span>
+            <span style="font-size:11px;color:#1a6fff;">Rp ${Number(d.total||0).toLocaleString('id-ID')}</span>
+          </div>
+          <div style="font-size:10px;color:#6a8cb5;">Email: ${r.email||'-'}</div>
+          ${d.keys?.length ? `<div style="font-size:10px;color:#00ff88;margin-top:4px;">🔑 ${d.keys.join(', ')}</div>` : ''}
         </div>`;
       }).join('');
     }
@@ -8089,7 +8098,7 @@ function closePusatInfo(){
       <div class="qLogo"><img src="data:image/webp;base64,UklGRpwEAABXRUJQVlA4IJAEAABQEwCdASpAAEAAPpk8lkkloyIhN/gMALATCWwAnTMTAbSIrM2zgzEL3cKbkn/gb5LvNk+m5wfcsnCpegauX1is1HyQ6hrKR43q315iHxtepDP1+20CJ8tJCwhEVUgRn0DaaHZF5pvgtZYn0eNEYuJVVwU0Be0fvPXGnCmOxZ0PO1izuqr8d9sgqGEAzMtN0T9QzAxcklLQMlHozjq6n27zpDYAAP786utBOELeVJU6skrTdFdZSn4f2xHtsnkch8w4MLehl3jqqM3+wgXcWrSHl3DKAXhYC78Ypfe0i/p8WDW9cYTglvIgCvoVfg9KOL5t5xfbSUeIzSYvLMxbew3BMvsAlhrTehfv6A0ekPq78yt89RHuAuQVrlgCUfopYqqvReiAaSMsi4C8l/Qrh5DuTIdZk6e9IADLsOKBqwhWTZm1l1cN0R+AHEs3q2vdW3jNrfyRYs+1sgdg4rMRLyKb2wTykIM2KRCDGxKs1y15+26Kilvi20tLdYOjq+PIT8vL8zecq/wSOHe8ITILRLc4cOQSCxHjC9zfqRAONMsjBYIgDK6ddeFwvyck9RaX0JS5UvX5FjqLhdlfxzieSCKv7H6nob06uda0Zrzzg0ZjKQwNsDw0lufQ0iyOmgiOyRqaWQm9bMOcvVADeUsQA8kjIdZyQyWQjihaTyX+CFlrl96OicgADf3QINykgvNkLkAyJ1p/jgisO41siYUYi0lP1RHjcMn/mz57iTGi0reBW9Rh6Yf8GpEwUw1i5Fd4FKMeRJfuq820Bu0vRpE1euZC9TPrzP9N32fN3eXZUppzOGCAUd4ev4WMji5Tpl6P2nH3pUiUK6zn06noQr35kVGW+3Pvsp794MefoGP3J9iwKc/I39sC6wnvPCfu2YpXf2x8/XnP7aamO1xavSJEdiBLgf4s8YLUP0gTIXQSpcbTZCLLOgFnARnjhui52ybuzjaaxXVv0/PIlR5QoXnHpVtsLJhxXLMH/8sdi5vRdMHPH5wyOIkkW/o6f5ZxDUc6O4o94T8eUA2KF0lY36PbRiK/56LCu7jl13XfBw8YPB+rCR+P6kH7xxf9ld87zTZaX+LH0c2jI6+ksUBW4x0sxY1ZZoEGvrA7bmrDgNjCITuEkm9evdqxhKITAHAstcP2FXxWWEDpBGlJSVOwLiLqLbIVyNJnjHhsLvO1+Owfs2inLtnJI/maI7ZlqFxmJZr/exbIHksr+UB8KREoZMBTCR0yuFLMhbIvAHhEX4ZCIOJgJc7YfNFlRNUrp93ReQ5uHwDaWA3Uhd7Z2NC1/TyfWwIQe6qZshBFmkkexrHGR4uiOc3UXPoFoYmUqSpY+z9/A6PeO0mkXqjC9Mm6idkzAFLzvyunilhe+Cd7VQtqdC9ACgCqf/ztrgywc7AaC7TSJ0oSFFNd2au5fXZby9kYEg4XQVOjKpeXCG4V+a7tgxVcYrOGovCbnQbUuQix9m0bdybTyvWNXoSvZR9naB1QgRHfiIshfTW+5L3nuBZnC23YGAGpxqg+rwaSRD5Mvxk5zejFNP4wCf6MWBCLHrifZgAA" alt="VPS" style="width:100%;height:100%;object-fit:cover;border-radius:9px;"></div>
       VINZ STORE
     </div>
-    <button class="qClose" onclick="tutupQris()">✕</button>
+    <button class="qClose" style="visibility:hidden;">✕</button>
   </div>
 
   <!-- WAIT state -->
@@ -8125,7 +8134,7 @@ function closePusatInfo(){
         <div class="pv" id="qrisProdVar">—</div>
       </div>
     </div>
-    <button class="qBtn cancel" onclick="tutupQris()">BATAL</button>
+    <div style="height:16px;"></div>
   </div>
 
   <!-- SUCCESS state -->
@@ -8183,7 +8192,7 @@ function closePusatInfo(){
       return;
     }
 
-    if(typeof showNotif==='function') showNotif('Membuat QRIS…');
+    // notif membuat QRIS dihapus
     const res = await fetch(`${WORKER_URL}/create-qris`, {
       method: "POST",
       headers: {
@@ -8284,6 +8293,7 @@ function closePusatInfo(){
   }
 
   function listenPaid(orderId) {
+    window._currentQrisOrderId = orderId;
     const _sbc = window._sb || supabase;
     if (qrisChannel) _sbc.removeChannel(qrisChannel);
 
@@ -8436,13 +8446,43 @@ function closePusatInfo(){
       .subscribe();
   }
 
-  function tutupQris() {
-    document.getElementById("qrisModal").classList.remove("open");
+  function tutupQris(isBatal = false) {
+    const isSuccess = document.getElementById("qrisOkState")?.style.display !== "none";
+
+    if (isBatal && !isSuccess && window._currentQrisOrderId) {
+      const orderId = window._currentQrisOrderId;
+      const _u = (typeof currentUser!=='undefined'&&currentUser) || JSON.parse(localStorage.getItem('vp_user')||'null');
+      // Update localStorage riwayat jadi batal
+      if (_u?.email) {
+        try {
+          const lk = 'vp_riw_'+_u.email;
+          let cur = JSON.parse(localStorage.getItem(lk)||'[]');
+          const idx = cur.findIndex(x => x.id.replace(/^#/,'') === orderId);
+          if (idx !== -1) { cur[idx].status = 'batal'; localStorage.setItem(lk, JSON.stringify(cur)); }
+        } catch(_){}
+      }
+      // Update Supabase orders
+      try { (window._sb||supabase).from('orders').update({status:'cancelled'}).eq('order_id',orderId).then(()=>{}); } catch(_){}
+      // Update Supabase transactions
+      try {
+        (window._sb||supabase).from('transactions').select('data').eq('trx_id','#'+orderId).single().then(({data:tx})=>{
+          if(tx){ (window._sb||supabase).from('transactions').update({data:{...(tx.data||{}),status:'batal'}}).eq('trx_id','#'+orderId).then(()=>{}); }
+        });
+      } catch(_){}
+    }
+
+    // Tutup modal TANPA history.back (supaya tidak ke-redirect)
+    const modal = document.getElementById("qrisModal");
+    if (modal) modal.classList.remove("open");
     document.getElementById("qrisWaitState").style.display = "";
     document.getElementById("qrisOkState").style.display = "none";
     document.body.style.overflow = "";
     clearInterval(qrisTimerId);
+    window._currentQrisOrderId = null;
+    if (window._qrisPollId) { clearInterval(window._qrisPollId); window._qrisPollId = null; }
     if (qrisChannel) { (window._sb || supabase).removeChannel(qrisChannel); qrisChannel = null; }
+    // Refresh riwayat kalau terbuka
+    try { if (typeof window.renderRiwayat==='function') window.renderRiwayat(); } catch(_){}
   }
 
   function qrisOkCopyKey() {
