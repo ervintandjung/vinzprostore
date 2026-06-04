@@ -783,6 +783,23 @@ renderBannerSlider();
       </div>
       <script>
       document.getElementById('qrisPayCard').addEventListener('click', function(){
+        // Cek stok key sebelum bisa dipilih
+        try {
+          const isApk = (function(){
+            const p = getProducts().find(x=>x.id===selProdId);
+            return p && p.cat && p.cat.toLowerCase().includes('apk');
+          })();
+          if (!isApk) {
+            const p = getProducts().find(x=>x.id===selProdId);
+            const v = p ? p.variants[selVarIdx] : null;
+            const avail = (p && v && typeof getAvailableKeys==='function') ? getAvailableKeys(p.id, v.n).length : 999;
+            const need = (typeof qty==='number' && qty>0) ? qty : 1;
+            if (avail < need) {
+              if(typeof showNotif==='function') showNotif('❌ Key habis, QRIS tidak tersedia');
+              return; // stop — tidak bisa pilih
+            }
+          }
+        } catch(e){}
         window.selectedPayMethod = 'qris';
         try { selectedPayMethod = 'qris'; } catch(e){}
         document.querySelectorAll('.pm-card').forEach(function(c){
