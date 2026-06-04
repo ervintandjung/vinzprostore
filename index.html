@@ -4825,7 +4825,8 @@ function doPesan(){
       document.getElementById("qrisOkState").style.display = "none";
       document.getElementById("qrisModal").classList.add("open");
       document.body.style.overflow = "hidden";
-      if (typeof closeRiwayat==='function') closeRiwayat();
+      // Tidak tutup riwayat — biarkan tetap di stack agar swipe back kembali ke riwayat
+      // if (typeof closeRiwayat==='function') closeRiwayat();
 
       if(typeof startQrisTimer==='function') startQrisTimer(sisaSec);
       if(typeof listenPaid==='function') listenPaid(cleanId);
@@ -8481,9 +8482,31 @@ function closePusatInfo(){
     window._currentQrisOrderId = null;
     if (window._qrisPollId) { clearInterval(window._qrisPollId); window._qrisPollId = null; }
     if (qrisChannel) { (window._sb || supabase).removeChannel(qrisChannel); qrisChannel = null; }
+    window._qrisHistoryPushed = false;
     // Refresh riwayat kalau terbuka
     try { if (typeof window.renderRiwayat==='function') window.renderRiwayat(); } catch(_){}
   }
+
+  // ── Swipe back di QRIS modal = tutup modal (bukan keluar web) ──
+  (function(){
+    const modalEl = document.getElementById('qrisModal');
+    if (!modalEl) return;
+
+    // Saat modal dibuka, push 1 history entry
+    new MutationObserver(() => {
+      if (modalEl.classList.contains('open') && !window._qrisHistoryPushed) {
+        window._qrisHistoryPushed = true;
+        history.pushState({ qrisModal: true }, '');
+      }
+    }).observe(modalEl, { attributes: true, attributeFilter: ['class'] });
+
+    // Saat user swipe back / tekan back → tutup modal
+    window.addEventListener('popstate', function(e) {
+      if (modalEl.classList.contains('open')) {
+        tutupQris();
+      }
+    });
+  })();
 
   function qrisOkCopyKey() {
     const el = document.getElementById("qrisOkKeyList");
