@@ -3140,16 +3140,15 @@ function assignKeys(pid, vn, qty, user){
   }
   s[k] = arr; setKeyStore(s);
 
-  // Sync ke Supabase product_keys (update status jadi 'sold')
-  if (soldKeys.length && typeof _sb !== 'undefined') {
-    soldKeys.forEach(keyVal => {
-      _sb.from('product_keys')
-        .update({ status: 'sold', sold_to: user || 'guest', sold_at: new Date().toISOString() })
-        .eq('key_value', keyVal)
-        .eq('product_id', pid)
-        .then(() => {})
-        .catch(() => {});
-    });
+  // Sync ke Supabase product_keys via Worker (bypass RLS pakai service role)
+  if (soldKeys.length) {
+    try {
+      fetch('https://qris-gateway.vinzprostore.workers.dev/mark-key-sold', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key_values: soldKeys, user_email: user || 'guest' })
+      }).catch(() => {});
+    } catch(_) {}
   }
 
   return out;
@@ -8230,25 +8229,25 @@ function closePusatInfo(){
         keys = assignKeys(prod.id, vari.n||'', qtyVal, _u?.email||'guest');
       }
 
-      // Fallback: ambil langsung dari Supabase product_keys (kalau localStorage kosong/belum sync)
+      // Fallback: ambil langsung dari Supabase product_keys via Worker (bypass RLS)
       if (!keys.length && prod && vari) {
         try {
+          // Ambil key available
           const { data: pkRows } = await _sbc
             .from('product_keys')
             .select('id,key_value')
             .eq('product_id', prod.id)
+            .ilike('status', 'available')
             .eq('variant', vari.n)
-            .eq('status', 'AVAILABLE')
             .limit(qtyVal);
           if (pkRows && pkRows.length) {
             keys = pkRows.map(r => r.key_value);
-            // Update ke sold di Supabase
-            const ids = pkRows.map(r => r.id);
-            await _sbc.from('product_keys').update({
-              status: 'sold',
-              sold_to: _u?.email || 'guest',
-              sold_at: new Date().toISOString()
-            }).in('id', ids);
+            // Mark sold via Worker (bypass RLS)
+            fetch('https://qris-gateway.vinzprostore.workers.dev/mark-key-sold', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ key_values: keys, user_email: _u?.email || 'guest' })
+            }).catch(() => {});
           }
         } catch(_){}
       }
