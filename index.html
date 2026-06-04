@@ -2356,38 +2356,10 @@ function openProd(id) {
   if (!p) return;
   selProdId = id; selVarIdx = 0; qty = 1;
 
-  // Reset payment method saat pindah produk
-  try {
-    selectedPayMethod = null;
-    window.selectedPayMethod = null;
-    if (typeof resetPayMethod === 'function') resetPayMethod();
-  } catch(e) {}
-
-  // Reset visual semua payment card
-  setTimeout(() => {
-    try {
-      // Reset semua pm-card ke state awal
-      document.querySelectorAll('.pm-card').forEach(c => {
-        c.style.border = '2px solid var(--border)';
-        c.style.background = 'var(--card2)';
-        c.style.boxShadow = 'none';
-        const chk = c.querySelector('.pm-check');
-        if (chk) { chk.style.background='transparent'; chk.style.border='2px solid var(--border)'; chk.style.boxShadow='none'; }
-      });
-      // Reset QRIS check khusus
-      const qChk = document.getElementById('qrisPayCheck');
-      if (qChk) { qChk.style.background='transparent'; qChk.style.border='2px solid var(--border)'; qChk.style.boxShadow='none'; }
-      // Reset tombol PESAN SEKARANG ke disabled/abu
-      const btn = document.getElementById('fsPesanBtn');
-      if (btn) {
-        btn.disabled = false; // tetap bisa klik tapi akan cek method
-        btn.style.background = 'rgba(255,255,255,0.08)';
-        btn.style.color = 'rgba(255,255,255,0.4)';
-        btn.style.cursor = 'pointer';
-        btn.style.boxShadow = 'none';
-      }
-    } catch(e) {}
-  }, 50);
+  // Reset payment method + visual saat pindah produk
+  try { resetPayMethod(); } catch(e) {}
+  // Pastikan juga reset setelah DOM ready (50ms delay untuk patch script)
+  setTimeout(() => { try { resetPayMethod(); } catch(e) {} }, 80);
 
   // Header title
   document.getElementById('fsHeaderTitle').textContent = p.name;
@@ -3887,6 +3859,7 @@ function selectPayMethod(m){
 }
 function resetPayMethod(){
   selectedPayMethod = null;
+  window.selectedPayMethod = null;
   document.querySelectorAll('.pm-card').forEach(c => {
     c.style.border = '2px solid var(--border)';
     c.style.background = 'var(--card2)';
@@ -3894,6 +3867,12 @@ function resetPayMethod(){
     const chk = c.querySelector('.pm-check');
     if (chk){ chk.style.background = 'transparent'; chk.style.border = '2px solid var(--border)'; chk.style.boxShadow = 'none'; }
   });
+  // Reset qrisPayCheck khusus (id terpisah)
+  const qChk = document.getElementById('qrisPayCheck');
+  if (qChk){ qChk.style.background='transparent'; qChk.style.border='2px solid var(--border)'; qChk.style.boxShadow='none'; }
+  // Reset qrisPayCard border
+  const qCard = document.getElementById('qrisPayCard');
+  if (qCard){ qCard.style.border='2px solid var(--border)'; qCard.style.background='var(--card2)'; qCard.style.boxShadow='none'; }
   const btn = document.getElementById('fsPesanBtn');
   if (btn){
     btn.disabled = true;
@@ -8246,9 +8225,32 @@ function closePusatInfo(){
         else if (existingTx?.data?.key) keys = [existingTx.data.key];
       } catch(_){}
 
-      // Assign key dari stok kalau belum ada
+      // Assign key dari localStorage stok
       if (!keys.length && prod && vari && typeof assignKeys==='function') {
         keys = assignKeys(prod.id, vari.n||'', qtyVal, _u?.email||'guest');
+      }
+
+      // Fallback: ambil langsung dari Supabase product_keys (kalau localStorage kosong/belum sync)
+      if (!keys.length && prod && vari) {
+        try {
+          const { data: pkRows } = await _sbc
+            .from('product_keys')
+            .select('id,key_value')
+            .eq('product_id', prod.id)
+            .eq('variant', vari.n)
+            .eq('status', 'AVAILABLE')
+            .limit(qtyVal);
+          if (pkRows && pkRows.length) {
+            keys = pkRows.map(r => r.key_value);
+            // Update ke sold di Supabase
+            const ids = pkRows.map(r => r.id);
+            await _sbc.from('product_keys').update({
+              status: 'sold',
+              sold_to: _u?.email || 'guest',
+              sold_at: new Date().toISOString()
+            }).in('id', ids);
+          }
+        } catch(_){}
       }
       const keyStr = keys.join('\n') || '';
 
