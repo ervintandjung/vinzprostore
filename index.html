@@ -6610,7 +6610,7 @@ function doPesan(){
   // Kunci global ON/OFF gateway (bukan per-produk, tapi per-gateway)
   window._qris1GatewayOn = function(){ return localStorage.getItem('vinz_qris1_gateway') !== 'off'; };
   window._qris1GatewaySet = function(b){ localStorage.setItem('vinz_qris1_gateway', b?'on':'off'); };
-  window._qris2GatewayOn = function(){ return localStorage.getItem('vinz_qris2_gateway') !== 'off'; };
+  window._qris2GatewayOn = function(){ return localStorage.getItem('vinz_qris2_gateway') === 'on'; };  // default OFF
   window._qris2GatewaySet = function(b){ localStorage.setItem('vinz_qris2_gateway', b?'on':'off'); };
 
   const XN_KEY = 'vinz_xendit_stock';
@@ -8214,9 +8214,12 @@ function closePusatInfo(){
       return;
     }
 
-    // Tentukan gateway: QRIS1 kalau ON, fallback ke QRIS2, kalau dua-duanya OFF tolak
-    const useQris1 = window._qris1GatewayOn ? window._qris1GatewayOn() : true;
-    const useQris2 = window._qris2GatewayOn ? window._qris2GatewayOn() : false;
+    // Tentukan gateway -- baca langsung dari localStorage
+    const _gw1val = localStorage.getItem('vinz_qris1_gateway');
+    const _gw2val = localStorage.getItem('vinz_qris2_gateway');
+    const useQris1 = _gw1val !== 'off';   // default ON kalau belum pernah diset
+    const useQris2 = _gw2val === 'on';    // default OFF
+    console.log('[QRIS Gateway] qris1='+_gw1val+'('+useQris1+') qris2='+_gw2val+'('+useQris2+')');
     if (!useQris1 && !useQris2) {
       if(typeof showNotif==='function') showNotif('❌ QRIS sedang MAINTENANCE. Pilih metode lain.');
       return;
