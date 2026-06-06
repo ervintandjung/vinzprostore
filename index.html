@@ -8262,17 +8262,8 @@ function closePusatInfo(){
       return;
     }
 
-    // Tentukan gateway -- reload fresh dari Supabase setiap order
-    await window._loadGatewayState();
-    const useQris1 = window._gwCache.qris1;
-    const useQris2 = window._gwCache.qris2;
-    console.log('[QRIS Gateway] qris1='+useQris1+' qris2='+useQris2);
-    if (!useQris1 && !useQris2) {
-      if(typeof showNotif==='function') showNotif('❌ QRIS sedang MAINTENANCE. Pilih metode lain.');
-      return;
-    }
-    const gateway = useQris1 ? 'qris1' : 'qris2';
-    const endpoint = gateway === 'qris1' ? '/create-qris' : '/create-flowqris';
+    const gateway = 'qris1';
+    const endpoint = '/create-qris';
     window._activeQrisGateway = gateway;
 
     const res = await fetch(`${WORKER_URL}${endpoint}`, {
