@@ -6608,10 +6608,42 @@ function doPesan(){
   /* ---------- 2) STOK MANUAL: QRIS1 (qris.pw) & QRIS2 (FlowQRIS) toggle ---------- */
   // QRIS1 = qris.pw (gateway utama), QRIS2 = FlowQRIS/Tripay (gateway cadangan)
   // Kunci global ON/OFF gateway (bukan per-produk, tapi per-gateway)
-  window._qris1GatewayOn = function(){ return localStorage.getItem('vinz_qris1_gateway') !== 'off'; };
-  window._qris1GatewaySet = function(b){ localStorage.setItem('vinz_qris1_gateway', b?'on':'off'); };
-  window._qris2GatewayOn = function(){ return localStorage.getItem('vinz_qris2_gateway') === 'on'; };  // default OFF
-  window._qris2GatewaySet = function(b){ localStorage.setItem('vinz_qris2_gateway', b?'on':'off'); };
+  // Gateway state -- cache in memory, sumber kebenaran dari Supabase settings
+  window._gwCache = { qris1: true, qris2: false, loaded: false };
+
+  window._qris1GatewayOn  = function(){ return window._gwCache.qris1; };
+  window._qris2GatewayOn  = function(){ return window._gwCache.qris2; };
+
+  // Load gateway state dari Supabase
+  window._loadGatewayState = async function(){
+    try {
+      const { data } = await _sb.from('settings').select('value').eq('key','gateway_state').maybeSingle();
+      if (data?.value) {
+        window._gwCache.qris1 = data.value.qris1 !== false;
+        window._gwCache.qris2 = data.value.qris2 === true;
+      }
+      window._gwCache.loaded = true;
+    } catch(e) { window._gwCache.loaded = true; }
+  };
+
+  // Simpan gateway state ke Supabase
+  window._saveGatewayState = async function(){
+    try {
+      await _sb.from('settings').upsert({ key: 'gateway_state', value: { qris1: window._gwCache.qris1, qris2: window._gwCache.qris2 } });
+    } catch(e){}
+  };
+
+  window._qris1GatewaySet = function(b){
+    window._gwCache.qris1 = !!b;
+    window._saveGatewayState();
+  };
+  window._qris2GatewaySet = function(b){
+    window._gwCache.qris2 = !!b;
+    window._saveGatewayState();
+  };
+
+  // Load saat halaman dibuka
+  window._loadGatewayState();
 
   const XN_KEY = 'vinz_xendit_stock';
   const DK_KEY = 'vinz_duitku_stock';
@@ -8214,12 +8246,11 @@ function closePusatInfo(){
       return;
     }
 
-    // Tentukan gateway -- baca langsung dari localStorage
-    const _gw1val = localStorage.getItem('vinz_qris1_gateway');
-    const _gw2val = localStorage.getItem('vinz_qris2_gateway');
-    const useQris1 = _gw1val !== 'off';   // default ON kalau belum pernah diset
-    const useQris2 = _gw2val === 'on';    // default OFF
-    console.log('[QRIS Gateway] qris1='+_gw1val+'('+useQris1+') qris2='+_gw2val+'('+useQris2+')');
+    // Tentukan gateway -- pastikan state sudah di-load dari Supabase
+    if (!window._gwCache.loaded) await window._loadGatewayState();
+    const useQris1 = window._gwCache.qris1;
+    const useQris2 = window._gwCache.qris2;
+    console.log('[QRIS Gateway] qris1='+useQris1+' qris2='+useQris2);
     if (!useQris1 && !useQris2) {
       if(typeof showNotif==='function') showNotif('❌ QRIS sedang MAINTENANCE. Pilih metode lain.');
       return;
