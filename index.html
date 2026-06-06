@@ -6617,13 +6617,19 @@ function doPesan(){
   // Load gateway state dari Supabase
   window._loadGatewayState = async function(){
     try {
-      const { data } = await _sb.from('settings').select('value').eq('key','gateway_state').maybeSingle();
+      // Tunggu _sb siap (max 3 detik)
+      let tries = 0;
+      while (!window._sb && tries < 30) { await new Promise(r=>setTimeout(r,100)); tries++; }
+      if (!window._sb) { window._gwCache.loaded = true; return; }
+      const { data, error } = await window._sb.from('settings').select('value').eq('key','gateway_state').maybeSingle();
+      console.log('[GW LOAD] data=', data, 'error=', error);
       if (data?.value) {
         window._gwCache.qris1 = data.value.qris1 !== false;
         window._gwCache.qris2 = data.value.qris2 === true;
+        console.log('[GW LOAD] qris1='+window._gwCache.qris1+' qris2='+window._gwCache.qris2);
       }
       window._gwCache.loaded = true;
-    } catch(e) { window._gwCache.loaded = true; }
+    } catch(e) { console.log('[GW LOAD] error:', e); window._gwCache.loaded = true; }
   };
 
   // Simpan gateway state ke Supabase
