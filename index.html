@@ -6772,17 +6772,19 @@ function doPesan(){
     }
   }
 
-  window.toggleQris1Gateway = function(){
+  window.toggleQris1Gateway = async function(){
     const cur = window._qris1GatewayOn();
-    window._qris1GatewaySet(!cur);
-    try { showNotif(!cur ? '✅ QRIS 1 (qris.pw) ON' : '⛔ QRIS 1 (qris.pw) OFF — Otomatis pakai QRIS 2'); } catch(e){}
+    window._gwCache.qris1 = !cur;
+    await window._saveGatewayState();
+    try { showNotif(!cur ? '✅ QRIS 1 (qris.pw) ON' : '⛔ QRIS 1 OFF — pakai QRIS 2'); } catch(e){}
     ensureExtraToggles();
     try { refreshPayMethodAvailability(); } catch(e){}
   };
-  window.toggleQris2Gateway = function(){
+  window.toggleQris2Gateway = async function(){
     const cur = window._qris2GatewayOn();
-    window._qris2GatewaySet(!cur);
-    try { showNotif(!cur ? '✅ QRIS 2 (FlowQRIS) ON' : '⛔ QRIS 2 (FlowQRIS) OFF'); } catch(e){}
+    window._gwCache.qris2 = !cur;
+    await window._saveGatewayState();
+    try { showNotif(!cur ? '✅ QRIS 2 (Louvin) ON' : '⛔ QRIS 2 (Louvin) OFF'); } catch(e){}
     ensureExtraToggles();
     try { refreshPayMethodAvailability(); } catch(e){}
   };
@@ -8246,8 +8248,8 @@ function closePusatInfo(){
       return;
     }
 
-    // Tentukan gateway -- pastikan state sudah di-load dari Supabase
-    if (!window._gwCache.loaded) await window._loadGatewayState();
+    // Tentukan gateway -- reload fresh dari Supabase setiap order
+    await window._loadGatewayState();
     const useQris1 = window._gwCache.qris1;
     const useQris2 = window._gwCache.qris2;
     console.log('[QRIS Gateway] qris1='+useQris1+' qris2='+useQris2);
