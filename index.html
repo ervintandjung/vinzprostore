@@ -802,6 +802,7 @@ renderBannerSlider();
         } catch(e){}
         window.selectedPayMethod = 'qris';
         try { selectedPayMethod = 'qris'; } catch(e){}
+        // Reset semua .pm-card (wa, dll)
         document.querySelectorAll('.pm-card').forEach(function(c){
           c.style.border='2px solid var(--border)';
           c.style.background='var(--card2)';
@@ -3851,6 +3852,12 @@ window._openWaEmailModal = function(onConfirm){
 
 function selectPayMethod(m){
   selectedPayMethod = m;
+  window.selectedPayMethod = m;
+  // Reset qrisPayCard dulu (card terpisah yang bukan .pm-card)
+  const qCard = document.getElementById('qrisPayCard');
+  const qChk  = document.getElementById('qrisPayCheck');
+  if(qCard){ qCard.style.border='2px solid var(--border)'; qCard.style.background='var(--card2)'; qCard.style.boxShadow='none'; }
+  if(qChk){  qChk.style.background='transparent'; qChk.style.border='2px solid var(--border)'; qChk.style.boxShadow='none'; }
   document.querySelectorAll('.pm-card').forEach(c => {
     const active = c.dataset.method === m;
     c.style.border = active ? '2px solid #00aaff' : '2px solid var(--border)';
