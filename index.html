@@ -1091,8 +1091,8 @@ renderBannerSlider();
 <!-- ADMIN PANEL -->
 <div id="adminPanel">
   <div class="ap-header">
-    <h2>⚙️ ADMIN PANEL — VINZPRO</h2>
-    <button class="btn-close-ap" onclick="closeAdmin()">✕ TUTUP</button>
+    <h2>ADMIN PANEL — VINZPRO</h2>
+    <button class="btn-close-ap" onclick="closeAdmin()">TUTUP</button>
   </div>
   <div class="ap-body">
     <div id="devPanel" style="margin:14px 0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;">
@@ -1103,21 +1103,21 @@ renderBannerSlider();
       <div id="devList" style="font-size:12px;color:var(--muted);">Klik Refresh buat muat data.</div>
     </div>
     <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">📱 Nomor WhatsApp Order<span class="ac-arrow">▼</span></h3>
+      <h3 onclick="toggleApCard(this)">NOMOR WHATSAPP ORDER<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
       <input class="ap-input" id="apWa" placeholder="6285954741269">
       <button class="ap-save" onclick="apSaveWa()">💾 SIMPAN NOMOR WA</button>
       </div>
     </div>
     <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">📢 Teks Ticker Berjalan<span class="ac-arrow">▼</span></h3>
+      <h3 onclick="toggleApCard(this)">TEKS TICKER BERJALAN<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
       <input class="ap-input" id="apTicker" placeholder="Teks banner berjalan...">
       <button class="ap-save" onclick="apSaveTicker()">💾 SIMPAN TICKER</button>
       </div>
     </div>
         <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">🖼️ Banner Slideshow<span class="ac-arrow">▼</span></h3>
+      <h3 onclick="toggleApCard(this)">BANNER SLIDESHOW<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Upload gambar banner (bisa lebih dari 1). Banner ini tampil di halaman utama untuk SEMUA pengunjung.</div>
       <div id="apBannerList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
@@ -1128,13 +1128,13 @@ renderBannerSlider();
       </div>
     </div>
     <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">💰 Edit Harga & Foto Produk<span class="ac-arrow">▼</span></h3>
+      <h3 onclick="toggleApCard(this)">EDIT HARGA & FOTO PRODUK<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
       <div id="apProdList"></div>
       </div>
     </div>
     <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">➕ Tambah Produk Baru<span class="ac-arrow">▼</span></h3>
+      <h3 onclick="toggleApCard(this)">TAMBAH PRODUK BARU<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
       <input class="ap-input" id="npName" placeholder="Nama produk">
       <select class="ap-input" id="npCat" style="cursor:pointer" onchange="npCatToggle()">
@@ -1192,24 +1192,14 @@ renderBannerSlider();
       </div>
     </div>
     <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">🗑️ Hapus Produk<span class="ac-arrow">▼</span></h3>
+      <h3 onclick="toggleApCard(this)">HAPUS PRODUK<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
       <div id="apDeleteList"></div>
       </div>
     </div>
+
     <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">🧪 QR Simulasi (Mock Payment)<span class="ac-arrow">▼</span></h3>
-      <div class="ap-card-body">
-      <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px;">Aktifkan saat gateway QRIS asli belum siap. Saat <b>ON</b>: user yg klik "Sudah Bayar" otomatis sukses + dapat key.</div>
-      <label style="display:flex;align-items:center;gap:10px;background:var(--secondary);border:1px solid var(--border);border-radius:9px;padding:10px 12px;cursor:pointer;">
-        <input type="checkbox" id="apQrSim" onchange="apSaveQrSim()" style="width:18px;height:18px;cursor:pointer;">
-        <span style="flex:1;font-size:13px;font-weight:700;color:#fff;">Aktifkan QR Simulasi</span>
-        <span id="apQrSimBadge" style="font-size:10px;font-weight:900;padding:3px 9px;border-radius:6px;background:var(--danger);color:#fff;font-family:'Orbitron',sans-serif;">OFF</span>
-      </label>
-      </div>
-    </div>
-    <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">🔑 Kelola Key Produk<span class="ac-arrow">▼</span></h3>
+      <h3 onclick="toggleApCard(this)">KELOLA KEY PRODUK<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Pilih produk & varian, lalu tambah key (1 baris = 1 key). Key terjual otomatis ditandai <b>SOLD</b>.</div>
       <select class="ap-input" id="kmProd" onchange="renderKeyManager()"></select>
@@ -1235,17 +1225,17 @@ renderBannerSlider();
 
     <!-- FOTO PROFIL -->
     <div style="background:var(--card);border-radius:14px;padding:18px 16px;margin-bottom:14px;border:1px solid var(--border);">
-      <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;">&#128248; Foto Profil</div>
+      <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;">Foto Profil</div>
       <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
         <div id="setAvatarPreview" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:26px;color:#fff;border:3px solid var(--accent2);overflow:hidden;flex-shrink:0;"></div>
         <div style="flex:1;">
           <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Klik tombol di bawah untuk pilih foto</div>
           <input type="file" id="setAvatarInput" accept="image/*" style="display:none;" onchange="setAvatarChange()">
-          <label for="setAvatarInput" style="display:inline-block;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">&#128193; Pilih Foto</label>
-          <button type="button" onclick="deleteAvatar()" style="display:inline-block;margin-left:6px;background:transparent;border:1.5px solid #ff4d4f;color:#ff4d4f;border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">&#128465; Hapus Foto</button>
+          <label for="setAvatarInput" style="display:inline-block;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">Pilih Foto</label>
+          <button type="button" onclick="deleteAvatar()" style="display:inline-block;margin-left:6px;background:transparent;border:1.5px solid #ff4d4f;color:#ff4d4f;border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">Hapus Foto</button>
         </div>
       </div>
-      <button id="btnSaveAvatar" onclick="saveAvatar()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.8px;">&#128248; SIMPAN FOTO</button>
+      <button id="btnSaveAvatar" onclick="saveAvatar()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.8px;">SIMPAN FOTO</button>
     </div>
 
 
@@ -1253,22 +1243,22 @@ renderBannerSlider();
 
     <!-- GANTI NAMA -->
     <div style="background:var(--card);border-radius:14px;padding:18px 16px;margin-bottom:14px;border:1px solid var(--border);">
-      <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;">&#9999; Ganti Nama</div>
+      <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;">Ganti Nama</div>
       <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Nama Tampilan</div>
       <input id="setName" type="text" placeholder="Nama kamu" style="width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:8px;">
       <div id="setNameErr" style="display:none;font-size:12px;color:var(--danger);margin-bottom:8px;"></div>
-      <button id="btnSaveName" onclick="saveName()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.8px;">&#128190; SIMPAN NAMA</button>
+      <button id="btnSaveName" onclick="saveName()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.8px;">SIMPAN NAMA</button>
     </div>
 
     <!-- GANTI EMAIL -->
     <div style="background:var(--card);border-radius:14px;padding:18px 16px;margin-bottom:14px;border:1px solid var(--border);">
-      <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;">&#128231; Ganti Email</div>
+      <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;">Ganti Email</div>
       <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Email Saat Ini</div>
       <input id="setEmail" type="email" disabled style="width:100%;background:rgba(255,255,255,0.04);border:1.5px solid rgba(106,140,181,0.3);border-radius:9px;padding:10px 13px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:12px;">
       <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Email Baru</div>
       <input id="setNewEmail" type="email" placeholder="email.baru@kamu.com" style="width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:8px;">
       <div id="setEmailErr" style="display:none;font-size:12px;color:var(--danger);margin-bottom:8px;"></div>
-      <button id="btnRequestEmail" onclick="requestEmailChange()" style="width:100%;background:var(--secondary);color:var(--accent2);border:1.5px solid var(--accent);border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:12px;">&#128231; KIRIM KODE OTP KE EMAIL BARU</button>
+      <button id="btnRequestEmail" onclick="requestEmailChange()" style="width:100%;background:var(--secondary);color:var(--accent2);border:1.5px solid var(--accent);border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:12px;">KIRIM KODE OTP KE EMAIL BARU</button>
 
       <!-- OTP Section -->
       <div id="setEmailOtpSection" style="display:none;background:var(--card2);border-radius:12px;padding:14px;border:1px solid var(--border);">
@@ -1290,7 +1280,7 @@ renderBannerSlider();
         <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:10px;">
           Tidak dapat kode? <span id="setResendArea"></span>
         </div>
-        <button id="btnVerifyEmail" onclick="verifyEmailChange()" style="width:100%;background:var(--success);color:#000;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;">&#10003; VERIFIKASI &amp; UBAH EMAIL</button>
+        <button id="btnVerifyEmail" onclick="verifyEmailChange()" style="width:100%;background:var(--success);color:#000;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;">VERIFIKASI &amp; UBAH EMAIL</button>
       </div>
     </div>
 
@@ -3077,7 +3067,7 @@ function apAddProduct() {
 function renderApDelete() {
   document.getElementById('apDeleteList').innerHTML = getProducts().map(p => `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <span style="flex:1;font-size:12px;font-weight:600">${p.emoji} ${p.name}</span>
+      <span style="flex:1;font-size:12px;font-weight:600">${p.name}</span>
       <button onclick="apDeleteProd(${p.id})" style="background:var(--danger);color:#fff;border:none;border-radius:7px;padding:5px 12px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">HAPUS</button>
     </div>
   `).join('');
@@ -4971,6 +4961,7 @@ function doPesan(){
 
   // ───────── ADMIN TRANSAKSI CARD (injected ke #adminPanel) ─────────
   function ensureAdminTrxCard(){
+    return; // Disabled
     const body = document.querySelector('#adminPanel .ap-body');
     if (!body || document.getElementById('apTrxCard')) return;
     const card = document.createElement('div');
@@ -5155,9 +5146,10 @@ function doPesan(){
 
 <!-- ===== NONTON PANEL (khusus admin) ===== -->
 <style>
-#nontonPanel{display:none;position:fixed;inset:0;background:#000;z-index:395;overflow-y:auto;}
+#nontonPanel{display:none;position:fixed;inset:0;background:#000;z-index:395;overflow-y:auto;overflow-x:hidden;}
 #nontonPanel.open{display:block;animation:fsSlideIn .3s ease;}
-.yt-frame{width:100%;aspect-ratio:16/9;border:none;background:#000;display:block;}
+.yt-frame{width:100%;aspect-ratio:16/9;border:none;background:#000;display:block;} .yt-frame:-webkit-full-screen{width:100vw;height:100vh;} .yt-frame:fullscreen{width:100vw;height:100vh;}
+#nontonPanel > *{max-width:480px;width:100%;margin-left:auto;margin-right:auto;box-sizing:border-box;}
 </style>
 
 <div id="nontonPanel">
@@ -5166,19 +5158,22 @@ function doPesan(){
     <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#ff2222;flex:1;">NONTON VIDEO</div>
   </div>
   <!-- Video area 16:9 full width -->
-  <div id="ytContainer" style="width:100%;background:#000;position:relative;">
-    <div style="width:100%;padding-top:56.25%;position:relative;">
-      <div id="ytInner" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#444;font-size:12px;text-align:center;">Paste link lalu tekan PLAY</div>
+  <div id="ytContainer" style="width:100%;background:#111;position:relative;">
+    <div style="width:100%;padding-top:56.25%;position:relative;background:#111;">
+      <div id="ytInner" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#555;font-size:13px;text-align:center;flex-direction:column;gap:8px;">
+        <div style="font-size:28px;">▶</div>
+        <div>Paste link YouTube lalu tekan PLAY</div>
+      </div>
     </div>
   </div>
   <!-- Input -->
   <div style="padding:12px 14px;background:#0a0a0a;">
     <div style="display:flex;gap:8px;margin-bottom:10px;">
-      <input id="ytLinkInput" placeholder="Paste link YouTube…" style="flex:1;background:#111;border:1px solid #333;border-radius:8px;padding:9px 12px;color:#fff;font-size:14px;outline:none;">
-      <button onclick="loadYoutube()" style="background:#ff0000;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;cursor:pointer;white-space:nowrap;">PLAY</button>
+      <input id="ytLinkInput" placeholder="Paste link YouTube…" style="flex:1;min-width:0;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:10px 12px;color:#fff;font-size:14px;outline:none;">
+      <button onclick="loadYoutube()" style="background:#ff0000;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;letter-spacing:.5px;">PLAY</button>
     </div>
-    <div style="font-size:10px;color:#555;margin-bottom:8px;font-weight:700;letter-spacing:1px;">RIWAYAT LINK</div>
-    <div id="ytHistory" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;"></div>
+    <div style="font-size:10px;color:#444;margin-bottom:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Riwayat Link</div>
+    <div id="ytHistory" style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;"></div>
   </div>
 </div>
 
@@ -5396,9 +5391,16 @@ function doPesan(){
       `<div style="display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;">
         <div style="flex:1;font-size:11px;color:var(--accent2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${url}</div>
         <button onclick="window._playYt('${url.replace(/'/g,''')}')" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;">▶</button>
+        <button onclick="window._delYt(${i})" style="background:var(--danger);color:#fff;border:none;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer;">HAPUS</button>
       </div>`
     ).join('');
   }
+
+  window._delYt = function(i){
+    _ytHistory.splice(i, 1);
+    try { localStorage.setItem('vp_yt_history', JSON.stringify(_ytHistory)); } catch(e){}
+    renderYtHistory();
+  };
 
   window._playYt = function(url){
     const inp = document.getElementById('ytLinkInput');
@@ -5415,9 +5417,9 @@ function doPesan(){
     if (!ct) return;
     if (!vid){
       // Coba embed langsung sebagai iframe src
-      ct.innerHTML = `<iframe class="yt-frame" src="${url}" allowfullscreen allow="autoplay;encrypted-media"></iframe>`;
+      ct.innerHTML = `<div style="position:relative;width:100%;padding-top:56.25%;"><iframe class="yt-frame" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="${url}" allowfullscreen allow="autoplay;encrypted-media;fullscreen"></iframe></div>`;
     } else {
-      ct.innerHTML = `<iframe class="yt-frame" src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0" allowfullscreen allow="autoplay;encrypted-media;gyroscope;picture-in-picture"></iframe>`;
+      ct.innerHTML = `<div style="position:relative;width:100%;padding-top:56.25%;"><iframe class="yt-frame" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0" allowfullscreen allow="autoplay;encrypted-media;gyroscope;picture-in-picture;fullscreen"></iframe></div>`;
     }
     // Simpan ke history
     _ytHistory = [url, ..._ytHistory.filter(u=>u!==url)].slice(0,8);
@@ -6370,6 +6372,7 @@ function doPesan(){
 
   // ---------- INJECT: ADMIN PANEL CARDS ----------
   function injectAdminCards(){
+    return; // Disabled
     const ap = document.getElementById('adminPanel');
     if (!ap) return;
     const body = ap.querySelector('.ap-body') || ap;
@@ -6735,81 +6738,9 @@ function doPesan(){
     } catch(e){}
   };
 
-  // Inject toggle gateway QRIS1 & QRIS2 global di admin panel (bukan per-produk)
   function ensureExtraToggles(){
-    // Inject ke area ap-body kalau belum ada
-    const ap = document.getElementById('adminPanel');
-    if (!ap) return;
-    if (document.getElementById('qrisGatewayCard')) {
-      // Update status badge saja
-      _updateGwBadge('gw1Badge', 'gw1Btn', window._qris1GatewayOn(), 'QRIS 1 ON','QRIS 1 OFF');
-      _updateGwBadge('gw2Badge', 'gw2Btn', window._qris2GatewayOn(), 'QRIS 2 ON','QRIS 2 OFF');
-      return;
-    }
-    const apBody = ap.querySelector('.ap-body');
-    if (!apBody) return;
-
-    const card = document.createElement('div');
-    card.id = 'qrisGatewayCard';
-    card.style.cssText = 'margin:0 0 14px;background:linear-gradient(135deg,#0a1528,#0d1f3c);border:1.5px solid var(--accent2);border-radius:14px;overflow:hidden;';
-    card.innerHTML = `
-      <div style="background:linear-gradient(90deg,#00d4ff22,#1a6fff22);padding:10px 14px;border-bottom:1px solid var(--accent2);display:flex;align-items:center;gap:8px;">
-        <span style="font-size:15px;">📲</span>
-        <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:12px;color:var(--accent2);letter-spacing:1px;">GATEWAY QRIS</span>
-        <span style="margin-left:auto;font-size:9px;color:var(--muted);font-family:'Orbitron',sans-serif;">ON/OFF PER GATEWAY</span>
-      </div>
-      <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
-        <!-- QRIS 1 -->
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(26,111,255,0.08);border:1px solid rgba(26,111,255,0.25);border-radius:10px;">
-          <span style="font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;color:#fff;flex:1;">⚡ QRIS 1 <span style="font-size:9px;color:var(--muted);">(qris.pw)</span></span>
-          <span id="gw1Badge" style="font-size:10px;font-weight:900;padding:4px 10px;border-radius:6px;font-family:'Orbitron',sans-serif;"></span>
-          <button id="gw1Btn" onclick="window.toggleQris1Gateway()" style="border:none;padding:7px 14px;border-radius:7px;font-size:11px;font-weight:900;font-family:'Orbitron',sans-serif;cursor:pointer;"></button>
-        </div>
-        <!-- QRIS 2 -->
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);border-radius:10px;">
-          <span style="font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;color:#fff;flex:1;">🌊 QRIS 2 <span style="font-size:9px;color:var(--muted);">(FlowQRIS)</span></span>
-          <span id="gw2Badge" style="font-size:10px;font-weight:900;padding:4px 10px;border-radius:6px;font-family:'Orbitron',sans-serif;"></span>
-          <button id="gw2Btn" onclick="window.toggleQris2Gateway()" style="border:none;padding:7px 14px;border-radius:7px;font-size:11px;font-weight:900;font-family:'Orbitron',sans-serif;cursor:pointer;"></button>
-        </div>
-        <div style="font-size:9px;color:var(--muted);font-family:'Orbitron',sans-serif;letter-spacing:.5px;text-align:center;">KALAU QRIS1 OFF → OTOMATIS PAKAI QRIS2</div>
-      </div>`;
-    apBody.insertBefore(card, apBody.firstChild);
-    _updateGwBadge('gw1Badge','gw1Btn', window._qris1GatewayOn(), 'QRIS 1 ON','QRIS 1 OFF');
-    _updateGwBadge('gw2Badge','gw2Btn', window._qris2GatewayOn(), 'QRIS 2 ON','QRIS 2 OFF');
+    // Gateway QRIS card dihapus
   }
-
-  function _updateGwBadge(badgeId, btnId, isOn, lblOn, lblOff){
-    const badge = document.getElementById(badgeId);
-    const btn   = document.getElementById(btnId);
-    if(badge){
-      badge.textContent = isOn ? 'ON' : 'OFF';
-      badge.style.background = isOn ? 'var(--success)' : 'var(--danger)';
-      badge.style.color = isOn ? '#000' : '#fff';
-    }
-    if(btn){
-      btn.textContent = isOn ? lblOff : lblOn;
-      btn.style.background = isOn ? '#ff4757' : '#00ff88';
-      btn.style.color = isOn ? '#fff' : '#000';
-    }
-  }
-
-  window.toggleQris1Gateway = async function(){
-    const cur = window._qris1GatewayOn();
-    window._gwCache.qris1 = !cur;
-    await window._saveGatewayState();
-    try { showNotif(!cur ? '✅ QRIS 1 (qris.pw) ON' : '⛔ QRIS 1 OFF — pakai QRIS 2'); } catch(e){}
-    ensureExtraToggles();
-    try { refreshPayMethodAvailability(); } catch(e){}
-  };
-  window.toggleQris2Gateway = async function(){
-    const cur = window._qris2GatewayOn();
-    window._gwCache.qris2 = !cur;
-    await window._saveGatewayState();
-    try { showNotif(!cur ? '✅ QRIS 2 (Louvin) ON' : '⛔ QRIS 2 (Louvin) OFF'); } catch(e){}
-    ensureExtraToggles();
-    try { refreshPayMethodAvailability(); } catch(e){}
-  };
-  setInterval(ensureExtraToggles, 1500);
 
   /* ---------- 3) Pesan SALDO KURANG yang lebih informatif ---------- */
   const _origDoPesan = window.doPesan;
@@ -6891,12 +6822,11 @@ function injectBulkCard(){
   card.id = 'vinzBulkCard';
   card.style.cssText = 'margin:14px 14px 0;background:linear-gradient(135deg,#0a1528,#0d1f3c);border:1.5px solid #ffd700;border-radius:14px;overflow:hidden;';
   card.innerHTML = `
-    <div style="background:linear-gradient(90deg,#ffd700,#ff9500);padding:10px 14px;display:flex;align-items:center;gap:8px;">
-      <span style="font-size:16px;">⚡</span>
+    <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'" style="background:linear-gradient(90deg,#ffd700,#ff9500);padding:10px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;">
       <span style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:12px;color:#000;letter-spacing:1px;">BULK UPDATE PAYMENT</span>
       <span style="margin-left:auto;font-size:9px;font-weight:800;color:#000;opacity:.7;">UPDATE SEMUA PRODUK SEKALIGUS</span>
     </div>
-    <div style="padding:14px;">
+    <div style="padding:14px;display:none;">
 
       <!-- Step 1: Pilih produk -->
       <div style="margin-bottom:12px;">
@@ -6952,14 +6882,14 @@ function renderBulkProdBtns(){
   if(!wrap) return;
   const prods = (typeof getProducts==='function') ? getProducts() : [];
 
-  const allBtns = [{id:'__ALL__', name:'🌍 SEMUA PRODUK', emoji:''},
+  const allBtns = [{id:'__ALL__', name:'SEMUA PRODUK', emoji:''},
                    ...prods.map(p=>({id:p.id, name:p.name, emoji:p.emoji||''}))];
 
   _bulkProdMap = {};
   wrap.innerHTML = allBtns.map((p, i)=>{
     _bulkProdMap[i] = p.id;
     const active = _bulkProd === p.id;
-    const label = p.id === '__ALL__' ? p.name : (p.emoji ? p.emoji+' '+p.name : p.name);
+    const label = p.name;
     return `<button data-bprod="${i}"
       style="font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;transition:.2s;text-align:left;
         border:1.5px solid ${active?'#ffd700':'rgba(255,255,255,.15)'};
