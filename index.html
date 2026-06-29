@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
 :root {
   --primary:#07111f;--secondary:#0d1f3c;--card:#0f2244;--card2:#0a1a35;
@@ -942,14 +941,12 @@ renderBannerSlider();
         <div class="auth-field"><label>Email</label><input type="email" id="loginEmail" placeholder="email@kamu.com"></div>
         <div class="auth-field"><label>Password</label><div class="pw-wrap"><input type="password" id="loginPass" placeholder="••••••••"><button class="pw-eye" onclick="togglePw('loginPass',this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
         <span class="lupa-pw" onclick="openResetPw()">Lupa Password?</span>
-        <div id="ts-login" class="cf-turnstile" data-sitekey="0x4AAAAAADW5keEeckuRbJxL" data-theme="dark" style="margin-bottom:10px;transform:scale(0.9);transform-origin:left;"></div>
         <button class="btn-auth" id="btnLogin" onclick="doLogin()">MASUK SEKARANG</button>
       </div>
       <div id="formDaftar" style="display:none">
         <div class="auth-field"><label>Nama</label><input type="text" id="regName" placeholder="Nama kamu"></div>
         <div class="auth-field"><label>Email</label><input type="email" id="regEmail" placeholder="email@kamu.com"></div>
         <div class="auth-field"><label>Password</label><div class="pw-wrap"><input type="password" id="regPass" placeholder="Min. 6 karakter"><button class="pw-eye" onclick="togglePw('regPass',this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
-        <div id="ts-register" class="cf-turnstile" data-sitekey="0x4AAAAAADW5keEeckuRbJxL" data-theme="dark" style="margin-bottom:10px;transform:scale(0.9);transform-origin:left;"></div>
         <button class="btn-auth" id="btnRegister" onclick="doRegister()">DAFTAR SEKARANG</button>
       </div>
     </div>
@@ -1673,7 +1670,6 @@ async function doLogin() {
     showAuthErr('Error: ' + e.message);
   } finally {
     btn.disabled = false; btn.textContent = 'MASUK';
-    resetTurnstile('login');
   }
 }
 
@@ -1712,7 +1708,6 @@ async function doRegister() {
     otpClearBoxes('otp');
     startOtpCountdown();
     showNotif('📧 Kode OTP dikirim ke email!');
-    resetTurnstile('register');
   });
 }
 
@@ -1743,25 +1738,6 @@ function resendOTP() {
   sendOTPEmail(targetEmail, targetName, otpCode, 'Kode Verifikasi VinzPro Store');
   startOtpCountdown();
   showNotif('✅ Kode baru sudah dikirim ke email!');
-}
-
-// ══════════════════════════════
-// CLOUDFLARE TURNSTILE
-// ══════════════════════════════
-function resetTurnstile(type) {
-  try {
-    const id = type === 'login' ? 'ts-login' : 'ts-register';
-    const el = document.getElementById(id);
-    if (el && window.turnstile) window.turnstile.reset(el);
-  } catch(e) {}
-}
-function getTurnstileToken(type) {
-  try {
-    const id = type === 'login' ? 'ts-login' : 'ts-register';
-    const el = document.getElementById(id);
-    if (!el) return null;
-    return el.querySelector('[name="cf-turnstile-response"]')?.value || null;
-  } catch(e) { return null; }
 }
 
 // ══════════════════════════════
@@ -6546,75 +6522,9 @@ function doPesan(){
 </script>
 
 
-<!-- ═══ VINZ PATCH FINAL (Turnstile strict + QRIS/Saldo manual stock + saldo msg) ═══ -->
+<!-- ═══ VINZ PATCH FINAL (QRIS/Saldo manual stock + saldo msg) ═══ -->
 <script>
 (function(){
-  /* ---------- 1) TURNSTILE: strict block + preserve fields ---------- */
-  function tsTokenOf(id){
-    try {
-      const el = document.getElementById(id);
-      if (!el) return null;
-      const v = el.querySelector('[name="cf-turnstile-response"]');
-      return v && v.value ? v.value : null;
-    } catch(e){ return null; }
-  }
-  function setBtnDisabled(btnId, disabled, lockedLabel, normalLabel){
-    const b = document.getElementById(btnId);
-    if (!b) return;
-    b.disabled = !!disabled;
-    b.style.opacity = disabled ? '.55' : '';
-    b.style.cursor  = disabled ? 'not-allowed' : 'pointer';
-    if (disabled){ b.dataset._lbl = b.dataset._lbl || b.textContent; b.textContent = lockedLabel; }
-    else if (b.dataset._lbl){ b.textContent = b.dataset._lbl; delete b.dataset._lbl; }
-  }
-  function syncTsButtons(){
-    setBtnDisabled('btnLogin',    !tsTokenOf('ts-login'),    '🛡️ CENTANG CLOUDFLARE DULU', 'MASUK SEKARANG');
-    setBtnDisabled('btnRegister', !tsTokenOf('ts-register'), '🛡️ CENTANG CLOUDFLARE DULU', 'DAFTAR SEKARANG');
-  }
-  setInterval(syncTsButtons, 300);
-  setTimeout(syncTsButtons, 100);
-  setTimeout(syncTsButtons, 500);
-  setTimeout(syncTsButtons, 1000);
-
-  // Wrap doLogin / doRegister to enforce token AND preserve input on failure
-  function wrap(fnName){
-    const orig = window[fnName];
-    if (typeof orig !== 'function' || orig.__vpWrapped) return;
-    const isLogin = fnName === 'doLogin';
-    const tsId = isLogin ? 'ts-login' : 'ts-register';
-    const fields = isLogin
-      ? ['loginEmail','loginPass']
-      : ['regName','regEmail','regPass'];
-    const wrapped = async function(){
-      if (!tsTokenOf(tsId)){
-        try { showNotif('🛡️ Centang verifikasi Cloudflare dulu sebelum '+(isLogin?'login':'daftar')+'!'); }
-        catch(e){ alert('Centang Cloudflare dulu!'); }
-        syncTsButtons();
-        return;
-      }
-      // simpan nilai field untuk dipulihkan kalau terjadi reset/error
-      const snap = {};
-      fields.forEach(id => { const el = document.getElementById(id); if (el) snap[id] = el.value; });
-      try {
-        return await orig.apply(this, arguments);
-      } finally {
-        // pulihkan input bila kosong (form gagal/turnstile reset)
-        setTimeout(()=>{
-          fields.forEach(id => {
-            const el = document.getElementById(id);
-            if (el && !el.value && snap[id]) el.value = snap[id];
-          });
-        }, 30);
-        syncTsButtons();
-      }
-    };
-    wrapped.__vpWrapped = true;
-    window[fnName] = wrapped;
-  }
-  function tryWrapAuth(){ wrap('doLogin'); wrap('doRegister'); }
-  tryWrapAuth();
-  setInterval(tryWrapAuth, 1500);
-
   /* ---------- 2) STOK MANUAL: QRIS1 (qris.pw) & QRIS2 (FlowQRIS) toggle ---------- */
   // QRIS1 = qris.pw (gateway utama), QRIS2 = FlowQRIS/Tripay (gateway cadangan)
   // Kunci global ON/OFF gateway (bukan per-produk, tapi per-gateway)
