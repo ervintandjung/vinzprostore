@@ -10,9 +10,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
-  --primary:#07111f;--secondary:#0d1f3c;--card:#0f2244;--card2:#0a1a35;
-  --accent:#1a6fff;--accent2:#00d4ff;--gold:#ffd700;--text:#e0eaff;
-  --muted:#6a8cb5;--success:#00ff88;--danger:#ff4455;--border:rgba(26,111,255,0.25);
+  --primary:#0a0a0f;--secondary:#17171d;--card:#18181f;--card2:#131318;
+  --accent:#4d5bff;--accent2:#00d4ff;--gold:#ffd700;--text:#e8ebf5;
+  --muted:#8a8fa3;--success:#00ff88;--danger:#ff4455;--border:rgba(77,91,255,0.22);
   --wa:#25D366;--radius:14px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -26,6 +26,23 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 /* PUSAT INFORMASI - HIDDEN FULLSCREEN PAGE */
 #pusatInformasi{display:none;position:fixed;inset:0;background:var(--primary);z-index:360;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:40px;}
 #pusatInformasi.open{display:block;animation:fsSlideIn .3s ease;}
+
+/* APK PREMIUM - HIDDEN FULLSCREEN PAGE */
+#apkPremiumPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:360;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:40px;}
+#apkPremiumPage.open{display:block;animation:fsSlideIn .3s ease;}
+#topUpPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:360;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:40px;}
+#topUpPage.open{display:block;animation:fsSlideIn .3s ease;}
+.ap-topbar{position:sticky;top:0;background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid var(--accent);height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;z-index:10;box-shadow:0 4px 24px rgba(26,111,255,0.25);}
+.ap-back{width:38px;height:38px;border-radius:10px;background:rgba(26,111,255,0.15);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--accent2);font-size:20px;cursor:pointer;flex-shrink:0;}
+.ap-back:active{transform:scale(.92);}
+.ap-topbar .tt{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;letter-spacing:2px;color:#fff;}
+.tu-nom{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 6px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer;text-align:center;transition:.15s;}
+.tu-nom:active{transform:scale(.95);}
+.tu-nom.active{background:rgba(77,91,255,0.25);border-color:var(--accent);color:#fff;}
+.tu-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px 14px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;outline:none;}
+.tu-input::placeholder{color:var(--muted);font-weight:600;}
+.btn-tu-alt{width:100%;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:14px;padding:15px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;}
+.btn-tu-alt:active{opacity:.85;}
 .pi-topbar{position:sticky;top:0;background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid var(--accent);height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;z-index:10;box-shadow:0 4px 24px rgba(26,111,255,0.25);}
 .pi-back{width:38px;height:38px;border-radius:10px;background:rgba(26,111,255,0.15);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--accent2);font-size:20px;cursor:pointer;flex-shrink:0;}
 .pi-back:active{transform:scale(.92);}
@@ -86,6 +103,42 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 .pi-coop{margin-top:14px;padding:12px;background:rgba(26,111,255,0.08);border:1px dashed var(--border);border-radius:12px;text-align:center;}
 .pi-coop .lbl{font-size:10px;color:var(--accent2);letter-spacing:2px;font-weight:700;font-family:'Orbitron',sans-serif;margin-bottom:4px;}
 .pi-coop a{color:var(--text);font-size:13px;font-weight:700;text-decoration:none;word-break:break-all;}
+
+/* ===== PAYCORE HERO HEADER ===== */
+.pc-hero{padding:22px 16px 8px;background:var(--primary);}
+.pc-hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:26px;}
+.pc-brand-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:26px;letter-spacing:1px;color:var(--accent);line-height:1;}
+.pc-brand-sub{font-size:12px;color:var(--muted);margin-top:6px;letter-spacing:.3px;}
+.pc-hero-actions{display:flex;align-items:center;gap:10px;}
+.pc-bell{width:42px;height:42px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text);font-size:17px;cursor:pointer;background:transparent;flex-shrink:0;}
+.pc-bell:active{transform:scale(.94);}
+
+/* SALDO CARD */
+.saldo-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:22px;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.35);}
+.saldo-card::after{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(77,91,255,0.18),transparent 70%);pointer-events:none;}
+.saldo-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
+.saldo-halo{font-size:15px;color:var(--text);font-weight:600;}
+.saldo-pts{display:flex;align-items:center;gap:6px;background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.35);color:var(--accent2);font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;}
+.saldo-label{font-size:11px;color:var(--muted);letter-spacing:1.5px;font-weight:700;margin-bottom:6px;}
+.saldo-amt{font-family:'Orbitron',sans-serif;font-weight:900;font-size:30px;color:#fff;display:flex;align-items:baseline;gap:8px;margin-bottom:20px;}
+.saldo-amt .cur{font-size:19px;color:var(--accent);}
+.btn-topup{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:15px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;}
+.btn-topup:active{opacity:.85;}
+
+/* LAYANAN PPOB GRID */
+.pc-sec-title{font-size:17px;font-weight:700;color:#fff;margin:22px 0 12px;padding:0 2px;}
+.ppob-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 8px;}
+.ppob-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:.15s;}
+.ppob-item:active{transform:scale(.95);background:var(--card2);}
+.ppob-ic{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;}
+.ppob-name{font-size:11.5px;font-weight:600;color:var(--text);text-align:center;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;background:#111116;border-top:1px solid var(--border);display:flex;z-index:150;padding-bottom:env(safe-area-inset-bottom);}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 8px;cursor:pointer;color:var(--muted);font-size:11px;font-weight:600;background:none;border:none;}
+.bn-item svg{width:22px;height:22px;}
+.bn-item.active{color:var(--accent);}
+body.has-bottom-nav{padding-bottom:70px;}
 
 /* HEADER */
 header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid var(--accent);padding:0 14px;position:sticky;top:0;z-index:100;box-shadow:0 4px 24px rgba(26,111,255,0.25);}
@@ -490,21 +543,147 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
 .apk-modal-warn strong{color:#ffb020;}
 .apk-modal-btn{width:100%;background:linear-gradient(135deg,#0050dd,#00aaff);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 18px rgba(0,100,255,0.4);margin-bottom:8px;}
 .apk-modal-btn-cancel{width:100%;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:10px;padding:10px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+
+/* ===== PPOB SERVICE PAGES ===== */
+.ppob-page{display:none;position:fixed;inset:0;background:var(--primary);z-index:360;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:40px;}
+.ppob-page.open{display:block;animation:fsSlideIn .3s ease;}
+.ppob-topbar{position:sticky;top:0;background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid var(--accent);height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;z-index:10;box-shadow:0 4px 24px rgba(26,111,255,0.25);}
+.ppob-back{width:38px;height:38px;border-radius:10px;background:rgba(26,111,255,0.15);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--accent2);font-size:20px;cursor:pointer;flex-shrink:0;}
+.ppob-back:active{transform:scale(.92);}
+.ppob-topbar .tt{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;letter-spacing:2px;color:#fff;}
+.ppob-wrap{padding:20px 14px 6px;}
+.ppob-card{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 6px 20px rgba(0,0,0,0.25);}
+.ppob-card .pi-h{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;letter-spacing:1px;color:#fff;}
+.ppob-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.ppob-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:13px 14px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;outline:none;transition:.2s;margin-bottom:12px;}
+.ppob-input:focus{border-color:var(--accent2);}
+.ppob-input::placeholder{color:var(--muted);font-weight:600;}
+.ppob-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.ppob-chip{padding:8px 14px;border-radius:20px;background:var(--card2);border:1px solid var(--border);color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;cursor:pointer;transition:.15s;white-space:nowrap;}
+.ppob-chip:active{transform:scale(.95);}
+.ppob-chip.active{background:rgba(77,91,255,0.25);border-color:var(--accent);color:#fff;}
+.ppob-input-wrap{position:relative;}
+.ppob-input-wrap .ppob-input{padding-right:110px;}
+.ppob-prov-badge{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:none;align-items:center;gap:6px;padding:6px 10px;border-radius:10px;background:var(--card2);border:1px solid var(--border);font-family:'Rajdhani',sans-serif;font-weight:800;font-size:12px;letter-spacing:.5px;color:#fff;}
+.ppob-prov-badge.show{display:inline-flex;}
+.ppob-prov-badge .dot{width:16px;height:16px;border-radius:50%;display:inline-block;}
+.ppob-nom-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
+.ppob-nom{position:relative;background:linear-gradient(160deg,var(--card2),rgba(19,19,24,.6));border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;cursor:pointer;text-align:left;transition:.15s;overflow:hidden;}
+.ppob-nom::before{content:"";position:absolute;inset:0;background:radial-gradient(120px 60px at 100% 0%,rgba(0,212,255,0.08),transparent 70%);opacity:0;transition:.15s;}
+.ppob-nom:active{transform:scale(.96);}
+.ppob-nom .pn-nominal{font-weight:800;font-size:15px;letter-spacing:.3px;color:#fff;}
+.ppob-nom .pn-harga{font-size:13px;color:var(--accent2);font-weight:700;margin-top:6px;letter-spacing:.3px;}
+.ppob-nom .pn-check{position:absolute;top:9px;right:9px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;transition:.15s;}
+.ppob-nom .pn-check svg{width:10px;height:10px;opacity:0;transform:scale(.5);transition:.15s;}
+.ppob-nom.active{background:linear-gradient(160deg,rgba(77,91,255,0.22),rgba(0,212,255,0.06));border-color:var(--accent2);box-shadow:0 0 0 1px rgba(0,212,255,0.15),0 6px 18px rgba(77,91,255,0.18);}
+.ppob-nom.active::before{opacity:1;}
+.ppob-nom.active .pn-harga{color:#fff;}
+.ppob-nom.active .pn-check{background:var(--accent2);border-color:var(--accent2);}
+.ppob-nom.active .pn-check svg{opacity:1;transform:scale(1);}
+.ppob-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:15px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;transition:.2s;margin-bottom:10px;}
+.ppob-btn:active{opacity:.85;}
+.ppob-btn-alt{width:100%;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:14px;padding:13px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;transition:.2s;}
+.ppob-btn-alt:active{opacity:.85;}
+.ppob-info{display:flex;align-items:flex-start;gap:10px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);border-radius:12px;padding:12px;margin-bottom:14px;}
+.ppob-info .ico{color:var(--accent2);font-size:16px;flex-shrink:0;}
+.ppob-info p{font-size:11px;color:var(--accent2);font-weight:700;letter-spacing:1px;line-height:1.5;text-transform:uppercase;}
+
+/* KONFIRMASI PEMBAYARAN PAGE */
+.pcf-topbar{position:sticky;top:0;background:var(--primary);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;z-index:10;}
+.pcf-close{width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:20px;cursor:pointer;flex-shrink:0;}
+.pcf-close:active{opacity:.6;}
+.pcf-topbar .tt{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:19px;letter-spacing:.2px;color:var(--text);text-transform:none;}
+.pcf-card{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;}
+.pcf-label{font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:10px;text-transform:none;}
+.pcf-target-row{display:flex;align-items:center;gap:12px;}
+.pcf-avatar{width:44px;height:44px;border-radius:50%;background:rgba(77,91,255,0.2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:var(--accent2);flex-shrink:0;}
+.pcf-target-num{font-size:16px;font-weight:700;color:var(--text);letter-spacing:.3px;}
+.pcf-target-prov{font-size:12.5px;color:var(--muted);margin-top:2px;}
+.pcf-h{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;color:var(--text);margin-bottom:12px;text-transform:none;}
+.pcf-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;font-size:14px;}
+.pcf-row span{color:var(--muted);font-weight:500;}
+.pcf-row b{color:var(--text);font-weight:700;text-align:right;}
+.pcf-divider{border-top:1px dashed var(--border);margin:6px 0;}
+.pcf-total span{color:var(--text);font-weight:700;}
+.pcf-total b{color:var(--accent2);font-size:16px;}
+
+/* ===== PPOB CONTACT CARD (light, professional, GoPay-style) ===== */
+.ppob-contact-card{background:#ffffff;border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,0.35);}
+.ppob-contact-row{display:flex;align-items:center;gap:12px;}
+.ppob-contact-main{flex:1;min-width:0;display:flex;align-items:center;gap:12px;background:#f4f5f8;border-radius:14px;padding:10px 12px;position:relative;}
+.ppob-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#4d5bff,#00d4ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;font-family:'Rajdhani',sans-serif;flex-shrink:0;}
+.ppob-contact-text{flex:1;min-width:0;}
+.ppob-contact-text .lbl{font-size:11px;color:#8a8fa3;font-weight:600;margin-bottom:2px;}
+.ppob-contact-input{width:100%;border:none;background:transparent;outline:none;color:#141420;font-family:'Rajdhani',sans-serif;font-weight:800;font-size:17px;padding:0;}
+.ppob-contact-input::placeholder{color:#a8adc0;font-weight:700;}
+.ppob-prov-logo{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:none;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:9.5px;font-family:'Rajdhani',sans-serif;letter-spacing:.2px;box-shadow:0 2px 6px rgba(0,0,0,0.25);}
+.ppob-prov-logo.show{display:flex;}
+.ppob-contact-kontak{width:56px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;}
+.ppob-contact-kontak .ck-ic{width:38px;height:38px;border-radius:50%;background:#eef1ff;color:#4d5bff;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.ppob-contact-kontak .ck-lb{font-size:9.5px;color:#54586a;font-weight:700;letter-spacing:.3px;}
+.ppob-contact-kontak:active .ck-ic{transform:scale(.92);}
+.ppob-freq-wrap{margin-top:14px;}
+.ppob-freq-wrap .lbl{font-size:11.5px;color:#54586a;font-weight:700;margin-bottom:9px;}
+.ppob-freq-item{display:inline-flex;align-items:center;gap:9px;background:#f4f5f8;border-radius:30px;padding:7px 14px 7px 7px;cursor:pointer;transition:.15s;}
+.ppob-freq-item:active{transform:scale(.96);background:#eaecf3;}
+.ppob-freq-item .fq-txt{font-size:12.5px;color:#141420;font-weight:700;}
+.ppob-freq-item .fq-txt b{font-weight:800;}
+
+.ppob-hint{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;letter-spacing:.5px;}
+
 </style>
 </head>
-<body>
+<body class="has-bottom-nav">
 
 
-<!-- HEADER -->
-<header>
-  <div class="hdr">
-    <div class="logo"><div class="logo-icon" style="overflow:hidden;"><img src="data:image/webp;base64,UklGRpwEAABXRUJQVlA4IJAEAABQEwCdASpAAEAAPpk8lkkloyIhN/gMALATCWwAnTMTAbSIrM2zgzEL3cKbkn/gb5LvNk+m5wfcsnCpegauX1is1HyQ6hrKR43q315iHxtepDP1+20CJ8tJCwhEVUgRn0DaaHZF5pvgtZYn0eNEYuJVVwU0Be0fvPXGnCmOxZ0PO1izuqr8d9sgqGEAzMtN0T9QzAxcklLQMlHozjq6n27zpDYAAP786utBOELeVJU6skrTdFdZSn4f2xHtsnkch8w4MLehl3jqqM3+wgXcWrSHl3DKAXhYC78Ypfe0i/p8WDW9cYTglvIgCvoVfg9KOL5t5xfbSUeIzSYvLMxbew3BMvsAlhrTehfv6A0ekPq78yt89RHuAuQVrlgCUfopYqqvReiAaSMsi4C8l/Qrh5DuTIdZk6e9IADLsOKBqwhWTZm1l1cN0R+AHEs3q2vdW3jNrfyRYs+1sgdg4rMRLyKb2wTykIM2KRCDGxKs1y15+26Kilvi20tLdYOjq+PIT8vL8zecq/wSOHe8ITILRLc4cOQSCxHjC9zfqRAONMsjBYIgDK6ddeFwvyck9RaX0JS5UvX5FjqLhdlfxzieSCKv7H6nob06uda0Zrzzg0ZjKQwNsDw0lufQ0iyOmgiOyRqaWQm9bMOcvVADeUsQA8kjIdZyQyWQjihaTyX+CFlrl96OicgADf3QINykgvNkLkAyJ1p/jgisO41siYUYi0lP1RHjcMn/mz57iTGi0reBW9Rh6Yf8GpEwUw1i5Fd4FKMeRJfuq820Bu0vRpE1euZC9TPrzP9N32fN3eXZUppzOGCAUd4ev4WMji5Tpl6P2nH3pUiUK6zn06noQr35kVGW+3Pvsp794MefoGP3J9iwKc/I39sC6wnvPCfu2YpXf2x8/XnP7aamO1xavSJEdiBLgf4s8YLUP0gTIXQSpcbTZCLLOgFnARnjhui52ybuzjaaxXVv0/PIlR5QoXnHpVtsLJhxXLMH/8sdi5vRdMHPH5wyOIkkW/o6f5ZxDUc6O4o94T8eUA2KF0lY36PbRiK/56LCu7jl13XfBw8YPB+rCR+P6kH7xxf9ld87zTZaX+LH0c2jI6+ksUBW4x0sxY1ZZoEGvrA7bmrDgNjCITuEkm9evdqxhKITAHAstcP2FXxWWEDpBGlJSVOwLiLqLbIVyNJnjHhsLvO1+Owfs2inLtnJI/maI7ZlqFxmJZr/exbIHksr+UB8KREoZMBTCR0yuFLMhbIvAHhEX4ZCIOJgJc7YfNFlRNUrp93ReQ5uHwDaWA3Uhd7Z2NC1/TyfWwIQe6qZshBFmkkexrHGR4uiOc3UXPoFoYmUqSpY+z9/A6PeO0mkXqjC9Mm6idkzAFLzvyunilhe+Cd7VQtqdC9ACgCqf/ztrgywc7AaC7TSJ0oSFFNd2au5fXZby9kYEg4XQVOjKpeXCG4V+a7tgxVcYrOGovCbnQbUuQix9m0bdybTyvWNXoSvZR9naB1QgRHfiIshfTW+5L3nuBZnC23YGAGpxqg+rwaSRD5Mvxk5zejFNP4wCf6MWBCLHrifZgAA" style="width:100%;height:100%;object-fit:cover;border-radius:10px;"></div><div style="display:flex;flex-direction:column;line-height:1;"><div class="logo-text">VINZPRO</div><div id="witaClock" style="font-family:'Rajdhani',monospace;font-size:9px;color:var(--accent2);margin-top:2px;letter-spacing:0.5px;font-variant-numeric:tabular-nums;min-width:90px;white-space:nowrap;opacity:0.85;">--:--:-- WITA</div></div></div>
-    <div class="hdr-right" id="hdrRight">
-      <button class="btn-masuk" onclick="openAuth('masuk')">MASUK</button>
-      <button class="btn-daftar" onclick="openAuth('daftar')">DAFTAR</button>
+<!-- PAYCORE HERO HEADER -->
+<div class="pc-hero">
+  <div class="pc-hero-top">
+    <div>
+      <div class="pc-brand-title">PAYCORE</div>
+      <div class="pc-brand-sub">Solusi PPOB Terpercaya</div>
+      <div id="witaClock" style="font-family:'Rajdhani',monospace;font-size:9px;color:var(--accent2);margin-top:4px;letter-spacing:0.5px;font-variant-numeric:tabular-nums;opacity:0.7;">--:--:-- WITA</div>
+    </div>
+    <div class="pc-hero-actions">
+      <button class="pc-bell" onclick="showNotif('🔔 Belum ada notifikasi baru.')" aria-label="Notifikasi">🔔</button>
+      <div id="hdrRight">
+        <button class="btn-masuk" onclick="openAuth('masuk')">MASUK</button>
+        <button class="btn-daftar" onclick="openAuth('daftar')">DAFTAR</button>
+      </div>
     </div>
   </div>
-</header>
+
+  <!-- SALDO CARD -->
+  <div class="saldo-card">
+    <div class="saldo-top">
+      <div class="saldo-halo" id="saldoHalo">Halo, Tamu</div>
+      <div class="saldo-pts">✨ <span id="saldoPts">0</span> pts</div>
+    </div>
+    <div class="saldo-label">SALDO ANDA</div>
+    <div class="saldo-amt"><span class="cur">Rp</span><span id="saldoAmt">0</span></div>
+    <button class="btn-topup" onclick="(typeof currentUser!=='undefined' && currentUser) ? openTopUp() : openAuth('masuk')">⊕ Top Up Sekarang</button>
+  </div>
+
+  <!-- LAYANAN PPOB -->
+  <div class="pc-sec-title">Layanan PPOB</div>
+  <div class="ppob-grid">
+    <div class="ppob-item" onclick="openPulsaPage()"><div class="ppob-ic" style="background:rgba(77,91,255,0.14);color:#8f9bff;">📱</div><div class="ppob-name">Pulsa</div></div>
+    <div class="ppob-item" onclick="openDataPage()"><div class="ppob-ic" style="background:rgba(155,89,255,0.14);color:#c79bff;">📶</div><div class="ppob-name">Paket Data</div></div>
+    <div class="ppob-item" onclick="openEwalletPage()"><div class="ppob-ic" style="background:rgba(0,212,255,0.14);color:var(--accent2);">👛</div><div class="ppob-name">E-Wallet</div></div>
+    <div class="ppob-item" onclick="openVoucherGamePage()"><div class="ppob-ic" style="background:rgba(77,91,255,0.14);color:#8f9bff;">🎮</div><div class="ppob-name">Voucher Game</div></div>
+    <div class="ppob-item" onclick="openPlnPage()"><div class="ppob-ic" style="background:rgba(255,165,0,0.14);color:#ffb347;">⚡</div><div class="ppob-name">PLN</div></div>
+    <div class="ppob-item" onclick="openApkPremium()"><div class="ppob-ic" style="background:rgba(0,255,136,0.14);color:var(--success);">🛡️</div><div class="ppob-name">Apk Premium</div></div>
+    <div class="ppob-item" onclick="openPdamPage()"><div class="ppob-ic" style="background:rgba(0,180,255,0.14);color:#5fc9ff;">💧</div><div class="ppob-name">PDAM</div></div>
+    <div class="ppob-item" onclick="showNotif('📞 Layanan lainnya silakan hubungi admin via WhatsApp.')"><div class="ppob-ic" style="background:rgba(155,89,255,0.14);color:#c79bff;">📋</div><div class="ppob-name">Lainnya</div></div>
+  </div>
+</div>
+
+<!-- APK PREMIUM / PRODUK GAME - HIDDEN FULLSCREEN PAGE -->
+<section id="apkPremiumPage">
+  <div class="ap-topbar">
+    <div class="ap-back" onclick="closeApkPremium()">←</div>
+    <div class="tt">APK PREMIUM</div>
+  </div>
 
 <!-- BANNER SLIDESHOW -->
 <div class="banner-wrap" style="padding:14px 14px 0;">
@@ -579,11 +758,361 @@ renderBannerSlider();
 </div>
 
 <!-- PRODUCT GRID -->
-<div class="section">
-  <div class="sec-title">PRODUK POPULER</div>
+<div class="section" id="produkGameSec">
+  <div class="sec-title">PRODUK GAME POPULER</div>
   <div class="product-grid" id="productGrid"></div>
 </div>
 
+</section>
+<!-- END APK PREMIUM PAGE -->
+
+<!-- TOP UP SALDO - HIDDEN FULLSCREEN PAGE -->
+<section id="topUpPage">
+  <div class="ap-topbar">
+    <div class="ap-back" onclick="closeTopUp()">←</div>
+    <div class="tt">TOP UP SALDO</div>
+  </div>
+  <div class="pusat-wrap">
+    <div class="pi-badge">TOP UP</div>
+    <div class="pi-title">TOP UP <span>SALDO</span></div>
+    <div class="pi-sub">Isi saldo akunmu untuk transaksi lebih cepat</div>
+
+    <!-- SALDO SAAT INI -->
+    <div class="pi-card">
+      <div class="pi-head">
+        <div class="pi-icon blue">💰</div>
+        <div class="pi-h">SALDO SAAT INI</div>
+      </div>
+      <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:26px;color:#fff;">Rp <span data-bal-amt>0</span></div>
+    </div>
+
+    <!-- PILIH NOMINAL -->
+    <div class="pi-card">
+      <div class="pi-head">
+        <div class="pi-icon purple">💵</div>
+        <div class="pi-h">PILIH NOMINAL</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div class="tu-nom" onclick="tuSetAmt(10000,this)">10RB</div>
+        <div class="tu-nom" onclick="tuSetAmt(25000,this)">25RB</div>
+        <div class="tu-nom" onclick="tuSetAmt(50000,this)">50RB</div>
+        <div class="tu-nom" onclick="tuSetAmt(100000,this)">100RB</div>
+        <div class="tu-nom" onclick="tuSetAmt(250000,this)">250RB</div>
+        <div class="tu-nom" onclick="tuSetAmt(500000,this)">500RB</div>
+      </div>
+      <div style="margin-bottom:8px;font-size:10.5px;color:var(--muted);letter-spacing:1.5px;font-weight:700;">ATAU MASUKKAN NOMINAL LAIN</div>
+      <input type="number" id="topupAmt" class="tu-input" placeholder="Minimal Rp 10.000" oninput="tuClearActive()">
+    </div>
+
+    <!-- METODE TOP UP -->
+    <div class="pi-card">
+      <div class="pi-head">
+        <div class="pi-icon green">💳</div>
+        <div class="pi-h">METODE TOP UP</div>
+      </div>
+      <button class="btn-topup" style="margin-bottom:10px;" onclick="vpTopupWA()">🟢 Top Up via WhatsApp</button>
+      <button class="btn-tu-alt" onclick="vpTopupQRIS()">🔲 Top Up via QRIS</button>
+    </div>
+
+    <div class="pi-note"><div class="ico">⏱</div><p>SALDO DITAMBAHKAN SETELAH ADMIN KONFIRMASI PEMBAYARAN.</p></div>
+  </div>
+</section>
+<!-- END TOP UP PAGE -->
+
+<!-- PPOB SERVICE PAGES -->
+<!-- PULSA PAGE -->
+<section id="pulsaPage" class="ppob-page">
+  <div class="ppob-topbar">
+    <div class="ppob-back" onclick="closePpobPage('pulsaPage')">←</div>
+    <div class="tt">PULSA</div>
+  </div>
+  <div class="ppob-wrap">
+    <div class="pi-badge">PULSA</div>
+    <div class="pi-title">ISI <span>PULSA</span></div>
+    <div class="pi-sub">Pilih provider dan nominal pulsa yang diinginkan</div>
+
+    <div class="ppob-contact-card">
+      <div class="ppob-contact-row">
+        <div class="ppob-contact-main">
+          <div class="ppob-avatar" id="pulsaAvatar">+</div>
+          <div class="ppob-contact-text">
+            <div class="lbl">Nomor Handphone</div>
+            <input type="tel" id="pulsaInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" oninput="detectProvider('pulsa')">
+          </div>
+          <div class="ppob-prov-logo" id="pulsaProvBadge"></div>
+        </div>
+        <div class="ppob-contact-kontak" onclick="pickPpobContact('pulsa')">
+          <div class="ck-ic">👤</div>
+          <div class="ck-lb">Kontak</div>
+        </div>
+      </div>
+      <div class="ppob-freq-wrap">
+        <div class="lbl">Nomor yang sering dipakai</div>
+        <div id="pulsaFreqList"></div>
+      </div>
+    </div>
+
+    <div class="ppob-card">
+      <div class="ppob-label">PILIH NOMINAL</div>
+      <div class="ppob-nom-grid" id="pulsaNominal">
+        <div class="ppob-nom" data-nom="5000" data-price="6500" onclick="selectPpobNom(this,'pulsa')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">5.000</div><div class="pn-harga">Rp 6.500</div></div>
+        <div class="ppob-nom" data-nom="10000" data-price="11500" onclick="selectPpobNom(this,'pulsa')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">10.000</div><div class="pn-harga">Rp 11.500</div></div>
+        <div class="ppob-nom" data-nom="20000" data-price="20500" onclick="selectPpobNom(this,'pulsa')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">20.000</div><div class="pn-harga">Rp 20.500</div></div>
+        <div class="ppob-nom" data-nom="50000" data-price="49000" onclick="selectPpobNom(this,'pulsa')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">50.000</div><div class="pn-harga">Rp 49.000</div></div>
+        <div class="ppob-nom" data-nom="100000" data-price="97000" onclick="selectPpobNom(this,'pulsa')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">100.000</div><div class="pn-harga">Rp 97.000</div></div>
+        <div class="ppob-nom" data-nom="200000" data-price="190000" onclick="selectPpobNom(this,'pulsa')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">200.000</div><div class="pn-harga">Rp 190.000</div></div>
+      </div>
+    </div>
+
+    <div class="ppob-info"><div class="ico">ℹ️</div><p>Pastikan nomor aktif dan benar. Salah nomor = tidak bisa refund.</p></div>
+    <button class="ppob-btn" onclick="goPpobConfirm('pulsa')">Lanjutkan Pembayaran</button>
+  </div>
+</section>
+
+<!-- PAKET DATA PAGE -->
+<section id="dataPage" class="ppob-page">
+  <div class="ppob-topbar">
+    <div class="ppob-back" onclick="closePpobPage('dataPage')">←</div>
+    <div class="tt">PAKET DATA</div>
+  </div>
+  <div class="ppob-wrap">
+    <div class="pi-badge">INTERNET</div>
+    <div class="pi-title">PAKET <span>DATA</span></div>
+    <div class="pi-sub">Pilih provider dan paket data internet</div>
+
+    <div class="ppob-contact-card">
+      <div class="ppob-contact-row">
+        <div class="ppob-contact-main">
+          <div class="ppob-avatar" id="dataAvatar">+</div>
+          <div class="ppob-contact-text">
+            <div class="lbl">Nomor Handphone</div>
+            <input type="tel" id="dataInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" oninput="detectProvider('data')">
+          </div>
+          <div class="ppob-prov-logo" id="dataProvBadge"></div>
+        </div>
+        <div class="ppob-contact-kontak" onclick="pickPpobContact('data')">
+          <div class="ck-ic">👤</div>
+          <div class="ck-lb">Kontak</div>
+        </div>
+      </div>
+      <div class="ppob-freq-wrap">
+        <div class="lbl">Nomor yang sering dipakai</div>
+        <div id="dataFreqList"></div>
+      </div>
+    </div>
+
+    <div class="ppob-card">
+      <div class="ppob-label">PILIH PAKET</div>
+      <div class="ppob-nom-grid" id="dataNominal">
+        <div class="ppob-nom" data-nom="1GB 7 Hari" data-price="10000" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">1GB / 7Hr</div><div class="pn-harga">Rp 10.000</div></div>
+        <div class="ppob-nom" data-nom="2GB 7 Hari" data-price="15000" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">2GB / 7Hr</div><div class="pn-harga">Rp 15.000</div></div>
+        <div class="ppob-nom" data-nom="3GB 30 Hari" data-price="22000" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">3GB / 30Hr</div><div class="pn-harga">Rp 22.000</div></div>
+        <div class="ppob-nom" data-nom="5GB 30 Hari" data-price="35000" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">5GB / 30Hr</div><div class="pn-harga">Rp 35.000</div></div>
+        <div class="ppob-nom" data-nom="10GB 30 Hari" data-price="55000" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">10GB / 30Hr</div><div class="pn-harga">Rp 55.000</div></div>
+        <div class="ppob-nom" data-nom="Unlimited 30 Hari" data-price="75000" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">Unlimited</div><div class="pn-harga">Rp 75.000</div></div>
+      </div>
+    </div>
+
+    <div class="ppob-info"><div class="ico">ℹ️</div><p>Pastikan nomor aktif dan benar. Paket akan aktif setelah pembayaran dikonfirmasi.</p></div>
+    <button class="ppob-btn" onclick="goPpobConfirm('data')">Lanjutkan Pembayaran</button>
+  </div>
+</section>
+
+<!-- E-WALLET PAGE -->
+<section id="ewalletPage" class="ppob-page">
+  <div class="ppob-topbar">
+    <div class="ppob-back" onclick="closePpobPage('ewalletPage')">←</div>
+    <div class="tt">E-WALLET</div>
+  </div>
+  <div class="ppob-wrap">
+    <div class="pi-badge">TOP UP SALDO</div>
+    <div class="pi-title">TOP UP <span>E-WALLET</span></div>
+    <div class="pi-sub">Pilih e-wallet dan nominal top up</div>
+
+    <div class="ppob-card">
+      <div class="ppob-label">NOMOR / ID E-WALLET</div>
+      <input type="tel" id="ewalletInput" class="ppob-input" placeholder="Contoh: 08123456789" maxlength="15">
+    </div>
+
+    <div class="ppob-card">
+      <div class="ppob-label">PILIH E-WALLET</div>
+      <div class="ppob-chips" id="ewalletProvider">
+        <div class="ppob-chip active" data-provider="Dana" onclick="selectPpobProvider(this,'ewallet')">Dana</div>
+        <div class="ppob-chip" data-provider="OVO" onclick="selectPpobProvider(this,'ewallet')">OVO</div>
+        <div class="ppob-chip" data-provider="GoPay" onclick="selectPpobProvider(this,'ewallet')">GoPay</div>
+        <div class="ppob-chip" data-provider="ShopeePay" onclick="selectPpobProvider(this,'ewallet')">ShopeePay</div>
+        <div class="ppob-chip" data-provider="LinkAja" onclick="selectPpobProvider(this,'ewallet')">LinkAja</div>
+      </div>
+      <div class="ppob-label" style="margin-top:8px;">PILIH NOMINAL</div>
+      <div class="ppob-nom-grid" id="ewalletNominal">
+        <div class="ppob-nom" data-nom="10000" data-price="11000" onclick="selectPpobNom(this,'ewallet')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">10.000</div><div class="pn-harga">Rp 11.000</div></div>
+        <div class="ppob-nom" data-nom="20000" data-price="21000" onclick="selectPpobNom(this,'ewallet')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">20.000</div><div class="pn-harga">Rp 21.000</div></div>
+        <div class="ppob-nom" data-nom="50000" data-price="51000" onclick="selectPpobNom(this,'ewallet')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">50.000</div><div class="pn-harga">Rp 51.000</div></div>
+        <div class="ppob-nom" data-nom="100000" data-price="100000" onclick="selectPpobNom(this,'ewallet')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">100.000</div><div class="pn-harga">Rp 100.000</div></div>
+        <div class="ppob-nom" data-nom="200000" data-price="200000" onclick="selectPpobNom(this,'ewallet')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">200.000</div><div class="pn-harga">Rp 200.000</div></div>
+        <div class="ppob-nom" data-nom="500000" data-price="500000" onclick="selectPpobNom(this,'ewallet')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">500.000</div><div class="pn-harga">Rp 500.000</div></div>
+      </div>
+    </div>
+
+    <div class="ppob-info"><div class="ico">ℹ️</div><p>Pastikan nomor e-wallet terdaftar dan aktif. Salah input = tidak bisa refund.</p></div>
+    <button class="ppob-btn" onclick="goPpobConfirm('ewallet')">Lanjutkan Pembayaran</button>
+  </div>
+</section>
+
+<!-- VOUCHER GAME PAGE -->
+<section id="voucherGamePage" class="ppob-page">
+  <div class="ppob-topbar">
+    <div class="ppob-back" onclick="closePpobPage('voucherGamePage')">←</div>
+    <div class="tt">VOUCHER GAME</div>
+  </div>
+  <div class="ppob-wrap">
+    <div class="pi-badge">GAME</div>
+    <div class="pi-title">VOUCHER <span>GAME</span></div>
+    <div class="pi-sub">Pilih game dan nominal voucher</div>
+
+    <div class="ppob-card">
+      <div class="ppob-label">ID / USER ID GAME</div>
+      <input type="text" id="voucherInput" class="ppob-input" placeholder="Contoh: 123456789 (ID) atau nickname">
+    </div>
+
+    <div class="ppob-card">
+      <div class="ppob-label">PILIH GAME</div>
+      <div class="ppob-chips" id="voucherProvider">
+        <div class="ppob-chip active" data-provider="Free Fire" onclick="selectPpobProvider(this,'voucher')">Free Fire</div>
+        <div class="ppob-chip" data-provider="Mobile Legends" onclick="selectPpobProvider(this,'voucher')">Mobile Legends</div>
+        <div class="ppob-chip" data-provider="PUBG Mobile" onclick="selectPpobProvider(this,'voucher')">PUBG Mobile</div>
+        <div class="ppob-chip" data-provider="Genshin Impact" onclick="selectPpobProvider(this,'voucher')">Genshin Impact</div>
+        <div class="ppob-chip" data-provider="Roblox" onclick="selectPpobProvider(this,'voucher')">Roblox</div>
+        <div class="ppob-chip" data-provider="Steam" onclick="selectPpobProvider(this,'voucher')">Steam</div>
+      </div>
+      <div class="ppob-label" style="margin-top:8px;">PILIH NOMINAL</div>
+      <div class="ppob-nom-grid" id="voucherNominal">
+        <div class="ppob-nom" data-nom="100 Diamonds" data-price="15000" onclick="selectPpobNom(this,'voucher')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">100 DM</div><div class="pn-harga">Rp 15.000</div></div>
+        <div class="ppob-nom" data-nom="310 Diamonds" data-price="42000" onclick="selectPpobNom(this,'voucher')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">310 DM</div><div class="pn-harga">Rp 42.000</div></div>
+        <div class="ppob-nom" data-nom="520 Diamonds" data-price="69000" onclick="selectPpobNom(this,'voucher')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">520 DM</div><div class="pn-harga">Rp 69.000</div></div>
+        <div class="ppob-nom" data-nom="1060 Diamonds" data-price="135000" onclick="selectPpobNom(this,'voucher')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">1060 DM</div><div class="pn-harga">Rp 135.000</div></div>
+        <div class="ppob-nom" data-nom="2180 Diamonds" data-price="265000" onclick="selectPpobNom(this,'voucher')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">2180 DM</div><div class="pn-harga">Rp 265.000</div></div>
+        <div class="ppob-nom" data-nom="Starlight" data-price="145000" onclick="selectPpobNom(this,'voucher')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">Starlight</div><div class="pn-harga">Rp 145.000</div></div>
+      </div>
+    </div>
+
+    <div class="ppob-info"><div class="ico">ℹ️</div><p>Pastikan ID game dan server benar. Salah ID = tidak bisa refund.</p></div>
+    <button class="ppob-btn" onclick="goPpobConfirm('voucher')">Lanjutkan Pembayaran</button>
+  </div>
+</section>
+
+<!-- PLN PAGE -->
+<section id="plnPage" class="ppob-page">
+  <div class="ppob-topbar">
+    <div class="ppob-back" onclick="closePpobPage('plnPage')">←</div>
+    <div class="tt">TOKEN PLN</div>
+  </div>
+  <div class="ppob-wrap">
+    <div class="pi-badge">LISTRIK</div>
+    <div class="pi-title">TOKEN <span>PLN</span></div>
+    <div class="pi-sub">Masukkan ID meter dan pilih nominal token</div>
+
+    <div class="ppob-card">
+      <div class="ppob-label">ID METER / NOMOR PELANGGAN</div>
+      <input type="tel" id="plnInput" class="ppob-input" placeholder="Contoh: 12345678901" maxlength="12">
+    </div>
+
+    <div class="ppob-card">
+      <div class="ppob-label">PILIH NOMINAL TOKEN</div>
+      <div class="ppob-nom-grid" id="plnNominal">
+        <div class="ppob-nom" data-nom="20000" data-price="22000" onclick="selectPpobNom(this,'pln')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">20.000</div><div class="pn-harga">Rp 22.000</div></div>
+        <div class="ppob-nom" data-nom="50000" data-price="52000" onclick="selectPpobNom(this,'pln')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">50.000</div><div class="pn-harga">Rp 52.000</div></div>
+        <div class="ppob-nom" data-nom="100000" data-price="102000" onclick="selectPpobNom(this,'pln')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">100.000</div><div class="pn-harga">Rp 102.000</div></div>
+        <div class="ppob-nom" data-nom="200000" data-price="202000" onclick="selectPpobNom(this,'pln')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">200.000</div><div class="pn-harga">Rp 202.000</div></div>
+        <div class="ppob-nom" data-nom="500000" data-price="502000" onclick="selectPpobNom(this,'pln')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">500.000</div><div class="pn-harga">Rp 502.000</div></div>
+        <div class="ppob-nom" data-nom="1000000" data-price="1002000" onclick="selectPpobNom(this,'pln')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">1.000.000</div><div class="pn-harga">Rp 1.002.000</div></div>
+      </div>
+    </div>
+
+    <div class="ppob-info"><div class="ico">ℹ️</div><p>Pastikan ID meter benar. Token dikirim setelah pembayaran dikonfirmasi.</p></div>
+    <button class="ppob-btn" onclick="goPpobConfirm('pln')">Lanjutkan Pembayaran</button>
+  </div>
+</section>
+
+<!-- PDAM PAGE -->
+<section id="pdamPage" class="ppob-page">
+  <div class="ppob-topbar">
+    <div class="ppob-back" onclick="closePpobPage('pdamPage')">←</div>
+    <div class="tt">PDAM</div>
+  </div>
+  <div class="ppob-wrap">
+    <div class="pi-badge">AIR</div>
+    <div class="pi-title">BAYAR <span>PDAM</span></div>
+    <div class="pi-sub">Masukkan nomor pelanggan PDAM dan wilayah</div>
+
+    <div class="ppob-card">
+      <div class="ppob-label">NOMOR PELANGGAN PDAM</div>
+      <input type="tel" id="pdamInput" class="ppob-input" placeholder="Contoh: 1234567890" maxlength="20">
+      <div class="ppob-label" style="margin-top:8px;">WILAYAH</div>
+      <div class="ppob-chips" id="pdamProvider">
+        <div class="ppob-chip active" data-provider="Jakarta" onclick="selectPpobProvider(this,'pdam')">Jakarta</div>
+        <div class="ppob-chip" data-provider="Surabaya" onclick="selectPpobProvider(this,'pdam')">Surabaya</div>
+        <div class="ppob-chip" data-provider="Bandung" onclick="selectPpobProvider(this,'pdam')">Bandung</div>
+        <div class="ppob-chip" data-provider="Medan" onclick="selectPpobProvider(this,'pdam')">Medan</div>
+        <div class="ppob-chip" data-provider="Yogyakarta" onclick="selectPpobProvider(this,'pdam')">Yogyakarta</div>
+        <div class="ppob-chip" data-provider="Lainnya" onclick="selectPpobProvider(this,'pdam')">Lainnya</div>
+      </div>
+    </div>
+
+    <div class="ppob-card">
+      <div class="ppob-label">NOMINAL TAGIHAN / ISI</div>
+      <div class="ppob-nom-grid" id="pdamNominal">
+        <div class="ppob-nom" data-nom="Cek Tagihan" data-price="0" onclick="selectPpobNom(this,'pdam')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">Cek Tagihan</div><div class="pn-harga">Konfirmasi Admin</div></div>
+        <div class="ppob-nom" data-nom="50000" data-price="50000" onclick="selectPpobNom(this,'pdam')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">50.000</div><div class="pn-harga">Rp 50.000</div></div>
+        <div class="ppob-nom" data-nom="100000" data-price="100000" onclick="selectPpobNom(this,'pdam')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">100.000</div><div class="pn-harga">Rp 100.000</div></div>
+        <div class="ppob-nom" data-nom="200000" data-price="200000" onclick="selectPpobNom(this,'pdam')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">200.000</div><div class="pn-harga">Rp 200.000</div></div>
+      </div>
+    </div>
+
+    <div class="ppob-info"><div class="ico">ℹ️</div><p>Admin akan cek tagihan PDAM dan konfirmasi total bayar sebelum proses.</p></div>
+    <button class="ppob-btn" onclick="goPpobConfirm('pdam')">Lanjutkan Pembayaran</button>
+  </div>
+</section>
+
+<!-- KONFIRMASI PEMBAYARAN PAGE (generic, dipakai semua layanan PPOB) -->
+<section id="ppobConfirmPage" class="ppob-page">
+  <div class="pcf-topbar">
+    <div class="pcf-close" onclick="closePpobConfirm()">✕</div>
+    <div class="tt">Konfirmasi pembayaran</div>
+  </div>
+  <div class="ppob-wrap">
+
+    <div class="pcf-card" id="pcfTargetCard" style="display:none;">
+      <div class="pcf-label">Nomor / ID tujuan</div>
+      <div class="pcf-target-row">
+        <div class="pcf-avatar" id="pcfAvatar">+</div>
+        <div class="pcf-target-text">
+          <div class="pcf-target-num" id="pcfTargetNum"></div>
+          <div class="pcf-target-prov" id="pcfTargetProv"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pcf-card">
+      <div class="pcf-h">Rincian pembelian</div>
+      <div class="pcf-row"><span>Layanan</span><b id="pcfLabel"></b></div>
+      <div class="pcf-row" id="pcfProviderRow"><span>Provider</span><b id="pcfProvider"></b></div>
+      <div class="pcf-row"><span>Nominal</span><b id="pcfNominal"></b></div>
+    </div>
+
+    <div class="pcf-card">
+      <div class="pcf-h">Rincian pembayaran</div>
+      <div class="pcf-row"><span>Harga</span><b id="pcfHarga"></b></div>
+      <div class="pcf-divider"></div>
+      <div class="pcf-row pcf-total"><span>Total</span><b id="pcfTotal"></b></div>
+    </div>
+
+    <div class="ppob-info"><div class="ico">ℹ️</div><p>Pastikan seluruh data di atas sudah benar sebelum melanjutkan pembayaran.</p></div>
+
+    <button class="ppob-btn" id="pcfBayarBtn" onclick="confirmPpobBayar()">Bayar Sekarang</button>
+  </div>
+</section>
+<!-- END PPOB SERVICE PAGES -->
 
 <!-- PUSAT INFORMASI / LAYANAN -->
 <section id="pusatInformasi">
@@ -7970,6 +8499,38 @@ function closePusatInfo(){
   el.classList.remove('open');
   document.body.classList.remove('panel-lock');
 }
+function openApkPremium(){
+  const el=document.getElementById('apkPremiumPage');
+  el.classList.add('open');
+  document.body.classList.add('panel-lock');
+  el.scrollTop=0;
+}
+function closeApkPremium(){
+  const el=document.getElementById('apkPremiumPage');
+  el.classList.remove('open');
+  document.body.classList.remove('panel-lock');
+}
+function openTopUp(){
+  const el=document.getElementById('topUpPage');
+  el.classList.add('open');
+  document.body.classList.add('panel-lock');
+  el.scrollTop=0;
+  if (typeof window.vpReloadBalance==='function') window.vpReloadBalance();
+}
+function closeTopUp(){
+  const el=document.getElementById('topUpPage');
+  el.classList.remove('open');
+  document.body.classList.remove('panel-lock');
+}
+function tuSetAmt(v,el){
+  const input=document.getElementById('topupAmt');
+  if(input) input.value=v;
+  document.querySelectorAll('.tu-nom').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+function tuClearActive(){
+  document.querySelectorAll('.tu-nom').forEach(n=>n.classList.remove('active'));
+}
 </script>
 
 <!-- ===== Modal QRIS (Fullscreen Beautiful) ===== -->
@@ -8494,6 +9055,328 @@ function closePusatInfo(){
       });
     } catch(e){ if(typeof showNotif==='function') showNotif('Error: '+e.message); }
   };
+</script>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="bn-item active" id="bnBeranda" onclick="pcGoBeranda()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Beranda
+  </button>
+  <button class="bn-item" id="bnRiwayat" onclick="pcGoRiwayat()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+    Riwayat
+  </button>
+  <button class="bn-item" id="bnProfil" onclick="pcGoProfil()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Profil
+  </button>
+</div>
+
+<script>
+// ── PAYCORE UI: saldo card + bottom nav wiring ──
+function pcUpdateSaldoCard(){
+  const halo = document.getElementById('saldoHalo');
+  const pts = document.getElementById('saldoPts');
+  const amt = document.getElementById('saldoAmt');
+  if (!halo) return;
+  if (typeof currentUser !== 'undefined' && currentUser) {
+    halo.textContent = 'Halo, ' + (currentUser.name || 'User');
+  } else {
+    halo.textContent = 'Halo, Tamu';
+  }
+  if (pts) pts.textContent = '0';
+  if (amt) amt.textContent = '0';
+}
+function pcGoBeranda(){
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('bnBeranda').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function pcGoRiwayat(){
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('bnRiwayat').classList.add('active');
+  if (typeof openRiwayat === 'function') openRiwayat();
+}
+function pcGoProfil(){
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('bnProfil').classList.add('active');
+  if (typeof currentUser !== 'undefined' && currentUser) {
+    if (typeof showPengaturan === 'function') showPengaturan();
+  } else {
+    if (typeof openAuth === 'function') openAuth('masuk');
+  }
+}
+
+// ── PPOB SERVICE PAGES FUNCTIONS ──
+function openPpobPage(id){
+  const el = document.getElementById(id);
+  if (!el) return;
+  document.body.classList.add('panel-lock');
+  el.classList.add('open');
+}
+function closePpobPage(id){
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('open');
+  document.body.classList.remove('panel-lock');
+}
+function openPulsaPage(){ openPpobPage('pulsaPage'); }
+function openDataPage(){ openPpobPage('dataPage'); }
+function openEwalletPage(){ openPpobPage('ewalletPage'); }
+function openVoucherGamePage(){ openPpobPage('voucherGamePage'); }
+function openPlnPage(){ openPpobPage('plnPage'); }
+function openPdamPage(){ openPpobPage('pdamPage'); }
+
+function selectPpobProvider(el, type){
+  const wrap = el.closest('.ppob-chips');
+  if (!wrap) return;
+  wrap.querySelectorAll('.ppob-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Auto-detect provider dari prefix nomor HP
+const PROVIDER_PREFIX = {
+  Telkomsel: ['0811','0812','0813','0821','0822','0823','0851','0852','0853'],
+  Indosat:   ['0814','0815','0816','0855','0856','0857','0858'],
+  XL:        ['0817','0818','0819','0859','0877','0878'],
+  Tri:       ['0895','0896','0897','0898','0899'],
+  Axis:      ['0831','0832','0833','0838'],
+  Smartfren: ['0881','0882','0883','0884','0885','0886','0887','0888','0889']
+};
+const PROVIDER_COLOR = {
+  Telkomsel:'#e60028', Indosat:'#ffd400', XL:'#00aeef', Tri:'#111111', Axis:'#7a1e8c', Smartfren:'#e60028'
+};
+// Logo bulat tiap provider: gradasi warna brand + inisial, dipakai di input & daftar nomor sering dipakai
+const PROVIDER_LOGO = {
+  Telkomsel: { bg:'linear-gradient(135deg,#e60028,#a6001d)', label:'Tsel' },
+  Indosat:   { bg:'linear-gradient(135deg,#ffd400,#e6a800)', label:'ISAT', dark:true },
+  XL:        { bg:'linear-gradient(135deg,#00aeef,#0072bc)', label:'XL' },
+  Tri:       { bg:'linear-gradient(135deg,#444,#111)', label:'3' },
+  Axis:      { bg:'linear-gradient(135deg,#a445c9,#7a1e8c)', label:'AXIS' },
+  Smartfren: { bg:'linear-gradient(135deg,#ff4d4d,#c40000)', label:'SF' }
+};
+function detectProviderName(num){
+  if (!num) return '';
+  let n = num.replace(/\D/g,'');
+  if (n.startsWith('62')) n = '0' + n.slice(2);
+  if (n.startsWith('8')) n = '0' + n;
+  const pfx = n.slice(0,4);
+  for (const p in PROVIDER_PREFIX){
+    if (PROVIDER_PREFIX[p].includes(pfx)) return p;
+  }
+  return '';
+}
+function detectProvider(type){
+  const map = { pulsa:{i:'pulsaInput',b:'pulsaProvBadge',a:'pulsaAvatar'}, data:{i:'dataInput',b:'dataProvBadge',a:'dataAvatar'} };
+  const cfg = map[type]; if (!cfg) return;
+  const input = document.getElementById(cfg.i);
+  const badge = document.getElementById(cfg.b);
+  const avatar = document.getElementById(cfg.a);
+  if (!input || !badge) return;
+  const prov = detectProviderName(input.value);
+  if (prov){
+    const logo = PROVIDER_LOGO[prov] || { bg:'#4d5bff', label:prov.slice(0,3) };
+    badge.classList.add('show');
+    badge.setAttribute('data-provider', prov);
+    badge.style.background = logo.bg;
+    badge.style.color = logo.dark ? '#3a2c00' : '#fff';
+    badge.textContent = logo.label;
+    if (avatar) avatar.textContent = input.value.trim() ? input.value.trim().slice(-2) : '+';
+  } else {
+    badge.classList.remove('show');
+    badge.removeAttribute('data-provider');
+    badge.style.background = '';
+    badge.textContent = '';
+    if (avatar) avatar.textContent = '+';
+  }
+}
+
+// ===== Kontak & nomor yang sering dipakai =====
+function ppobFreqKey(type){ return 'ppob_freq_' + type; }
+function ppobLoadFreq(type){
+  try { return JSON.parse(localStorage.getItem(ppobFreqKey(type)) || '[]'); } catch(e){ return []; }
+}
+function ppobSaveFreqNumber(type, number){
+  if (!number) return;
+  let list = ppobLoadFreq(type).filter(n => n !== number);
+  list.unshift(number);
+  list = list.slice(0, 4);
+  try { localStorage.setItem(ppobFreqKey(type), JSON.stringify(list)); } catch(e){}
+  renderPpobFreqList(type);
+}
+function renderPpobFreqList(type){
+  const wrapId = type === 'pulsa' ? 'pulsaFreqList' : 'dataFreqList';
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  const list = ppobLoadFreq(type);
+  if (!list.length){
+    wrap.innerHTML = '<div style="font-size:11.5px;color:#a8adc0;font-weight:600;">Belum ada nomor tersimpan.</div>';
+    return;
+  }
+  wrap.innerHTML = list.map(num => {
+    const prov = detectProviderName(num);
+    const logo = PROVIDER_LOGO[prov] || { bg:'#4d5bff', label:'?' };
+    return '<span class="ppob-freq-item" onclick="fillPpobNumber(\'' + type + '\',\'' + num + '\')">' +
+      '<span class="ppob-prov-logo show" style="position:static;width:26px;height:26px;font-size:8.5px;background:' + logo.bg + ';color:' + (logo.dark ? '#3a2c00' : '#fff') + ';">' + logo.label + '</span>' +
+      '<span class="fq-txt">' + num + '</span></span>';
+  }).join('');
+}
+function fillPpobNumber(type, number){
+  const inputId = type === 'pulsa' ? 'pulsaInput' : 'dataInput';
+  const input = document.getElementById(inputId);
+  if (input){ input.value = number; detectProvider(type); }
+}
+function pickPpobContact(type){
+  const inputId = type === 'pulsa' ? 'pulsaInput' : 'dataInput';
+  if ('contacts' in navigator && 'ContactsManager' in window){
+    navigator.contacts.select(['tel'], { multiple:false }).then(contacts => {
+      if (contacts && contacts[0] && contacts[0].tel && contacts[0].tel[0]){
+        const input = document.getElementById(inputId);
+        input.value = contacts[0].tel[0].replace(/\D/g,'');
+        detectProvider(type);
+      }
+    }).catch(() => {});
+  } else {
+    showNotif('📱 Akses kontak tidak didukung di browser ini. Silakan ketik manual.');
+  }
+}
+document.addEventListener('DOMContentLoaded', function(){
+  renderPpobFreqList('pulsa');
+  renderPpobFreqList('data');
+});
+
+function selectPpobNom(el, type){
+  const wrap = el.closest('.ppob-nom-grid');
+  if (!wrap) return;
+  wrap.querySelectorAll('.ppob-nom').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function getPpobData(type){
+  const pageMap = {
+    pulsa: {pageId:'pulsaPage', inputId:'pulsaInput', provWrapId:'pulsaProvider', nomWrapId:'pulsaNominal', label:'Pulsa'},
+    data: {pageId:'dataPage', inputId:'dataInput', provWrapId:'dataProvider', nomWrapId:'dataNominal', label:'Paket Data'},
+    ewallet: {pageId:'ewalletPage', inputId:'ewalletInput', provWrapId:'ewalletProvider', nomWrapId:'ewalletNominal', label:'Top Up E-Wallet'},
+    voucher: {pageId:'voucherGamePage', inputId:'voucherInput', provWrapId:'voucherProvider', nomWrapId:'voucherNominal', label:'Voucher Game'},
+    pln: {pageId:'plnPage', inputId:'plnInput', provWrapId:null, nomWrapId:'plnNominal', label:'Token PLN'},
+    pdam: {pageId:'pdamPage', inputId:'pdamInput', provWrapId:'pdamProvider', nomWrapId:'pdamNominal', label:'PDAM'}
+  };
+  const cfg = pageMap[type];
+  if (!cfg) return null;
+  const input = document.getElementById(cfg.inputId);
+  const number = input ? input.value.trim() : '';
+  let provider = '';
+  if (type === 'pulsa' || type === 'data') {
+    provider = detectProviderName(number);
+  } else if (cfg.provWrapId) {
+    const active = document.querySelector('#' + cfg.provWrapId + ' .ppob-chip.active');
+    provider = active ? active.getAttribute('data-provider') : '';
+  }
+  let nominal = '', price = '';
+  const activeNom = document.querySelector('#' + cfg.nomWrapId + ' .ppob-nom.active');
+  if (activeNom) {
+    nominal = activeNom.getAttribute('data-nom') || '';
+    price = activeNom.getAttribute('data-price') || '';
+  }
+  return { type, label: cfg.label, number, provider, nominal, price };
+}
+
+function formatPpobOrder(d){
+  const price = d.price ? 'Rp ' + Number(d.price).toLocaleString('id-ID') : 'Via admin';
+  let msg = 'Halo admin, saya mau order *' + d.label + '*\n\n';
+  if (d.provider) msg += 'Provider/Wilayah: ' + d.provider + '\n';
+  if (d.number) msg += 'Nomor/ID: ' + d.number + '\n';
+  if (d.nominal) msg += 'Nominal/Paket: ' + d.nominal + '\n';
+  msg += 'Harga: ' + price + '\n\nMohon diproses. Terima kasih.';
+  return msg;
+}
+
+function orderPpobWA(type){
+  const d = getPpobData(type);
+  if (!d) return;
+  if (!d.nominal) { showNotif('⚠️ Silakan pilih nominal/paket terlebih dahulu.'); return; }
+  if (!d.number) { showNotif('⚠️ Silakan isi nomor/ID terlebih dahulu.'); return; }
+  const wa = window._apWa ? window._apWa.replace(/\D/g,'') : '6285954741269';
+  const text = encodeURIComponent(formatPpobOrder(d));
+  if (type === 'pulsa' || type === 'data') ppobSaveFreqNumber(type, d.number);
+  window.open('https://wa.me/' + wa + '?text=' + text, '_blank');
+}
+function orderPpobQRIS(type){
+  const d = getPpobData(type);
+  if (!d) return;
+  if (!d.nominal) { showNotif('⚠️ Silakan pilih nominal/paket terlebih dahulu.'); return; }
+  if (!d.number) { showNotif('⚠️ Silakan isi nomor/ID terlebih dahulu.'); return; }
+  showNotif('💳 Metode ini segera hadir.');
+}
+
+// ── HALAMAN KONFIRMASI PEMBAYARAN (generic untuk semua layanan PPOB) ──
+let _pcfType = null;
+function pcfRupiah(n){ return 'Rp' + Number(n||0).toLocaleString('id-ID'); }
+function goPpobConfirm(type){
+  const d = getPpobData(type);
+  if (!d) return;
+  if (!d.nominal) { showNotif('⚠️ Silakan pilih nominal/paket terlebih dahulu.'); return; }
+  if (!d.number) { showNotif('⚠️ Silakan isi nomor/ID terlebih dahulu.'); return; }
+
+  _pcfType = type;
+
+  const targetCard = document.getElementById('pcfTargetCard');
+  if (d.number) {
+    targetCard.style.display = 'block';
+    const initial = (d.provider || d.label || '+').charAt(0).toUpperCase();
+    document.getElementById('pcfAvatar').textContent = initial;
+    document.getElementById('pcfTargetNum').textContent = d.number;
+    document.getElementById('pcfTargetProv').textContent = d.provider || d.label;
+  } else {
+    targetCard.style.display = 'none';
+  }
+
+  document.getElementById('pcfLabel').textContent = d.label;
+
+  const provRow = document.getElementById('pcfProviderRow');
+  if (d.provider) {
+    provRow.style.display = 'flex';
+    document.getElementById('pcfProvider').textContent = d.provider;
+  } else {
+    provRow.style.display = 'none';
+  }
+
+  document.getElementById('pcfNominal').textContent = d.nominal;
+
+  const priceNum = Number(d.price) || 0;
+  const hargaText = priceNum > 0 ? pcfRupiah(priceNum) : 'Konfirmasi Admin';
+  document.getElementById('pcfHarga').textContent = hargaText;
+  document.getElementById('pcfTotal').textContent = hargaText;
+
+  if (type === 'pulsa' || type === 'data') ppobSaveFreqNumber(type, d.number);
+
+  openPpobPage('ppobConfirmPage');
+}
+function closePpobConfirm(){
+  closePpobPage('ppobConfirmPage');
+}
+function confirmPpobBayar(){
+  if (!_pcfType) return;
+  const d = getPpobData(_pcfType);
+  if (!d) return;
+  const wa = window._apWa ? window._apWa.replace(/\D/g,'') : '6285954741269';
+  const text = encodeURIComponent(formatPpobOrder(d));
+  window.open('https://wa.me/' + wa + '?text=' + text, '_blank');
+  closePpobConfirm();
+  showNotif('✅ Pesanan diproses. Admin akan segera memproses pembayaranmu.');
+}
+
+// Panggil ulang tiap kali renderHeader jalan (login/logout) supaya saldo card ikut update
+(function(){
+  const _origRenderHeader = window.renderHeader;
+  window.renderHeader = function(){
+    if (typeof _origRenderHeader === 'function') _origRenderHeader();
+    pcUpdateSaldoCard();
+  };
+  document.addEventListener('DOMContentLoaded', pcUpdateSaldoCard);
+  pcUpdateSaldoCard();
+})();
 </script>
 
 </body>
