@@ -10428,15 +10428,14 @@ function h2hNormalize(s){
 async function h2hFetchProducts(category, operatorFilter){
   try {
     let query = _sb.from('h2h_products')
-      .select('product_code,name,description,price,operator,status')
+      .select('product_code,name,description,price,operator,is_active')
       .eq('category', category)
+      .eq('is_active', true)
       .order('price', { ascending: true })
       .limit(500);
     const { data, error } = await query;
     if (error) { console.error('h2hFetchProducts error:', error); return []; }
     let rows = data || [];
-    // Buang produk yang lagi CLOSED (kalau field status ada isinya)
-    rows = rows.filter(r => !r.status || /open/i.test(r.status));
     if (operatorFilter) {
       const target = h2hNormalize(operatorFilter);
       rows = rows.filter(r => {
