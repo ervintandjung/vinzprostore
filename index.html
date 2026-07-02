@@ -21,6 +21,47 @@ body{font-family:'Rajdhani',sans-serif;background:var(--primary);color:var(--tex
 body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
 
+/* ===== PENGATURAN REDESIGN (glass / cyan, ala Paycore) ===== */
+.pgs-topbar{position:sticky;top:0;z-index:15;display:flex;align-items:center;gap:12px;padding:0 16px;height:60px;background:rgba(10,10,15,0.65);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.08);}
+.pgs-back{background:rgba(255,255,255,0.06);border:none;color:var(--accent2);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0;}
+.pgs-back:active{transform:scale(.92);}
+.pgs-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;letter-spacing:1.5px;color:#fff;text-shadow:0 0 10px rgba(0,212,255,.5);flex:1;}
+.pgs-header-avatar{width:38px;height:38px;border-radius:50%;overflow:hidden;border:1.5px solid rgba(0,212,255,.4);flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;}
+.pgs-header-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+.pgs-content{max-width:480px;margin:0 auto;padding:18px 14px 100px;}
+.pgs-profile-card{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,0.04);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:16px;margin-bottom:20px;box-shadow:0 8px 26px rgba(0,0,0,0.3);}
+.pgs-profile-left{display:flex;align-items:center;gap:14px;min-width:0;}
+.pgs-avatar-ring{width:54px;height:54px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--accent),var(--accent2));flex-shrink:0;}
+.pgs-avatar-ring-inner{width:100%;height:100%;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#fff;overflow:hidden;}
+.pgs-avatar-ring-inner img{width:100%;height:100%;object-fit:cover;display:block;}
+.pgs-profile-name{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;}
+.pgs-profile-email{font-size:11px;color:var(--muted);letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;}
+.pgs-badge{flex-shrink:0;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,.4);padding:4px 11px;border-radius:20px;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--accent2);text-transform:uppercase;}
+.pgs-section{margin-bottom:20px;}
+.pgs-section-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(0,212,255,.7);margin:0 0 8px 6px;text-transform:uppercase;}
+.pgs-card{background:rgba(255,255,255,0.03);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden;}
+.pgs-item{display:flex;align-items:center;justify-content:space-between;padding:14px 15px;cursor:pointer;transition:background .15s ease;border-top:1px solid rgba(255,255,255,0.05);}
+.pgs-card>.pgs-item:first-child{border-top:none;}
+.pgs-item:active{background:rgba(255,255,255,0.05);}
+.pgs-item-left{display:flex;align-items:center;gap:13px;}
+.pgs-ico{font-size:19px;width:24px;text-align:center;flex-shrink:0;filter:drop-shadow(0 0 4px rgba(0,212,255,.35));}
+.pgs-item-left>span:not(.pgs-ico){font-size:14.5px;color:var(--text);font-weight:600;}
+.pgs-item-left .pgs-label{font-size:14.5px;color:var(--text);font-weight:600;display:block;}
+.pgs-sub{font-size:11px;color:var(--muted);font-weight:500;margin-top:2px;display:block;}
+.pgs-chevron{color:rgba(255,255,255,.25);font-size:18px;flex-shrink:0;}
+.pgs-toggle{position:relative;width:42px;height:23px;border-radius:20px;border:none;cursor:pointer;background:#2a2e38;transition:background .2s ease;flex-shrink:0;}
+.pgs-toggle.on{background:var(--accent2);}
+.pgs-toggle-knob{position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;transition:transform .2s ease;}
+.pgs-toggle.on .pgs-toggle-knob{transform:translateX(19px);}
+.pgs-editbody{display:none;padding:6px 15px 18px;border-top:1px solid rgba(255,255,255,0.05);}
+.pgs-editbody.open{display:block;}
+.pgs-logout{width:100%;padding:15px;border-radius:16px;border:1px solid rgba(255,68,85,.35);background:rgba(255,68,85,.07);color:var(--danger);font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:.5px;}
+.pgs-logout:active{transform:scale(.98);}
+.pgs-version{text-align:center;font-size:10.5px;color:rgba(255,255,255,.25);padding:18px 0 10px;letter-spacing:.5px;}
+#settingsQuickMenu.pgs-card{margin:0;}
+#settingsQuickMenu .dd-item{border-top:1px solid rgba(255,255,255,0.05);}
+#settingsQuickMenu .dd-item:first-child{border-top:none;}
+
 
 
 /* PUSAT INFORMASI - HIDDEN FULLSCREEN PAGE */
@@ -114,7 +155,7 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 .pc-bell:active{transform:scale(.94);}
 
 /* SALDO CARD */
-.saldo-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:22px;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.35);}
+.saldo-card{background:rgba(255,255,255,0.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:22px;position:relative;overflow:hidden;box-shadow:0 0 20px rgba(59,130,246,0.3),0 0 60px rgba(59,130,246,0.1);}
 .saldo-card::after{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(77,91,255,0.18),transparent 70%);pointer-events:none;}
 .saldo-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
 .saldo-halo{font-size:15px;color:var(--text);font-weight:600;}
@@ -122,16 +163,48 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 .saldo-label{font-size:11px;color:var(--muted);letter-spacing:1.5px;font-weight:700;margin-bottom:6px;}
 .saldo-amt{font-family:'Orbitron',sans-serif;font-weight:900;font-size:30px;color:#fff;display:flex;align-items:baseline;gap:8px;margin-bottom:20px;}
 .saldo-amt .cur{font-size:19px;color:var(--accent);}
-.btn-topup{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:15px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;}
+.btn-topup{width:100%;background:linear-gradient(90deg,#2563eb,#3b82f6);box-shadow:0 0 20px rgba(59,130,246,0.3),0 0 60px rgba(59,130,246,0.1);color:#fff;border:none;border-radius:14px;padding:15px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;}
 .btn-topup:active{opacity:.85;}
 
 /* LAYANAN PPOB GRID */
 .pc-sec-title{font-size:17px;font-weight:700;color:#fff;margin:22px 0 12px;padding:0 2px;}
 .ppob-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 8px;}
-.ppob-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:.15s;}
-.ppob-item:active{transform:scale(.95);background:var(--card2);}
+.ppob-item{background:rgba(255,255,255,0.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:.3s;}
+.ppob-item:active{transform:scale(.95);background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);}
 .ppob-ic{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;}
 .ppob-name{font-size:11.5px;font-weight:600;color:var(--text);text-align:center;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+
+/* ── PAYCORE HOME REDESIGN: avatar, subtitle, shield, eye-toggle, stats, transaksi ── */
+.pc-header-row{display:flex;align-items:center;gap:11px;}
+.pc-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;font-family:'Rajdhani',sans-serif;flex-shrink:0;}
+.saldo-card::before{content:'';position:absolute;bottom:-50px;left:-50px;width:160px;height:160px;background:radial-gradient(circle,rgba(0,212,255,0.10),transparent 70%);pointer-events:none;}
+.saldo-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+.saldo-shield-row{display:flex;align-items:center;gap:6px;margin-bottom:7px;position:relative;z-index:1;}
+.saldo-shield-row svg{width:13px;height:13px;color:var(--muted);flex-shrink:0;}
+.saldo-shield-row .lbl{font-size:11px;color:var(--muted);letter-spacing:1.5px;font-weight:700;}
+.saldo-amt-row{display:flex;align-items:center;gap:8px;margin-bottom:20px;position:relative;z-index:1;}
+.saldo-eye{background:transparent;border:none;color:var(--muted);cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.saldo-eye:active{background:rgba(255,255,255,0.06);}
+
+.pc-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+.pc-stat-card{background:rgba(255,255,255,0.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:14px;display:flex;align-items:center;gap:10px;}
+.pc-stat-ic{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pc-stat-ic.in{background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.25);color:var(--success);}
+.pc-stat-ic.out{background:rgba(255,68,85,0.1);border:1px solid rgba(255,68,85,0.25);color:var(--danger);}
+.pc-stat-label{font-size:11px;color:var(--muted);}
+.pc-stat-val{font-size:13.5px;font-weight:700;color:var(--text);margin-top:2px;}
+
+.pc-tx-head{display:flex;align-items:center;justify-content:space-between;margin:26px 0 12px;padding:0 2px;}
+.pc-tx-head h3{font-size:16px;font-weight:700;color:var(--text);}
+.pc-tx-head span{font-size:11.5px;color:var(--accent2);font-weight:600;cursor:pointer;}
+.pc-tx-list{display:flex;flex-direction:column;gap:10px;}
+.pc-tx-item{background:rgba(255,255,255,0.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:13px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:.3s;}
+.pc-tx-item:active{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);}
+.pc-tx-left{display:flex;align-items:center;gap:11px;min-width:0;}
+.pc-tx-ic{width:38px;height:38px;border-radius:12px;background:rgba(77,91,255,0.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--accent2);flex-shrink:0;}
+.pc-tx-text .lbl{font-size:13px;font-weight:600;color:var(--text);}
+.pc-tx-text .sub{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pc-tx-amt{font-size:13px;font-weight:700;color:var(--danger);flex-shrink:0;white-space:nowrap;margin-left:8px;}
 
 /* BOTTOM NAV */
 .bottom-nav{position:fixed;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;background:#111116;border-top:1px solid var(--border);display:flex;z-index:150;padding-bottom:env(safe-area-inset-bottom);}
@@ -223,7 +296,7 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 .overlay.open{display:flex;}
 
 /* FULLSCREEN PRODUCT PAGE */
-#prodFullscreen{display:none;position:fixed;inset:0;background:var(--primary);z-index:350;overflow-y:auto;}
+#prodFullscreen{display:none;position:fixed;inset:0;background:var(--primary);z-index:370;overflow-y:auto;}
 #prodFullscreen.open{display:block;animation:fsSlideIn .3s ease;}
 @keyframes fsSlideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes fsSlideOut{from{transform:translateX(0)}to{transform:translateX(100%)}}
@@ -358,11 +431,68 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 .btn-auth{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px;margin-top:4px;}
 .auth-err{font-size:12px;color:var(--danger);text-align:center;margin-bottom:8px;display:none;}
 
+/* ===== AUTH MODAL REDESIGN — glass card cyan neon (mengikuti referensi desain) ===== */
+.auth-modal{
+  background:
+    radial-gradient(circle at 12% 6%, rgba(0,229,255,0.16), transparent 42%),
+    radial-gradient(circle at 88% 94%, rgba(0,229,255,0.10), transparent 42%),
+    linear-gradient(180deg,#0b0b0e,#050506);
+  padding:54px 18px 34px;
+}
+.auth-brand{text-align:center;margin-bottom:22px;}
+.auth-logo-badge{width:64px;height:64px;border-radius:50%;background:rgba(0,229,255,0.10);border:1px solid rgba(0,218,243,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;box-shadow:0 0 24px rgba(0,218,243,.25);}
+.auth-logo-badge img{width:40px;height:40px;border-radius:9px;object-fit:cover;}
+.auth-brand-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:21px;letter-spacing:1.5px;color:#00daf3;text-shadow:0 0 18px rgba(0,218,243,.55);margin-bottom:6px;}
+.auth-brand-sub{font-size:12.5px;color:#bac9cc;letter-spacing:.3px;}
+
+.auth-glass-card{background:rgba(255,255,255,0.045);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:22px 18px;}
+.auth-card-head{margin-bottom:18px;text-align:left;}
+.auth-card-head h2{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:#e5e2e1;margin-bottom:4px;}
+.auth-card-head p{font-size:13px;color:#bac9cc;}
+
+.auth-modal .auth-tabs{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);margin-bottom:18px;}
+.auth-modal .auth-tab{color:#8a97a0;}
+.auth-modal .auth-tab.active{background:linear-gradient(90deg,#00daf3,#00e5ff);color:#001f24;box-shadow:0 0 14px rgba(0,218,243,.4);}
+
+.auth-modal .auth-field label{color:#bac9cc;text-transform:none;font-size:12.5px;letter-spacing:.2px;}
+.afi-wrap{position:relative;display:flex;align-items:center;}
+.afi-icon{position:absolute;left:14px;color:#8a97a0;pointer-events:none;display:flex;align-items:center;}
+.auth-modal .auth-field input{width:100%;height:50px;background:rgba(14,14,14,.55);border:1px solid #3b494c;border-radius:12px;padding:0 14px;color:#e5e2e1;font-family:'Rajdhani',sans-serif;font-size:15px;transition:.2s;}
+.afi-wrap input{padding-left:42px !important;}
+.auth-modal .pw-wrap input{padding-right:42px !important;}
+.auth-modal .auth-field input:focus{outline:none;border-color:#00daf3;box-shadow:0 0 0 3px rgba(0,218,243,.15);}
+.auth-modal .afi-wrap .pw-eye{color:#8a97a0;right:14px;}
+.auth-modal .afi-wrap .pw-eye:hover{color:#e5e2e1;}
+.auth-modal .afi-wrap .pw-eye svg{width:18px;height:18px;}
+
+.auth-remember-row{display:flex;align-items:center;justify-content:space-between;margin:2px 0 16px;flex-wrap:wrap;gap:8px;}
+.auth-remember-row .arc-lbl{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#bac9cc;cursor:pointer;}
+.auth-remember-row input[type=checkbox]{width:16px;height:16px;border-radius:4px;accent-color:#00daf3;}
+.auth-modal .lupa-pw{margin:0;color:#00daf3;}
+
+.auth-terms-row{display:flex;align-items:flex-start;gap:9px;margin:6px 0 16px;}
+.auth-terms-row input[type=checkbox]{width:16px;height:16px;margin-top:2px;border-radius:4px;accent-color:#00daf3;flex-shrink:0;}
+.auth-terms-row span{font-size:12.5px;color:#bac9cc;line-height:1.5;}
+.auth-terms-row a{color:#00daf3;text-decoration:underline;cursor:pointer;}
+
+.auth-modal .btn-auth{height:52px;background:linear-gradient(90deg,#00daf3,#00e5ff);color:#001f24;border-radius:12px;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:.4px;box-shadow:0 0 20px rgba(0,218,243,.3);}
+.auth-modal .btn-auth:active{transform:scale(.98);}
+.auth-modal .btn-auth:disabled{opacity:.7;}
+
+.auth-modal .otp-input{background:rgba(14,14,14,.55);border:2px solid #3b494c;color:#e5e2e1;}
+.auth-modal .otp-input:focus{border-color:#00daf3;background:rgba(0,218,243,.08);}
+.auth-modal .otp-input.filled{border-color:#00e5ff;}
+
+.auth-switch-footer{text-align:center;margin-top:20px;font-size:13.5px;color:#bac9cc;}
+.auth-switch-footer a{color:#00daf3;font-weight:700;cursor:pointer;text-decoration:none;}
+.auth-switch-footer a:hover{text-decoration:underline;}
+
 /* ADMIN PANEL */
 #adminPanel{display:none;position:fixed;inset:0;background:#07111f;z-index:400;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
 #adminPanel.open{display:block;}
-#settingsPanel{display:none;position:fixed;inset:0;background:var(--primary);z-index:400;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;}
+#settingsPanel{display:none;position:fixed;inset:0;background:var(--primary);z-index:380;overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch;}
 #settingsPanel.open{display:block;animation:fsSlideIn .3s ease;}
+#settingsPanel.open ~ .bottom-nav{display:flex!important;z-index:400;}
 .ap-header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:2px solid var(--gold);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
 .ap-header h2{font-family:'Orbitron',sans-serif;font-size:15px;color:var(--gold);display:flex;align-items:center;gap:8px;}
 .btn-close-ap{background:var(--danger);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer;}
@@ -575,11 +705,10 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
 .ppob-nom .pn-harga{font-size:13px;color:var(--accent2);font-weight:700;margin-top:6px;letter-spacing:.3px;}
 .ppob-nom .pn-check{position:absolute;top:9px;right:9px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;transition:.15s;}
 .ppob-nom .pn-check svg{width:10px;height:10px;opacity:0;transform:scale(.5);transition:.15s;}
-.ppob-nom.active{background:linear-gradient(160deg,rgba(77,91,255,0.22),rgba(0,212,255,0.06));border-color:var(--accent2);box-shadow:0 0 0 1px rgba(0,212,255,0.15),0 6px 18px rgba(77,91,255,0.18);}
-.ppob-nom.active::before{opacity:1;}
-.ppob-nom.active .pn-harga{color:#fff;}
-.ppob-nom.active .pn-check{background:var(--accent2);border-color:var(--accent2);}
-.ppob-nom.active .pn-check svg{opacity:1;transform:scale(1);}
+.ppob-nom.active{background:linear-gradient(160deg,var(--card2),rgba(19,19,24,.6));border-color:var(--border);box-shadow:none;}
+.ppob-nom.active::before{opacity:0;}
+.ppob-nom.active .pn-harga{color:var(--accent2);}
+.pn-check{display:none;}
 .ppob-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:15px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;transition:.2s;margin-bottom:10px;}
 .ppob-btn:active{opacity:.85;}
 .ppob-btn-alt{width:100%;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:14px;padding:13px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;transition:.2s;}
@@ -606,6 +735,22 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
 .pcf-divider{border-top:1px dashed var(--border);margin:6px 0;}
 .pcf-total span{color:var(--text);font-weight:700;}
 .pcf-total b{color:var(--accent2);font-size:16px;}
+.pcf-pm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;}
+.pcf-pm-row:active{opacity:.8;}
+.pcf-pm-left{display:flex;align-items:center;gap:12px;min-width:0;}
+.pcf-pm-ico{width:40px;height:40px;border-radius:11px;background:rgba(77,91,255,0.18);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.pcf-pm-text{min-width:0;}
+.pcf-pm-name{font-size:14.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pcf-pm-sub{font-size:11.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pcf-pm-chevron{color:rgba(255,255,255,.3);font-size:20px;flex-shrink:0;transform:rotate(90deg);}
+.pcf-pm-option{display:flex;align-items:center;justify-content:space-between;padding:14px 2px;border-top:1px solid rgba(255,255,255,0.06);cursor:pointer;}
+.pcf-pm-option:first-of-type{border-top:none;}
+.pcf-pm-option:active{background:rgba(255,255,255,0.04);}
+.pcf-pm-opt-left{display:flex;align-items:center;gap:12px;min-width:0;}
+.pcf-pm-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;position:relative;}
+.pcf-pm-option.sel .pcf-pm-check{border-color:var(--accent2);}
+.pcf-pm-option.sel .pcf-pm-check::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--accent2);}
+.pcf-pm-option.sel .pcf-pm-name{color:var(--accent2);}
 
 /* ===== PPOB CONTACT CARD (light, professional, GoPay-style) ===== */
 .ppob-contact-card{background:#ffffff;border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,0.35);}
@@ -616,7 +761,7 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
 .ppob-contact-text .lbl{font-size:11px;color:#8a8fa3;font-weight:600;margin-bottom:2px;}
 .ppob-contact-input{width:100%;border:none;background:transparent;outline:none;color:#141420;font-family:'Rajdhani',sans-serif;font-weight:800;font-size:17px;padding:0;}
 .ppob-contact-input::placeholder{color:#a8adc0;font-weight:700;}
-.ppob-prov-logo{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:none;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:9.5px;font-family:'Rajdhani',sans-serif;letter-spacing:.2px;box-shadow:0 2px 6px rgba(0,0,0,0.25);}
+.ppob-prov-logo{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:none;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:15px;font-family:'Orbitron',sans-serif;letter-spacing:.2px;box-shadow:0 3px 10px rgba(0,0,0,0.35);border:1.5px solid rgba(255,255,255,0.25);overflow:hidden;}
 .ppob-prov-logo.show{display:flex;}
 .ppob-contact-kontak{width:56px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;}
 .ppob-contact-kontak .ck-ic{width:38px;height:38px;border-radius:50%;background:#eef1ff;color:#4d5bff;display:flex;align-items:center;justify-content:center;font-size:16px;}
@@ -639,34 +784,67 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
 <!-- PAYCORE HERO HEADER -->
 <div class="pc-hero">
   <div class="pc-hero-top">
-    <div>
-      <div class="pc-brand-title">PAYCORE</div>
-      <div class="pc-brand-sub">Solusi PPOB Terpercaya</div>
-      <div id="witaClock" style="font-family:'Rajdhani',monospace;font-size:9px;color:var(--accent2);margin-top:4px;letter-spacing:0.5px;font-variant-numeric:tabular-nums;opacity:0.7;">--:--:-- WITA</div>
+    <div class="pc-header-row">
+      <div class="pc-avatar">P</div>
+      <div>
+        <div class="pc-brand-title">PAYCORE</div>
+        <div class="pc-brand-sub">Solusi PPOB Terpercaya</div>
+        <div id="witaClock" style="font-family:'Rajdhani',monospace;font-size:9px;color:var(--accent2);margin-top:4px;letter-spacing:0.5px;font-variant-numeric:tabular-nums;opacity:0.7;">--:--:-- WITA</div>
+      </div>
     </div>
     <div class="pc-hero-actions">
       <button class="pc-bell" onclick="showNotif('🔔 Belum ada notifikasi baru.')" aria-label="Notifikasi">🔔</button>
-      <div id="hdrRight">
-        <button class="btn-masuk" onclick="openAuth('masuk')">MASUK</button>
-        <button class="btn-daftar" onclick="openAuth('daftar')">DAFTAR</button>
-      </div>
+      <div id="hdrRight"></div>
     </div>
   </div>
 
   <!-- SALDO CARD -->
   <div class="saldo-card">
     <div class="saldo-top">
-      <div class="saldo-halo" id="saldoHalo">Halo, Tamu</div>
+      <div>
+        <div class="saldo-halo" id="saldoHalo">Halo, Tamu</div>
+        <div class="saldo-sub">Selamat datang di PAYCORE</div>
+      </div>
       <div class="saldo-pts">✨ <span id="saldoPts">0</span> pts</div>
     </div>
-    <div class="saldo-label">SALDO ANDA</div>
-    <div class="saldo-amt"><span class="cur">Rp</span><span id="saldoAmt">0</span></div>
+    <div class="saldo-shield-row">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6l8-4z"/></svg>
+      <span class="lbl">SALDO ANDA</span>
+    </div>
+    <div class="saldo-amt-row">
+      <div class="saldo-amt" id="saldoAmtWrap"><span class="cur">Rp</span><span id="saldoAmt" data-real="0">•••••••</span></div>
+      <button class="saldo-eye" id="saldoEyeBtn" onclick="toggleSaldoVisibility()" aria-label="Tampilkan saldo">
+        <svg id="saldoEyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M1 12s3.5-7 11-7 11 7 11 7-3.5 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
     <button class="btn-topup" onclick="(typeof currentUser!=='undefined' && currentUser) ? openTopUp() : openAuth('masuk')">⊕ Top Up Sekarang</button>
+  </div>
+
+  <!-- QUICK STATS -->
+  <div class="pc-stats-grid">
+    <div class="pc-stat-card">
+      <div class="pc-stat-ic in">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="17" y1="7" x2="7" y2="17"/><polyline points="17 17 7 17 7 7"/></svg>
+      </div>
+      <div>
+        <div class="pc-stat-label">Pemasukan</div>
+        <div class="pc-stat-val" id="pcPemasukanVal">Rp 0</div>
+      </div>
+    </div>
+    <div class="pc-stat-card">
+      <div class="pc-stat-ic out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+      </div>
+      <div>
+        <div class="pc-stat-label">Pengeluaran</div>
+        <div class="pc-stat-val" id="pcPengeluaranVal">Rp 0</div>
+      </div>
+    </div>
   </div>
 
   <!-- LAYANAN PPOB -->
   <div class="pc-sec-title">Layanan PPOB</div>
-  <div class="ppob-grid">
+  <div class="ppob-grid" id="ppobMainGrid">
     <div class="ppob-item" onclick="openPulsaPage()"><div class="ppob-ic" style="background:rgba(77,91,255,0.14);color:#8f9bff;">📱</div><div class="ppob-name">Pulsa</div></div>
     <div class="ppob-item" onclick="openDataPage()"><div class="ppob-ic" style="background:rgba(155,89,255,0.14);color:#c79bff;">📶</div><div class="ppob-name">Paket Data</div></div>
     <div class="ppob-item" onclick="openEwalletPage()"><div class="ppob-ic" style="background:rgba(0,212,255,0.14);color:var(--accent2);">👛</div><div class="ppob-name">E-Wallet</div></div>
@@ -674,7 +852,45 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
     <div class="ppob-item" onclick="openPlnPage()"><div class="ppob-ic" style="background:rgba(255,165,0,0.14);color:#ffb347;">⚡</div><div class="ppob-name">PLN</div></div>
     <div class="ppob-item" onclick="openApkPremium()"><div class="ppob-ic" style="background:rgba(0,255,136,0.14);color:var(--success);">🛡️</div><div class="ppob-name">Apk Premium</div></div>
     <div class="ppob-item" onclick="openPdamPage()"><div class="ppob-ic" style="background:rgba(0,180,255,0.14);color:#5fc9ff;">💧</div><div class="ppob-name">PDAM</div></div>
-    <div class="ppob-item" onclick="showNotif('📞 Layanan lainnya silakan hubungi admin via WhatsApp.')"><div class="ppob-ic" style="background:rgba(155,89,255,0.14);color:#c79bff;">📋</div><div class="ppob-name">Lainnya</div></div>
+    <div class="ppob-item" id="ppobLainnyaBtn" onclick="openLainnyaMenu()"><div class="ppob-ic" style="background:rgba(155,89,255,0.14);color:#c79bff;">📋</div><div class="ppob-name">Lainnya</div></div>
+  </div>
+
+  <!-- TRANSAKSI TERAKHIR -->
+  <div class="pc-tx-head">
+    <h3>Transaksi Terakhir</h3>
+    <span onclick="pcGoRiwayat()">Lihat Semua</span>
+  </div>
+  <div class="pc-tx-list">
+    <div class="pc-tx-item" onclick="pcGoRiwayat()">
+      <div class="pc-tx-left">
+        <div class="pc-tx-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg></div>
+        <div class="pc-tx-text">
+          <div class="lbl">Pulsa Telkomsel</div>
+          <div class="sub">Top up 50.000 • 10:30</div>
+        </div>
+      </div>
+      <div class="pc-tx-amt">-Rp 51.000</div>
+    </div>
+    <div class="pc-tx-item" onclick="pcGoRiwayat()">
+      <div class="pc-tx-left">
+        <div class="pc-tx-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></div>
+        <div class="pc-tx-text">
+          <div class="lbl">Top Up Gopay</div>
+          <div class="sub">E-Wallet top up • 09:15</div>
+        </div>
+      </div>
+      <div class="pc-tx-amt">-Rp 100.000</div>
+    </div>
+    <div class="pc-tx-item" onclick="pcGoRiwayat()">
+      <div class="pc-tx-left">
+        <div class="pc-tx-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <div class="pc-tx-text">
+          <div class="lbl">PLN Token</div>
+          <div class="sub">Token listrik 100kWh • 08:45</div>
+        </div>
+      </div>
+      <div class="pc-tx-amt">-Rp 152.000</div>
+    </div>
   </div>
 </div>
 
@@ -819,6 +1035,21 @@ renderBannerSlider();
 </section>
 <!-- END TOP UP PAGE -->
 
+<!-- LAINNYA MENU PAGE (menu tambahan dinamis, dikelola admin) -->
+<section id="lainnyaMenuPage" class="ppob-page">
+  <div class="ppob-topbar">
+    <div class="ppob-back" onclick="closePpobPage('lainnyaMenuPage')">←</div>
+    <div class="tt">LAINNYA</div>
+  </div>
+  <div class="ppob-wrap">
+    <div class="ppob-grid" id="lainnyaMenuGrid"></div>
+    <div id="lainnyaMenuEmpty" style="display:none;text-align:center;padding:40px 10px;color:var(--muted);font-size:13px;">
+      Belum ada layanan tambahan.<br>Hubungi admin via WhatsApp untuk info lebih lanjut.
+    </div>
+  </div>
+</section>
+<!-- END LAINNYA MENU PAGE -->
+
 <!-- PPOB SERVICE PAGES -->
 <!-- PULSA PAGE -->
 <section id="pulsaPage" class="ppob-page">
@@ -864,8 +1095,6 @@ renderBannerSlider();
       </div>
     </div>
 
-    <div class="ppob-info"><div class="ico">ℹ️</div><p>Pastikan nomor aktif dan benar. Salah nomor = tidak bisa refund.</p></div>
-    <button class="ppob-btn" onclick="goPpobConfirm('pulsa')">Lanjutkan Pembayaran</button>
   </div>
 </section>
 
@@ -902,19 +1131,29 @@ renderBannerSlider();
     </div>
 
     <div class="ppob-card">
-      <div class="ppob-label">PILIH PAKET</div>
-      <div class="ppob-nom-grid" id="dataNominal">
-        <div class="ppob-nom" data-nom="1GB 7 Hari" data-price="10000" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">1GB / 7Hr</div><div class="pn-harga">Rp 10.000</div></div>
-        <div class="ppob-nom" data-nom="2GB 7 Hari" data-price="15000" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">2GB / 7Hr</div><div class="pn-harga">Rp 15.000</div></div>
-        <div class="ppob-nom" data-nom="3GB 30 Hari" data-price="22000" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">3GB / 30Hr</div><div class="pn-harga">Rp 22.000</div></div>
-        <div class="ppob-nom" data-nom="5GB 30 Hari" data-price="35000" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">5GB / 30Hr</div><div class="pn-harga">Rp 35.000</div></div>
-        <div class="ppob-nom" data-nom="10GB 30 Hari" data-price="55000" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">10GB / 30Hr</div><div class="pn-harga">Rp 55.000</div></div>
-        <div class="ppob-nom" data-nom="Unlimited 30 Hari" data-price="75000" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">Unlimited</div><div class="pn-harga">Rp 75.000</div></div>
+      <div class="ppob-label">FILTER</div>
+      <div class="ppob-chips" id="dataFilterRow">
+        <div class="ppob-chip active" data-cat="all" onclick="filterDataNominal(this,'all')">Semua</div>
+        <div class="ppob-chip" data-cat="7hari" onclick="filterDataNominal(this,'7hari')">7 Hari</div>
+        <div class="ppob-chip" data-cat="30hari" onclick="filterDataNominal(this,'30hari')">30 Hari</div>
+        <div class="ppob-chip" data-cat="unlimited" onclick="filterDataNominal(this,'unlimited')">Unlimited</div>
+        <div class="ppob-chip" data-cat="murah" onclick="filterDataNominal(this,'murah')">&lt; Rp20.000</div>
       </div>
     </div>
 
-    <div class="ppob-info"><div class="ico">ℹ️</div><p>Pastikan nomor aktif dan benar. Paket akan aktif setelah pembayaran dikonfirmasi.</p></div>
-    <button class="ppob-btn" onclick="goPpobConfirm('data')">Lanjutkan Pembayaran</button>
+    <div class="ppob-card">
+      <div class="ppob-label">PILIH PAKET</div>
+      <div class="ppob-nom-grid" id="dataNominal">
+        <div class="ppob-nom" data-nom="1GB 7 Hari" data-price="10000" data-cat="7hari murah" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">1GB / 7Hr</div><div class="pn-harga">Rp 10.000</div></div>
+        <div class="ppob-nom" data-nom="2GB 7 Hari" data-price="15000" data-cat="7hari murah" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">2GB / 7Hr</div><div class="pn-harga">Rp 15.000</div></div>
+        <div class="ppob-nom" data-nom="3GB 30 Hari" data-price="22000" data-cat="30hari" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">3GB / 30Hr</div><div class="pn-harga">Rp 22.000</div></div>
+        <div class="ppob-nom" data-nom="5GB 30 Hari" data-price="35000" data-cat="30hari" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">5GB / 30Hr</div><div class="pn-harga">Rp 35.000</div></div>
+        <div class="ppob-nom" data-nom="10GB 30 Hari" data-price="55000" data-cat="30hari" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">10GB / 30Hr</div><div class="pn-harga">Rp 55.000</div></div>
+        <div class="ppob-nom" data-nom="Unlimited 30 Hari" data-price="75000" data-cat="30hari unlimited" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">Unlimited</div><div class="pn-harga">Rp 75.000</div></div>
+      </div>
+      <div class="pi-sub" id="dataNoResult" style="display:none;padding:14px 0 2px;">Tidak ada paket yang sesuai filter ini.</div>
+    </div>
+
   </div>
 </section>
 
@@ -954,8 +1193,6 @@ renderBannerSlider();
       </div>
     </div>
 
-    <div class="ppob-info"><div class="ico">ℹ️</div><p>Pastikan nomor e-wallet terdaftar dan aktif. Salah input = tidak bisa refund.</p></div>
-    <button class="ppob-btn" onclick="goPpobConfirm('ewallet')">Lanjutkan Pembayaran</button>
   </div>
 </section>
 
@@ -996,8 +1233,6 @@ renderBannerSlider();
       </div>
     </div>
 
-    <div class="ppob-info"><div class="ico">ℹ️</div><p>Pastikan ID game dan server benar. Salah ID = tidak bisa refund.</p></div>
-    <button class="ppob-btn" onclick="goPpobConfirm('voucher')">Lanjutkan Pembayaran</button>
   </div>
 </section>
 
@@ -1029,8 +1264,6 @@ renderBannerSlider();
       </div>
     </div>
 
-    <div class="ppob-info"><div class="ico">ℹ️</div><p>Pastikan ID meter benar. Token dikirim setelah pembayaran dikonfirmasi.</p></div>
-    <button class="ppob-btn" onclick="goPpobConfirm('pln')">Lanjutkan Pembayaran</button>
   </div>
 </section>
 
@@ -1069,8 +1302,6 @@ renderBannerSlider();
       </div>
     </div>
 
-    <div class="ppob-info"><div class="ico">ℹ️</div><p>Admin akan cek tagihan PDAM dan konfirmasi total bayar sebelum proses.</p></div>
-    <button class="ppob-btn" onclick="goPpobConfirm('pdam')">Lanjutkan Pembayaran</button>
   </div>
 </section>
 
@@ -1103,15 +1334,59 @@ renderBannerSlider();
     <div class="pcf-card">
       <div class="pcf-h">Rincian pembayaran</div>
       <div class="pcf-row"><span>Harga</span><b id="pcfHarga"></b></div>
+      <div class="pcf-row" id="pcfPoinRow" style="display:none;"><span>Potongan Poin</span><b id="pcfPoinCut" style="color:#00ff88;"></b></div>
       <div class="pcf-divider"></div>
       <div class="pcf-row pcf-total"><span>Total</span><b id="pcfTotal"></b></div>
     </div>
 
-    <div class="ppob-info"><div class="ico">ℹ️</div><p>Pastikan seluruh data di atas sudah benar sebelum melanjutkan pembayaran.</p></div>
+    <div class="pcf-card">
+      <div class="pcf-h">Metode pembayaran</div>
+      <div class="pcf-pm-row" onclick="openPcfPayMethod()">
+        <div class="pcf-pm-left">
+          <div class="pcf-pm-ico" id="pcfPmIcon">💰</div>
+          <div class="pcf-pm-text">
+            <div class="pcf-pm-name" id="pcfPmName">Saldo</div>
+            <div class="pcf-pm-sub" id="pcfPmSub">Bayar langsung pakai saldo akun</div>
+          </div>
+        </div>
+        <div class="pcf-pm-chevron">›</div>
+      </div>
+    </div>
 
     <button class="ppob-btn" id="pcfBayarBtn" onclick="confirmPpobBayar()">Bayar Sekarang</button>
   </div>
 </section>
+
+<!-- PILIH METODE PEMBAYARAN (Saldo / QRIS) -->
+<div class="overlay" id="pcfPayOverlay" style="z-index:500;" onclick="if(event.target===this) closePcfPayMethod();">
+  <div class="modal" style="max-width:480px;padding-bottom:26px;">
+    <div class="modal-handle"></div>
+    <div class="modal-top">
+      <div class="modal-title">Pilih metode pembayaran</div>
+      <button class="modal-close" onclick="closePcfPayMethod()">✕</button>
+    </div>
+    <div class="pcf-pm-option sel" id="pcfPmOptSaldo" onclick="selectPcfPayMethod('saldo')">
+      <div class="pcf-pm-opt-left">
+        <div class="pcf-pm-ico">💰</div>
+        <div class="pcf-pm-text">
+          <div class="pcf-pm-name">Saldo</div>
+          <div class="pcf-pm-sub" id="pcfPmOptSaldoSub">Bayar langsung pakai saldo akun kamu</div>
+        </div>
+      </div>
+      <div class="pcf-pm-check"></div>
+    </div>
+    <div class="pcf-pm-option" id="pcfPmOptQris" onclick="selectPcfPayMethod('qris')">
+      <div class="pcf-pm-opt-left">
+        <div class="pcf-pm-ico">🔳</div>
+        <div class="pcf-pm-text">
+          <div class="pcf-pm-name">QRIS</div>
+          <div class="pcf-pm-sub">Scan QR pakai e-wallet / m-banking apa saja</div>
+        </div>
+      </div>
+      <div class="pcf-pm-check"></div>
+    </div>
+  </div>
+</div>
 <!-- END PPOB SERVICE PAGES -->
 
 <!-- PUSAT INFORMASI / LAYANAN -->
@@ -1461,22 +1736,81 @@ renderBannerSlider();
 
     <!-- STEP 1: LOGIN / DAFTAR -->
     <div id="authStep1">
-      <div class="auth-tabs">
-        <div class="auth-tab active" id="tabMasuk" onclick="switchAuth('masuk')">MASUK</div>
-        <div class="auth-tab" id="tabDaftar" onclick="switchAuth('daftar')">DAFTAR</div>
+      <div class="auth-brand">
+        <div class="auth-logo-badge"><img src="data:image/webp;base64,UklGRpwEAABXRUJQVlA4IJAEAABQEwCdASpAAEAAPpk8lkkloyIhN/gMALATCWwAnTMTAbSIrM2zgzEL3cKbkn/gb5LvNk+m5wfcsnCpegauX1is1HyQ6hrKR43q315iHxtepDP1+20CJ8tJCwhEVUgRn0DaaHZF5pvgtZYn0eNEYuJVVwU0Be0fvPXGnCmOxZ0PO1izuqr8d9sgqGEAzMtN0T9QzAxcklLQMlHozjq6n27zpDYAAP786utBOELeVJU6skrTdFdZSn4f2xHtsnkch8w4MLehl3jqqM3+wgXcWrSHl3DKAXhYC78Ypfe0i/p8WDW9cYTglvIgCvoVfg9KOL5t5xfbSUeIzSYvLMxbew3BMvsAlhrTehfv6A0ekPq78yt89RHuAuQVrlgCUfopYqqvReiAaSMsi4C8l/Qrh5DuTIdZk6e9IADLsOKBqwhWTZm1l1cN0R+AHEs3q2vdW3jNrfyRYs+1sgdg4rMRLyKb2wTykIM2KRCDGxKs1y15+26Kilvi20tLdYOjq+PIT8vL8zecq/wSOHe8ITILRLc4cOQSCxHjC9zfqRAONMsjBYIgDK6ddeFwvyck9RaX0JS5UvX5FjqLhdlfxzieSCKv7H6nob06uda0Zrzzg0ZjKQwNsDw0lufQ0iyOmgiOyRqaWQm9bMOcvVADeUsQA8kjIdZyQyWQjihaTyX+CFlrl96OicgADf3QINykgvNkLkAyJ1p/jgisO41siYUYi0lP1RHjcMn/mz57iTGi0reBW9Rh6Yf8GpEwUw1i5Fd4FKMeRJfuq820Bu0vRpE1euZC9TPrzP9N32fN3eXZUppzOGCAUd4ev4WMji5Tpl6P2nH3pUiUK6zn06noQr35kVGW+3Pvsp794MefoGP3J9iwKc/I39sC6wnvPCfu2YpXf2x8/XnP7aamO1xavSJEdiBLgf4s8YLUP0gTIXQSpcbTZCLLOgFnARnjhui52ybuzjaaxXVv0/PIlR5QoXnHpVtsLJhxXLMH/8sdi5vRdMHPH5wyOIkkW/o6f5ZxDUc6O4o94T8eUA2KF0lY36PbRiK/56LCu7jl13XfBw8YPB+rCR+P6kH7xxf9ld87zTZaX+LH0c2jI6+ksUBW4x0sxY1ZZoEGvrA7bmrDgNjCITuEkm9evdqxhKITAHAstcP2FXxWWEDpBGlJSVOwLiLqLbIVyNJnjHhsLvO1+Owfs2inLtnJI/maI7ZlqFxmJZr/exbIHksr+UB8KREoZMBTCR0yuFLMhbIvAHhEX4ZCIOJgJc7YfNFlRNUrp93ReQ5uHwDaWA3Uhd7Z2NC1/TyfWwIQe6qZshBFmkkexrHGR4uiOc3UXPoFoYmUqSpY+z9/A6PeO0mkXqjC9Mm6idkzAFLzvyunilhe+Cd7VQtqdC9ACgCqf/ztrgywc7AaC7TSJ0oSFFNd2au5fXZby9kYEg4XQVOjKpeXCG4V+a7tgxVcYrOGovCbnQbUuQix9m0bdybTyvWNXoSvZR9naB1QgRHfiIshfTW+5L3nuBZnC23YGAGpxqg+rwaSRD5Mvxk5zejFNP4wCf6MWBCLHrifZgAA" alt="Vinzprostore"></div>
+        <div class="auth-brand-title">VINZPROSTORE</div>
+        <div class="auth-brand-sub">Gerbang Aman Top Up &amp; VIP Mods Kamu</div>
       </div>
-      <div id="authErr" class="auth-err"></div>
-      <div id="formMasuk">
-        <div class="auth-field"><label>Email</label><input type="email" id="loginEmail" placeholder="email@kamu.com"></div>
-        <div class="auth-field"><label>Password</label><div class="pw-wrap"><input type="password" id="loginPass" placeholder="••••••••"><button class="pw-eye" onclick="togglePw('loginPass',this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
-        <span class="lupa-pw" onclick="openResetPw()">Lupa Password?</span>
-        <button class="btn-auth" id="btnLogin" onclick="doLogin()">MASUK SEKARANG</button>
+
+      <div class="auth-glass-card">
+        <div class="auth-tabs" style="display:none">
+          <div class="auth-tab active" id="tabMasuk" onclick="switchAuth('masuk')">MASUK</div>
+          <div class="auth-tab" id="tabDaftar" onclick="switchAuth('daftar')">DAFTAR</div>
+        </div>
+        <div id="authErr" class="auth-err"></div>
+        <div id="formMasuk">
+          <div class="auth-card-head">
+            <h2>Selamat Datang</h2>
+            <p>Masukkan data akun kamu untuk masuk.</p>
+          </div>
+          <div class="auth-field">
+            <label>Email</label>
+            <div class="afi-wrap">
+              <span class="afi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+              <input type="email" id="loginEmail" placeholder="email@kamu.com">
+            </div>
+          </div>
+          <div class="auth-field">
+            <label>Password</label>
+            <div class="pw-wrap afi-wrap">
+              <span class="afi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+              <input type="password" id="loginPass" placeholder="••••••••">
+              <button class="pw-eye" onclick="togglePw('loginPass',this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
+          </div>
+          <div class="auth-remember-row">
+            <label class="arc-lbl"><input type="checkbox" id="rememberDevice">Ingat perangkat ini</label>
+            <span class="lupa-pw" onclick="openResetPw()">Lupa Password?</span>
+          </div>
+          <button class="btn-auth" id="btnLogin" onclick="doLogin()">MASUK</button>
+        </div>
+        <div id="formDaftar" style="display:none">
+          <div class="auth-card-head">
+            <h2>Daftar Akun</h2>
+            <p>Lengkapi data diri kamu untuk memulai.</p>
+          </div>
+          <div class="auth-field">
+            <label>Nama Lengkap</label>
+            <div class="afi-wrap">
+              <span class="afi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+              <input type="text" id="regName" placeholder="Nama kamu">
+            </div>
+          </div>
+          <div class="auth-field">
+            <label>Email</label>
+            <div class="afi-wrap">
+              <span class="afi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+              <input type="email" id="regEmail" placeholder="email@kamu.com">
+            </div>
+          </div>
+          <div class="auth-field">
+            <label>Password</label>
+            <div class="pw-wrap afi-wrap">
+              <span class="afi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+              <input type="password" id="regPass" placeholder="Min. 6 karakter">
+              <button class="pw-eye" onclick="togglePw('regPass',this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            </div>
+          </div>
+          <div class="auth-terms-row">
+            <input type="checkbox" id="agreeTerms">
+            <span>Saya menyetujui <a>Syarat &amp; Ketentuan</a> serta <a>Kebijakan Privasi</a> Vinzprostore.</span>
+          </div>
+          <button class="btn-auth" id="btnRegister" onclick="doRegister()">DAFTAR SEKARANG</button>
+        </div>
       </div>
-      <div id="formDaftar" style="display:none">
-        <div class="auth-field"><label>Nama</label><input type="text" id="regName" placeholder="Nama kamu"></div>
-        <div class="auth-field"><label>Email</label><input type="email" id="regEmail" placeholder="email@kamu.com"></div>
-        <div class="auth-field"><label>Password</label><div class="pw-wrap"><input type="password" id="regPass" placeholder="Min. 6 karakter"><button class="pw-eye" onclick="togglePw('regPass',this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
-        <button class="btn-auth" id="btnRegister" onclick="doRegister()">DAFTAR SEKARANG</button>
+
+      <div class="auth-switch-footer" id="authSwitchFooter">
+        Belum punya akun? <a onclick="switchAuth('daftar')">Daftar Sekarang</a>
       </div>
     </div>
 
@@ -1742,73 +2076,158 @@ renderBannerSlider();
 
 <!-- PENGATURAN AKUN PANEL -->
 <div id="settingsPanel">
-  <div style="background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid var(--accent);padding:12px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;">
-    <button onclick="closePengaturan()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">&#8592;</button>
-    <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#fff;flex:1;">PENGATURAN AKUN</div>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Ganti tema">🌙</button>
+  <div class="pgs-topbar">
+    <button class="pgs-back" onclick="closePengaturan()">&#8592;</button>
+    <div class="pgs-title">PENGATURAN</div>
+    <div class="pgs-header-avatar" id="pgsHeaderAvatar"></div>
   </div>
-  <div style="max-width:480px;margin:0 auto;padding:16px 14px 60px;">
+  <div class="pgs-content">
 
-    <!-- FOTO PROFIL -->
-    <div style="background:var(--card);border-radius:14px;padding:18px 16px;margin-bottom:14px;border:1px solid var(--border);">
-      <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;">Foto Profil</div>
-      <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
-        <div id="setAvatarPreview" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:26px;color:#fff;border:3px solid var(--accent2);overflow:hidden;flex-shrink:0;"></div>
-        <div style="flex:1;">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Klik tombol di bawah untuk pilih foto</div>
-          <input type="file" id="setAvatarInput" accept="image/*" style="display:none;" onchange="setAvatarChange()">
-          <label for="setAvatarInput" style="display:inline-block;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">Pilih Foto</label>
-          <button type="button" onclick="deleteAvatar()" style="display:inline-block;margin-left:6px;background:transparent;border:1.5px solid #ff4d4f;color:#ff4d4f;border-radius:9px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">Hapus Foto</button>
+    <!-- PROFILE CARD -->
+    <div class="pgs-profile-card">
+      <div class="pgs-profile-left">
+        <div class="pgs-avatar-ring"><div class="pgs-avatar-ring-inner" id="pgsProfileAvatar"></div></div>
+        <div style="min-width:0;">
+          <div class="pgs-profile-name" id="pgsProfileName">User</div>
+          <div class="pgs-profile-email" id="pgsProfileEmail">-</div>
         </div>
       </div>
-      <button id="btnSaveAvatar" onclick="saveAvatar()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.8px;">SIMPAN FOTO</button>
+      <div class="pgs-badge">Verified</div>
     </div>
 
-
-
-
-    <!-- GANTI NAMA -->
-    <div style="background:var(--card);border-radius:14px;padding:18px 16px;margin-bottom:14px;border:1px solid var(--border);">
-      <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;">Ganti Nama</div>
-      <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Nama Tampilan</div>
-      <input id="setName" type="text" placeholder="Nama kamu" style="width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:8px;">
-      <div id="setNameErr" style="display:none;font-size:12px;color:var(--danger);margin-bottom:8px;"></div>
-      <button id="btnSaveName" onclick="saveName()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.8px;">SIMPAN NAMA</button>
-    </div>
-
-    <!-- GANTI EMAIL -->
-    <div style="background:var(--card);border-radius:14px;padding:18px 16px;margin-bottom:14px;border:1px solid var(--border);">
-      <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:14px;text-transform:uppercase;letter-spacing:1px;">Ganti Email</div>
-      <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Email Saat Ini</div>
-      <input id="setEmail" type="email" disabled style="width:100%;background:rgba(255,255,255,0.04);border:1.5px solid rgba(106,140,181,0.3);border-radius:9px;padding:10px 13px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:12px;">
-      <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Email Baru</div>
-      <input id="setNewEmail" type="email" placeholder="email.baru@kamu.com" style="width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:8px;">
-      <div id="setEmailErr" style="display:none;font-size:12px;color:var(--danger);margin-bottom:8px;"></div>
-      <button id="btnRequestEmail" onclick="requestEmailChange()" style="width:100%;background:var(--secondary);color:var(--accent2);border:1.5px solid var(--accent);border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:12px;">KIRIM KODE OTP KE EMAIL BARU</button>
-
-      <!-- OTP Section -->
-      <div id="setEmailOtpSection" style="display:none;background:var(--card2);border-radius:12px;padding:14px;border:1px solid var(--border);">
-        <div style="text-align:center;margin-bottom:12px;">
-          <div style="font-size:11px;color:var(--muted);">Kode OTP dikirim ke</div>
-          <div id="setOtpTarget" style="font-size:13px;font-weight:700;color:var(--accent2);"></div>
+    <!-- AKUN -->
+    <div class="pgs-section">
+      <div class="pgs-section-title">Akun</div>
+      <div class="pgs-card">
+        <div class="pgs-item" onclick="pgsToggleEditProfile()">
+          <div class="pgs-item-left"><span class="pgs-ico">👤</span><span>Edit Profil</span></div>
+          <span class="pgs-chevron" id="pgsEditProfileChevron">›</span>
         </div>
-        <div style="position:relative;display:flex;gap:6px;justify-content:center;margin-bottom:10px;" onclick="document.getElementById('setotpHidden').focus()">
-          <input id="setotpHidden" type="tel" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
-            style="position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;z-index:10;font-size:16px;border:none;background:transparent;cursor:pointer;"
-            oninput="otpHiddenInput('setotp')" onkeydown="otpHiddenBack(event,'setotp')">
-          <div class="otp-input" id="setotp0" style="width:38px;height:46px;font-size:20px;"></div>
-          <div class="otp-input" id="setotp1" style="width:38px;height:46px;font-size:20px;"></div>
-          <div class="otp-input" id="setotp2" style="width:38px;height:46px;font-size:20px;"></div>
-          <div class="otp-input" id="setotp3" style="width:38px;height:46px;font-size:20px;"></div>
-          <div class="otp-input" id="setotp4" style="width:38px;height:46px;font-size:20px;"></div>
-          <div class="otp-input" id="setotp5" style="width:38px;height:46px;font-size:20px;"></div>
+        <div id="pgsEditProfileBody" class="pgs-editbody">
+
+          <!-- FOTO PROFIL -->
+          <div style="font-size:11px;font-weight:700;color:var(--accent2);margin:10px 0 10px;text-transform:uppercase;letter-spacing:1px;">Foto Profil</div>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
+            <div id="setAvatarPreview" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;color:#fff;border:3px solid var(--accent2);overflow:hidden;flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Klik tombol di bawah untuk pilih foto</div>
+              <input type="file" id="setAvatarInput" accept="image/*" style="display:none;" onchange="setAvatarChange()">
+              <label for="setAvatarInput" style="display:inline-block;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">Pilih Foto</label>
+              <button type="button" onclick="deleteAvatar()" style="display:inline-block;margin-left:6px;background:transparent;border:1.5px solid #ff4d4f;color:#ff4d4f;border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">Hapus Foto</button>
+            </div>
+          </div>
+          <button id="btnSaveAvatar" onclick="saveAvatar()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:18px;">SIMPAN FOTO</button>
+
+          <!-- GANTI NAMA -->
+          <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Ganti Nama</div>
+          <input id="setName" type="text" placeholder="Nama kamu" style="width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:8px;">
+          <div id="setNameErr" style="display:none;font-size:12px;color:var(--danger);margin-bottom:8px;"></div>
+          <button id="btnSaveName" onclick="saveName()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:18px;">SIMPAN NAMA</button>
+
+          <!-- GANTI EMAIL -->
+          <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Ganti Email</div>
+          <div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Email Saat Ini</div>
+          <input id="setEmail" type="email" disabled style="width:100%;background:rgba(255,255,255,0.04);border:1.5px solid rgba(106,140,181,0.3);border-radius:9px;padding:10px 13px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:12px;">
+          <div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Email Baru</div>
+          <input id="setNewEmail" type="email" placeholder="email.baru@kamu.com" style="width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:8px;">
+          <div id="setEmailErr" style="display:none;font-size:12px;color:var(--danger);margin-bottom:8px;"></div>
+          <button id="btnRequestEmail" onclick="requestEmailChange()" style="width:100%;background:var(--secondary);color:var(--accent2);border:1.5px solid var(--accent);border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:12px;">KIRIM KODE OTP KE EMAIL BARU</button>
+
+          <!-- OTP Section -->
+          <div id="setEmailOtpSection" style="display:none;background:var(--card2);border-radius:12px;padding:14px;border:1px solid var(--border);">
+            <div style="text-align:center;margin-bottom:12px;">
+              <div style="font-size:11px;color:var(--muted);">Kode OTP dikirim ke</div>
+              <div id="setOtpTarget" style="font-size:13px;font-weight:700;color:var(--accent2);"></div>
+            </div>
+            <div style="position:relative;display:flex;gap:6px;justify-content:center;margin-bottom:10px;" onclick="document.getElementById('setotpHidden').focus()">
+              <input id="setotpHidden" type="tel" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+                style="position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;z-index:10;font-size:16px;border:none;background:transparent;cursor:pointer;"
+                oninput="otpHiddenInput('setotp')" onkeydown="otpHiddenBack(event,'setotp')">
+              <div class="otp-input" id="setotp0" style="width:38px;height:46px;font-size:20px;"></div>
+              <div class="otp-input" id="setotp1" style="width:38px;height:46px;font-size:20px;"></div>
+              <div class="otp-input" id="setotp2" style="width:38px;height:46px;font-size:20px;"></div>
+              <div class="otp-input" id="setotp3" style="width:38px;height:46px;font-size:20px;"></div>
+              <div class="otp-input" id="setotp4" style="width:38px;height:46px;font-size:20px;"></div>
+              <div class="otp-input" id="setotp5" style="width:38px;height:46px;font-size:20px;"></div>
+            </div>
+            <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:10px;">
+              Tidak dapat kode? <span id="setResendArea"></span>
+            </div>
+            <button id="btnVerifyEmail" onclick="verifyEmailChange()" style="width:100%;background:var(--success);color:#000;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;">VERIFIKASI &amp; UBAH EMAIL</button>
+          </div>
         </div>
-        <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:10px;">
-          Tidak dapat kode? <span id="setResendArea"></span>
+
+        <div class="pgs-item" onclick="showNotif('🔒 Ubah password segera hadir')">
+          <div class="pgs-item-left"><span class="pgs-ico">🔑</span><span>Ubah Password</span></div>
+          <span class="pgs-chevron">›</span>
         </div>
-        <button id="btnVerifyEmail" onclick="verifyEmailChange()" style="width:100%;background:var(--success);color:#000;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;">VERIFIKASI &amp; UBAH EMAIL</button>
+        <div class="pgs-item" onclick="showNotif('🪪 Verifikasi identitas segera hadir')">
+          <div class="pgs-item-left"><span class="pgs-ico">🛡️</span><span>Verifikasi Identitas</span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
       </div>
     </div>
+
+    <!-- KEAMANAN -->
+    <div class="pgs-section">
+      <div class="pgs-section-title">Keamanan</div>
+      <div class="pgs-card">
+        <div class="pgs-item">
+          <div class="pgs-item-left"><span class="pgs-ico">🛡️</span><span>Autentikasi Dua Faktor</span></div>
+          <button type="button" class="pgs-toggle" id="pgs2FAToggle" onclick="pgsToggle2FA()"><span class="pgs-toggle-knob"></span></button>
+        </div>
+        <div class="pgs-item" onclick="showNotif('🔢 PIN transaksi segera hadir')">
+          <div class="pgs-item-left"><span class="pgs-ico">🔢</span><span>PIN Transaksi</span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
+        <div class="pgs-item" onclick="showNotif('👆 Biometrik segera hadir')">
+          <div class="pgs-item-left"><span class="pgs-ico">👆</span><span>Biometrik</span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREFERENSI -->
+    <div class="pgs-section">
+      <div class="pgs-section-title">Preferensi</div>
+      <div class="pgs-card">
+        <div class="pgs-item" onclick="showNotif('🌐 Saat ini baru tersedia Bahasa Indonesia')">
+          <div class="pgs-item-left"><span class="pgs-ico">🌐</span><span class="pgs-label">Bahasa<span class="pgs-sub">Bahasa Indonesia</span></span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
+        <div class="pgs-item" onclick="toggleTheme();pgsSyncTheme();">
+          <div class="pgs-item-left"><span class="pgs-ico">🌙</span><span class="pgs-label">Tema<span class="pgs-sub" id="pgsThemeSub">Gelap</span></span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
+        <div class="pgs-item" onclick="showNotif('🔔 Pengaturan notifikasi segera hadir')">
+          <div class="pgs-item-left"><span class="pgs-ico">🔔</span><span>Notifikasi</span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAINNYA -->
+    <div class="pgs-section">
+      <div class="pgs-section-title">Lainnya</div>
+      <div id="settingsQuickMenu" class="pgs-card" style="margin-bottom:14px;"></div>
+      <div class="pgs-card">
+        <div class="pgs-item" onclick="closePengaturan();openPusatInfo('faq')">
+          <div class="pgs-item-left"><span class="pgs-ico">❓</span><span>Pusat Bantuan</span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
+        <div class="pgs-item" onclick="closePengaturan();openPusatInfo('syarat')">
+          <div class="pgs-item-left"><span class="pgs-ico">📄</span><span>Syarat &amp; Ketentuan</span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
+        <div class="pgs-item" onclick="closePengaturan();openPusatInfo()">
+          <div class="pgs-item-left"><span class="pgs-ico">ℹ️</span><span>Tentang Vinzprostore</span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="pgs-logout" onclick="doLogout()">Keluar Akun</button>
+    <div class="pgs-version">Vinzprostore</div>
 
   </div>
 </div>
@@ -1896,6 +2315,7 @@ window._sb = _sb;
 const ADMIN_EMAIL = 'alpintandjung@gmail.com';
 let currentUser = null;
 try { currentUser = JSON.parse(localStorage.getItem('vp_user') || 'null'); } catch(e) {}
+let authGateActive = false; // true selama gerbang wajib login/daftar di awal masih aktif
 let currentTab = 'semua';
 let selProdId = null, selVarIdx = 0, qty = 1;
 
@@ -2084,30 +2504,9 @@ function showNotif(msg, color) {
 // ══════════════════════════════
 function renderHeader() {
   const r = document.getElementById('hdrRight');
-  if (!currentUser) {
-    r.innerHTML = `<button class="btn-masuk" onclick="openAuth('masuk')">MASUK</button>
-                   <button class="btn-daftar" onclick="openAuth('daftar')">DAFTAR</button>`;
-  } else {
-    const initials = currentUser.name ? currentUser.name[0].toUpperCase() : 'U';
-    const isAdmin = currentUser.email === ADMIN_EMAIL;
-    const avatarInner = currentUser.avatarData
-      ? `<img src="${currentUser.avatarData}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-      : initials;
-    r.innerHTML = `<div class="avatar-wrap">
-      <div style="display:flex;align-items:center;gap:4px;">
-        <div class="avatar">${avatarInner}</div>
-        <button class="dots-btn" onclick="toggleDropdown(event)">⋮</button>
-      </div>
-      <div class="dropdown" id="userDropdown">
-        <div class="dd-user"><strong>${currentUser.name || 'User'}</strong>${currentUser.email}</div>
-        ${isAdmin ? `<button class="dd-item admin-item" onclick="openAdmin()">Menu Admin</button>` : ''}
-        ${isAdmin ? `<button class="dd-item admin-item" onclick="window.__openNonton()">Nonton</button>` : ''}
-        <button class="dd-item" onclick="window.__showRiwayat()">Riwayat Order</button>
-        <button class="dd-item" onclick="showPengaturan()">Pengaturan Akun</button>
-        <button class="dd-item danger" onclick="doLogout()">Logout</button>
-      </div>
-    </div>`;
-  }
+  // Avatar bulat di pojok kanan atas dihapus sesuai permintaan.
+  // Navigasi ke Profil/Pengaturan cukup lewat tombol "Profil" di bottom nav.
+  r.innerHTML = '';
 }
 
 function toggleDropdown(e) {
@@ -2148,6 +2547,12 @@ function switchAuth(mode) {
   document.getElementById('tabMasuk').classList.toggle('active', mode === 'masuk');
   document.getElementById('tabDaftar').classList.toggle('active', mode === 'daftar');
   document.getElementById('authErr').style.display = 'none';
+  const foot = document.getElementById('authSwitchFooter');
+  if (foot) {
+    foot.innerHTML = mode === 'masuk'
+      ? 'Belum punya akun? <a onclick="switchAuth(\'daftar\')">Daftar Sekarang</a>'
+      : 'Sudah punya akun? <a onclick="switchAuth(\'masuk\')">Masuk di sini</a>';
+  }
 }
 function showAuthErr(msg) {
   const el = document.getElementById('authErr');
@@ -2192,6 +2597,7 @@ async function doLogin() {
       }
     }
     localStorage.setItem('vp_user', JSON.stringify(currentUser));
+    authGateActive = false;
     document.getElementById('authOverlay').classList.remove('open');
     renderHeader();
     showNotif('✅ Selamat datang, ' + currentUser.name + '!');
@@ -2550,6 +2956,7 @@ async function doVerifyOTP() {
   } catch(e) { showAuthErr2('Error: ' + e.message); return; }
 
   if (otpCountdownTimer) clearInterval(otpCountdownTimer);
+  authGateActive = false;
   document.getElementById('authOverlay').classList.remove('open');
   document.getElementById('authStep1').style.display = 'block';
   document.getElementById('authStep2').style.display = 'none';
@@ -2585,6 +2992,12 @@ function doLogout() {
   try { _sb.auth.signOut(); } catch(e) {}
   renderHeader();
   showNotif('👋 Berhasil logout!');
+  // Tutup panel Pengaturan lalu arahkan otomatis ke halaman login
+  if (typeof closePengaturan === 'function') closePengaturan();
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  const bnBeranda = document.getElementById('bnBeranda');
+  if (bnBeranda) bnBeranda.classList.add('active');
+  setTimeout(() => { openAuth('masuk'); }, 250);
 }
 function showRiwayat() { showNotif('📋 Belum ada riwayat order.'); }
 
@@ -2614,6 +3027,49 @@ function showPengaturan() {
     const initials = (currentUser.name || 'U')[0].toUpperCase();
     av.innerHTML = `<span style="font-size:26px;font-weight:900;">${initials}</span>`;
   }
+  // Menu akun cepat (Menu Admin / Nonton / Riwayat Order)
+  const isAdmin = currentUser.email === ADMIN_EMAIL;
+  const qm = document.getElementById('settingsQuickMenu');
+  if (qm) {
+    qm.innerHTML = `
+      ${isAdmin ? `<button class="dd-item admin-item" onclick="openAdmin()">Menu Admin</button>` : ''}
+      ${isAdmin ? `<button class="dd-item admin-item" onclick="window.__openNonton()">Nonton</button>` : ''}
+      <button class="dd-item" onclick="window.__showRiwayat()">Riwayat Order</button>
+    `;
+  }
+
+  // Kartu profil & avatar header (redesign Pengaturan)
+  const pgsName = currentUser.name || 'User';
+  const pgsEmail = currentUser.email || '-';
+  const pgsInitial = pgsName[0].toUpperCase();
+  const pgsAvatarHtml = settingsAvatarData
+    ? `<img src="${settingsAvatarData}" alt="Avatar">`
+    : `<span>${pgsInitial}</span>`;
+  const pgsNameEl = document.getElementById('pgsProfileName');
+  const pgsEmailEl = document.getElementById('pgsProfileEmail');
+  const pgsAvatarEl = document.getElementById('pgsProfileAvatar');
+  const pgsHeaderAvatarEl = document.getElementById('pgsHeaderAvatar');
+  if (pgsNameEl) pgsNameEl.textContent = pgsName;
+  if (pgsEmailEl) pgsEmailEl.textContent = pgsEmail;
+  if (pgsAvatarEl) pgsAvatarEl.innerHTML = pgsAvatarHtml;
+  if (pgsHeaderAvatarEl) pgsHeaderAvatarEl.innerHTML = pgsAvatarHtml;
+
+  // Sinkron toggle 2FA (kosmetik, tersimpan per akun di localStorage)
+  try {
+    const pgs2fa = document.getElementById('pgs2FAToggle');
+    if (pgs2fa) {
+      const on = localStorage.getItem('vp_2fa_' + currentUser.email) === '1';
+      pgs2fa.classList.toggle('on', on);
+    }
+  } catch(e){}
+
+  // Sinkron label tema & tutup panel Edit Profil setiap dibuka ulang
+  pgsSyncTheme();
+  const pgsEditBody = document.getElementById('pgsEditProfileBody');
+  const pgsEditChevron = document.getElementById('pgsEditProfileChevron');
+  if (pgsEditBody) pgsEditBody.classList.remove('open');
+  if (pgsEditChevron) pgsEditChevron.textContent = '›';
+
   const sp = document.getElementById('settingsPanel');
   sp.classList.add('open');
   // Lock body posisi & simpan scroll → cegah overscroll nembus ke menu utama
@@ -2649,6 +3105,26 @@ function closePengaturan() {
     window.__settingsScrollY = null;
   }
   if (settingsOtpTimer) clearInterval(settingsOtpTimer);
+}
+
+// ── Redesign Pengaturan: helper UI ──
+function pgsToggleEditProfile(){
+  const body = document.getElementById('pgsEditProfileBody');
+  const chev = document.getElementById('pgsEditProfileChevron');
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  if (chev) chev.textContent = open ? '⌄' : '›';
+}
+function pgsToggle2FA(){
+  const btn = document.getElementById('pgs2FAToggle');
+  if (!btn) return;
+  const on = btn.classList.toggle('on');
+  try { if (currentUser) localStorage.setItem('vp_2fa_' + currentUser.email, on ? '1' : '0'); } catch(e){}
+  showNotif(on ? '🛡️ Autentikasi dua faktor diaktifkan' : '⛔ Autentikasi dua faktor dimatikan');
+}
+function pgsSyncTheme(){
+  const sub = document.getElementById('pgsThemeSub');
+  if (sub) sub.textContent = document.body.classList.contains('light-mode') ? 'Terang' : 'Gelap';
 }
 
 function setAvatarChange() {
@@ -3589,6 +4065,12 @@ function apDeleteProd(id) {
 // ══════════════════════════════
 async function initApp() {
   renderHeader();
+
+  // Wajib login/daftar dulu sebelum bisa lanjut ke beranda
+  if (!currentUser) {
+    authGateActive = true;
+    openAuth('masuk');
+  }
 
   // Load settings (wa, ticker)
   try {
@@ -4942,28 +5424,53 @@ function doPesan(){
      RIWAYAT PEMBELIAN PANEL + ADMIN TRANSAKSI + WA ORDER FLOW
      ════════════════════════════════════════════ -->
 <style>
-#riwayatPanel{display:none;position:fixed;inset:0;background:#07111f;z-index:380;overflow-y:auto;}
-#riwayatPanel.open{display:block;}
-.riw-card{background:linear-gradient(180deg,#0d1f3c,#0a1a30);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px;}
-.riw-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
-.riw-id{font-family:'JetBrains Mono','Orbitron',monospace;font-size:11px;color:var(--accent2);font-weight:700;}
-.riw-time{font-size:10px;color:var(--muted);font-style:italic;font-family:'Orbitron',sans-serif;}
-.riw-row{display:flex;gap:12px;align-items:center;}
-.riw-thumb{width:64px;height:64px;border-radius:12px;background:#000;display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0;overflow:hidden;border:1px solid var(--border);}
-.riw-thumb img{width:100%;height:100%;object-fit:cover;}
-.riw-info{flex:1;min-width:0;}
-.riw-pname{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;color:#fff;margin-bottom:4px;}
-.riw-meta{font-size:10px;color:var(--accent2);font-weight:700;text-transform:uppercase;letter-spacing:.6px;line-height:1.4;}
-.riw-price{font-family:'Orbitron',sans-serif;font-weight:900;font-size:15px;color:#fff;text-align:right;white-space:nowrap;}
-.riw-badges{display:flex;gap:6px;flex-wrap:wrap;}
-.riw-badge{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;padding:4px 9px;border-radius:6px;letter-spacing:.8px;}
-.riw-b-menunggu{background:rgba(255,180,0,.15);color:#ffb400;border:1px solid #ffb400;}
-.riw-b-sukses{background:rgba(0,255,136,.15);color:#00ff88;border:1px solid #00ff88;}
-.riw-b-batal{background:rgba(255,68,85,.15);color:#ff4455;border:1px solid #ff4455;}
-.riw-b-kadaluwarsa{background:rgba(150,150,150,.15);color:#aaa;border:1px solid #888;}
-.riw-b-wa{background:rgba(37,211,102,.15);color:#25D366;border:1px solid #25D366;}
-.riw-b-qris{background:rgba(26,111,255,.18);color:#1a6fff;border:1px solid #1a6fff;}
-.riw-b-saldo{background:rgba(247,181,0,.15);color:#f7b500;border:1px solid #f7b500;}
+#riwayatPanel{display:none;position:fixed;inset:0;background:#0a0a0f;z-index:380;overflow-y:auto;}
+#riwayatPanel.open{display:block;animation:fsSlideIn .3s ease;}
+#riwayatPanel.open ~ .bottom-nav{z-index:400;}
+
+/* ===== RIWAYAT: header ala PAYCORE (avatar, brand, bell) ===== */
+.riw-header{padding:22px 16px 6px;display:flex;align-items:center;justify-content:space-between;}
+.riw-header-left{display:flex;align-items:center;gap:11px;}
+.riw-bell{position:relative;width:42px;height:42px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text);cursor:pointer;background:transparent;flex-shrink:0;}
+.riw-bell:active{transform:scale(.94);}
+.riw-bell-dot{position:absolute;top:7px;right:8px;width:8px;height:8px;border-radius:50%;background:#facc15;box-shadow:0 0 0 2px #0a0a0f;}
+.riw-page-title{font-family:'Rajdhani',sans-serif;font-weight:800;font-size:32px;color:#fff;padding:16px 16px 20px;letter-spacing:.2px;line-height:1.1;}
+.riw-body{max-width:520px;margin:0 auto;padding:0 16px 100px;}
+
+/* toolbar card: search + periode + tabs, dibungkus satu card sesuai foto */
+.riw-toolbar-card{background:rgba(255,255,255,0.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:18px;margin-bottom:20px;}
+.riw-search-box{display:flex;align-items:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:0 14px;margin-bottom:12px;}
+.riw-search-box .riw-search-ic{font-size:14px;color:rgba(255,255,255,0.3);margin-right:9px;flex-shrink:0;}
+.riw-search-box input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;font-size:14px;padding:13px 0;font-family:'Rajdhani',sans-serif;}
+.riw-search-box input::placeholder{color:rgba(255,255,255,0.3);}
+.riw-periode-btn{display:flex;align-items:center;gap:8px;width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:13px 14px;color:rgba(255,255,255,0.55);font-size:13.5px;font-weight:600;cursor:pointer;font-family:'Rajdhani',sans-serif;margin-bottom:14px;text-align:left;}
+.riw-periode-btn:active{color:#fff;border-color:rgba(255,255,255,0.2);}
+.riw-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin:0 -18px;padding-left:18px;padding-right:18px;}
+.riw-tabs::-webkit-scrollbar{display:none;}
+.riw-tab{flex-shrink:0;background:rgba(255,255,255,0.05);border:1px solid transparent;color:rgba(255,255,255,0.5);font-size:13px;font-weight:700;padding:9px 18px;border-radius:10px;cursor:pointer;white-space:nowrap;font-family:'Rajdhani',sans-serif;transition:.2s;}
+.riw-tab.active{background:#3b82f6;color:#fff;box-shadow:0 4px 14px rgba(59,130,246,0.3);}
+.riw-tab:active{color:#fff;}
+
+/* kartu transaksi ala foto: judul + badge status, tanggal + nominal */
+.riw-card{background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:18px;margin-bottom:14px;cursor:pointer;transition:.15s;}
+.riw-card:active{transform:scale(.98);background:rgba(255,255,255,0.06);}
+.riw-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px;}
+.riw-card-title{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;color:#fff;line-height:1.3;}
+.riw-status-pill{flex-shrink:0;font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;border:1px solid;white-space:nowrap;font-family:'Rajdhani',sans-serif;}
+.riw-status-sukses{background:rgba(34,197,94,.1);color:#4ade80;border-color:rgba(34,197,94,.25);}
+.riw-status-pending{background:rgba(234,179,8,.1);color:#facc15;border-color:rgba(234,179,8,.25);}
+.riw-status-gagal{background:rgba(239,68,68,.1);color:#f87171;border-color:rgba(239,68,68,.25);}
+.riw-card-bottom{display:flex;align-items:center;justify-content:space-between;}
+.riw-card-date{font-size:13.5px;color:rgba(255,255,255,0.4);font-weight:500;}
+.riw-card-amount{font-size:19px;color:#fff;font-weight:700;}
+
+.riw-pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;}
+.riw-page-btn{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-family:'Rajdhani',sans-serif;font-weight:700;}
+.riw-page-btn.active{background:#3b82f6;color:#fff;box-shadow:0 4px 14px rgba(59,130,246,0.3);border-color:transparent;}
+.riw-page-btn:active{border-color:rgba(255,255,255,0.2);}
+.riw-page-btn:disabled{opacity:.35;cursor:default;}
+.riw-empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.riw-empty-ic{font-size:48px;margin-bottom:12px;}
 /* SALDO LOADING OVERLAY */
 #saldoLoadOv{display:none;position:fixed;inset:0;background:rgba(2,8,15,.88);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;}
 #saldoLoadOv.show{display:flex;}
@@ -4974,15 +5481,6 @@ function doPesan(){
 .sl-sub{font-size:11px;color:#7faedf;letter-spacing:.5px;}
 .sl-dots::after{content:'';animation:sldots 1.2s steps(4,end) infinite;}
 @keyframes sldots{0%{content:'';}25%{content:'.';}50%{content:'..';}75%{content:'...';}100%{content:'';}}
-.riw-divider{height:1px;background:var(--border);margin:12px 0;}
-.riw-keybox{background:#02080f;border:1px dashed var(--accent);border-radius:9px;padding:10px;}
-.riw-keylabel{font-size:10px;color:var(--accent2);font-weight:900;letter-spacing:.8px;margin-bottom:6px;font-family:'Orbitron',sans-serif;}
-.riw-keyval{font-family:'JetBrains Mono',monospace;font-size:12px;color:#00ff88;word-break:break-all;line-height:1.5;}
-.riw-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
-.riw-copy{background:rgba(0,255,136,.15);border:1px solid #00ff88;color:#00ff88;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:6px 12px;border-radius:7px;cursor:pointer;letter-spacing:.6px;}
-.riw-bayarwa{background:#25D366;border:none;color:#fff;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;padding:8px 14px;border-radius:8px;cursor:pointer;letter-spacing:.6px;display:flex;align-items:center;gap:6px;}
-.riw-empty{text-align:center;padding:40px 20px;color:var(--muted);}
-.riw-empty-ic{font-size:48px;margin-bottom:12px;}
 /* admin trx */
 .atrx-item{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;}
 .atrx-row1{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;}
@@ -4999,14 +5497,37 @@ function doPesan(){
 
 <!-- RIWAYAT PEMBELIAN PANEL -->
 <div id="riwayatPanel">
-  <div style="background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid var(--accent);padding:12px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;">
-    <button onclick="closeRiwayat()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">&#8592;</button>
-    <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:#fff;flex:1;">RIWAYAT PEMBELIAN</div>
-    <button onclick="renderRiwayat()" style="background:rgba(26,111,255,.18);border:1px solid var(--accent);color:var(--accent);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:14px;" title="Refresh">↻</button>
+  <div class="riw-header">
+    <div class="riw-header-left">
+      <div class="pc-avatar">P</div>
+      <div class="pc-brand-title" style="font-size:20px;">PAYCORE</div>
+    </div>
+    <button class="riw-bell" onclick="showNotif('🔔 Belum ada notifikasi baru.')" aria-label="Notifikasi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="riw-bell-dot"></span>
+    </button>
   </div>
-  <div style="max-width:520px;margin:0 auto;padding:16px 14px 80px;">
-    <div class="sec-title" style="margin-bottom:14px;">RIWAYAT PEMBELIAN</div>
+  <h1 class="riw-page-title">Riwayat Transaksi</h1>
+  <div class="riw-body">
+    <div class="riw-toolbar-card">
+      <div class="riw-search-box">
+        <span class="riw-search-ic">🔍</span>
+        <input type="text" id="riwSearchInput" placeholder="Cari transaksi..." oninput="window.riwOnSearchInput()">
+      </div>
+      <button class="riw-periode-btn" onclick="showNotif('📅 Filter periode segera hadir.')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" style="flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Periode
+      </button>
+      <div class="riw-tabs">
+        <button class="riw-tab active" onclick="window.setRiwFilter('semua',this)">Semua</button>
+        <button class="riw-tab" onclick="window.setRiwFilter('pulsa',this)">Pulsa</button>
+        <button class="riw-tab" onclick="window.setRiwFilter('pln',this)">PLN</button>
+        <button class="riw-tab" onclick="window.setRiwFilter('game',this)">Game</button>
+        <button class="riw-tab" onclick="window.setRiwFilter('e-wallet',this)">E-Wallet</button>
+      </div>
+    </div>
     <div id="riwList"></div>
+    <div class="riw-pagination" id="riwPagination"></div>
   </div>
 </div>
 
@@ -5098,6 +5619,41 @@ function doPesan(){
   }
   function rp(n){ return 'Rp '+Number(n||0).toLocaleString('id-ID'); }
 
+  function riwCategoryOf(t){
+    const s = ((t.productName||'')+' '+(t.variantName||'')+' '+(t.prod||'')).toLowerCase();
+    if (/pulsa|telkomsel|\bxl\b|indosat|\btri\b|axis|smartfren/.test(s)) return 'pulsa';
+    if (/pln|token listrik|listrik/.test(s)) return 'pln';
+    if (/e-?wallet|gopay|ovo|dana|shopeepay|linkaja/.test(s)) return 'e-wallet';
+    return 'game';
+  }
+  function riwGoPage(p){
+    window.__riwPage = p;
+    renderRiwayat();
+    const panel = document.getElementById('riwayatPanel');
+    if (panel) panel.scrollTo({top:0, behavior:'smooth'});
+  }
+  function renderRiwPagination(totalItems, page, totalPages){
+    const pg = document.getElementById('riwPagination');
+    if (!pg) return;
+    if (totalItems <= 0 || totalPages <= 1){ pg.innerHTML = ''; return; }
+    let html = `<button class="riw-page-btn" ${page<=1?'disabled':''} onclick="window.riwGoPage(${page-1})">‹</button>`;
+    for (let i=1; i<=totalPages; i++){
+      html += `<button class="riw-page-btn ${i===page?'active':''}" onclick="window.riwGoPage(${i})">${i}</button>`;
+    }
+    html += `<button class="riw-page-btn" ${page>=totalPages?'disabled':''} onclick="window.riwGoPage(${page+1})">›</button>`;
+    pg.innerHTML = html;
+  }
+  function setRiwFilter(cat, btn){
+    window.__riwFilter = cat;
+    window.__riwPage = 1;
+    document.querySelectorAll('.riw-tab').forEach(b=>b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderRiwayat();
+  }
+  function riwOnSearchInput(){
+    window.__riwPage = 1;
+    renderRiwayat();
+  }
   function renderRiwayat(){
     const u = _getUser();
     if (!u) return;
@@ -5110,112 +5666,53 @@ function doPesan(){
         <div style="font-family:'Orbitron',sans-serif;font-weight:700;color:#fff;margin-bottom:6px;">BELUM ADA RIWAYAT</div>
         <div style="font-size:12px;">Order pertama kamu akan muncul di sini.</div>
       </div>`;
+      renderRiwPagination(0, 1, 1);
       return;
     }
-    el.innerHTML = list.map(t => {
+    const searchVal = (document.getElementById('riwSearchInput')?.value || '').toLowerCase().trim();
+    const activeFilter = window.__riwFilter || 'semua';
+    const filtered = list.filter(t => {
+      const hay = ((t.productName||'')+' '+(t.variantName||'')+' '+(t.prod||'')).toLowerCase();
+      const matchesSearch = !searchVal || hay.includes(searchVal);
+      const matchesFilter = activeFilter === 'semua' || riwCategoryOf(t) === activeFilter;
+      return matchesSearch && matchesFilter;
+    });
+    const pageSize = 5;
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+    if (!window.__riwPage) window.__riwPage = 1;
+    if (window.__riwPage > totalPages) window.__riwPage = totalPages;
+    if (window.__riwPage < 1) window.__riwPage = 1;
+    if (!filtered.length){
+      el.innerHTML = `<div class="riw-empty">
+        <div class="riw-empty-ic">🔍</div>
+        <div style="font-family:'Orbitron',sans-serif;font-weight:700;color:#fff;margin-bottom:6px;">TIDAK ADA HASIL</div>
+        <div style="font-size:12px;">Coba ubah kata kunci atau filter.</div>
+      </div>`;
+      renderRiwPagination(0, 1, 1);
+      return;
+    }
+    const pageItems = filtered.slice((window.__riwPage-1)*pageSize, window.__riwPage*pageSize);
+    el.innerHTML = pageItems.map(t => {
       const st = (t.status||'menunggu').toLowerCase();
-      const mt = (t.method||'QRIS').toUpperCase();
-      const stBadge = st==='sukses' ? '<span class="riw-badge riw-b-sukses">SUKSES</span>'
-                    : st==='batal'  ? '<span class="riw-badge riw-b-batal">BATAL</span>'
-                    : st==='kadaluwarsa' ? '<span class="riw-badge riw-b-kadaluwarsa">KADALUWARSA</span>'
-                                    : '<span class="riw-badge riw-b-menunggu">MENUNGGU</span>';
-      const mtBadge = mt==='WA' ? '<span class="riw-badge riw-b-wa">WA</span>'
-                    : mt==='SALDO' ? '<span class="riw-badge riw-b-saldo">SALDO</span>'
-                                : '<span class="riw-badge riw-b-qris">QRIS</span>';
-      const thumb = t.img ? `<img src="${t.img}" onerror="this.parentNode.innerHTML='${(t.emoji||'📦').replace(/'/g,'')}'">` : (t.emoji||'📦');
+      const statusMeta = st==='sukses' ? {label:'Sukses', cls:'sukses'}
+                        : st==='menunggu' ? {label:'Pending', cls:'pending'}
+                                    : {label:'Gagal', cls:'gagal'}; // batal / kadaluwarsa
       const totalRp = rp((t.price||0) * (t.qty||1));
-      const keyBox = (st==='sukses' && t.key) ? `
-        <div class="riw-divider"></div>
-        <div class="riw-keybox">
-          <div class="riw-keylabel">🔑 KEY KAMU</div>
-          <div class="riw-keyval" id="rk_${t.id.replace(/[^a-z0-9]/gi,'')}">${t.key}</div>
-          <div style="margin-top:8px;text-align:right;">
-            <button class="riw-copy" onclick="window.__riwCopy('${t.id.replace(/[^a-z0-9]/gi,'')}', this)">📋 SALIN KEY</button>
-          </div>
-        </div>` : '';
-      const waBtn = (st==='menunggu' && mt==='WA') ? `
-        <div class="riw-divider"></div>
-        <div class="riw-actions">
-          <div style="font-size:11px;color:var(--muted);">Belum dibayar? Hubungi WA:</div>
-          <button class="riw-bayarwa" onclick="window.__riwOpenWa('${t.id}')">💬 CHAT WA</button>
-        </div>` : '';
-      const qrisBtn = (st==='menunggu' && mt==='QRIS') ? (() => {
-        const elapsed = Date.now() - (t.ts||0);
-        const sisaSec = Math.max(0, Math.floor((600000 - elapsed) / 1000));
-        const expired = sisaSec <= 0;
-        const safeId = t.id.replace(/^#/,'');
-        if (expired) {
-          setTimeout(() => {
-            try {
-              const _u = JSON.parse(localStorage.getItem('vp_user')||'null');
-              if (_u?.email) {
-                const lk = 'vp_riw_'+_u.email;
-                let cur = JSON.parse(localStorage.getItem(lk)||'[]');
-                const idx = cur.findIndex(x => x.id.replace(/^#/,'') === safeId);
-                if (idx !== -1 && cur[idx].status === 'menunggu') {
-                  cur[idx].status = 'kadaluwarsa';
-                  localStorage.setItem(lk, JSON.stringify(cur));
-                  if (typeof window.renderRiwayat==='function') window.renderRiwayat();
-                }
-              }
-            } catch(_){}
-          }, 100);
-        }
-        return `<div class="riw-divider"></div>
-        <div class="riw-actions" id="qrisact_${safeId}">
-          ${expired
-            ? `<div style="font-size:11px;color:#ff4455;">⚠️ QR sudah kadaluwarsa</div>`
-            : `<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Sisa waktu: <span class="riw-qris-timer" id="qtimer_${safeId}" data-ts="${t.ts||0}" style="color:#00d4ff;font-family:'Orbitron',sans-serif;font-weight:700;">--:--</span></div>
-               <button onclick="window.__riwBayarQris('${safeId}')" style="width:100%;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#1a6fff,#1559d6);color:#fff;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:12px;letter-spacing:1.5px;cursor:pointer;">💳 LANJUT BAYAR QRIS</button>`
-          }
-        </div>`;
-      })() : '';
-      const detailBtn = (st==='sukses') ? `
-        <div class="riw-divider"></div>
-        <button onclick="window.__riwDetail(${JSON.stringify(t).replace(/"/g,'&quot;')})" style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(26,111,255,.4);background:rgba(26,111,255,.08);color:#1a6fff;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:12px;letter-spacing:1.5px;cursor:pointer;">🧾 LIHAT DETAIL</button>` : '';
-      return `<div class="riw-card">
-        <div class="riw-head">
-          <div>
-            <div class="riw-id">#${t.id.replace(/^#/,'')}</div>
-            <div class="riw-time">${t.time||''}</div>
-          </div>
-          <div class="riw-badges">${mtBadge}${stBadge}</div>
+      const titleTxt = ((t.productName||t.prod||'Produk') + (t.variantName ? ' '+t.variantName : '')).replace(/"/g,'&quot;');
+      const safeId = String(t.id||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      return `<div class="riw-card" onclick="window.__riwCardTap('${safeId}')">
+        <div class="riw-card-top">
+          <div class="riw-card-title">${titleTxt}</div>
+          <span class="riw-status-pill riw-status-${statusMeta.cls}">${statusMeta.label}</span>
         </div>
-        <div class="riw-row">
-          <div class="riw-thumb">${thumb}</div>
-          <div class="riw-info">
-            <div class="riw-pname">${(t.productName||t.prod||'PRODUK').toUpperCase()}</div>
-            <div class="riw-meta">${(t.variantName||'').toUpperCase()} • ${t.qty||1}x</div>
-          </div>
-          <div class="riw-price">${totalRp}</div>
+        <div class="riw-card-bottom">
+          <span class="riw-card-date">${t.time||''}</span>
+          <span class="riw-card-amount">${totalRp}</span>
         </div>
-        ${keyBox}
-        ${waBtn}
-        ${qrisBtn}
-        ${detailBtn}
       </div>`;
     }).join('');
 
-    // Global live timer
-    if (window._riwTimerInterval) clearInterval(window._riwTimerInterval);
-    window._riwTimerInterval = setInterval(() => {
-      document.querySelectorAll('.riw-qris-timer').forEach(el => {
-        const ts = parseInt(el.dataset.ts||'0');
-        const sisa = Math.max(0, Math.floor((600000-(Date.now()-ts))/1000));
-        el.textContent = String(Math.floor(sisa/60)).padStart(2,'0')+':'+String(sisa%60).padStart(2,'0');
-        if (sisa <= 0) {
-          const sid = el.id.replace('qtimer_','');
-          try {
-            const _u = JSON.parse(localStorage.getItem('vp_user')||'null');
-            if (_u?.email) {
-              const lk='vp_riw_'+_u.email, cur=JSON.parse(localStorage.getItem(lk)||'[]');
-              const idx=cur.findIndex(x=>x.id.replace(/^#/,'')===sid);
-              if(idx!==-1&&cur[idx].status==='menunggu'){cur[idx].status='kadaluwarsa';localStorage.setItem(lk,JSON.stringify(cur));if(typeof window.renderRiwayat==='function')window.renderRiwayat();}
-            }
-          } catch(_){}
-        }
-      });
-    }, 1000);
+    renderRiwPagination(filtered.length, window.__riwPage, totalPages);
   }
 
   // ── Modal DETAIL transaksi sukses ──
@@ -5388,9 +5885,39 @@ function doPesan(){
     window.open('https://wa.me/'+wa+'?text='+msg, '_blank');
   };
 
+  // ── Tap kartu riwayat: arahkan ke aksi sesuai status ──
+  window.__riwCardTap = function(id){
+    const u = _getUser();
+    if (!u) return;
+    const list = getUserRiw(u.email);
+    const t = list.find(x => String(x.id||'') === String(id||''));
+    if (!t) return;
+    const st = (t.status||'menunggu').toLowerCase();
+    const mt = (t.method||'QRIS').toUpperCase();
+    if (st === 'sukses') { window.__riwDetail(t); return; }
+    if (st === 'menunggu') {
+      if (mt === 'WA') { window.__riwOpenWa(t.id); }
+      else if (mt === 'QRIS') { window.__riwBayarQris(String(t.id).replace(/^#/,'')); }
+      else { if (typeof showNotif==='function') showNotif('⏳ Transaksi masih menunggu konfirmasi.'); }
+      return;
+    }
+    if (st === 'batal') { if (typeof showNotif==='function') showNotif('❌ Transaksi ini dibatalkan.'); return; }
+    if (st === 'kadaluwarsa') { if (typeof showNotif==='function') showNotif('⌛ Transaksi ini sudah kadaluwarsa.'); return; }
+  };
+
   window.openRiwayat = openRiwayat;
   window.closeRiwayat = closeRiwayat;
   window.renderRiwayat = renderRiwayat;
+  (function(){
+    const _origRenderRiwayat = window.renderRiwayat;
+    window.renderRiwayat = function(){
+      if (typeof _origRenderRiwayat === 'function') _origRenderRiwayat();
+      try { if (typeof window.pcUpdateStatCards === 'function') window.pcUpdateStatCards(); } catch(_){}
+    };
+  })();
+  window.setRiwFilter = setRiwFilter;
+  window.riwOnSearchInput = riwOnSearchInput;
+  window.riwGoPage = riwGoPage;
   // Override existing showRiwayat
   window.showRiwayat = function(){
     const d = document.getElementById('userDropdown');
@@ -6430,7 +6957,7 @@ function doPesan(){
   const PANELS = [
     { id: 'qrOverlay',       close: () => window.closeQrPayment && window.closeQrPayment() },
     { id: 'successOverlay',  close: () => window.closeSuccess   && window.closeSuccess() },
-    { id: 'authOverlay',     close: () => { const el=document.getElementById('authOverlay'); if(el) el.classList.remove('open'); } },
+    { id: 'authOverlay',     close: () => { if (typeof authGateActive!=='undefined' && authGateActive && !currentUser) return; const el=document.getElementById('authOverlay'); if(el) el.classList.remove('open'); } },
     { id: 'settingsPanel',   close: () => window.closePengaturan&& window.closePengaturan() },
     { id: 'adminPanel',      close: () => window.closeAdmin     && window.closeAdmin() },
     { id: 'riwayatPanel',    close: () => window.closeRiwayat   && window.closeRiwayat() },
@@ -6592,7 +7119,7 @@ function doPesan(){
   async function reloadBalFromDB(){
     const u = getCU(); if (!u) return;
     const loc = _localGetBal(u.email);
-    if (loc && !u.balance){ u.balance = loc; saveCU(u); paintBal(); }
+    if (loc && !u.balance){ u.balance = loc; saveCU(u); paintBal(); try{ window.dispatchEvent(new Event('vp:balance')); }catch(_){} }
     if (!window._sb || !_sb.from || _balColAvailable === false) return;
     try {
       const { data, error } = await _sb.from('users').select('balance').eq('email', u.email).maybeSingle();
@@ -6602,6 +7129,7 @@ function doPesan(){
         _localSetBal(u.email, u.balance);
         saveCU(u);
         paintBal();
+        try{ window.dispatchEvent(new Event('vp:balance')); }catch(_){}
       }
     } catch(e){}
   }
@@ -6609,6 +7137,29 @@ function doPesan(){
   window.vpAddBalanceByEmail = addBalByEmail;
   window.vpSetBalance = setBal;
   window.vpGetBalance = getBal;
+
+  // ---------- POIN STORAGE (1 poin = Rp1, dipakai gabungan dgn Saldo) ----------
+  const PTS_MAP_KEY = 'vp_pts_map';
+  function _ptsMap(){ try { return JSON.parse(localStorage.getItem(PTS_MAP_KEY)||'{}'); } catch(e){ return {}; } }
+  function _savePtsMap(m){ try { localStorage.setItem(PTS_MAP_KEY, JSON.stringify(m)); } catch(e){} }
+  function getPts(){
+    const u = getCU(); if (!u) return 0;
+    return parseInt(_ptsMap()[u.email]||0)||0;
+  }
+  function setPts(n){
+    const u = getCU(); if (!u) return;
+    const m = _ptsMap(); m[u.email] = Math.max(0, parseInt(n)||0); _savePtsMap(m);
+    try { window.dispatchEvent(new Event('vp:balance')); } catch(e){}
+  }
+  function addPts(delta){
+    const u = getCU(); if (!u) return 0;
+    const nv = Math.max(0, getPts() + (parseInt(delta)||0));
+    setPts(nv);
+    return nv;
+  }
+  window.vpGetPoints = getPts;
+  window.vpSetPoints = setPts;
+  window.vpAddPoints = addPts;
 
   function paintBal(){
     const bal = getBal();
@@ -6633,20 +7184,105 @@ function doPesan(){
     };
   }
 
-  // ---------- TOP UP VIA QRIS (MAINTENANCE) ----------
-  window.vpTopupQRIS = function(){
+  // ---------- TOP UP VIA QRIS ----------
+  let _vpTopupQrisLock = false;
+  window.vpTopupQRIS = async function(){
     const u = getCU();
     if (!u){ try{ showNotif('⚠️ Login dulu untuk top up'); }catch(e){ alert('Login dulu untuk top up'); } return; }
-    try { showNotif('🛠️ QRIS sedang maintenance, silakan top up via WhatsApp'); }
-    catch(e){ alert('🛠️ QRIS sedang dalam maintenance.\nSilakan top up via WhatsApp untuk sementara.'); }
+    // Cegah klik ganda / dobel tap yang bikin 2 entri top up sekaligus
+    if (_vpTopupQrisLock) return;
+
+    const amt = parseInt(document.getElementById('topupAmt').value||0)||0;
+    if (amt < 10000){ alert('Minimal top up Rp 10.000'); return; }
+    _vpTopupQrisLock = true;
+    setTimeout(()=>{ _vpTopupQrisLock = false; }, 3000);
+
+    if (typeof WORKER_URL === 'undefined'){
+      try{ showNotif('⚠️ Konfigurasi QRIS belum siap'); }catch(e){ alert('Konfigurasi QRIS belum siap'); }
+      return;
+    }
+
+    // Ambil sesi Supabase Auth (worker butuh Bearer token)
+    let session = null;
+    try {
+      const { data } = await (window._sb || supabase).auth.getSession();
+      session = data.session;
+    } catch(e) {}
+    if (!session) {
+      try{ showNotif('⚠️ Sesi habis, silakan login ulang'); }catch(e){}
+      if (typeof openAuth === 'function') openAuth('masuk');
+      return;
+    }
+
+    try{ showNotif('⏳ Membuat QRIS top up...'); }catch(e){}
+
+    let res, d;
+    try {
+      res = await fetch(`${WORKER_URL}/create-qris`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          amount: amt,
+          product_id: null,
+          variant_id: null,
+          customer_name: u.name || u.email,
+          customer_wa: null,
+        }),
+      });
+      d = await res.json();
+    } catch(e) {
+      try{ showNotif('❌ Gagal terhubung ke server QRIS'); }catch(_){}
+      return;
+    }
+    if (!res.ok) { try{ showNotif(d.error || 'Gagal buat QRIS'); }catch(_){} return; }
+
+    // Tandai modal QRIS ini sebagai top up saldo (bukan pembelian produk)
+    window._qrisIsTopup = true;
+    window._qrisTopupAmount = amt;
+    window._qrisTopupEmail = u.email;
+    window._activeQrisGateway = 'qris1';
+
+    // Isi UI modal QRIS (reuse modal pembelian produk)
+    document.getElementById("qrisImg").src = d.qris_url;
+    document.getElementById("qrisTotalAmt").textContent = 'Rp ' + Number(amt).toLocaleString('id-ID');
+    document.getElementById("qrisTrxId").textContent = '#' + d.order_id;
+    document.getElementById("qrisTrxTime").textContent = _fmtQrisTime(new Date());
+    document.getElementById("qrisProdName").textContent = 'Top Up Saldo';
+    document.getElementById("qrisProdVar").textContent = 'Rp ' + Number(amt).toLocaleString('id-ID');
+    const imgWrap = document.getElementById("qrisProdImgWrap");
+    if (imgWrap) imgWrap.outerHTML = `<div class="qpEmoji" id="qrisProdImgWrap">💎</div>`;
+
+    // Catat status MENUNGGU ke riwayat
+    const orderId = d.order_id;
+    try { _topupToRiwayat({ id: orderId, email: u.email, amount: amt, method:'QRIS', status:'menunggu', ts: Date.now() }); } catch(_){}
+
+    // Tampilkan modal
+    document.getElementById("qrisWaitState").style.display = "";
+    document.getElementById("qrisOkState").style.display = "none";
+    document.getElementById("qrisModal").classList.add("open");
+    document.body.style.overflow = "hidden";
+
+    startQrisTimer(d.expires_in || 600);
+    window._activeFlowUuid = d.flow_uuid || null;
+    listenPaid(orderId);
   };
 
   // ---------- TOP UP VIA WA ----------
+  let _vpTopupWALock = false;
   window.vpTopupWA = function(){
     const u = getCU();
     if (!u){ try{ showNotif('⚠️ Login dulu untuk top up'); }catch(e){ alert('Login dulu untuk top up'); } return; }
+    // Cegah klik ganda / dobel tap yang bikin 2 entri top up sekaligus
+    if (_vpTopupWALock) return;
     const amt = parseInt(document.getElementById('topupAmt').value||0)||0;
     if (amt < 10000){ alert('Minimal top up Rp 10.000'); return; }
+    _vpTopupWALock = true;
+    const btnEl = (typeof event!=='undefined' && event && event.currentTarget) ? event.currentTarget : null;
+    if (btnEl) btnEl.style.pointerEvents = 'none';
+    setTimeout(()=>{ _vpTopupWALock = false; if (btnEl) btnEl.style.pointerEvents = ''; }, 3000);
     const wa = (function(){ try { return localStorage.getItem('vp_wa')||'6285954741269'; } catch(e){ return '6285954741269'; } })();
     const orderId = 'TOP-'+Date.now().toString(36).toUpperCase();
     pushTopup({ id:orderId, email:u.email, amount:amt, method:'WA', status:'menunggu', ts:Date.now(), time:new Date().toLocaleString('id-ID',{timeZone:'Asia/Makassar'}) });
@@ -6677,7 +7313,7 @@ function doPesan(){
     const trxData = {
       id, prod:'Top Up Saldo', productName:'Top Up Saldo', variantName: rp(t.amount),
       img:'', emoji:'💎', price: t.amount, qty: 1, key: '',
-      status: st, method: 'WA', isTopup: true,
+      status: st, method: t.method || 'WA', isTopup: true,
       time, ts: t.ts || Date.now()
     };
     const i = cur.findIndex(x=>x.id===id);
@@ -6907,9 +7543,189 @@ function doPesan(){
     window.openAdmin = function(){
       const r = _origOpenAdmin.apply(this, arguments);
       setTimeout(injectAdminCards, 50);
+      setTimeout(injectMenuBerandaCard, 50);
       return r;
     };
   }
+
+  // =========================================================
+  // ====== MENU BERANDA TAMBAHAN (dinamis, via Supabase) ======
+  // =========================================================
+  /* SQL — jalankan sekali di Supabase SQL Editor:
+     CREATE TABLE IF NOT EXISTS public.custom_menus (
+       id text PRIMARY KEY,
+       label text NOT NULL,
+       emoji text DEFAULT '📦',
+       position text DEFAULT 'lainnya',   -- 'lainnya' = di dalam menu Lainnya, 'main' = tampil langsung di beranda
+       action_type text DEFAULT 'wa',      -- 'wa' = order via WhatsApp, 'info' = cuma tampilkan pesan/notif
+       message text DEFAULT '',
+       order_index bigint DEFAULT 0,
+       created_at timestamptz DEFAULT now()
+     );
+     ALTER TABLE public.custom_menus ENABLE ROW LEVEL SECURITY;
+     CREATE POLICY "Allow all" ON public.custom_menus FOR ALL USING (true) WITH CHECK (true);
+  */
+  const CUSTOM_MENU_KEY = 'vp_custom_menus';
+  let _customMenuCache = [];
+  try { _customMenuCache = JSON.parse(localStorage.getItem(CUSTOM_MENU_KEY)||'[]'); } catch(e){ _customMenuCache = []; }
+  function getCustomMenus(){ return _customMenuCache.slice(); }
+  function _cacheCustomMenus(a){
+    _customMenuCache = a.slice(0,200);
+    try { localStorage.setItem(CUSTOM_MENU_KEY, JSON.stringify(_customMenuCache)); } catch(e){}
+  }
+  async function fetchCustomMenusFromDB(){
+    if (!window._sb || !_sb.from){ renderMainGridCustomMenus(); renderLainnyaMenuList(); return _customMenuCache; }
+    try {
+      const { data, error } = await _sb.from('custom_menus').select('*').order('order_index', { ascending: true });
+      if (error) throw error;
+      if (Array.isArray(data)) _cacheCustomMenus(data);
+    } catch(e){ /* offline / tabel belum dibuat -> pakai cache lokal */ }
+    renderMainGridCustomMenus();
+    renderLainnyaMenuList();
+    renderAdminMenuBeranda();
+    return _customMenuCache;
+  }
+  async function pushCustomMenu(m){
+    _cacheCustomMenus([..._customMenuCache, m]);
+    renderMainGridCustomMenus(); renderLainnyaMenuList(); renderAdminMenuBeranda();
+    if (window._sb && _sb.from){
+      try { await _sb.from('custom_menus').insert(m); } catch(e){}
+    }
+    fetchCustomMenusFromDB();
+  }
+  async function deleteCustomMenuDB(id){
+    _cacheCustomMenus(_customMenuCache.filter(x=>x.id!==id));
+    renderMainGridCustomMenus(); renderLainnyaMenuList(); renderAdminMenuBeranda();
+    if (window._sb && _sb.from){
+      try { await _sb.from('custom_menus').delete().eq('id', id); } catch(e){}
+    }
+  }
+
+  // Render menu posisi "main" langsung ke grid utama beranda (sebelum tombol Lainnya)
+  function renderMainGridCustomMenus(){
+    const grid = document.getElementById('ppobMainGrid');
+    const lainnyaBtn = document.getElementById('ppobLainnyaBtn');
+    if (!grid || !lainnyaBtn) return;
+    grid.querySelectorAll('.ppob-item-custom').forEach(n=>n.remove());
+    getCustomMenus().filter(m=>m.position==='main').forEach(m=>{
+      const el = document.createElement('div');
+      el.className = 'ppob-item ppob-item-custom';
+      el.onclick = ()=>runCustomMenuAction(m.id);
+      el.innerHTML = `<div class="ppob-ic" style="background:rgba(155,89,255,0.14);color:#c79bff;">${m.emoji||'📦'}</div><div class="ppob-name">${m.label}</div>`;
+      grid.insertBefore(el, lainnyaBtn);
+    });
+  }
+
+  // Render daftar menu posisi "lainnya" di halaman submenu Lainnya
+  function renderLainnyaMenuList(){
+    const grid = document.getElementById('lainnyaMenuGrid');
+    const empty = document.getElementById('lainnyaMenuEmpty');
+    if (!grid) return;
+    const items = getCustomMenus().filter(m=>m.position==='lainnya');
+    grid.innerHTML = '';
+    if (!items.length){ if (empty) empty.style.display='block'; return; }
+    if (empty) empty.style.display='none';
+    items.forEach(m=>{
+      const el = document.createElement('div');
+      el.className = 'ppob-item';
+      el.onclick = ()=>runCustomMenuAction(m.id);
+      el.innerHTML = `<div class="ppob-ic" style="background:rgba(155,89,255,0.14);color:#c79bff;">${m.emoji||'📦'}</div><div class="ppob-name">${m.label}</div>`;
+      grid.appendChild(el);
+    });
+  }
+
+  window.openLainnyaMenu = function(){
+    renderLainnyaMenuList();
+    openPpobPage('lainnyaMenuPage');
+  };
+
+  window.runCustomMenuAction = function(id){
+    const m = getCustomMenus().find(x=>x.id===id);
+    if (!m) return;
+    if (m.action_type === 'info'){
+      try { showNotif(m.message || ('ℹ️ '+m.label)); } catch(e){ alert(m.message||m.label); }
+      return;
+    }
+    // default: order via WhatsApp
+    const wa = window._apWa ? window._apWa.replace(/\D/g,'') : ((function(){ try { return localStorage.getItem('vp_wa')||'6285954741269'; } catch(e){ return '6285954741269'; } })());
+    const tpl = m.message && m.message.trim() ? m.message : ('Halo admin, saya mau order *'+m.label+'*. Mohon info lebih lanjut. Terima kasih.');
+    window.open('https://wa.me/'+wa+'?text='+encodeURIComponent(tpl), '_blank');
+  };
+
+  // ---------- ADMIN: kartu "MENU BERANDA (LAINNYA)" ----------
+  function injectMenuBerandaCard(){
+    const ap = document.getElementById('adminPanel');
+    if (!ap) return;
+    const body = ap.querySelector('.ap-body') || ap;
+    if (!document.getElementById('apMenuBerandaCard')){
+      const card = document.createElement('div');
+      card.id = 'apMenuBerandaCard';
+      card.className = 'ap-card';
+      card.innerHTML = `
+        <h3 onclick="toggleApCard(this)">🧩 MENU BERANDA (LAINNYA)<span class="ac-arrow">▼</span></h3>
+        <div class="ap-card-body">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Tambah menu layanan baru untuk halaman beranda. Tersimpan di Supabase, jadi otomatis muncul di HP lain juga.</div>
+          <input class="ap-input" id="cmLabel" placeholder="Nama menu (mis: Voucher JB)">
+          <input class="ap-input" id="cmEmoji" placeholder="Emoji ikon (mis: 🕹️)" maxlength="4">
+          <select class="ap-input" id="cmPosition" style="cursor:pointer">
+            <option value="lainnya">Tampil di dalam "Lainnya"</option>
+            <option value="main">Tampil langsung di menu utama beranda</option>
+          </select>
+          <select class="ap-input" id="cmActionType" style="cursor:pointer">
+            <option value="wa">Order via WhatsApp</option>
+            <option value="info">Hanya tampilkan info (popup)</option>
+          </select>
+          <textarea id="cmMessage" class="ap-input" rows="3" placeholder="Pesan WA / info yang ditampilkan (opsional, ada default otomatis)" style="resize:vertical;"></textarea>
+          <button class="ap-save" onclick="apAddMenuBeranda()" style="background:var(--success);color:#000;">➕ TAMBAH MENU</button>
+          <div id="apMenuBerandaList" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;"></div>
+        </div>
+      `;
+      body.appendChild(card);
+      renderAdminMenuBeranda();
+      fetchCustomMenusFromDB();
+      setTimeout(()=>{ if(typeof wrapApCardBodies==='function') wrapApCardBodies(); }, 50);
+    }
+  }
+
+  window.apAddMenuBeranda = async function(){
+    const label = (document.getElementById('cmLabel').value||'').trim();
+    const emoji = (document.getElementById('cmEmoji').value||'📦').trim();
+    const position = document.getElementById('cmPosition').value;
+    const action_type = document.getElementById('cmActionType').value;
+    const message = (document.getElementById('cmMessage').value||'').trim();
+    if (!label){ try{ showNotif('⚠️ Nama menu wajib diisi'); }catch(e){ alert('Nama menu wajib diisi'); } return; }
+    const m = { id:'CM-'+Date.now().toString(36).toUpperCase(), label, emoji, position, action_type, message, order_index: Date.now() };
+    await pushCustomMenu(m);
+    document.getElementById('cmLabel').value='';
+    document.getElementById('cmEmoji').value='';
+    document.getElementById('cmMessage').value='';
+    try{ showNotif('✅ Menu "'+label+'" ditambahkan'); }catch(e){}
+  };
+
+  window.apDeleteMenuBeranda = function(id){
+    if (!confirm('Hapus menu ini?')) return;
+    deleteCustomMenuDB(id);
+  };
+
+  function renderAdminMenuBeranda(){
+    const list = document.getElementById('apMenuBerandaList');
+    if (!list) return;
+    const items = getCustomMenus();
+    if (!items.length){ list.innerHTML = '<div style="font-size:11.5px;color:var(--muted);text-align:center;padding:10px 0;">Belum ada menu tambahan.</div>'; return; }
+    list.innerHTML = items.map(m=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--secondary);border:1px solid var(--border);border-radius:9px;padding:9px 11px;">
+        <div style="min-width:0;">
+          <div style="font-size:13px;font-weight:700;color:#fff;">${m.emoji||'📦'} ${m.label}</div>
+          <div style="font-size:10.5px;color:var(--muted);">${m.position==='main'?'Menu utama':'Di dalam Lainnya'} · ${m.action_type==='info'?'Info popup':'Order WA'}</div>
+        </div>
+        <button onclick="apDeleteMenuBeranda('${m.id}')" style="background:var(--danger);border:none;color:#fff;border-radius:6px;width:30px;height:30px;flex-shrink:0;cursor:pointer;font-size:13px;">✕</button>
+      </div>
+    `).join('');
+  }
+
+  // Muat menu tambahan begitu halaman siap, supaya semua pengunjung langsung lihat menu dari Supabase
+  document.addEventListener('DOMContentLoaded', fetchCustomMenusFromDB);
+  setTimeout(fetchCustomMenusFromDB, 300);
 
   window.apAddBal = async function(){
     const email = (document.getElementById('apBalEmail').value||'').trim().toLowerCase();
@@ -8788,6 +9604,34 @@ function tuClearActive(){
       clearInterval(qrisTimerId);
       if (window._qrisPollId) { clearInterval(window._qrisPollId); window._qrisPollId = null; }
 
+      // ── CABANG TOP UP SALDO (bukan pembelian produk) ──
+      if (window._qrisIsTopup) {
+        const topupAmt = window._qrisTopupAmount || amount;
+        const topupEmail = window._qrisTopupEmail;
+        const paidTimeTU = _fmtQrisTime(new Date());
+
+        if (topupEmail) {
+          try { await addBalByEmail(topupEmail, topupAmt); } catch(_){}
+          try { _topupToRiwayat({ id: orderId, email: topupEmail, amount: topupAmt, method:'QRIS', status:'sukses', ts: Date.now(), time: paidTimeTU }); } catch(_){}
+        }
+
+        document.getElementById("qrisWaitState").style.display = "none";
+        document.getElementById("qrisOkState").style.display = "";
+        document.getElementById("qrisOkTrx").textContent = "#" + orderId;
+        document.getElementById("qrisOkTime").textContent = paidTimeTU;
+        document.getElementById("qrisOkProd").textContent = 'Top Up Saldo';
+        document.getElementById("qrisOkVar").textContent = 'Rp ' + Number(topupAmt).toLocaleString('id-ID');
+        const imgWrapEl2 = document.getElementById("qrisProdImgWrap");
+        document.getElementById("qrisOkImgWrap").innerHTML = imgWrapEl2 ? imgWrapEl2.outerHTML : '<div class="qpEmoji">💎</div>';
+        document.getElementById("qrisOkKeyList").innerHTML = '<div style="color:#10b981">Saldo berhasil ditambahkan ke akun kamu ✅</div>';
+        if(typeof showNotif==='function') showNotif('✅ Top up berhasil! Saldo bertambah 🎉');
+
+        window._qrisIsTopup = false;
+        window._qrisTopupAmount = null;
+        window._qrisTopupEmail = null;
+        return;
+      }
+
       const prod = _snapProd;
       const vari = _snapVari;
       const qtyVal = _snapQty;
@@ -8937,6 +9781,9 @@ function tuClearActive(){
 
   function tutupQris(isBatal = false) {
     const isSuccess = document.getElementById("qrisOkState")?.style.display !== "none";
+    window._qrisIsTopup = false;
+    window._qrisTopupAmount = null;
+    window._qrisTopupEmail = null;
 
     if (isBatal && !isSuccess && window._currentQrisOrderId) {
       const orderId = window._currentQrisOrderId;
@@ -9075,6 +9922,24 @@ function tuClearActive(){
 
 <script>
 // ── PAYCORE UI: saldo card + bottom nav wiring ──
+let _pcSaldoVisible = false;
+function renderSaldoAmt(){
+  const amt = document.getElementById('saldoAmt');
+  const icon = document.getElementById('saldoEyeIcon');
+  if (!amt || !icon) return;
+  const real = amt.getAttribute('data-real') || '0';
+  if (_pcSaldoVisible){
+    amt.textContent = Number(real).toLocaleString('id-ID');
+    icon.innerHTML = '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-10-8-10-8a18.36 18.36 0 0 1 4.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+  } else {
+    amt.textContent = '•••••••';
+    icon.innerHTML = '<path d="M1 12s3.5-7 11-7 11 7 11 7-3.5 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>';
+  }
+}
+function toggleSaldoVisibility(){
+  _pcSaldoVisible = !_pcSaldoVisible;
+  renderSaldoAmt();
+}
 function pcUpdateSaldoCard(){
   const halo = document.getElementById('saldoHalo');
   const pts = document.getElementById('saldoPts');
@@ -9085,22 +9950,55 @@ function pcUpdateSaldoCard(){
   } else {
     halo.textContent = 'Halo, Tamu';
   }
-  if (pts) pts.textContent = '0';
-  if (amt) amt.textContent = '0';
+  if (pts) pts.textContent = ((typeof window.vpGetPoints === 'function') ? (window.vpGetPoints() || 0) : 0).toLocaleString('id-ID');
+  const realBal = (typeof window.vpGetBalance === 'function') ? (window.vpGetBalance() || 0) : 0;
+  if (amt) amt.setAttribute('data-real', String(realBal));
+  renderSaldoAmt();
+  pcUpdateStatCards();
 }
+function pcUpdateStatCards(){
+  const inEl = document.getElementById('pcPemasukanVal');
+  const outEl = document.getElementById('pcPengeluaranVal');
+  if (!inEl && !outEl) return;
+  let masuk = 0, keluar = 0;
+  try {
+    const u = JSON.parse(localStorage.getItem('vp_user') || 'null');
+    if (u && u.email) {
+      const list = JSON.parse(localStorage.getItem('vp_riw_' + u.email) || '[]');
+      list.forEach(t => {
+        if ((t.status || '').toLowerCase() !== 'sukses') return;
+        const val = (Number(t.price) || 0) * (Number(t.qty) || 1);
+        if (t.isTopup) masuk += val; else keluar += val;
+      });
+    }
+  } catch(_){}
+  if (inEl) inEl.textContent = 'Rp ' + masuk.toLocaleString('id-ID');
+  if (outEl) outEl.textContent = 'Rp ' + keluar.toLocaleString('id-ID');
+}
+window.pcUpdateStatCards = pcUpdateStatCards;
+// Update otomatis begitu saldo berubah di mana pun (top up sukses, dsb.)
+window.addEventListener('vp:balance', pcUpdateSaldoCard);
 function pcGoBeranda(){
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('bnBeranda').classList.add('active');
+  const riw = document.getElementById('riwayatPanel');
+  if (riw && riw.classList.contains('open') && typeof closeRiwayat==='function') closeRiwayat();
+  const set = document.getElementById('settingsPanel');
+  if (set && set.classList.contains('open') && typeof closePengaturan==='function') closePengaturan();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function pcGoRiwayat(){
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('bnRiwayat').classList.add('active');
+  const set = document.getElementById('settingsPanel');
+  if (set && set.classList.contains('open') && typeof closePengaturan==='function') closePengaturan();
   if (typeof openRiwayat === 'function') openRiwayat();
 }
 function pcGoProfil(){
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('bnProfil').classList.add('active');
+  const riw = document.getElementById('riwayatPanel');
+  if (riw && riw.classList.contains('open') && typeof closeRiwayat==='function') closeRiwayat();
   if (typeof currentUser !== 'undefined' && currentUser) {
     if (typeof showPengaturan === 'function') showPengaturan();
   } else {
@@ -9149,12 +10047,18 @@ const PROVIDER_COLOR = {
 };
 // Logo bulat tiap provider: gradasi warna brand + inisial, dipakai di input & daftar nomor sering dipakai
 const PROVIDER_LOGO = {
-  Telkomsel: { bg:'linear-gradient(135deg,#e60028,#a6001d)', label:'Tsel' },
-  Indosat:   { bg:'linear-gradient(135deg,#ffd400,#e6a800)', label:'ISAT', dark:true },
-  XL:        { bg:'linear-gradient(135deg,#00aeef,#0072bc)', label:'XL' },
-  Tri:       { bg:'linear-gradient(135deg,#444,#111)', label:'3' },
-  Axis:      { bg:'linear-gradient(135deg,#a445c9,#7a1e8c)', label:'AXIS' },
-  Smartfren: { bg:'linear-gradient(135deg,#ff4d4d,#c40000)', label:'SF' }
+  Telkomsel: { bg:'radial-gradient(circle at 30% 25%,#ff8a00,#e60028 55%,#a6001d)', label:'T' },
+  Indosat:   { bg:'radial-gradient(circle at 30% 25%,#ffe066,#ffd400 55%,#e6a800)', label:'i', dark:true },
+  XL:        { bg:'linear-gradient(135deg,#0072bc,#00aeef 55%,#00d9a3)', label:'X' },
+  Tri:       { bg:'linear-gradient(135deg,#3a3a3a,#000)', label:'3' },
+  Axis:      { bg:'linear-gradient(135deg,#c060e6,#7a1e8c)', label:'A' },
+  Smartfren: { bg:'linear-gradient(135deg,#ff5c8a,#c40033)', label:'S' }
+};
+const PROVIDER_LOGO_IMG = {
+  Telkomsel: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAYAAAA5ZDbSAAAXSklEQVR42u2deZwcVZ3Av+9VdU/PTCb3BUmQQAg5wCCXYBYRJFGRoG4gaoAlgsuKG+UIikD8yBEFNm5QWOWQwyCHCEQSBcRFORYwKh7BHBgIVwyRnCSTmemr6u0fdb2qrp7pSaYn00398ql0V3V1T1d93+98RwullCKRuhWZ3IIEcCIJ4EQSwIkkgHtS7GwOlS8kgOv1wt644FJWHj+N7Jq1CeB6FGFI3l3+DKumz2DHk08lgOtN+h19BJIGcv9Yz8uf/hybbl+cAK4nSY8ehcBEkMZqa+fV8/6T9ZdfhSpaCeB6EKO5CYEJKAQGQkneuvY7vHrmuVjb300A17ooywZU6FIljWx64D7WnDyT7Np1CeBaluKWrSgKgIhccBM7lj/P6ukz2Pn0cwngWpW2P69AUSxz0Rmyb77BmlNPY/Nd9ySAa8485/Ns+8Xjrg8uk0aRxmrdxSvnns/6+degLCsBXCuyfelj7PrrnxGkOs+VMRFK8Na3F/DqmV+kWIfBl6i3/mBrx05Wfmgabav/hiBd8fts2ul/zL9w0OLbyIwfl2hwX5V/XHUdu1b/tVtwveBr5/IXWDVtBjuefDrR4L4o237+S/4+6wyc2Ersnv8mj9Hcj7GL/ovh581JAPcV6VizllUnnkz+nxu79L1dQ7YAm1HzLmS/73wLkU4ngPdqzrv9XdZM/zQ7X1yOJNNTsTg2WYae+hkOuO0mUiOGJT54r6RExSKvn38xO198oQfhOiZe0siWZUtYPX0G7X95KQG8N2TDgu+y6YH7kDRV6QY1seulFaz62Klse3hZYqJ7U7Y+sIS1Z85xg6rqtlVFAWGm2O/K+Yy67GKQMgFcTWl78S+snn4qhe3bO61Y9SxkG0WeEWeexdgbF2IMGpgAroYUNv6TVR89hbY1q5A09LbXx6aD/kdPZdydN9M4eULig3tS7GyW186dS8eav2HSgHQvQmhblXXCKYr84XesmnYK25c9ngDu0aDqG1fy7uPLMMkgUS5g5YOWgKE9F1W7cRnyGzfy8umzefu6RWDbiYneU9lyy128fv5cdyiORKHKGFGlPRfuI/5jT16w75dnn8H+Ny7EHDI4Abw7suu3z7JuxunY7R2ujlICrhxkfV8H3nOwHb/ccvjRjLvjhzQd9v4EcHckv+411p1wCvn1b5Z0IqjIc1UGfFirvb2ehW2TJT10BAd8/7sMmX16ArgSsXa28tYnTqPthWcQNMboZhRyvElWJecp7TyFQvQIaEURpGD01+cx5uorEKlUAri8SthsOGcuOxbfiShTqVIx/4fhlgK3YzVb+efvOWgbmxxDPz2TA390E+bQIQngONl23ffYdNnlCBpC8bBy9zrXZF1LdYyiRKtViVb3jEbbtNP/yGM56L47yRx0YAI4VKl65FE2zjoLVbARbjbXFdDOnitfQ+Nh21UCbdNB07gJHPzgPTQddmgCGCC/YiUbp51KcfNmt29XxcATZSPprh/DsKMQ7YjR1s+xdwtyjszo9zHh5/fTfOQH3tuArU1beOekT5H7218RMd1/qtNn8fluueg6gFwK2o4187uvzTY5MmPex8RHH6bp0MnvTcAqn2frrHNoW/pwqPuvUtMcNa9xgVY58PZugLa7DTlL84TJTPr1MtJjRvXKPe1TpcrWb36H7NIlmDSVlB7LbSbh0qREuJv3T7ivq9DnCcLlTOc86b5X+ecb/jn6P+W/v3s3O0Pbyyt59ewvuQWb95AGd9x5L9u/+GWE8m67/rVEREctoOhqlYiUMChJkxQGAkPTzDw2FiA0DQ1H3woVek2559p+DJ/2LYPdTZNt086YSy5lv4XXvDcA559+jndnfBa1q83VyTjPKwALRQFj1P4Yh0xEtvQre2N905vLUXzjLQp/fxUrvxOFSebYY5H77weFYpkiSDinDjUAIbA6Otjx699i53Mh+KobiDElkx77OQOmnVDfgK1XXuPdj34KK6YMGZYiYsAAmr51KZkzP4sc1o3iQT5PYdXLtN19P62330Hmw8cz5N47kAP779533radVeOPJL91s2v8Vbch2+RomXIEhzz/BLK5uT59sL1tO61nnIda/zoG6Vif6xyzkf370/+hxTRd9OXuwQVIp0l94P0MvOFaRvzmVxRff413jj2Bwsuv7HYwKEt8c+DjK7vxDbSu+COb77q3PoMslc/T/u8XYv/xBQwyIbClfbt5muZ9lfRJH9njv5s++nCGP/lLpGmy9ZTTsDa8vds3LhhosHvBl8Dk7e/fgrWztf4A5y67BmvJQ5g0hqLh0s3GbB5Mwxkze+xvG/vuw5CH7sXevIUdF1wGu+GlhBZlx0EWFX1GivZXV7N92WP1BTj/wzspLLrR1VwnNfH+yZJNYQwehBw2tEe/g3nwOAYsuJLsw0so/HnFbgAOYMZB7s5oks0/eWC3GlmfBGw98VsK865AulmnnmtGzbOe21bjBjTN+TzmPqPJPri023ilCBrgnkAWpGn93e/JvfFW7QNWa9dROOcryGwHBkbZcVRxW1VSiJZ+ZE6eTv5/n+leAxIC4QIWXUDuGrCk0LqV1ueX1zZgtWsXhS/MRbz9JgamY3rdzasclatWSaqXyaUOmYi9ejXW+g2VX0uhANmc71KiAVYYciU3WdH6/O9rG7B16dWIF57FoNGtKzkG2tA2GeuDBVJIqNLICNGQRmW30n71QlTrrgpyO5u2H9+Hat3mfrugPKqnSkILxroOuiTtK1dXxQ31ypQA+2ePIG6+HUmT26aDliviqpHRNrh5C+q0OWCaJeXLcn2/qALykguQx0/totIDBmmydyym8H/LkePGokwDVNCx4Fe0hKD4zmY6/vAiklSow0Ei/LqXdEuiwbU6x8oVQgQGufUbsHbtwmhpqS3Aav0GxMXfRCiFEC4GoUpHqovAvwVvdm9HoQPx+GNlvZhezAxKjFmYVVlq5fhPE3vtyxTXrvKKiX7vkgfRmTUsEZhI97jQGpeBxHLfKf06tfC/kQjVzcONuLhtO8Wt22sPMN/8NmLDa2A2gYyAjQMcvQXebrpBKxQLty9PIRRgC+dRBV19IMAwKoTrNZAUghS2e8z2weAfEz5w5ZpkRzM94M6+ilyeCF2mikm57Gy2KgWPqgJWTz2LuP9n0JABowu4UdDleug9zQ531oKtwAbhbt3xZlLr35V+rdiDJkKuRLpNwRtIpMPVYQpNiy3NzpTTYlUoYudyNQS4aMH1/w12FhozeserBlhFzDPx2ht05RDTE+/A9Y7ZgKUQRVUR5HDU63RExkGWbvchLljlw1QlbTQwz8qNtANTLbQGUXKxVZj+UjXA6plnEM8/Cy0NbjKrgqujEx9cAlh4tjfQ3BBoEYD1QBtQZpG7spBtF5dREeSoSbZ9K0DEKOlb0HstSk21EIgKXErf0eC77waRg3QjSNsJnoQKa7EXxnaWQ3iBlg5VKXdfaXB12ApMVXES6H0l5ce0pZCj7VBqgZdwI2g9UhaaqQ6exwWEruk2U4hMQ20AVuvfQrzwFDSngxstVHyQRRdJYtTvhsyypr06bEuAKSoqBouID7VjIKtQOKRi3itCnyFi6tWBFgu3GQRarFCYTU2Y/fvXiAY/9yzs2AxNGQdqrP8tE2RF4Zabg+JBVcrNXzTtlQpSCmGoCgArv1Jmh75GYJJlJN+1Nb8b9se2r60q4tsDLUYz1EFaZw4ehDl4YG0AFsufgrRytujothITrQVb5XywKgPYs4fSi6KVo702kKrMRAul3C4PLzoONFlqRQ4dsmeSdXNthcxyOOBSJVqsI3bW5UrvN7oqIzt6HnA+B2tXQsaAFGHt1U20jImi4xJF399qQG0Rhqxv0tXoCq8s+DqiBLKKMeHhY175Qk+RAi0m5I/L+2KwaD50UrjI01cBqy2bENs2QkY6n+6ZaN9Ui3AlqzMfXOJ/vcBKaSZZ88OWFvYWVMUdsiKU/kSLF8FU81J/TBktDvJdEeOLCdWpnVJLy9RjquIte16DN22E/E5oEE5xQyqQQlOVMoFWJUUOPd9F+TkvtnBMs3eXLeVcmVAV0Q0CJ+FrptDy1qg/tsqEEV6D0GGW88X4tWuL9IBhtEz9YG0AFtveAXKQTmtaq0r9cGdaXDKGNWqi3UcLp/F4gZUlHAshReUabARlR/z+IeV6xmjAFDXZwsdUGj3Hx5Fh8AJFngEfnkp6zOga0eCOnWDYgf+VmuZ2FmjRSRUrVJrUTLIMSpRIEfwNCydNMiv1aY61ERa+jnldf3GmuhRceV8cNugqJuSQDJszu2rliJ4HbOchpQNW0TkipRosVKkKhwobelClAu1VIvC7lnK11/17pqp05JvzHtNpSNLGRyMiplqV0cIo8LjjccGWTZ5+h3yAAR8/qYYAS/dTUyoy7iZiroVeiBDhu6ZERHuVVpYUYe0V7nHh7ns/vZByzXallY6g+8hte4Ev1f2orsXhMnrQIRiUQ7oKthQjL5mLbGqsIcBpE9IEGuwHWgT+UaiufXBozQVdg+0gevYDK1d79UpFd8q6/qg/x58LC22UZ5DxdqbFhCASOyYrfIk5+h97HIM+N5NqSs8Dbm6BBumYae+mef5RqDLVLM2chrQ3xgfbrllWnr8VgZnVV3qv1ESHhnUG5U5Pi1WMFus9SNG6chioCDWEwBdbGOlGRl1/FbKhocYADxoOTWYA11CdB1u42qeHznoHgx0Nrmw3cvbAuvseaM+fG1QIWDnf0TPRnhYXo6MjRQhifJbnNIdod6AoaQxZhn/lAvoddyzVlp4HPGRfaGlxcmFDamaa0pzY70lSnQRYMR0JXrAlPLDe52ghTaWA0RqdoVkGUeqLw1GyKtHWqFYTKUk6upuj+aipDP/WpfSG9DzggSNg2EjYuB1SriZ5YPVURu8mFNEIWqtcRbsBDTffLQpn6IZ0n+v6pVwTbXQjyNIbn/s9dV8c7cctjZop0XAVGQ0CRcxBQxl9240YLf1qFHC6EcZOhk0vQcpwbpaBkxv7ZlqU+uC4XqRQYCUCDfYaR1Fo1SrtFivRvSDLb3giHPFbxKZA0J3VbbW6lYB9vr+QTC+utlOdcdGTPuKmSkDadlKWlHD3CfJkL9pOa8/9TbnnqeCY6XQDYgj38+3Az5vucek974aJFpGUztfi0rpz7EDQCl5TZBky7yIGnPVZelOq0x886QQYNAiKu8A03EDG1jQkpsOhRHuFVpp081s/FbKhKEMde8GwHrdDolLAhtAW4tC12NnXUx9KfG75qSmhtJ52WmZ8hqELrqC3pToaPGwcTDgeRMHRuDSuBitt07Q1VoNd7TWVU3L0jhnuvmm7c07d51IE0bChdWpUAtgfLxaprskoUlWineHUSMTmu5kpRzLi9psQDek6AQzwoXOdfNh0IYXMsgoGBKRsbfOOaSY9pRyAhltfTqkAsmGHc1gPcsi8Vliu7GSrdHRRqUEqkNpnNMPv/RHG8KHsDake4PHTYdyHnYF3KVeD0zF+NS201wl8t2kH2utprOH5XxU8NzQ/7Efs3fXBZXq5RFwiFP+2UrGQjY0M+/HNpCdPZG9J9QAbKThxPmTSLizXpHog08oJwNJ28DxllwZlIdA62Ig59qtlovtr+fvmOUZdI33KlUXOCoTN4BuuJzP9RPamVHd24dgT4fAvAAVHU0Ma7Gqxr7EEmuxF0DpYU4UrY4aW2hiRUSOy8iGzyjSdz+hMm2OCqfJ+2ImY+39tHs3/MYe9LdWfPnrcAtj3UJB51xdrvlX3xZ7v9TQ9ClZGzHKoQhbV4sqDLNHcrGmuKlVTUZn/DeC20/Svp9Oy4HL6glQfcNNQOOk2aBoIhuWaYRVEziXRsxstm3bgbz1N9v2sZlKjptXznXGzvGJr50PAMONNsijN4MqXMgCypA//IANuu2Gvr/Tee4ABRh4Dx/8AGgzNF+sRs7aZgOkO2NPTn1BnhQiPzAyN2HQflQ2tm7v+biP2haZG9vQXGxQF5D5jGPCT25B96JdXem+NjgNmw9HfDSpQIVPt+WEvDdIiYxntqCiTs0ZLR1LAKxUsizBylFM7t6w9gGshMo30v+sHmJPG05ekd1fZGX8BHLbQzWktrQii+V+vDKkHUPpQnLgZEiUhrgIzDSuehI3rOv9Ozf1Qhx0FxcJuwnXGDzUvXED6YyfS16T318kaPw8OvQFSpht0oZlmtJKmih+/RQXJqACkAa1b4K6vQb6LpXtPOwsam7tcIyM+yOogM/d8Gud+kb4oe2eluwMugMm3Q0NTkPOaKlITLgMwFAh14TdTGVj+C7h2Nry5uvx5+x8IB02AYjG2Lh7315yXOkh9/JM0LryKvip7d7XZrY/DunMg/0+nM6EgoBDzmBfOcJyCdMY7lzx652vHi977FbTloXEwHHoCHHQUqmUotLUjNv4D1qyCl16CLdvc80X47+cVypbueAMby183OoeYOInG3zyC3GdkAris7FoBf/832PGS09cbBVyMAM4rpycp74F0AecJ9vMRwAUJORs6Cs5j6P0SlAm24TYQ7e8Xnc9VtnBnxtjYCGyKqCGDaXxiCfKIKfRl2ftL+vebAoc8AYNmODBsFbNUQ5mZDfos/+gY6ui+kI7Jbmhy1gxpaIKGRkg1OP7a62aMG+wXMtA2pEwabv1en4fbNwADNIyEKQ/B2K87WlO0tLFX3oQzEYbtQxfx01tCSz50ZxMhlqjoKN48qauuwJw5g1qQvvOjHDINE6+Hw+4AMQAKljuRTASP/qxC/ZFgXweqg7cjWh7/Qw2U/Uk0vDWzOjDmnE3q0q9SK9L3fiB6/y/AcY9C83jIWcGkbm8Wf2g2v4gswiLi5w5HJ41Hp53GmXf39WDdrSziuBNI3XgdSJkA3iMZPhWmPwmjPgHZohMw+aCVps0R7Q1BVRH4hCeQl9sPQfcmmORg7DhSd/8Q0UujIesbMEC/MfCxh2HKRVAoQsEOa7ElwubbN+OE/bcdA1CV0eqQBivX/1rQ0h9j8c2I/fej1qRv2xqzEY5fBNNuAdEMuZwThFm6Nsvw2hw2YbNuxWmvCB+3RWQWBa55VigJ8qaFyF6YhfDeA+zJlPNg1lIYMA6y2bCp1rXZJuyv45Z4iEIPBWvaebYAcohvXIw8+3PUqtTET7z7su11ePA8WPkkiIxTpLD0gof7WBThYkUBt/CBVsxAK4bgfJZ3LA+qmEXNnIW8/9aqrVWdAI6TXBss/Tr85lanAmWZDpSiVvkqRiphIZgivK8f957nsqjDj4JfP4ToQ3279WuiQ0WRZpj1Azj9BqABcnnHpOq+uaiZYf9RC8p082xFzHguj9p3DNxzS83DrU3Anpz0FZj7EAzcD9qzQcDlwfVBRyJtfZaiv0KPe6xgoxob4c7/QUwcTz2IrOlv//5pcPnjcPBx0Nbh1LI9bfZBuz7ZigRZlghWCfCOFYqoa69C9MGO+/eOD46Tth1wyyXw6GLHbNsy4pc1v1vUGkBBC6zaOlBnnYVYfHNVVpxLAO+pKAU/XQQ/ugY68kC6NIq2ooGY+1q2iBp7IDz3K8TwYdSTyPppqgI+Pw+uvAcGjHD9ciTgKoog2CpGXlswv+7g1pcG6/LKKpj/JfjTH5wfA7EITLKljfgoAu151IemIp7+ReRnexIN7rty0GS4ZSnq5M+7wZcdFEWKMgBeFM746dmn1yXc+gUMMGgwYtEdcOF8t3hRCNIoL30q2CijGY45om5vQ/0CBmd1gXnzUTfeDv0GQ1tOy5Gd+rPq1w+6+4viCeA+FmjMPA314BLUwZOhtcOBazkd+SqVglQ6AVzzkI84HH75COqUT0Ih648PULZVld8rSgDvDcj7jkQ8+BPURRdiU8TGwm5rR+3YkQCuG8k0IBYtgFu/h92vGSu3BXv5nxLA9SbGeWeTWvZTxIRDUO9srtvrrM9CR3ekvcPJgdOpBHAiiYlOJAGcSAI4kQRwIpXJ/wNw429vsMi7iwAAAABJRU5ErkJggg==',
+  Indosat: 'data:image/png;base64,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',
+  XL: 'data:image/png;base64,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',
+  Smartfren: 'data:image/png;base64,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'
 };
 function detectProviderName(num){
   if (!num) return '';
@@ -9177,17 +10081,24 @@ function detectProvider(type){
   const prov = detectProviderName(input.value);
   if (prov){
     const logo = PROVIDER_LOGO[prov] || { bg:'#4d5bff', label:prov.slice(0,3) };
+    const imgSrc = PROVIDER_LOGO_IMG[prov];
     badge.classList.add('show');
     badge.setAttribute('data-provider', prov);
-    badge.style.background = logo.bg;
-    badge.style.color = logo.dark ? '#3a2c00' : '#fff';
-    badge.textContent = logo.label;
+    if (imgSrc){
+      badge.style.background = '#fff';
+      badge.style.color = '';
+      badge.innerHTML = '<img src="' + imgSrc + '" alt="' + prov + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+    } else {
+      badge.style.background = logo.bg;
+      badge.style.color = logo.dark ? '#3a2c00' : '#fff';
+      badge.textContent = logo.label;
+    }
     if (avatar) avatar.textContent = input.value.trim() ? input.value.trim().slice(-2) : '+';
   } else {
     badge.classList.remove('show');
     badge.removeAttribute('data-provider');
     badge.style.background = '';
-    badge.textContent = '';
+    badge.innerHTML = '';
     if (avatar) avatar.textContent = '+';
   }
 }
@@ -9217,8 +10128,14 @@ function renderPpobFreqList(type){
   wrap.innerHTML = list.map(num => {
     const prov = detectProviderName(num);
     const logo = PROVIDER_LOGO[prov] || { bg:'#4d5bff', label:'?' };
+    const imgSrc = PROVIDER_LOGO_IMG[prov];
+    const logoInner = imgSrc
+      ? '<img src="' + imgSrc + '" alt="' + prov + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">'
+      : logo.label;
+    const logoBg = imgSrc ? '#fff' : logo.bg;
+    const logoColor = imgSrc ? '#000' : (logo.dark ? '#3a2c00' : '#fff');
     return '<span class="ppob-freq-item" onclick="fillPpobNumber(\'' + type + '\',\'' + num + '\')">' +
-      '<span class="ppob-prov-logo show" style="position:static;width:26px;height:26px;font-size:8.5px;background:' + logo.bg + ';color:' + (logo.dark ? '#3a2c00' : '#fff') + ';">' + logo.label + '</span>' +
+      '<span class="ppob-prov-logo show" style="position:static;width:26px;height:26px;font-size:12px;font-family:\'Orbitron\',sans-serif;background:' + logoBg + ';color:' + logoColor + ';">' + logoInner + '</span>' +
       '<span class="fq-txt">' + num + '</span></span>';
   }).join('');
 }
@@ -9251,6 +10168,14 @@ function selectPpobNom(el, type){
   if (!wrap) return;
   wrap.querySelectorAll('.ppob-nom').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
+
+  const cfgLabelMap = {pulsa:'nomor', data:'nomor', ewallet:'nomor e-wallet', voucher:'ID game', pln:'ID meter', pdam:'ID pelanggan'};
+  const d = getPpobData(type);
+  if (d && !d.number) {
+    showNotif('⚠️ Silakan isi ' + (cfgLabelMap[type] || 'nomor/ID') + ' terlebih dahulu.');
+    return;
+  }
+  goPpobConfirm(type);
 }
 
 function getPpobData(type){
@@ -9288,6 +10213,7 @@ function formatPpobOrder(d){
   if (d.provider) msg += 'Provider/Wilayah: ' + d.provider + '\n';
   if (d.number) msg += 'Nomor/ID: ' + d.number + '\n';
   if (d.nominal) msg += 'Nominal/Paket: ' + d.nominal + '\n';
+  if (d.payMethod) msg += 'Metode Bayar: ' + d.payMethod + '\n';
   msg += 'Harga: ' + price + '\n\nMohon diproses. Terima kasih.';
   return msg;
 }
@@ -9348,23 +10274,120 @@ function goPpobConfirm(type){
   const hargaText = priceNum > 0 ? pcfRupiah(priceNum) : 'Konfirmasi Admin';
   document.getElementById('pcfHarga').textContent = hargaText;
   document.getElementById('pcfTotal').textContent = hargaText;
+  window._pcfPriceNum = priceNum;
 
   if (type === 'pulsa' || type === 'data') ppobSaveFreqNumber(type, d.number);
 
+  resetPcfPayMethod();
   openPpobPage('ppobConfirmPage');
 }
 function closePpobConfirm(){
   closePpobPage('ppobConfirmPage');
 }
+
+// ── METODE PEMBAYARAN DI HALAMAN KONFIRMASI (Saldo + Poin / QRIS) ──
+window._pcfPayMethod = 'saldo';
+window._pcfPoinUsed = 0;
+function resetPcfPayMethod(){
+  window._pcfPayMethod = 'saldo';
+  pcfComputePayment();
+}
+function openPcfPayMethod(){
+  pcfComputePayment();
+  const ov = document.getElementById('pcfPayOverlay');
+  if (ov) ov.classList.add('open');
+}
+function closePcfPayMethod(){
+  const ov = document.getElementById('pcfPayOverlay');
+  if (ov) ov.classList.remove('open');
+}
+function selectPcfPayMethod(method, silent){
+  window._pcfPayMethod = method;
+  pcfComputePayment();
+  if (!silent) closePcfPayMethod();
+}
+function pcfComputePayment(){
+  const method = window._pcfPayMethod || 'saldo';
+  const priceNum = window._pcfPriceNum || 0;
+  const pts = (typeof window.vpGetPoints === 'function') ? (window.vpGetPoints() || 0) : 0;
+
+  const optSaldo = document.getElementById('pcfPmOptSaldo');
+  const optQris = document.getElementById('pcfPmOptQris');
+  if (optSaldo) optSaldo.classList.toggle('sel', method === 'saldo');
+  if (optQris) optQris.classList.toggle('sel', method === 'qris');
+
+  const icon = document.getElementById('pcfPmIcon');
+  const name = document.getElementById('pcfPmName');
+  const sub = document.getElementById('pcfPmSub');
+  const optSaldoSub = document.getElementById('pcfPmOptSaldoSub');
+  const poinRow = document.getElementById('pcfPoinRow');
+  const poinCut = document.getElementById('pcfPoinCut');
+  const totalEl = document.getElementById('pcfTotal');
+
+  if (method === 'qris') {
+    window._pcfPoinUsed = 0;
+    if (icon) icon.textContent = '🔳';
+    if (name) name.textContent = 'QRIS';
+    if (sub) sub.textContent = 'Scan QR pakai e-wallet / m-banking';
+    if (poinRow) poinRow.style.display = 'none';
+    if (totalEl) totalEl.textContent = pcfRupiah(priceNum);
+  } else {
+    const poinUsed = Math.min(pts, priceNum);
+    const sisa = Math.max(0, priceNum - poinUsed);
+    window._pcfPoinUsed = poinUsed;
+    if (icon) icon.textContent = '💰';
+    if (poinUsed > 0) {
+      if (name) name.textContent = 'Saldo + Poin';
+      if (sub) sub.textContent = poinUsed.toLocaleString('id-ID') + ' poin (Rp' + poinUsed.toLocaleString('id-ID') + ') otomatis dipakai';
+      if (poinRow) poinRow.style.display = 'flex';
+      if (poinCut) poinCut.textContent = '- ' + pcfRupiah(poinUsed) + ' (' + poinUsed.toLocaleString('id-ID') + ' poin)';
+    } else {
+      if (name) name.textContent = 'Saldo';
+      if (sub) sub.textContent = 'Bayar langsung pakai saldo akun';
+      if (poinRow) poinRow.style.display = 'none';
+    }
+    if (totalEl) totalEl.textContent = pcfRupiah(sisa);
+    if (optSaldoSub) optSaldoSub.textContent = pts > 0
+      ? 'Otomatis digabung poin · kamu punya ' + pts.toLocaleString('id-ID') + ' poin (1 poin = Rp1)'
+      : 'Bayar langsung pakai saldo akun kamu';
+  }
+}
+
 function confirmPpobBayar(){
   if (!_pcfType) return;
   const d = getPpobData(_pcfType);
   if (!d) return;
+  if (window._pcfPayMethod === 'qris') {
+    showNotif('🔳 Pembayaran QRIS segera hadir. Silakan gunakan metode Saldo untuk sementara.');
+    return;
+  }
+  const poinUsed = window._pcfPoinUsed || 0;
+  d.payMethod = poinUsed > 0 ? ('Saldo + ' + poinUsed.toLocaleString('id-ID') + ' Poin') : 'Saldo';
+  if (poinUsed > 0 && typeof window.vpAddPoints === 'function') {
+    window.vpAddPoints(-poinUsed);
+  }
   const wa = window._apWa ? window._apWa.replace(/\D/g,'') : '6285954741269';
   const text = encodeURIComponent(formatPpobOrder(d));
   window.open('https://wa.me/' + wa + '?text=' + text, '_blank');
   closePpobConfirm();
   showNotif('✅ Pesanan diproses. Admin akan segera memproses pembayaranmu.');
+}
+
+// ── FILTER PAKET DATA ──
+function filterDataNominal(el, cat){
+  const row = document.getElementById('dataFilterRow');
+  if (row) row.querySelectorAll('.ppob-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+
+  let visibleCount = 0;
+  document.querySelectorAll('#dataNominal .ppob-nom').forEach(item => {
+    const cats = (item.getAttribute('data-cat') || '').split(' ');
+    const match = cat === 'all' || cats.includes(cat);
+    item.style.display = match ? '' : 'none';
+    if (match) visibleCount++;
+  });
+  const noRes = document.getElementById('dataNoResult');
+  if (noRes) noRes.style.display = visibleCount === 0 ? 'block' : 'none';
 }
 
 // Panggil ulang tiap kali renderHeader jalan (login/logout) supaya saldo card ikut update
