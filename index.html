@@ -10402,6 +10402,121 @@ function filterDataNominal(el, cat){
 })();
 </script>
 
+<script>
+// ============================================================
+// H2H AUTO PRICE SYNC
+// Script tambahan (tidak mengubah kode di atas). Mengganti isi
+// grid nominal PLN, E-Wallet, Voucher Game, Pulsa & Paket Data
+// dengan data ASLI dari tabel h2h_products (hasil sync H2H),
+// bukan lagi angka yang di-hardcode.
+//
+// Cara kerja: fungsi asli (selectPpobProvider, detectProvider)
+// dipanggil seperti biasa, lalu di-"nempel" pemanggilan reload
+// grid produk sesuai provider/operator yang dipilih/terdeteksi.
+// ============================================================
+
+function h2hEscapeHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function h2hNormalize(s){
+  return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+async function h2hFetchProducts(category, operatorFilter){
+  try {
+    let query = _sb.from('h2h_products')
+      .select('product_code,name,description,price,operator,status')
+      .eq('category', category)
+      .order('price', { ascending: true })
+      .limit(500);
+    const { data, error } = await query;
+    if (error) { console.error('h2hFetchProducts error:', error); return []; }
+    let rows = data || [];
+    // Buang produk yang lagi CLOSED (kalau field status ada isinya)
+    rows = rows.filter(r => !r.status || /open/i.test(r.status));
+    if (operatorFilter) {
+      const target = h2hNormalize(operatorFilter);
+      rows = rows.filter(r => {
+        const op = h2hNormalize(r.operator);
+        return op && (op.includes(target) || target.includes(op));
+      });
+    }
+    return rows;
+  } catch (e) {
+    console.error('h2hFetchProducts exception:', e);
+    return [];
+  }
+}
+
+function h2hRenderNomGrid(containerId, ppobType, rows){
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  if (!rows.length) {
+    wrap.innerHTML = '<div style="grid-column:1/-1;padding:16px;text-align:center;opacity:.6;font-size:13px;">Produk belum tersedia untuk pilihan ini.</div>';
+    return;
+  }
+  const check = '<div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
+  wrap.innerHTML = rows.map(function(r){
+    const label = r.name || r.product_code;
+    const harga = 'Rp ' + Number(r.price || 0).toLocaleString('id-ID');
+    return '<div class="ppob-nom" data-nom="' + h2hEscapeHtml(label) + '" data-price="' + (r.price || 0) +
+      '" data-product-code="' + h2hEscapeHtml(r.product_code) + '" onclick="selectPpobNom(this,\'' + ppobType + '\')">' +
+      check + '<div class="pn-nominal">' + h2hEscapeHtml(label) + '</div><div class="pn-harga">' + harga + '</div></div>';
+  }).join('');
+}
+
+async function h2hLoadPln(){
+  const rows = await h2hFetchProducts('pln');
+  h2hRenderNomGrid('plnNominal', 'pln', rows);
+}
+async function h2hLoadEwallet(provider){
+  const rows = await h2hFetchProducts('e_wallet', provider);
+  h2hRenderNomGrid('ewalletNominal', 'ewallet', rows);
+}
+async function h2hLoadVoucher(game){
+  const rows = await h2hFetchProducts('voucher_game', game);
+  h2hRenderNomGrid('voucherNominal', 'voucher', rows);
+}
+async function h2hLoadPulsa(operator){
+  const rows = operator ? await h2hFetchProducts('pulsa', operator) : [];
+  h2hRenderNomGrid('pulsaNominal', 'pulsa', rows);
+}
+async function h2hLoadData(operator){
+  const rows = operator ? await h2hFetchProducts('paket_data', operator) : [];
+  h2hRenderNomGrid('dataNominal', 'data', rows);
+}
+
+(function(){
+  // Nempel di fungsi selectPpobProvider yang sudah ada (chip e-wallet/voucher game)
+  const _origSelectPpobProvider = window.selectPpobProvider;
+  window.selectPpobProvider = function(el, type){
+    if (typeof _origSelectPpobProvider === 'function') _origSelectPpobProvider(el, type);
+    const provider = el.getAttribute('data-provider');
+    if (type === 'ewallet') h2hLoadEwallet(provider);
+    if (type === 'voucher') h2hLoadVoucher(provider);
+  };
+
+  // Nempel di fungsi detectProvider yang sudah ada (input nomor pulsa/data)
+  const _origDetectProvider = window.detectProvider;
+  window.detectProvider = function(type){
+    if (typeof _origDetectProvider === 'function') _origDetectProvider(type);
+    const inputEl = document.getElementById(type + 'Input');
+    const prov = typeof detectProviderName === 'function' ? detectProviderName(inputEl ? inputEl.value : '') : '';
+    if (type === 'pulsa') h2hLoadPulsa(prov);
+    if (type === 'data') h2hLoadData(prov);
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    h2hLoadPln();
+    h2hLoadEwallet('Dana');     // sesuai chip default yang aktif
+    h2hLoadVoucher('Free Fire'); // sesuai chip default yang aktif
+  });
+})();
+</script>
+
 </body>
 </html>
 
