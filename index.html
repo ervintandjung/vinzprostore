@@ -855,43 +855,52 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
     <div class="ppob-item" id="ppobLainnyaBtn" onclick="openLainnyaMenu()"><div class="ppob-ic" style="background:rgba(155,89,255,0.14);color:#c79bff;">📋</div><div class="ppob-name">Lainnya</div></div>
   </div>
 
-  <!-- TRANSAKSI TERAKHIR -->
-  <div class="pc-tx-head">
-    <h3>Transaksi Terakhir</h3>
-    <span onclick="pcGoRiwayat()">Lihat Semua</span>
-  </div>
-  <div class="pc-tx-list">
-    <div class="pc-tx-item" onclick="pcGoRiwayat()">
-      <div class="pc-tx-left">
-        <div class="pc-tx-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg></div>
-        <div class="pc-tx-text">
-          <div class="lbl">Pulsa Telkomsel</div>
-          <div class="sub">Top up 50.000 • 10:30</div>
-        </div>
-      </div>
-      <div class="pc-tx-amt">-Rp 51.000</div>
-    </div>
-    <div class="pc-tx-item" onclick="pcGoRiwayat()">
-      <div class="pc-tx-left">
-        <div class="pc-tx-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg></div>
-        <div class="pc-tx-text">
-          <div class="lbl">Top Up Gopay</div>
-          <div class="sub">E-Wallet top up • 09:15</div>
-        </div>
-      </div>
-      <div class="pc-tx-amt">-Rp 100.000</div>
-    </div>
-    <div class="pc-tx-item" onclick="pcGoRiwayat()">
-      <div class="pc-tx-left">
-        <div class="pc-tx-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-        <div class="pc-tx-text">
-          <div class="lbl">PLN Token</div>
-          <div class="sub">Token listrik 100kWh • 08:45</div>
-        </div>
-      </div>
-      <div class="pc-tx-amt">-Rp 152.000</div>
+  <!-- BANNER SLIDESHOW -->
+  <div class="banner-wrap" style="padding:14px 14px 0;">
+    <div style="border-radius:16px;overflow:hidden;position:relative;border:1px solid rgba(0,212,255,0.3);box-shadow:0 8px 28px rgba(0,80,255,0.2);min-height:120px;background:linear-gradient(135deg,#0c1f56,#1040a0);">
+      <div id="bannerSlider" style="display:flex;transition:transform .4s ease;will-change:transform;"></div>
+      <div id="bannerDots" style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:5;"></div>
     </div>
   </div>
+  <script>
+  window._bannerImages = [];
+  window._bannerCur = 0;
+  window._bannerTimer = null;
+  function renderBannerSlider(){
+    const slider = document.getElementById('bannerSlider');
+    const dotsEl = document.getElementById('bannerDots');
+    if (!slider || !dotsEl) return;
+    const imgs = (window._bannerImages && window._bannerImages.length) ? window._bannerImages : [];
+    if (!imgs.length){
+      slider.innerHTML = '<div style="min-width:100%;padding:24px 16px;color:#fff;font-family:Orbitron,sans-serif;"><div style="font-size:11px;color:#ffd700;margin-bottom:6px;">⭐ VINZ STORE</div><div style="font-size:16px;font-weight:900;">VIP MODS & KEY PREMIUM</div><div style="font-size:11px;color:#00d4ff;margin-top:4px;">Proses instan 24 jam</div></div>';
+      dotsEl.innerHTML = '';
+      if (window._bannerTimer){ clearInterval(window._bannerTimer); window._bannerTimer = null; }
+      return;
+    }
+    slider.innerHTML = imgs.map(src => `<img src="${src}" style="min-width:100%;width:100%;display:block;object-fit:cover;max-height:200px;" alt="">`).join('');
+    dotsEl.innerHTML = imgs.map((_,j)=>`<div data-i="${j}" style="width:${j===0?'20px':'8px'};height:8px;border-radius:4px;background:${j===0?'#fff':'rgba(255,255,255,0.4)'};transition:.25s;cursor:pointer;"></div>`).join('');
+    Array.from(dotsEl.children).forEach((d,j)=>d.onclick=()=>bannerGoTo(j));
+    window._bannerCur = 0;
+    slider.style.transform = 'translateX(0)';
+    if (window._bannerTimer) clearInterval(window._bannerTimer);
+    if (imgs.length > 1){
+      window._bannerTimer = setInterval(()=>bannerGoTo((window._bannerCur+1)%imgs.length), 3800);
+    }
+  }
+  function bannerGoTo(i){
+    window._bannerCur = i;
+    const slider = document.getElementById('bannerSlider');
+    if (slider) slider.style.transform = 'translateX(-'+(i*100)+'%)';
+    const dotsEl = document.getElementById('bannerDots');
+    if (dotsEl){
+      Array.from(dotsEl.children).forEach((d,j)=>{
+        d.style.width = j===i?'20px':'8px';
+        d.style.background = j===i?'#fff':'rgba(255,255,255,0.4)';
+      });
+    }
+  }
+  renderBannerSlider();
+  </script>
 </div>
 
 <!-- APK PREMIUM / PRODUK GAME - HIDDEN FULLSCREEN PAGE -->
@@ -1065,7 +1074,6 @@ renderBannerSlider();
     <div class="ppob-contact-card">
       <div class="ppob-contact-row">
         <div class="ppob-contact-main">
-          <div class="ppob-avatar" id="pulsaAvatar">+</div>
           <div class="ppob-contact-text">
             <div class="lbl">Nomor Handphone</div>
             <input type="tel" id="pulsaInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" oninput="detectProvider('pulsa')">
@@ -1086,12 +1094,7 @@ renderBannerSlider();
     <div class="ppob-card">
       <div class="ppob-label">PILIH NOMINAL</div>
       <div class="ppob-nom-grid" id="pulsaNominal">
-        <div class="ppob-nom" data-nom="5000" data-price="6500" onclick="selectPpobNom(this,'pulsa')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">5.000</div><div class="pn-harga">Rp 6.500</div></div>
-        <div class="ppob-nom" data-nom="10000" data-price="11500" onclick="selectPpobNom(this,'pulsa')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">10.000</div><div class="pn-harga">Rp 11.500</div></div>
-        <div class="ppob-nom" data-nom="20000" data-price="20500" onclick="selectPpobNom(this,'pulsa')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">20.000</div><div class="pn-harga">Rp 20.500</div></div>
-        <div class="ppob-nom" data-nom="50000" data-price="49000" onclick="selectPpobNom(this,'pulsa')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">50.000</div><div class="pn-harga">Rp 49.000</div></div>
-        <div class="ppob-nom" data-nom="100000" data-price="97000" onclick="selectPpobNom(this,'pulsa')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">100.000</div><div class="pn-harga">Rp 97.000</div></div>
-        <div class="ppob-nom" data-nom="200000" data-price="190000" onclick="selectPpobNom(this,'pulsa')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">200.000</div><div class="pn-harga">Rp 190.000</div></div>
+        <div style="grid-column:1/-1;padding:16px;text-align:center;opacity:.6;font-size:13px;">Masukkan nomor HP untuk melihat nominal yang tersedia.</div>
       </div>
     </div>
 
@@ -1112,7 +1115,6 @@ renderBannerSlider();
     <div class="ppob-contact-card">
       <div class="ppob-contact-row">
         <div class="ppob-contact-main">
-          <div class="ppob-avatar" id="dataAvatar">+</div>
           <div class="ppob-contact-text">
             <div class="lbl">Nomor Handphone</div>
             <input type="tel" id="dataInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" oninput="detectProvider('data')">
@@ -1144,12 +1146,7 @@ renderBannerSlider();
     <div class="ppob-card">
       <div class="ppob-label">PILIH PAKET</div>
       <div class="ppob-nom-grid" id="dataNominal">
-        <div class="ppob-nom" data-nom="1GB 7 Hari" data-price="10000" data-cat="7hari murah" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">1GB / 7Hr</div><div class="pn-harga">Rp 10.000</div></div>
-        <div class="ppob-nom" data-nom="2GB 7 Hari" data-price="15000" data-cat="7hari murah" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">2GB / 7Hr</div><div class="pn-harga">Rp 15.000</div></div>
-        <div class="ppob-nom" data-nom="3GB 30 Hari" data-price="22000" data-cat="30hari" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">3GB / 30Hr</div><div class="pn-harga">Rp 22.000</div></div>
-        <div class="ppob-nom" data-nom="5GB 30 Hari" data-price="35000" data-cat="30hari" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">5GB / 30Hr</div><div class="pn-harga">Rp 35.000</div></div>
-        <div class="ppob-nom" data-nom="10GB 30 Hari" data-price="55000" data-cat="30hari" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">10GB / 30Hr</div><div class="pn-harga">Rp 55.000</div></div>
-        <div class="ppob-nom" data-nom="Unlimited 30 Hari" data-price="75000" data-cat="30hari unlimited" onclick="selectPpobNom(this,'data')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">Unlimited</div><div class="pn-harga">Rp 75.000</div></div>
+        <div style="grid-column:1/-1;padding:16px;text-align:center;opacity:.6;font-size:13px;">Masukkan nomor HP untuk melihat paket yang tersedia.</div>
       </div>
       <div class="pi-sub" id="dataNoResult" style="display:none;padding:14px 0 2px;">Tidak ada paket yang sesuai filter ini.</div>
     </div>
@@ -1209,18 +1206,24 @@ renderBannerSlider();
 
     <div class="ppob-card">
       <div class="ppob-label">ID / USER ID GAME</div>
-      <input type="text" id="voucherInput" class="ppob-input" placeholder="Contoh: 123456789 (ID) atau nickname">
+      <input type="text" id="voucherInput" class="ppob-input" placeholder="Contoh: 123456789 (ID) atau nickname" oninput="h2hClearGameCheck()">
+      <div id="voucherZoneWrap" style="display:none;margin-top:10px;">
+        <div class="ppob-label">ZONE ID</div>
+        <input type="text" id="voucherZoneInput" class="ppob-input" placeholder="Contoh: 1234" oninput="h2hClearGameCheck()">
+      </div>
+      <button type="button" onclick="h2hCheckGameAccount()" style="margin-top:10px;width:100%;background:#1a2440;color:#00d4ff;border:1px solid #00d4ff;border-radius:10px;padding:10px;font-weight:700;font-size:13px;">🔍 Cek Akun</button>
+      <div id="voucherGameCheckResult" style="margin-top:8px;font-size:13px;"></div>
     </div>
 
     <div class="ppob-card">
       <div class="ppob-label">PILIH GAME</div>
       <div class="ppob-chips" id="voucherProvider">
-        <div class="ppob-chip active" data-provider="Free Fire" onclick="selectPpobProvider(this,'voucher')">Free Fire</div>
-        <div class="ppob-chip" data-provider="Mobile Legends" onclick="selectPpobProvider(this,'voucher')">Mobile Legends</div>
-        <div class="ppob-chip" data-provider="PUBG Mobile" onclick="selectPpobProvider(this,'voucher')">PUBG Mobile</div>
-        <div class="ppob-chip" data-provider="Genshin Impact" onclick="selectPpobProvider(this,'voucher')">Genshin Impact</div>
-        <div class="ppob-chip" data-provider="Roblox" onclick="selectPpobProvider(this,'voucher')">Roblox</div>
-        <div class="ppob-chip" data-provider="Steam" onclick="selectPpobProvider(this,'voucher')">Steam</div>
+        <div class="ppob-chip active" data-provider="Free Fire" data-h2hgame="free-fire" onclick="selectPpobProvider(this,'voucher')">Free Fire</div>
+        <div class="ppob-chip" data-provider="Mobile Legends" data-h2hgame="mobile-legends" onclick="selectPpobProvider(this,'voucher')">Mobile Legends</div>
+        <div class="ppob-chip" data-provider="PUBG Mobile" data-h2hgame="pubg-mobile" onclick="selectPpobProvider(this,'voucher')">PUBG Mobile</div>
+        <div class="ppob-chip" data-provider="Genshin Impact" data-h2hgame="genshin-impact" onclick="selectPpobProvider(this,'voucher')">Genshin Impact</div>
+        <div class="ppob-chip" data-provider="Roblox" data-h2hgame="roblox" onclick="selectPpobProvider(this,'voucher')">Roblox</div>
+        <div class="ppob-chip" data-provider="Steam" data-h2hgame="steam" onclick="selectPpobProvider(this,'voucher')">Steam</div>
       </div>
       <div class="ppob-label" style="margin-top:8px;">PILIH NOMINAL</div>
       <div class="ppob-nom-grid" id="voucherNominal">
@@ -4525,13 +4528,6 @@ setInterval(syncKeysFromCloud, 15000);
 </script>
 
 <!-- ===== BUY NOTIF POPUP ===== -->
-<div class="buy-notif" id="buyNotif">
-  <div class="buy-notif-avatar" id="bnAvatar">B</div>
-  <div class="buy-notif-body">
-    <div class="buy-notif-l2"><b id="bnName">er***</b> membeli <b id="bnProduct">—</b><span class="t" id="bnTime">2 menit lalu</span></div>
-  </div>
-</div>
-
 <script>
 // ===== THEME TOGGLE =====
 (function(){
@@ -4550,71 +4546,6 @@ function toggleTheme(){
 }
 
 // ===== BUY NOTIF POPUP =====
-const BN_NAMES = ['Budi','Andi','Rian','Joko','Dimas','Reza','Fajar','Bima','Hadi','Yoga','Aldi','Eko','Wahyu','Sari','Rina','Dewi','Putri','Citra','Maya','Nia','Tari','Lina','Vina','Anggi','Bayu','Pandu','Reynaldi','Kurniawan','Setiawan','Hendrawan','Pratama','Saputra','Wijaya','Rahmat','Maulana','Firmansyah','Anggara','Permana','Yulianto','Hartono','Suryadi','Iskandar','Nugroho'];
-function bnMask(n){
-  n = n.toLowerCase();
-  const target = Math.min(n.length, 6 + Math.floor(Math.random()*5)); // 6..10
-  const stars = Math.max(target - 2, 3);
-  return n[0] + '*'.repeat(stars) + n[n.length-1];
-}
-const BN_TIMES = ['baru saja','1 menit lalu','2 menit lalu','4 menit lalu','7 menit lalu','11 menit lalu'];
-let bnTimer=null, bnHideTimer=null;
-function bnRand(a){ return a[Math.floor(Math.random()*a.length)]; }
-function getBuyNotifProductObj(){
-  try {
-    if (typeof getProducts === 'function') {
-      const p = getProducts();
-      if (p && p.length) return bnRand(p);
-    }
-  } catch(e){}
-  return { id:null, name:'Premium App' };
-}
-function isMainPageActive(){
-  // Cek semua panel/overlay — kalau ada yang open, berarti bukan di menu utama
-  const panels = ['prodFullscreen','adminPanel','settingsPanel','authOverlay','riwayatPanel','qrOverlay','adminRiwayatPanel','nontonPanel'];
-  for (const id of panels){
-    const el = document.getElementById(id);
-    if (el && el.classList.contains('open')) return false;
-  }
-  return true;
-}
-function showBuyNotif(){
-  const el = document.getElementById('buyNotif');
-  if (!el) return;
-  if (!isMainPageActive()) return;
-  const name = bnRand(BN_NAMES);
-  const prod = getBuyNotifProductObj();
-  const time = bnRand(BN_TIMES);
-  document.getElementById('bnName').textContent = bnMask(name);
-  document.getElementById('bnProduct').textContent = prod.name;
-  document.getElementById('bnTime').textContent = time;
-  document.getElementById('bnAvatar').textContent = name[0];
-  el.classList.add('show');
-  clearTimeout(bnHideTimer);
-  bnHideTimer = setTimeout(hideBuyNotif, 5000);
-  // Hanya tambah TERJUAL HARI INI bila notif waktu "baru saja"
-  if (time === 'baru saja' && prod.id && typeof bumpDaily === 'function') {
-    try {
-      bumpDaily(prod.id, 1);
-      if (typeof window.renderProducts === 'function') window.renderProducts();
-    } catch(e){}
-  }
-}
-function hideBuyNotif(){
-  const el = document.getElementById('buyNotif');
-  if (el) el.classList.remove('show');
-}
-function scheduleBuyNotif(){
-  clearTimeout(bnTimer);
-  const delay = 18000 + Math.random()*12000;
-  bnTimer = setTimeout(()=>{
-    if (!document.hidden) showBuyNotif();
-    scheduleBuyNotif();
-  }, delay);
-}
-setTimeout(()=>{ if(!document.hidden) showBuyNotif(); scheduleBuyNotif(); }, 8000);
-document.addEventListener('visibilitychange', ()=>{ if(document.hidden) hideBuyNotif(); });
-
 // Blokir swipe/scroll ke atas di splashScreen dan authOverlay
 (function(){
   function blockSwipe(el){
@@ -10180,12 +10111,12 @@ function selectPpobNom(el, type){
 
 function getPpobData(type){
   const pageMap = {
-    pulsa: {pageId:'pulsaPage', inputId:'pulsaInput', provWrapId:'pulsaProvider', nomWrapId:'pulsaNominal', label:'Pulsa'},
-    data: {pageId:'dataPage', inputId:'dataInput', provWrapId:'dataProvider', nomWrapId:'dataNominal', label:'Paket Data'},
-    ewallet: {pageId:'ewalletPage', inputId:'ewalletInput', provWrapId:'ewalletProvider', nomWrapId:'ewalletNominal', label:'Top Up E-Wallet'},
-    voucher: {pageId:'voucherGamePage', inputId:'voucherInput', provWrapId:'voucherProvider', nomWrapId:'voucherNominal', label:'Voucher Game'},
-    pln: {pageId:'plnPage', inputId:'plnInput', provWrapId:null, nomWrapId:'plnNominal', label:'Token PLN'},
-    pdam: {pageId:'pdamPage', inputId:'pdamInput', provWrapId:'pdamProvider', nomWrapId:'pdamNominal', label:'PDAM'}
+    pulsa: {pageId:'pulsaPage', inputId:'pulsaInput', provWrapId:'pulsaProvider', nomWrapId:'pulsaNominal', label:'Pulsa', category:'pulsa'},
+    data: {pageId:'dataPage', inputId:'dataInput', provWrapId:'dataProvider', nomWrapId:'dataNominal', label:'Paket Data', category:'paket_data'},
+    ewallet: {pageId:'ewalletPage', inputId:'ewalletInput', provWrapId:'ewalletProvider', nomWrapId:'ewalletNominal', label:'Top Up E-Wallet', category:'e_wallet'},
+    voucher: {pageId:'voucherGamePage', inputId:'voucherInput', provWrapId:'voucherProvider', nomWrapId:'voucherNominal', label:'Voucher Game', category:'voucher_game'},
+    pln: {pageId:'plnPage', inputId:'plnInput', provWrapId:null, nomWrapId:'plnNominal', label:'Token PLN', category:'pln'},
+    pdam: {pageId:'pdamPage', inputId:'pdamInput', provWrapId:'pdamProvider', nomWrapId:'pdamNominal', label:'PDAM', category:'pascabayar'}
   };
   const cfg = pageMap[type];
   if (!cfg) return null;
@@ -10198,13 +10129,18 @@ function getPpobData(type){
     const active = document.querySelector('#' + cfg.provWrapId + ' .ppob-chip.active');
     provider = active ? active.getAttribute('data-provider') : '';
   }
-  let nominal = '', price = '';
+  let nominal = '', price = '', productCode = '';
   const activeNom = document.querySelector('#' + cfg.nomWrapId + ' .ppob-nom.active');
   if (activeNom) {
     nominal = activeNom.getAttribute('data-nom') || '';
     price = activeNom.getAttribute('data-price') || '';
+    productCode = activeNom.getAttribute('data-product-code') || '';
   }
-  return { type, label: cfg.label, number, provider, nominal, price };
+  let zoneId = '';
+  if (type === 'voucher' && provider === 'Mobile Legends') {
+    zoneId = (document.getElementById('voucherZoneInput')?.value || '').trim();
+  }
+  return { type, label: cfg.label, category: cfg.category, number, provider, nominal, price, productCode, zoneId };
 }
 
 function formatPpobOrder(d){
@@ -10357,20 +10293,41 @@ function confirmPpobBayar(){
   if (!_pcfType) return;
   const d = getPpobData(_pcfType);
   if (!d) return;
-  if (window._pcfPayMethod === 'qris') {
-    showNotif('🔳 Pembayaran QRIS segera hadir. Silakan gunakan metode Saldo untuk sementara.');
+
+  if (_pcfType === 'pdam') {
+    showNotif('⚠️ Pembayaran PDAM lewat Saldo/QRIS belum tersedia. Silakan hubungi admin via WhatsApp untuk sementara.');
     return;
   }
-  const poinUsed = window._pcfPoinUsed || 0;
-  d.payMethod = poinUsed > 0 ? ('Saldo + ' + poinUsed.toLocaleString('id-ID') + ' Poin') : 'Saldo';
-  if (poinUsed > 0 && typeof window.vpAddPoints === 'function') {
-    window.vpAddPoints(-poinUsed);
+  if (!d.productCode) {
+    showNotif('⚠️ Pilih nominal/paket terlebih dahulu.');
+    return;
   }
-  const wa = window._apWa ? window._apWa.replace(/\D/g,'') : '6285954741269';
-  const text = encodeURIComponent(formatPpobOrder(d));
-  window.open('https://wa.me/' + wa + '?text=' + text, '_blank');
+  if (!d.number) {
+    showNotif('⚠️ Isi nomor/ID tujuan terlebih dahulu.');
+    return;
+  }
+  if (_pcfType === 'voucher' && d.provider === 'Mobile Legends' && !d.zoneId) {
+    showNotif('⚠️ Isi Zone ID terlebih dahulu (wajib untuk Mobile Legends).');
+    return;
+  }
+  if (_pcfType === 'voucher' && !window._voucherGameChecked) {
+    showNotif('⚠️ Cek akun game dulu (tombol "Cek Akun") sebelum bayar, supaya ID/Zone ID kamu benar.');
+    return;
+  }
+
+  const dest = (_pcfType === 'voucher' && d.zoneId) ? (d.number + ' ' + d.zoneId) : d.number;
+  const paymentMethod = window._pcfPayMethod === 'qris' ? 'qris' : 'saldo';
+
+  if (_pcfType === 'pulsa' || _pcfType === 'data') ppobSaveFreqNumber(_pcfType, d.number);
   closePpobConfirm();
-  showNotif('✅ Pesanan diproses. Admin akan segera memproses pembayaranmu.');
+
+  h2hCheckout({
+    category: d.category,
+    product_code: d.productCode,
+    dest: dest,
+    payment_method: paymentMethod,
+    customer_name: d.number,
+  });
 }
 
 // ── FILTER PAKET DATA ──
@@ -10495,7 +10452,12 @@ async function h2hLoadData(operator){
     if (typeof _origSelectPpobProvider === 'function') _origSelectPpobProvider(el, type);
     const provider = el.getAttribute('data-provider');
     if (type === 'ewallet') h2hLoadEwallet(provider);
-    if (type === 'voucher') h2hLoadVoucher(provider);
+    if (type === 'voucher') {
+      h2hLoadVoucher(provider);
+      const zoneWrap = document.getElementById('voucherZoneWrap');
+      if (zoneWrap) zoneWrap.style.display = (provider === 'Mobile Legends') ? 'block' : 'none';
+      if (typeof h2hClearGameCheck === 'function') h2hClearGameCheck();
+    }
   };
 
   // Nempel di fungsi detectProvider yang sudah ada (input nomor pulsa/data)
@@ -10514,6 +10476,341 @@ async function h2hLoadData(operator){
     h2hLoadVoucher('Free Fire'); // sesuai chip default yang aktif
   });
 })();
+</script>
+
+<script>
+// ============================================================
+// H2H CHECKOUT MODULE — pembelian PPOB dengan Saldo & QRIS
+// Script tambahan, tidak mengubah kode di atas.
+//
+// CARA PAKAI dari tombol "Beli" di tiap halaman produk:
+//
+//   h2hCheckout({
+//     category: 'pulsa',            // pulsa | paket_data | pln | e_wallet
+//                                    // | voucher_game | streaming | dst
+//                                    // (SAMA seperti kolom category di
+//                                    // tabel h2h_products) atau 'smm'
+//     product_code: el.dataset.productCode, // dari kartu nominal yang dipilih
+//     dest: inputNomor.value,        // nomor HP / ID meter / user ID game
+//     payment_method: 'saldo',       // atau 'qris'
+//     quantity: 1000,                // WAJIB diisi kalau category === 'smm'
+//     customer_name: 'Budi'          // opsional, khusus QRIS
+//   });
+//
+// Catatan: untuk produk SMM, product_code formatnya "SMM-<id>" (sudah
+// otomatis begitu dari hasil sync, tinggal dipakai apa adanya dari
+// data-product-code pada kartu nominal).
+//
+// Endpoint /checkout TIDAK mendukung kategori 'pascabayar'/'tagihan'
+// (cek tagihan dulu, harga baru ketahuan saat itu) — itu perlu alur
+// terpisah (bill/check dulu baru bayar), belum termasuk di modul ini.
+// ============================================================
+
+const H2H_WORKER_URL = 'https://h2h-gateway.vinzprostore.workers.dev';
+
+function h2hFormatRupiah(n){
+  return 'Rp ' + Number(n||0).toLocaleString('id-ID');
+}
+
+async function h2hGetAccessToken(){
+  try {
+    const { data } = await (window._sb || supabase).auth.getSession();
+    return data?.session?.access_token || null;
+  } catch { return null; }
+}
+
+// Guard anti double-click sederhana (lapisan tambahan di atas Idempotency-Key)
+let h2hCheckoutInFlight = false;
+
+async function h2hCheckout(opts){
+  if (h2hCheckoutInFlight) return; // sedang proses, abaikan klik berikutnya
+  const { category, product_code, dest, payment_method, quantity, customer_name } = opts;
+
+  if (!category || !product_code || !dest || !payment_method) {
+    alert('Data pembelian belum lengkap.');
+    return;
+  }
+
+  const token = await h2hGetAccessToken();
+  if (!token) {
+    alert('Silakan login dulu untuk melakukan pembelian.');
+    return;
+  }
+
+  h2hCheckoutInFlight = true;
+  const idemKey = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
+  h2hShowLoading(true);
+
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/checkout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        'Idempotency-Key': idemKey,
+      },
+      body: JSON.stringify({ category, product_code, dest, payment_method, quantity, customer_name }),
+    });
+    const json = await res.json().catch(() => ({}));
+    h2hShowLoading(false);
+
+    if (!json.success) {
+      h2hShowResultModal({ ok: false, message: json.message || 'Transaksi gagal', data: json.data });
+      return;
+    }
+
+    if (payment_method === 'saldo') {
+      h2hShowResultModal({ ok: true, message: json.message, data: json.data });
+      if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance(); // saldo di header ikut ke-update
+      return;
+    }
+
+    // QRIS: tampilkan modal QR + mulai polling status
+    h2hShowQrisModal(json.data);
+    h2hPollQrisStatus(json.data.ref_id);
+
+  } catch (e) {
+    h2hShowLoading(false);
+    h2hShowResultModal({ ok: false, message: 'Terjadi kesalahan jaringan. Coba lagi.' });
+  } finally {
+    h2hCheckoutInFlight = false;
+  }
+}
+window.h2hCheckout = h2hCheckout;
+
+// ---------- UI helpers (modal sederhana, bisa disesuaikan gaya CSS-nya) ----------
+
+function h2hShowLoading(show){
+  let el = document.getElementById('h2hLoadingOverlay');
+  if (show) {
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'h2hLoadingOverlay';
+      el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:99999;color:#fff;font-family:sans-serif;';
+      el.innerHTML = '<div style="text-align:center;"><div style="width:36px;height:36px;border:3px solid #333;border-top-color:#3b82f6;border-radius:50%;margin:0 auto 10px;animation:h2hspin 0.8s linear infinite;"></div>Memproses...</div><style>@keyframes h2hspin{to{transform:rotate(360deg)}}</style>';
+      document.body.appendChild(el);
+    }
+  } else if (el) {
+    el.remove();
+  }
+}
+
+function h2hCloseModalById(id){
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function h2hShowResultModal({ ok, message, data }){
+  h2hCloseModalById('h2hResultModal');
+  const el = document.createElement('div');
+  el.id = 'h2hResultModal';
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:99999;font-family:sans-serif;';
+  el.innerHTML = `
+    <div style="background:#0f1420;border:1px solid #2a3348;border-radius:16px;padding:24px;max-width:340px;width:90%;text-align:center;color:#fff;">
+      <div style="font-size:40px;margin-bottom:10px;">${ok ? '✅' : '❌'}</div>
+      <div style="font-weight:700;font-size:16px;margin-bottom:8px;">${ok ? 'Berhasil' : 'Gagal'}</div>
+      <div style="opacity:.8;font-size:13px;margin-bottom:18px;">${h2hEscapeHtml(message || '')}</div>
+      ${data?.ref_id ? `<div style="opacity:.6;font-size:11px;margin-bottom:14px;">Ref ID: ${h2hEscapeHtml(data.ref_id)}</div>` : ''}
+      <button onclick="h2hCloseModalById('h2hResultModal')" style="background:#3b82f6;color:#fff;border:none;border-radius:10px;padding:10px 24px;font-weight:600;">Tutup</button>
+    </div>`;
+  document.body.appendChild(el);
+}
+
+let h2hQrisPollTimer = null;
+let h2hQrisCountdownTimer = null;
+
+function h2hShowQrisModal(tx){
+  h2hCloseModalById('h2hQrisModal');
+  const el = document.createElement('div');
+  el.id = 'h2hQrisModal';
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:99999;font-family:sans-serif;';
+  el.innerHTML = `
+    <div style="background:#0f1420;border:1px solid #2a3348;border-radius:16px;padding:24px;max-width:340px;width:90%;text-align:center;color:#fff;">
+      <div style="font-weight:700;font-size:16px;margin-bottom:4px;">Scan QRIS untuk Bayar</div>
+      <div style="opacity:.7;font-size:13px;margin-bottom:14px;">${h2hFormatRupiah(tx.amount)}</div>
+      <img src="${tx.qris_url}" style="width:220px;height:220px;background:#fff;border-radius:12px;padding:8px;margin-bottom:14px;" />
+      <div id="h2hQrisCountdown" style="font-size:13px;opacity:.8;margin-bottom:6px;">Menunggu pembayaran...</div>
+      <div id="h2hQrisStatusText" style="font-size:12px;opacity:.6;margin-bottom:14px;">Ref ID: ${h2hEscapeHtml(tx.ref_id)}</div>
+      <button onclick="h2hCancelQrisModal()" style="background:transparent;color:#ff6b6b;border:1px solid #ff6b6b;border-radius:10px;padding:8px 20px;font-weight:600;">Batalkan</button>
+    </div>`;
+  document.body.appendChild(el);
+
+  const expiresAt = tx.expires_at ? new Date(tx.expires_at).getTime() : Date.now() + 600000;
+  clearInterval(h2hQrisCountdownTimer);
+  h2hQrisCountdownTimer = setInterval(() => {
+    const diff = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+    const m = String(Math.floor(diff / 60)).padStart(2, '0');
+    const s = String(diff % 60).padStart(2, '0');
+    const cd = document.getElementById('h2hQrisCountdown');
+    if (cd) cd.textContent = diff > 0 ? `Sisa waktu: ${m}:${s}` : 'Waktu habis';
+    if (diff <= 0) clearInterval(h2hQrisCountdownTimer);
+  }, 1000);
+}
+
+function h2hCancelQrisModal(){
+  clearInterval(h2hQrisPollTimer);
+  clearInterval(h2hQrisCountdownTimer);
+  h2hCloseModalById('h2hQrisModal');
+}
+window.h2hCancelQrisModal = h2hCancelQrisModal;
+window.h2hCloseModalById = h2hCloseModalById;
+
+function h2hPollQrisStatus(refId){
+  clearInterval(h2hQrisPollTimer);
+  h2hQrisPollTimer = setInterval(async () => {
+    try {
+      const res = await fetch(`${H2H_WORKER_URL}/checkout/qris-status?ref_id=${encodeURIComponent(refId)}`);
+      const json = await res.json().catch(() => ({}));
+      const tx = json.data;
+      if (!tx) return;
+
+      const statusText = document.getElementById('h2hQrisStatusText');
+
+      if (tx.payment_status === 'waiting_payment') {
+        return; // masih nunggu, lanjut polling
+      }
+
+      clearInterval(h2hQrisPollTimer);
+      clearInterval(h2hQrisCountdownTimer);
+      h2hCloseModalById('h2hQrisModal');
+
+      if (tx.payment_status === 'expired') {
+        h2hShowResultModal({ ok: false, message: 'Waktu pembayaran QRIS habis. Silakan buat pesanan baru.', data: tx });
+      } else if (tx.status === 'processing' || tx.status === 'success') {
+        h2hShowResultModal({ ok: true, message: 'Pembayaran berhasil, pesanan sedang diproses.', data: tx });
+        if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
+      } else if (tx.status === 'failed') {
+        h2hShowResultModal({ ok: false, message: tx.refund_required ? 'Pembayaran diterima tapi order gagal. Refund akan diproses.' : 'Order gagal.', data: tx });
+      }
+    } catch {
+      // gangguan jaringan sesaat, biarkan polling coba lagi di interval berikutnya
+    }
+  }, 3000);
+}
+
+// ---------- Cek Akun Game (validasi username sebelum bayar) ----------
+window._voucherGameChecked = false;
+
+function h2hClearGameCheck(){
+  window._voucherGameChecked = false;
+  const el = document.getElementById('voucherGameCheckResult');
+  if (el) el.innerHTML = '';
+}
+window.h2hClearGameCheck = h2hClearGameCheck;
+
+async function h2hCheckGameAccount(){
+  const resultEl = document.getElementById('voucherGameCheckResult');
+  const activeChip = document.querySelector('#voucherProvider .ppob-chip.active');
+  const gameCode = activeChip ? activeChip.getAttribute('data-h2hgame') : null;
+  const isML = activeChip && activeChip.getAttribute('data-provider') === 'Mobile Legends';
+  const userId = (document.getElementById('voucherInput')?.value || '').trim();
+  const zoneId = (document.getElementById('voucherZoneInput')?.value || '').trim();
+
+  if (!gameCode) return;
+  if (!userId) { if (resultEl) resultEl.innerHTML = '<span style="color:#ff6b6b;">⚠️ Isi User ID dulu.</span>'; return; }
+  if (isML && !zoneId) { if (resultEl) resultEl.innerHTML = '<span style="color:#ff6b6b;">⚠️ Isi Zone ID dulu (wajib untuk Mobile Legends).</span>'; return; }
+
+  if (resultEl) resultEl.innerHTML = '<span style="opacity:.7;">🔄 Mengecek akun...</span>';
+  window._voucherGameChecked = false;
+
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/game/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ game: gameCode, user_id: userId, zone_id: zoneId || undefined }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (j.success && j.data && j.data.username) {
+      if (resultEl) resultEl.innerHTML = '<span style="color:#4ade80;">✅ Akun ditemukan: <b>' + h2hEscapeHtml(j.data.username) + '</b></span>';
+      window._voucherGameChecked = true;
+    } else {
+      if (resultEl) resultEl.innerHTML = '<span style="color:#ff6b6b;">❌ ' + h2hEscapeHtml(j.message || 'Akun tidak ditemukan, cek kembali ID/Zone ID kamu.') + '</span>';
+    }
+  } catch (e) {
+    if (resultEl) resultEl.innerHTML = '<span style="color:#ff6b6b;">❌ Gagal cek akun, coba lagi.</span>';
+  }
+}
+window.h2hCheckGameAccount = h2hCheckGameAccount;
+
+
+// Panggil h2hLoadHistory() dan render sendiri hasilnya, atau otomatis
+// mengisi <div id="h2hHistoryList"> kalau elemen itu ada di halaman.
+async function h2hLoadHistory(limit = 50){
+  try {
+    const { data: sess } = await (window._sb || supabase).auth.getSession();
+    const uid = sess?.session?.user?.id;
+    if (!uid) return [];
+    const { data, error } = await (window._sb || supabase)
+      .from('h2h_transactions')
+      .select('ref_id,order_type,product_code,dest,amount,status,payment_method,payment_status,created_at')
+      .eq('user_id', uid)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) { console.error('h2hLoadHistory error:', error); return []; }
+
+    const wrap = document.getElementById('h2hHistoryList');
+    if (wrap) {
+      wrap.innerHTML = (data || []).map(t => `
+        <div style="padding:10px 0;border-bottom:1px solid #2a3348;display:flex;justify-content:space-between;">
+          <div>
+            <div style="font-weight:600;">${h2hEscapeHtml(t.product_code)} — ${h2hEscapeHtml(t.dest)}</div>
+            <div style="font-size:11px;opacity:.6;">${h2hEscapeHtml(t.ref_id)} · ${h2hEscapeHtml(t.payment_method || '')}</div>
+          </div>
+          <div style="text-align:right;">
+            <div>${h2hFormatRupiah(t.amount)}</div>
+            <div style="font-size:11px;opacity:.7;">${h2hEscapeHtml(t.status)}</div>
+          </div>
+        </div>`).join('') || '<div style="opacity:.6;">Belum ada transaksi.</div>';
+    }
+    return data || [];
+  } catch (e) {
+    console.error('h2hLoadHistory exception:', e);
+    return [];
+  }
+}
+window.h2hLoadHistory = h2hLoadHistory;
+
+// ---------- Saldo admin/owner pakai H2H asli ----------
+// Nempel di window.vpReloadBalance yang sudah ada: setelah proses normal
+// jalan, kalau ternyata user ini admin/owner, timpa angka saldonya pakai
+// saldo H2H yang sebenarnya (realtime), bukan saldo internal.
+// Tidak memanggil fungsi privat punya sistem lama — cukup lewat
+// localStorage 'vp_user' (yang sudah jadi sumber data getBal()) lalu
+// trigger event 'vp:balance' yang sudah didengarkan pcUpdateSaldoCard.
+(function(){
+  const _origReloadBal = window.vpReloadBalance;
+  window.vpReloadBalance = async function(){
+    if (typeof _origReloadBal === 'function') await _origReloadBal();
+    try {
+      const token = await h2hGetAccessToken();
+      if (!token) return;
+      const res = await fetch(`${H2H_WORKER_URL}/my-balance`, {
+        headers: { 'Authorization': 'Bearer ' + token },
+      });
+      const j = await res.json().catch(() => ({}));
+      if (j.success && j.data && j.data.is_admin) {
+        const u = JSON.parse(localStorage.getItem('vp_user') || 'null');
+        if (u) {
+          u.balance = parseInt(j.data.balance || 0) || 0;
+          u.isAdminH2H = true;
+          localStorage.setItem('vp_user', JSON.stringify(u));
+          window.dispatchEvent(new Event('vp:balance'));
+        }
+      }
+    } catch (e) {
+      console.error('h2h admin balance check failed:', e);
+    }
+  };
+  // Jalankan sekali begitu skrip ini load (menyusul pemanggilan awal yang sudah ada)
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => { if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance(); }, 900);
+  });
+})();
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('h2hHistoryList')) h2hLoadHistory();
+});
 </script>
 
 </body>
