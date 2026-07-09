@@ -10494,13 +10494,26 @@ async function h2hFetchProducts(category, operatorFilter){
     let query = _sb.from('h2h_products')
       .select('product_code,name,description,price,operator,is_active')
       .eq('category', category)
-      .eq('is_active', true)
-      .order('price', { ascending: true })
-      .limit(500);
+      .eq('is_active', true);
+
+    if (operatorFilter) {
+      // Filter operator DI QUERY (bukan di JS sesudahnya), supaya limit()
+      // di bawah cuma membatasi jumlah produk operator ini, bukan
+      // membatasi gabungan semua operator sebelum difilter (itu bug lama:
+      // nominal besar kepotong duluan karena keburu kepenuhan produk
+      // operator lain yang murah-murah).
+      query = query.ilike('operator', '%' + operatorFilter + '%');
+    }
+
+    query = query.order('price', { ascending: true }).limit(500);
+
     const { data, error } = await query;
     if (error) { console.error('h2hFetchProducts error:', error); return []; }
     let rows = data || [];
+
     if (operatorFilter) {
+      // Jaga-jaga tambahan kalau ilike kebablasan (mis. nama operator
+      // yang satu adalah substring nama operator lain).
       const target = h2hNormalize(operatorFilter);
       rows = rows.filter(r => {
         const op = h2hNormalize(r.operator);
