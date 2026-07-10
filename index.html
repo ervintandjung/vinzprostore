@@ -5593,34 +5593,138 @@ function doPesan(){
     setAllTrx(all);
   };
 
-  // ───────── QRIS AUTO-EXPIRY (1 jam) ─────────
-  // Setiap QRIS dgn status 'menunggu' & ts > 1 jam yg lalu → 'kadaluwarsa'.
-  window.__sweepQrisExpired = function(){
-    const ONE_HOUR = 60*60*1000;
-    const now = Date.now();
-    let changed = false;
-    // Global
-    const all = getAllTrx();
-    all.forEach(t=>{
-      if ((t.method||'').toUpperCase()==='QRIS' && (t.status||'').toLowerCase()==='menunggu'){
-        if (t.ts && (now - t.ts) > ONE_HOUR){ t.status = 'kadaluwarsa'; changed = true; }
-      }
-    });
-    if (changed) setAllTrx(all);
-    // Per-user (current)
+  // ───────── FINALISASI ORDER YANG TERNYATA SUDAH PAID ─────────
+  // Dipakai di 2 tempat: (1) saat user tekan riwayat pending & ternyata sudah
+  // lunas, (2) saat sweep expiry mendeteksi order lama, sebelum menandainya
+  // 'kadaluwarsa' HARUS dicek dulu ke Supabase — jangan cuma modal waktu lokal.
+  // Kalau ternyata paid, key di-assign & riwayat lokal diupdate jadi 'sukses'
+  // supaya konsisten di semua device/browser (bukan cuma nebak dari localStorage).
+  window.__finalizePaidOrder = async function(orderId, orderRow, localTrx){
+    const cleanId = String(orderId).replace(/^#/,'');
+    const _u = (typeof currentUser!=='undefined' && currentUser) || JSON.parse(localStorage.getItem('vp_user')||'null');
+    const paidTime = (typeof _fmtQrisTime==='function') ? _fmtQrisTime(new Date(orderRow.paid_at||Date.now())) : '';
+
+    // Cari data produk dari katalog berdasarkan nama produk & varian yang tersimpan di riwayat lokal
+    let prod = null, vari = null;
+    if (localTrx && typeof getProducts === 'function') {
+      prod = getProducts().find(p => p.name === localTrx.productName) || null;
+      vari = prod ? (prod.variants||[]).find(v => (v.n||'').toUpperCase() === (localTrx.variantName||'').toUpperCase()) : null;
+    }
+    const qtyVal = (localTrx && localTrx.qty) || 1;
+
+    // 1) Cek dulu apakah key sudah pernah tersimpan (anti-double / sudah pernah difinalisasi sebelumnya)
+    let keys = [];
     try {
-      const u = _getUser();
-      if (u && u.email){
-        const arr = getUserRiw(u.email);
-        let ch2 = false;
-        arr.forEach(t=>{
-          if ((t.method||'').toUpperCase()==='QRIS' && (t.status||'').toLowerCase()==='menunggu'){
-            if (t.ts && (now - t.ts) > ONE_HOUR){ t.status = 'kadaluwarsa'; ch2 = true; }
-          }
-        });
-        if (ch2) setUserRiw(u.email, arr);
-      }
+      const { data: existingTx } = await (window._sb||supabase).from('transactions').select('data').eq('trx_id','#'+cleanId).single();
+      if (existingTx?.data?.keys?.length) keys = existingTx.data.keys;
+      else if (existingTx?.data?.key) keys = [existingTx.data.key];
     } catch(_){}
+
+    // 2) Kalau belum ada, assign dari stok lokal
+    if (!keys.length && prod && vari && typeof assignKeys==='function') {
+      keys = assignKeys(prod.id, vari.n||'', qtyVal, _u?.email||'guest');
+    }
+
+    // 3) Fallback: ambil langsung dari Supabase product_keys via Worker
+    if (!keys.length && prod && vari) {
+      try {
+        const { data: pkRows } = await (window._sb||supabase)
+          .from('product_keys')
+          .select('id,key_value')
+          .eq('product_id', prod.id)
+          .ilike('status', 'available')
+          .eq('variant', vari.n)
+          .limit(qtyVal);
+        if (pkRows && pkRows.length) {
+          keys = pkRows.map(r => r.key_value);
+          fetch('https://qris-gateway.vinzprostore.workers.dev/mark-key-sold', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key_values: keys, user_email: _u?.email || 'guest' })
+          }).catch(() => {});
+        }
+      } catch(_){}
+    }
+    const keyStr = keys.join('\n') || '';
+
+    const trxData = {
+      id: '#'+cleanId,
+      prod: (prod?.name||localTrx?.productName||'') + ' ' + (vari?.n||localTrx?.variantName||''),
+      productName: prod?.name || localTrx?.productName || 'Produk',
+      variantName: vari?.n || localTrx?.variantName || '',
+      img: prod?.img || localTrx?.img || '', emoji: prod?.emoji || localTrx?.emoji || '📦',
+      price: vari?.p || localTrx?.price || orderRow.amount, qty: qtyVal, key: keyStr,
+      status: 'sukses', method: 'QRIS', time: paidTime, ts: (localTrx && localTrx.ts) || Date.now()
+    };
+
+    if (_u?.email) {
+      try {
+        const lsKey = 'vp_riw_'+_u.email;
+        let cur = JSON.parse(localStorage.getItem(lsKey)||'[]');
+        const idx = cur.findIndex(x => String(x.id||'').replace(/^#/,'') === cleanId);
+        if (idx !== -1) cur[idx] = trxData; else cur.unshift(trxData);
+        localStorage.setItem(lsKey, JSON.stringify(cur.slice(0,200)));
+      } catch(_){}
+
+      try {
+        await (window._sb||supabase).from('transactions').upsert({
+          email: _u.email, trx_id: '#'+cleanId,
+          data: { ...trxData, keys, total: orderRow.amount },
+          created_at: new Date().toISOString()
+        }, { onConflict: 'trx_id' });
+      } catch(_){}
+
+      try { if (typeof window.renderRiwayat==='function') window.renderRiwayat(); } catch(_){}
+    }
+    return trxData;
+  };
+
+  // ───────── QRIS AUTO-EXPIRY (1 jam) ─────────
+  // Setiap QRIS dgn status 'menunggu' & ts > 1 jam yg lalu → DICEK DULU status
+  // aslinya ke Supabase (tabel orders). Kalau ternyata sudah 'paid', order ini
+  // difinalisasi jadi 'sukses' (key ditampilkan) — bukan langsung divonis
+  // 'kadaluwarsa' cuma berdasarkan waktu lokal doang seperti sebelumnya.
+  // Itu penyebab kenapa transaksi yang SUDAH DIBAYAR bisa nyasar jadi "Gagal".
+  let __sweepRunning = false;
+  window.__sweepQrisExpired = async function(){
+    if (__sweepRunning) return;
+    __sweepRunning = true;
+    try {
+      const ONE_HOUR = 60*60*1000;
+      const now = Date.now();
+      const u = _getUser();
+      if (!u || !u.email) return;
+
+      const arr = getUserRiw(u.email);
+      const staleOnes = arr.filter(t =>
+        (t.method||'').toUpperCase()==='QRIS' &&
+        (t.status||'').toLowerCase()==='menunggu' &&
+        t.ts && (now - t.ts) > ONE_HOUR
+      );
+      if (!staleOnes.length) return;
+
+      for (const t of staleOnes) {
+        const cleanId = String(t.id||'').replace(/^#/,'');
+        if (!cleanId) continue;
+        try {
+          const { data: order, error } = await (window._sb||supabase)
+            .from('orders').select('status,amount,paid_at').eq('order_id', cleanId).single();
+          if (error || !order) continue; // gagal ambil data -> JANGAN divonis, biarkan tetap 'menunggu'
+
+          if (order.status === 'paid') {
+            await window.__finalizePaidOrder(cleanId, order, t);
+          } else if (order.status === 'expired' || order.status === 'cancelled' || order.status === 'failed') {
+            let cur = getUserRiw(u.email);
+            const idx = cur.findIndex(x => String(x.id||'').replace(/^#/,'') === cleanId);
+            if (idx !== -1) { cur[idx].status = 'kadaluwarsa'; setUserRiw(u.email, cur); }
+          }
+          // kalau masih 'pending' di Supabase, biarkan saja apa adanya (belum expired beneran)
+        } catch(_){ /* koneksi gagal -> jangan divonis, biarkan */ }
+      }
+      try { if (typeof window.renderRiwayat==='function') window.renderRiwayat(); } catch(_){}
+    } finally {
+      __sweepRunning = false;
+    }
   };
   // Jalankan sweep periodik tiap 60 detik
   setInterval(()=>{ try { window.__sweepQrisExpired(); } catch(_){ } }, 60*1000);
@@ -5635,6 +5739,45 @@ function doPesan(){
   }
 
   // ───────── RIWAYAT PANEL ─────────
+  // ───────── SYNC RIWAYAT DARI SUPABASE (tabel transactions) ─────────
+  // Sebelumnya riwayat MURNI dari localStorage per-device — makanya Median app,
+  // Chrome, dan akses langsung ke worker bisa nampilin riwayat yang beda-beda.
+  // Tabel `transactions` di Supabase sudah lama diisi setiap kali order dibuat
+  // (status menunggu) maupun setelah lunas (status sukses) — cuma belum pernah
+  // dibaca balik. Sekarang setiap buka riwayat, kita tarik dulu dari Supabase
+  // dan gabungkan ke localStorage, biar semua device/browser lihat data yang sama.
+  window.__syncRiwayatFromSupabase = async function(email){
+    if (!email) return;
+    try {
+      const { data: rows, error } = await (window._sb||supabase)
+        .from('transactions')
+        .select('trx_id,data,created_at')
+        .eq('email', email)
+        .order('created_at', { ascending: false })
+        .limit(300);
+      if (error || !rows) return;
+
+      const remote = rows.map(r => ({
+        id: r.trx_id,
+        ...(r.data || {}),
+      })).filter(t => t.id);
+
+      const lsKey = 'vp_riw_'+email;
+      let local = [];
+      try { local = JSON.parse(localStorage.getItem(lsKey)||'[]'); } catch(_){}
+
+      // Gabungkan: entri remote jadi acuan utama (lebih dipercaya karena
+      // shared di semua device), entri lokal yang belum sempat ke-upload
+      // (misal race condition) tetap dipertahankan kalau remote gak punya.
+      const merged = new Map();
+      local.forEach(t => { if (t.id) merged.set(String(t.id), t); });
+      remote.forEach(t => { merged.set(String(t.id), t); }); // remote menang kalau bentrok
+
+      const finalList = Array.from(merged.values()).sort((a,b) => (b.ts||0) - (a.ts||0));
+      localStorage.setItem(lsKey, JSON.stringify(finalList.slice(0,300)));
+    } catch(_){ /* offline / gagal fetch -> biarkan pakai data lokal yang ada */ }
+  };
+
   function openRiwayat(){
     const u = _getUser();
     if (!u){
@@ -5645,7 +5788,11 @@ function doPesan(){
     document.getElementById('riwayatPanel').classList.add('open');
     try { hideBuyNotif(); } catch(e){}
     document.body.style.overflow = 'hidden';
-    renderRiwayat();
+    renderRiwayat(); // render dulu pakai data lokal yang ada (biar gak nunggu network)
+    window.__syncRiwayatFromSupabase(u.email).then(() => {
+      try { renderRiwayat(); } catch(_){} // render ulang setelah data dari Supabase masuk
+      try { window.__sweepQrisExpired && window.__sweepQrisExpired(); } catch(_){}
+    });
   }
   function closeRiwayat(){
     document.getElementById('riwayatPanel').classList.remove('open');
@@ -5825,6 +5972,19 @@ function doPesan(){
       const { data: order, error } = await (window._sb||supabase)
         .from('orders').select('*').eq('order_id', cleanId).single();
       if (error || !order) { showNotif('❌ Order tidak ditemukan'); return; }
+
+      // Kalau ternyata SUDAH DIBAYAR (webhook/cek status sempat berhasil di belakang
+      // layar), langsung finalisasi di sini juga — jangan cuma kasih toast doang,
+      // karena kalau begini riwayat lokal bakal nyangkut 'menunggu' selamanya.
+      if (order.status === 'paid') {
+        const _u = currentUser || JSON.parse(localStorage.getItem('vp_user')||'null');
+        const riw = _u?.email ? JSON.parse(localStorage.getItem('vp_riw_'+_u.email)||'[]') : [];
+        const localTrx = riw.find(x => String(x.id||'').replace(/^#/,'') === cleanId) || null;
+        showNotif('✅ Pembayaran sudah lunas! Menyiapkan key...');
+        const trxData = await window.__finalizePaidOrder(cleanId, order, localTrx);
+        if (typeof window.__riwDetail === 'function') window.__riwDetail(trxData);
+        return;
+      }
       if (order.status !== 'pending') { showNotif('⚠️ Order sudah ' + order.status); return; }
       if (!order.qris_url) { showNotif('❌ QR tidak tersedia'); return; }
 
