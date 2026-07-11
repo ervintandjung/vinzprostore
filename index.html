@@ -7585,6 +7585,15 @@ function doPesan(){
         '<div style="font-size:18px;font-weight:700;">' + h2hEscapeHtml(t.account_number) + '</div>' +
         '<div style="font-size:12px;opacity:.7;">a.n. ' + h2hEscapeHtml(t.account_name||'') + '</div>' +
         '</div>';
+    } else if (t.raw) {
+      // Field QR/VA belum berhasil dikenali dari respons H2H — tampilkan data
+      // mentahnya biar kelihatan field aslinya apa (buat dilaporkan/diperbaiki),
+      // daripada macet diam di "menyiapkan..." tanpa info sama sekali.
+      bodyHtml =
+        '<div style="background:#161b2c;border-radius:12px;padding:12px;margin-bottom:14px;text-align:left;font-size:11px;color:#ffb347;overflow:auto;max-height:180px;">' +
+        '<div style="margin-bottom:6px;color:#ff6b6b;">⚠️ Data pembayaran belum bisa ditampilkan otomatis. Detail dari H2H:</div>' +
+        '<pre style="white-space:pre-wrap;word-break:break-all;margin:0;">' + h2hEscapeHtml(JSON.stringify(t.raw, null, 2)) + '</pre>' +
+        '</div>';
     } else {
       bodyHtml = '<div style="font-size:13px;opacity:.7;margin-bottom:14px;">Menyiapkan detail pembayaran...</div>';
     }
