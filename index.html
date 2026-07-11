@@ -213,6 +213,12 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 .bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 8px;cursor:pointer;color:var(--muted);font-size:11px;font-weight:600;background:none;border:none;}
 .bn-item svg{width:22px;height:22px;}
 .bn-item.active{color:var(--accent);}
+/* Tombol QRIS besar mengambang di tengah, ala FinPay */
+.bottom-nav-5{align-items:flex-end;}
+.bn-item-qris-big{flex:0 0 76px;position:relative;color:var(--accent);}
+.bn-qris-circle{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(77,91,255,.45);margin-top:-28px;border:4px solid #111116;}
+.bn-qris-circle svg{width:24px;height:24px;color:#fff;stroke:#fff;}
+.bn-qris-label{font-size:11px;font-weight:700;color:var(--accent);margin-top:2px;}
 body.has-bottom-nav{padding-bottom:70px;}
 
 /* HEADER */
@@ -1041,14 +1047,13 @@ renderBannerSlider();
         <div class="pi-icon green">💳</div>
         <div class="pi-h">METODE TOP UP</div>
       </div>
-      <button class="btn-topup" style="margin-bottom:10px;" onclick="vpTopupWA()">🟢 Top Up via WhatsApp</button>
-      <button class="btn-tu-alt" onclick="vpTopupQRIS()">🔲 Top Up via QRIS</button>
+      <button class="btn-tu-alt" onclick="vpOpenTopupMethodPicker()">💳 Pilih Metode Top Up (QRIS / VA)</button>
+      <div id="vpTopupMethodList" style="margin-top:10px;"></div>
     </div>
-
-    <div class="pi-note"><div class="ico">⏱</div><p>SALDO DITAMBAHKAN SETELAH ADMIN KONFIRMASI PEMBAYARAN.</p></div>
   </div>
 </section>
 <!-- END TOP UP PAGE -->
+
 
 <!-- LAINNYA MENU PAGE (menu tambahan dinamis, dikelola admin) -->
 <section id="lainnyaMenuPage" class="ppob-page">
@@ -7464,35 +7469,177 @@ function doPesan(){
     listenPaid(orderId);
   };
 
-  // ---------- TOP UP VIA WA ----------
-  let _vpTopupWALock = false;
-  window.vpTopupWA = function(){
+  // ============================================================
+  // TOP UP SALDO INTERNAL — via H2H.id (QRIS/VA), MENGGANTIKAN qris.pw
+  // sepenuhnya. Alurnya: bikin deposit ke akun H2H milik pemilik PayCore,
+  // begitu lunas (dicek via polling ke h2h-gateway), saldo INTERNAL user
+  // yang minta top up ditambah otomatis.
+  // ============================================================
+  let _vpTopupPollTimer = null;
+  let _vpTopupCountdownTimer = null;
+
+  async function vpOpenTopupMethodPicker(){
     const u = getCU();
     if (!u){ try{ showNotif('⚠️ Login dulu untuk top up'); }catch(e){ alert('Login dulu untuk top up'); } return; }
-    // Cegah klik ganda / dobel tap yang bikin 2 entri top up sekaligus
-    if (_vpTopupWALock) return;
     const amt = parseInt(document.getElementById('topupAmt').value||0)||0;
-    if (amt < 10000){ alert('Minimal top up Rp 10.000'); return; }
-    _vpTopupWALock = true;
-    const btnEl = (typeof event!=='undefined' && event && event.currentTarget) ? event.currentTarget : null;
-    if (btnEl) btnEl.style.pointerEvents = 'none';
-    setTimeout(()=>{ _vpTopupWALock = false; if (btnEl) btnEl.style.pointerEvents = ''; }, 3000);
-    const wa = (function(){ try { return localStorage.getItem('vp_wa')||'6285954741269'; } catch(e){ return '6285954741269'; } })();
-    const orderId = 'TOP-'+Date.now().toString(36).toUpperCase();
-    pushTopup({ id:orderId, email:u.email, amount:amt, method:'WA', status:'menunggu', ts:Date.now(), time:new Date().toLocaleString('id-ID',{timeZone:'Asia/Makassar'}) });
-    // langsung catat di riwayat user (status MENUNGGU)
-    try { _topupToRiwayat({ id:orderId, email:u.email, amount:amt, status:'menunggu', ts:Date.now() }); } catch(_){}
-    const msg = encodeURIComponent(
-      '*TOP UP SALDO VINZPRO*\n'+
-      'ID: #'+orderId+'\n'+
-      'Email: '+u.email+'\n'+
-      'Nama: '+(u.name||'-')+'\n'+
-      'Nominal: '+rp(amt)+'\n\n'+
-      'Mohon konfirmasi nomor rekening / e-wallet tujuan.'
-    );
-    window.open('https://wa.me/'+wa+'?text='+msg, '_blank');
-    try { showNotif && showNotif('✅ Top up #'+orderId+' tercatat di riwayat'); } catch(_){}
+    if (amt < 10000){ try{ showNotif('⚠️ Minimal top up Rp 10.000'); }catch(e){ alert('Minimal top up Rp 10.000'); } return; }
+
+    const listEl = document.getElementById('vpTopupMethodList');
+    if (listEl) listEl.innerHTML = '<div style="opacity:.7;padding:10px 0;font-size:13px;">🔄 Mengambil daftar metode...</div>';
+
+    let session = null;
+    try { const { data } = await (window._sb || supabase).auth.getSession(); session = data.session; } catch(e){}
+    if (!session) {
+      if (typeof openAuth === 'function') openAuth('masuk');
+      return;
+    }
+
+    let methods = [];
+    try {
+      const res = await fetch(`${H2H_WORKER_URL}/topup/methods`, {
+        headers: { Authorization: 'Bearer ' + session.access_token },
+      });
+      const j = await res.json();
+      methods = (j.success && Array.isArray(j.data)) ? j.data : [];
+    } catch(e) {
+      if (listEl) listEl.innerHTML = '<div style="color:#ff6b6b;font-size:13px;padding:10px 0;">❌ Gagal ambil metode top up, coba lagi.</div>';
+      return;
+    }
+
+    if (!methods.length) {
+      if (listEl) listEl.innerHTML = '<div style="color:#ff6b6b;font-size:13px;padding:10px 0;">❌ Belum ada metode top up aktif.</div>';
+      return;
+    }
+
+    if (listEl) {
+      listEl.innerHTML = methods.map(function(m, idx){
+        const type = (m.type || m.tipe || '').toLowerCase();
+        const label = m.name || m.nama || m.method || m.kode || ('Metode ' + (idx+1));
+        const code = m.code || m.kode || m.method || label;
+        const badge = type === 'qris' ? '🔲 QRIS' : type === 'va' ? '🏦 VA' : type === 'ewallet' ? '👛 E-Wallet' : type === 'bank_transfer' ? '🏛 Transfer Bank' : '💳';
+        return '<button class="btn-tu-alt" style="margin-top:6px;text-align:left;" onclick="vpCreateTopup(' +
+          JSON.stringify(code).replace(/"/g,'&quot;') + ',' + amt + ')">' + badge + ' ' + h2hEscapeHtml(label) + '</button>';
+      }).join('');
+    }
+  }
+  window.vpOpenTopupMethodPicker = vpOpenTopupMethodPicker;
+
+  window.vpCreateTopup = async function(methodCode, amount){
+    const u = getCU();
+    if (!u) return;
+
+    let session = null;
+    try { const { data } = await (window._sb || supabase).auth.getSession(); session = data.session; } catch(e){}
+    if (!session) { if (typeof openAuth === 'function') openAuth('masuk'); return; }
+
+    try{ showNotif('⏳ Membuat top up...'); }catch(e){}
+
+    let res, d;
+    try {
+      res = await fetch(`${H2H_WORKER_URL}/topup/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+        body: JSON.stringify({ amount, method: methodCode }),
+      });
+      d = await res.json();
+    } catch(e) {
+      try{ showNotif('❌ Gagal terhubung ke server top up'); }catch(_){}
+      return;
+    }
+    if (!d.success) { try{ showNotif(d.message || 'Gagal buat top up'); }catch(_){} return; }
+
+    const t = d.data; // { invoice, amount, method, status, va_number, bank_name, account_number, account_name, qr_url, qr_string, expired_at }
+    try { _topupToRiwayat({ id: t.invoice, email: u.email, amount: t.amount, method: 'H2H-' + (t.method||''), status:'menunggu', ts: Date.now() }); } catch(_){}
+
+    vpShowTopupModal(t);
+    vpPollTopupStatus(t.invoice);
   };
+
+  function vpShowTopupModal(t){
+    h2hCloseModalById('vpTopupModal');
+    const el = document.createElement('div');
+    el.id = 'vpTopupModal';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:99999;font-family:sans-serif;';
+
+    let bodyHtml = '';
+    if (t.qr_url) {
+      bodyHtml = '<img src="' + t.qr_url + '" style="width:220px;height:220px;background:#fff;border-radius:12px;padding:8px;margin-bottom:14px;" />';
+    } else if (t.va_number) {
+      bodyHtml =
+        '<div style="background:#161b2c;border-radius:12px;padding:16px;margin-bottom:14px;text-align:left;">' +
+        (t.bank_name ? '<div style="font-size:12px;opacity:.6;margin-bottom:4px;">' + h2hEscapeHtml(t.bank_name) + '</div>' : '') +
+        '<div style="font-size:20px;font-weight:700;letter-spacing:1px;">' + h2hEscapeHtml(t.va_number) + '</div>' +
+        '<button onclick="navigator.clipboard&&navigator.clipboard.writeText(\'' + t.va_number + '\');this.textContent=\'Tersalin!\'" style="margin-top:8px;background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;">Salin Nomor VA</button>' +
+        '</div>';
+    } else if (t.account_number) {
+      bodyHtml =
+        '<div style="background:#161b2c;border-radius:12px;padding:16px;margin-bottom:14px;text-align:left;">' +
+        '<div style="font-size:12px;opacity:.6;">' + h2hEscapeHtml(t.bank_name||'') + '</div>' +
+        '<div style="font-size:18px;font-weight:700;">' + h2hEscapeHtml(t.account_number) + '</div>' +
+        '<div style="font-size:12px;opacity:.7;">a.n. ' + h2hEscapeHtml(t.account_name||'') + '</div>' +
+        '</div>';
+    } else {
+      bodyHtml = '<div style="font-size:13px;opacity:.7;margin-bottom:14px;">Menyiapkan detail pembayaran...</div>';
+    }
+
+    el.innerHTML =
+      '<div style="background:#0f1420;border:1px solid #2a3348;border-radius:16px;padding:24px;max-width:340px;width:90%;text-align:center;color:#fff;">' +
+      '<div style="font-weight:700;font-size:16px;margin-bottom:4px;">Top Up Saldo</div>' +
+      '<div style="opacity:.7;font-size:13px;margin-bottom:14px;">' + h2hFormatRupiah(t.amount) + '</div>' +
+      bodyHtml +
+      '<div id="vpTopupCountdown" style="font-size:13px;opacity:.8;margin-bottom:6px;">Menunggu pembayaran...</div>' +
+      '<div style="font-size:12px;opacity:.6;margin-bottom:14px;">Invoice: ' + h2hEscapeHtml(t.invoice) + '</div>' +
+      '<button onclick="vpCancelTopupModal()" style="background:transparent;color:#ff6b6b;border:1px solid #ff6b6b;border-radius:10px;padding:8px 20px;font-weight:600;">Tutup</button>' +
+      '</div>';
+    document.body.appendChild(el);
+
+    const expiresAt = t.expired_at ? new Date(t.expired_at).getTime() : Date.now() + 600000;
+    clearInterval(_vpTopupCountdownTimer);
+    _vpTopupCountdownTimer = setInterval(() => {
+      const diff = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+      const m = String(Math.floor(diff / 60)).padStart(2, '0');
+      const s = String(diff % 60).padStart(2, '0');
+      const cd = document.getElementById('vpTopupCountdown');
+      if (cd) cd.textContent = diff > 0 ? `Sisa waktu: ${m}:${s}` : 'Waktu habis';
+      if (diff <= 0) clearInterval(_vpTopupCountdownTimer);
+    }, 1000);
+  }
+
+  window.vpCancelTopupModal = function(){
+    clearInterval(_vpTopupPollTimer);
+    clearInterval(_vpTopupCountdownTimer);
+    h2hCloseModalById('vpTopupModal');
+  };
+
+  function vpPollTopupStatus(invoice){
+    clearInterval(_vpTopupPollTimer);
+    _vpTopupPollTimer = setInterval(async () => {
+      try {
+        const res = await fetch(`${H2H_WORKER_URL}/topup/status?invoice=${encodeURIComponent(invoice)}`);
+        const j = await res.json().catch(() => ({}));
+        const t = j.data;
+        if (!t) return;
+
+        if (t.status === 'pending') return; // masih nunggu, lanjut polling
+
+        clearInterval(_vpTopupPollTimer);
+        clearInterval(_vpTopupCountdownTimer);
+        h2hCloseModalById('vpTopupModal');
+
+        const u = getCU();
+        if (t.status === 'success') {
+          try { if (u) _topupToRiwayat({ id: invoice, email: u.email, amount: t.amount, method: 'H2H-' + (t.method||''), status:'sukses', ts: Date.now() }); } catch(_){}
+          try{ showNotif('✅ Top up berhasil! Saldo sudah masuk.'); }catch(e){}
+          if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
+        } else {
+          try { if (u) _topupToRiwayat({ id: invoice, email: u.email, amount: t.amount, method: 'H2H-' + (t.method||''), status: t.status === 'expired' ? 'kadaluwarsa' : 'batal', ts: Date.now() }); } catch(_){}
+          try{ showNotif('❌ Top up ' + (t.status === 'expired' ? 'kadaluwarsa' : 'gagal') + '.'); }catch(e){}
+        }
+      } catch {
+        // gangguan jaringan sesaat, biarkan polling coba lagi
+      }
+    }, 3000);
+  }
 
   // ---------- TOP UP → RIWAYAT BRIDGE ----------
   function _topupToRiwayat(t){
@@ -7507,7 +7654,7 @@ function doPesan(){
     const trxData = {
       id, prod:'Top Up Saldo', productName:'Top Up Saldo', variantName: rp(t.amount),
       img:'', emoji:'💎', price: t.amount, qty: 1, key: '',
-      status: st, method: t.method || 'WA', isTopup: true,
+      status: st, method: t.method || 'H2H', isTopup: true,
       time, ts: t.ts || Date.now()
     };
     const i = cur.findIndex(x=>x.id===id);
@@ -10099,18 +10246,24 @@ function tuClearActive(){
 </script>
 
 <!-- BOTTOM NAV -->
-<div class="bottom-nav">
+<div class="bottom-nav bottom-nav-5">
   <button class="bn-item active" id="bnBeranda" onclick="pcGoBeranda()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     Beranda
   </button>
-  <button class="bn-item" id="bnQris" onclick="(typeof currentUser!=='undefined' && currentUser) ? openQrisPage('kirim') : openAuth('masuk')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
-    QRIS
-  </button>
   <button class="bn-item" id="bnRiwayat" onclick="pcGoRiwayat()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
     Riwayat
+  </button>
+  <button class="bn-item bn-item-qris-big" id="bnQris" onclick="(typeof currentUser!=='undefined' && currentUser) ? openQrisPage('kirim') : openAuth('masuk')">
+    <span class="bn-qris-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+    </span>
+    <span class="bn-qris-label">QRIS</span>
+  </button>
+  <button class="bn-item" id="bnPromo" onclick="pcGoPromo()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83a2 2 0 0 0-1.42-.58L4 3.25a1 1 0 0 0-1 1l.17 5.58a2 2 0 0 0 .58 1.42l9.58 9.58a2 2 0 0 0 2.83 0l4.43-4.42a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+    Promo
   </button>
   <button class="bn-item" id="bnProfil" onclick="pcGoProfil()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -10661,9 +10814,14 @@ function h2hParseNominal(name){
 // Tanda-tanda produk ini sebenarnya PAKET DATA/telpon/SMS yang salah
 // kecantol di kategori pulsa (masalah data dari sisi H2H, bukan dari kita) —
 // dibuang khusus saat category === 'pulsa'.
+// CATATAN PERBAIKAN: sebelumnya \bhari\b TIDAK menangkap "Harian" (karena \b
+// butuh batas kata persis di situ, sedangkan "Harian" nyambung ke "-an"),
+// dan belum ada kata kunci "data"/"flash"/"kuota" sama sekali — makanya produk
+// macam "Telkomsel Data Flash 5.000" / "...GamesMax Ketengan Harian" lolos
+// dan nongol di halaman Pulsa. Sekarang kata kuncinya dilengkapi.
 function h2hLooksLikeStrayNonPulsa(row){
   const text = ((row.name || '') + ' ' + (row.description || '')).toLowerCase();
-  return /\bgb\b|\bmb\b|unlimited|\bhari\b|\bhr\b|\bmenit\b|\bsms\b|\bvideo\b|\btelpon\b/i.test(text);
+  return /\bgb\b|\bmb\b|unlimited|hari|\bhr\b|menit|\bsms\b|\bvideo\b|\btelpon\b|\bdata\b|flash|kuota|ketengan|gamesmax|internet/i.test(text);
 }
 
 // Gabungin baris yang nominalnya sama (banyak SKU beda buat nominal
