@@ -7569,7 +7569,14 @@ function doPesan(){
     el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:99999;font-family:sans-serif;';
 
     let bodyHtml = '';
-    if (t.qr_url) {
+    if (t.qr_string) {
+      // qr_string = payload EMV QRIS mentah (bukan link gambar) — digambar
+      // jadi QR pakai layanan generator gambar publik.
+      const qrImgSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(t.qr_string);
+      bodyHtml =
+        '<img src="' + qrImgSrc + '" style="width:220px;height:220px;background:#fff;border-radius:12px;padding:8px;margin-bottom:10px;" />' +
+        (t.payment_url ? '<div style="margin-bottom:14px;"><a href="' + t.payment_url + '" target="_blank" style="color:#3b82f6;font-size:12px;">Atau buka halaman pembayaran →</a></div>' : '');
+    } else if (t.qr_url) {
       bodyHtml = '<img src="' + t.qr_url + '" style="width:220px;height:220px;background:#fff;border-radius:12px;padding:8px;margin-bottom:14px;" />';
     } else if (t.va_number) {
       bodyHtml =
@@ -7598,10 +7605,17 @@ function doPesan(){
       bodyHtml = '<div style="font-size:13px;opacity:.7;margin-bottom:14px;">Menyiapkan detail pembayaran...</div>';
     }
 
+    const feeHtml = t.fee_charged
+      ? '<div style="font-size:12px;opacity:.6;margin-bottom:10px;">Saldo masuk: ' + h2hFormatRupiah(t.amount) +
+        ' + biaya admin ' + h2hFormatRupiah(t.fee_charged) +
+        ' = <b>total bayar ' + h2hFormatRupiah(t.total_charged || (t.amount + t.fee_charged)) + '</b></div>'
+      : '';
+
     el.innerHTML =
       '<div style="background:#0f1420;border:1px solid #2a3348;border-radius:16px;padding:24px;max-width:340px;width:90%;text-align:center;color:#fff;">' +
       '<div style="font-weight:700;font-size:16px;margin-bottom:4px;">Top Up Saldo</div>' +
-      '<div style="opacity:.7;font-size:13px;margin-bottom:14px;">' + h2hFormatRupiah(t.amount) + '</div>' +
+      '<div style="opacity:.7;font-size:13px;margin-bottom:4px;">' + h2hFormatRupiah(t.amount) + '</div>' +
+      feeHtml +
       bodyHtml +
       '<div id="vpTopupCountdown" style="font-size:13px;opacity:.8;margin-bottom:6px;">Menunggu pembayaran...</div>' +
       '<div style="font-size:12px;opacity:.6;margin-bottom:14px;">Invoice: ' + h2hEscapeHtml(t.invoice) + '</div>' +
