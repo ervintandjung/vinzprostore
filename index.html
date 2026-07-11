@@ -1264,6 +1264,8 @@ renderBannerSlider();
     <div class="ppob-card">
       <div class="ppob-label">ID METER / NOMOR PELANGGAN</div>
       <input type="tel" id="plnInput" class="ppob-input" placeholder="Contoh: 12345678901" maxlength="12">
+      <button class="btn-tu-alt" style="margin-top:10px;" onclick="h2hCheckPlnCustomer()">🔍 Cek Nama Pelanggan</button>
+      <div id="plnCheckResult" style="margin-top:8px;font-size:13px;"></div>
     </div>
 
     <div class="ppob-card">
@@ -7495,19 +7497,24 @@ function doPesan(){
     }
 
     let methods = [];
+    let methodsErrMsg = null;
     try {
       const res = await fetch(`${H2H_WORKER_URL}/topup/methods`, {
         headers: { Authorization: 'Bearer ' + session.access_token },
       });
       const j = await res.json();
-      methods = (j.success && Array.isArray(j.data)) ? j.data : [];
+      if (j.success && Array.isArray(j.data)) {
+        methods = j.data;
+      } else {
+        methodsErrMsg = j.message || 'Gagal ambil metode top up';
+      }
     } catch(e) {
       if (listEl) listEl.innerHTML = '<div style="color:#ff6b6b;font-size:13px;padding:10px 0;">❌ Gagal ambil metode top up, coba lagi.</div>';
       return;
     }
 
     if (!methods.length) {
-      if (listEl) listEl.innerHTML = '<div style="color:#ff6b6b;font-size:13px;padding:10px 0;">❌ Belum ada metode top up aktif.</div>';
+      if (listEl) listEl.innerHTML = '<div style="color:#ff6b6b;font-size:13px;padding:10px 0;">❌ ' + h2hEscapeHtml(methodsErrMsg || 'Belum ada metode top up aktif.') + '</div>';
       return;
     }
 
@@ -10874,6 +10881,17 @@ async function h2hFetchProducts(category, operatorFilter){
       rows = rows.filter(r => !h2hLooksLikeStrayNonPulsa(r));
     }
 
+    // Kartu "CEK NAMA ID PELANGGAN" (harga Rp0, cuma buat inquiry internal H2H)
+    // BUKAN produk yang bisa dipesan — buang dari grid nominal PLN. Cek nama
+    // pelanggan yang beneran sekarang lewat tombol terpisah (h2hCheckPlnCustomer,
+    // manggil endpoint publik /pln/check).
+    if (category === 'pln') {
+      rows = rows.filter(r => {
+        const text = ((r.name || '') + ' ' + (r.description || '')).toLowerCase();
+        return !(Number(r.price) === 0 || text.includes('cek nama') || text.includes('cek id'));
+      });
+    }
+
     // Satu kartu per nominal, yang termurah yang ditampilkan
     rows = h2hDedupeByNominal(rows);
 
@@ -10905,6 +10923,36 @@ async function h2hLoadPln(){
   const rows = await h2hFetchProducts('pln');
   h2hRenderNomGrid('plnNominal', 'pln', rows);
 }
+
+// Cek nama pelanggan PLN — pakai endpoint publik terpisah /pln/check
+// (BUKAN dari kartu nominal "CEK NAMA..." yang harganya Rp0 itu, karena
+// kode itu cuma buat inquiry internal H2H, gak bisa dipesan langsung).
+async function h2hCheckPlnCustomer(){
+  const meterId = (document.getElementById('plnInput')?.value || '').trim();
+  const resultEl = document.getElementById('plnCheckResult');
+  if (!meterId) { if (resultEl) resultEl.innerHTML = '<span style="color:#ff6b6b;">⚠️ Isi ID Meter / Nomor Pelanggan dulu.</span>'; return; }
+
+  if (resultEl) resultEl.innerHTML = '<span style="opacity:.7;">🔄 Mengecek nama pelanggan...</span>';
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/pln/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ meter_id: meterId }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (j.success && j.data) {
+      const d = j.data;
+      resultEl.innerHTML = '<span style="color:#4ade80;">✅ ' + h2hEscapeHtml(d.name || '') +
+        (d.tariff ? ' · Tarif ' + h2hEscapeHtml(d.tariff) : '') +
+        (d.power_formatted ? ' · ' + h2hEscapeHtml(d.power_formatted) : '') + '</span>';
+    } else {
+      resultEl.innerHTML = '<span style="color:#ff6b6b;">❌ ' + h2hEscapeHtml(j.message || 'ID Meter tidak ditemukan.') + '</span>';
+    }
+  } catch (e) {
+    if (resultEl) resultEl.innerHTML = '<span style="color:#ff6b6b;">❌ Gagal cek pelanggan, coba lagi.</span>';
+  }
+}
+window.h2hCheckPlnCustomer = h2hCheckPlnCustomer;
 async function h2hLoadEwallet(provider){
   const rows = await h2hFetchProducts('e_wallet', provider);
   h2hRenderNomGrid('ewalletNominal', 'ewallet', rows);
