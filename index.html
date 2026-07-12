@@ -784,9 +784,85 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
 
 .ppob-hint{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;letter-spacing:.5px;}
 
+/* ===== PIN GATE & PIN SETUP ===== */
+.pin-overlay{position:fixed;inset:0;background:var(--primary);z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;max-width:480px;margin:0 auto;}
+.pin-overlay.open{display:flex;}
+.pin-close{position:absolute;top:18px;right:18px;width:36px;height:36px;border-radius:50%;background:var(--card2);border:1px solid var(--border);color:var(--text);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.pin-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:14px;}
+.pin-title{font-family:'Orbitron',sans-serif;font-weight:800;font-size:17px;letter-spacing:1px;color:#fff;text-align:center;}
+.pin-sub{font-size:12px;color:var(--muted);text-align:center;margin-top:6px;margin-bottom:26px;letter-spacing:.3px;}
+.pin-dots{display:flex;gap:16px;margin-bottom:30px;}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);background:transparent;transition:.15s;}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent);}
+.pin-dot.error{background:var(--danger);border-color:var(--danger);}
+.pin-error-msg{color:var(--danger);font-size:12.5px;font-weight:700;min-height:16px;margin-bottom:14px;text-align:center;}
+.pin-keypad{display:grid;grid-template-columns:repeat(3,64px);gap:16px;justify-content:center;}
+.pin-key{width:64px;height:64px;border-radius:50%;background:var(--card2);border:1px solid var(--border);color:var(--text);font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;}
+.pin-key:active{background:rgba(77,91,255,0.25);border-color:var(--accent);}
+.pin-key.pin-key-ghost{background:transparent;border:none;cursor:default;}
+.pin-key.pin-key-bio{background:transparent;border:none;color:var(--accent2);font-size:24px;}
+.pin-forgot{margin-top:22px;font-size:12.5px;color:var(--accent2);font-weight:700;cursor:pointer;text-decoration:underline;}
+.pin-setup-steps{font-size:11.5px;color:var(--muted);text-align:center;letter-spacing:.5px;margin-bottom:4px;}
+
 </style>
 </head>
 <body class="has-bottom-nav">
+
+<!-- ===== PIN GATE (dipakai tiap mau checkout/transfer) ===== -->
+<div class="pin-overlay" id="pinGateOverlay">
+  <div class="pin-close" onclick="pinGateCancel()">✕</div>
+  <div class="pin-icon">🔒</div>
+  <div class="pin-title">MASUKKAN PIN</div>
+  <div class="pin-sub" id="pinGateSub">Konfirmasi transaksi kamu</div>
+  <div class="pin-dots" id="pinGateDots">
+    <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
+    <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
+  </div>
+  <div class="pin-error-msg" id="pinGateError"></div>
+  <div class="pin-keypad" id="pinGateKeypad">
+    <div class="pin-key" onclick="pinGateInput('1')">1</div>
+    <div class="pin-key" onclick="pinGateInput('2')">2</div>
+    <div class="pin-key" onclick="pinGateInput('3')">3</div>
+    <div class="pin-key" onclick="pinGateInput('4')">4</div>
+    <div class="pin-key" onclick="pinGateInput('5')">5</div>
+    <div class="pin-key" onclick="pinGateInput('6')">6</div>
+    <div class="pin-key" onclick="pinGateInput('7')">7</div>
+    <div class="pin-key" onclick="pinGateInput('8')">8</div>
+    <div class="pin-key" onclick="pinGateInput('9')">9</div>
+    <div class="pin-key pin-key-bio" id="pinGateBioKey" onclick="pinGateBiometric()" style="display:none;">👆</div>
+    <div class="pin-key" onclick="pinGateInput('0')">0</div>
+    <div class="pin-key" onclick="pinGateBackspace()">⌫</div>
+  </div>
+  <div class="pin-forgot" onclick="pinGateForgot()">Lupa PIN?</div>
+</div>
+
+<!-- ===== SETUP / GANTI PIN (dibuka dari Pengaturan) ===== -->
+<div class="pin-overlay" id="pinSetupOverlay">
+  <div class="pin-close" onclick="pinSetupClose()">✕</div>
+  <div class="pin-icon">🔢</div>
+  <div class="pin-title" id="pinSetupTitle">BUAT PIN TRANSAKSI</div>
+  <div class="pin-setup-steps" id="pinSetupSteps">Langkah 1 dari 2</div>
+  <div class="pin-sub" id="pinSetupSub">PIN ini akan diminta setiap kali kamu checkout atau transfer saldo</div>
+  <div class="pin-dots" id="pinSetupDots">
+    <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
+    <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
+  </div>
+  <div class="pin-error-msg" id="pinSetupError"></div>
+  <div class="pin-keypad">
+    <div class="pin-key" onclick="pinSetupInput('1')">1</div>
+    <div class="pin-key" onclick="pinSetupInput('2')">2</div>
+    <div class="pin-key" onclick="pinSetupInput('3')">3</div>
+    <div class="pin-key" onclick="pinSetupInput('4')">4</div>
+    <div class="pin-key" onclick="pinSetupInput('5')">5</div>
+    <div class="pin-key" onclick="pinSetupInput('6')">6</div>
+    <div class="pin-key" onclick="pinSetupInput('7')">7</div>
+    <div class="pin-key" onclick="pinSetupInput('8')">8</div>
+    <div class="pin-key" onclick="pinSetupInput('9')">9</div>
+    <div class="pin-key pin-key-ghost"></div>
+    <div class="pin-key" onclick="pinSetupInput('0')">0</div>
+    <div class="pin-key" onclick="pinSetupBackspace()">⌫</div>
+  </div>
+</div>
 
 
 <!-- PAYCORE HERO HEADER -->
@@ -2270,13 +2346,13 @@ renderBannerSlider();
           <div class="pgs-item-left"><span class="pgs-ico">🛡️</span><span>Autentikasi Dua Faktor</span></div>
           <button type="button" class="pgs-toggle" id="pgs2FAToggle" onclick="pgsToggle2FA()"><span class="pgs-toggle-knob"></span></button>
         </div>
-        <div class="pgs-item" onclick="showNotif('🔢 PIN transaksi segera hadir')">
+        <div class="pgs-item" onclick="pinSetupOpen()">
           <div class="pgs-item-left"><span class="pgs-ico">🔢</span><span>PIN Transaksi</span></div>
           <span class="pgs-chevron">›</span>
         </div>
-        <div class="pgs-item" onclick="showNotif('👆 Biometrik segera hadir')">
-          <div class="pgs-item-left"><span class="pgs-ico">👆</span><span>Biometrik</span></div>
-          <span class="pgs-chevron">›</span>
+        <div class="pgs-item" onclick="pgsToggleBiometric()">
+          <div class="pgs-item-left"><span class="pgs-ico">👆</span><span>Biometrik untuk PIN</span></div>
+          <button type="button" class="pgs-toggle" id="pgsBiometricToggle" onclick="event.stopPropagation();pgsToggleBiometric()"><span class="pgs-toggle-knob"></span></button>
         </div>
       </div>
     </div>
@@ -3159,8 +3235,9 @@ function showPengaturan() {
     }
   } catch(e){}
 
-  // Sinkron label tema & tutup panel Edit Profil setiap dibuka ulang
+  // Sinkron label tema, toggle biometrik & tutup panel Edit Profil setiap dibuka ulang
   pgsSyncTheme();
+  pgsSyncBiometricToggle();
   const pgsEditBody = document.getElementById('pgsEditProfileBody');
   const pgsEditChevron = document.getElementById('pgsEditProfileChevron');
   if (pgsEditBody) pgsEditBody.classList.remove('open');
@@ -3221,6 +3298,41 @@ function pgsToggle2FA(){
 function pgsSyncTheme(){
   const sub = document.getElementById('pgsThemeSub');
   if (sub) sub.textContent = document.body.classList.contains('light-mode') ? 'Terang' : 'Gelap';
+}
+
+async function pgsToggleBiometric(){
+  const btn = document.getElementById('pgsBiometricToggle');
+  if (!btn) return;
+
+  // Biometrik cuma bisa dipakai lewat APK (bridge native), gak lewat browser biasa
+  if (!window.AndroidBridge || typeof window.AndroidBridge.enrollBiometric !== 'function') {
+    showNotif('⚠️ Biometrik cuma tersedia di aplikasi Paycore, bukan browser');
+    return;
+  }
+  const sudahAdaPin = await pinHasPin();
+  if (!sudahAdaPin) {
+    showNotif('🔢 Set PIN Transaksi dulu sebelum aktifkan biometrik');
+    pinSetupOpen();
+    return;
+  }
+
+  const on = btn.classList.toggle('on');
+  if (on) {
+    // Native akan minta user scan sidik jari/wajah sekali untuk "mendaftarkan"
+    // perangkat ini boleh pakai biometrik menggantikan ketik PIN manual.
+    window.AndroidBridge.enrollBiometric();
+    localStorage.setItem('pin_biometric_enabled', '1');
+    showNotif('👆 Biometrik untuk PIN diaktifkan');
+  } else {
+    localStorage.setItem('pin_biometric_enabled', '0');
+    showNotif('⛔ Biometrik untuk PIN dimatikan');
+  }
+}
+function pgsSyncBiometricToggle(){
+  const btn = document.getElementById('pgsBiometricToggle');
+  if (!btn) return;
+  const on = localStorage.getItem('pin_biometric_enabled') === '1';
+  btn.classList.toggle('on', on);
 }
 
 function setAvatarChange() {
@@ -11224,6 +11336,235 @@ async function h2hGetAccessToken(){
   } catch { return null; }
 }
 
+// ============================================================
+// PIN TRANSAKSI — gate wajib sebelum checkout & transfer saldo
+// ============================================================
+let _pinGateBuffer = '';
+let _pinGateResolve = null; // dipanggil dengan pin_token kalau sukses, null kalau batal
+let _pinHasPinCache = null; // null = belum tau, true/false setelah dicek ke server
+
+function _pinDotsRender(containerId, len){
+  const dots = document.querySelectorAll(`#${containerId} .pin-dot`);
+  dots.forEach((d, i) => d.classList.toggle('filled', i < len));
+}
+function _pinDotsShake(containerId){
+  const dots = document.querySelectorAll(`#${containerId} .pin-dot`);
+  dots.forEach(d => d.classList.add('error'));
+  setTimeout(() => dots.forEach(d => d.classList.remove('error')), 350);
+}
+
+// --- Cek ke server apakah user sudah pernah set PIN ---
+async function pinHasPin(){
+  if (_pinHasPinCache !== null) return _pinHasPinCache;
+  const token = await h2hGetAccessToken();
+  if (!token) return false;
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/pin/has-pin`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    const j = await res.json().catch(() => ({}));
+    _pinHasPinCache = !!j.has_pin;
+    return _pinHasPinCache;
+  } catch { return false; }
+}
+
+// --- Dipanggil dari h2hCheckout()/qrisSendTransfer() sebelum kirim transaksi.
+//     Balikin pin_token kalau PIN benar, atau null kalau user batal/belum set PIN. ---
+async function pinGateRequire(subtitleText){
+  const sudahAdaPin = await pinHasPin();
+  if (!sudahAdaPin) {
+    const mauSet = confirm('Kamu belum set PIN Transaksi. Set sekarang demi keamanan akun?');
+    if (mauSet) { pinSetupOpen(); }
+    return null;
+  }
+
+  return new Promise((resolve) => {
+    _pinGateResolve = resolve;
+    _pinGateBuffer = '';
+    document.getElementById('pinGateError').textContent = '';
+    document.getElementById('pinGateSub').textContent = subtitleText || 'Konfirmasi transaksi kamu';
+    _pinDotsRender('pinGateDots', 0);
+    document.getElementById('pinGateOverlay').classList.add('open');
+
+    // Tampilkan tombol biometrik cuma kalau bridge native ada & user sudah aktifkan
+    const bioKey = document.getElementById('pinGateBioKey');
+    const bioAktif = localStorage.getItem('pin_biometric_enabled') === '1';
+    if (bioAktif && window.AndroidBridge && typeof window.AndroidBridge.authenticateBiometric === 'function') {
+      bioKey.style.display = 'flex';
+    } else {
+      bioKey.style.display = 'none';
+    }
+  });
+}
+
+function pinGateCancel(){
+  document.getElementById('pinGateOverlay').classList.remove('open');
+  _pinGateBuffer = '';
+  if (_pinGateResolve) { _pinGateResolve(null); _pinGateResolve = null; }
+}
+
+function pinGateInput(digit){
+  if (_pinGateBuffer.length >= 6) return;
+  _pinGateBuffer += digit;
+  _pinDotsRender('pinGateDots', _pinGateBuffer.length);
+  if (_pinGateBuffer.length === 6) _pinGateSubmit();
+}
+function pinGateBackspace(){
+  _pinGateBuffer = _pinGateBuffer.slice(0, -1);
+  _pinDotsRender('pinGateDots', _pinGateBuffer.length);
+}
+
+async function _pinGateSubmit(){
+  const token = await h2hGetAccessToken();
+  const pinToUse = _pinGateBuffer;
+  _pinGateBuffer = '';
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/pin/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ pin: pinToUse }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (j.success && j.pin_token) {
+      document.getElementById('pinGateOverlay').classList.remove('open');
+      if (_pinGateResolve) { _pinGateResolve(j.pin_token); _pinGateResolve = null; }
+    } else {
+      document.getElementById('pinGateError').textContent = j.message || 'PIN salah';
+      _pinDotsShake('pinGateDots');
+      _pinDotsRender('pinGateDots', 0);
+    }
+  } catch {
+    document.getElementById('pinGateError').textContent = 'Gagal terhubung ke server';
+    _pinDotsRender('pinGateDots', 0);
+  }
+}
+
+function pinGateForgot(){
+  document.getElementById('pinGateOverlay').classList.remove('open');
+  if (_pinGateResolve) { _pinGateResolve(null); _pinGateResolve = null; }
+  // Verifikasi ulang identitas (password/OTP) sebelum boleh reset PIN.
+  // Sesuaikan dengan alur re-auth yang sudah ada di app kamu (mis. re-login modal).
+  showNotif('🔐 Untuk reset PIN, silakan verifikasi ulang akun kamu di Pengaturan');
+  if (typeof openPengaturan === 'function') openPengaturan();
+}
+
+// Dipanggil dari native lewat window.AndroidBridge saat biometrik sukses.
+// Native TIDAK mengirim PIN mentah ke sini — dia langsung minta Worker
+// bikinkan pin_token pakai endpoint khusus /pin/verify-biometric yang
+// hanya menerima "biometric assertion token" dari native, bukan angka PIN.
+async function pinGateBiometric(){
+  if (!window.AndroidBridge || typeof window.AndroidBridge.authenticateBiometric !== 'function') return;
+  window.AndroidBridge.authenticateBiometric(); // native akan panggil balik onBiometricResult(...)
+}
+async function onBiometricResult(success, assertionToken){
+  if (!success) {
+    document.getElementById('pinGateError').textContent = 'Verifikasi biometrik gagal';
+    return;
+  }
+  const token = await h2hGetAccessToken();
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/pin/verify-biometric`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ assertion_token: assertionToken }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (j.success && j.pin_token) {
+      document.getElementById('pinGateOverlay').classList.remove('open');
+      if (_pinGateResolve) { _pinGateResolve(j.pin_token); _pinGateResolve = null; }
+    } else {
+      document.getElementById('pinGateError').textContent = j.message || 'Verifikasi biometrik gagal';
+    }
+  } catch {
+    document.getElementById('pinGateError').textContent = 'Gagal terhubung ke server';
+  }
+}
+window.onBiometricResult = onBiometricResult;
+
+// ============================================================
+// SETUP / GANTI PIN — dibuka dari menu Pengaturan
+// ============================================================
+let _pinSetupBuffer = '';
+let _pinSetupFirstEntry = null; // simpan PIN pertama sementara nunggu konfirmasi
+
+function pinSetupOpen(){
+  _pinSetupBuffer = '';
+  _pinSetupFirstEntry = null;
+  document.getElementById('pinSetupTitle').textContent = 'BUAT PIN TRANSAKSI';
+  document.getElementById('pinSetupSteps').textContent = 'Langkah 1 dari 2';
+  document.getElementById('pinSetupSub').textContent = 'PIN ini akan diminta setiap kali kamu checkout atau transfer saldo';
+  document.getElementById('pinSetupError').textContent = '';
+  _pinDotsRender('pinSetupDots', 0);
+  document.getElementById('pinSetupOverlay').classList.add('open');
+}
+function pinSetupClose(){
+  document.getElementById('pinSetupOverlay').classList.remove('open');
+  _pinSetupBuffer = '';
+  _pinSetupFirstEntry = null;
+}
+function pinSetupInput(digit){
+  if (_pinSetupBuffer.length >= 6) return;
+  _pinSetupBuffer += digit;
+  _pinDotsRender('pinSetupDots', _pinSetupBuffer.length);
+  if (_pinSetupBuffer.length === 6) _pinSetupNextStep();
+}
+function pinSetupBackspace(){
+  _pinSetupBuffer = _pinSetupBuffer.slice(0, -1);
+  _pinDotsRender('pinSetupDots', _pinSetupBuffer.length);
+}
+
+async function _pinSetupNextStep(){
+  if (_pinSetupFirstEntry === null) {
+    // Selesai langkah 1 -> minta konfirmasi ulang
+    _pinSetupFirstEntry = _pinSetupBuffer;
+    _pinSetupBuffer = '';
+    document.getElementById('pinSetupTitle').textContent = 'ULANGI PIN';
+    document.getElementById('pinSetupSteps').textContent = 'Langkah 2 dari 2';
+    document.getElementById('pinSetupSub').textContent = 'Masukkan sekali lagi PIN yang sama untuk konfirmasi';
+    document.getElementById('pinSetupError').textContent = '';
+    _pinDotsRender('pinSetupDots', 0);
+    return;
+  }
+
+  if (_pinSetupBuffer !== _pinSetupFirstEntry) {
+    document.getElementById('pinSetupError').textContent = 'PIN tidak sama, coba lagi dari awal';
+    _pinDotsShake('pinSetupDots');
+    _pinSetupBuffer = '';
+    _pinSetupFirstEntry = null;
+    setTimeout(() => {
+      document.getElementById('pinSetupTitle').textContent = 'BUAT PIN TRANSAKSI';
+      document.getElementById('pinSetupSteps').textContent = 'Langkah 1 dari 2';
+      document.getElementById('pinSetupSub').textContent = 'PIN ini akan diminta setiap kali kamu checkout atau transfer saldo';
+      _pinDotsRender('pinSetupDots', 0);
+    }, 500);
+    return;
+  }
+
+  const token = await h2hGetAccessToken();
+  if (!token) { showNotif('⚠️ Silakan login dulu'); pinSetupClose(); return; }
+
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/pin/set`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ pin: _pinSetupBuffer }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (j.success) {
+      _pinHasPinCache = true;
+      showNotif('✅ PIN Transaksi berhasil disimpan');
+      pinSetupClose();
+    } else {
+      document.getElementById('pinSetupError').textContent = j.message || 'Gagal menyimpan PIN';
+      _pinSetupBuffer = '';
+      _pinDotsRender('pinSetupDots', 0);
+    }
+  } catch {
+    document.getElementById('pinSetupError').textContent = 'Gagal terhubung ke server';
+  }
+}
+window.pinSetupOpen = pinSetupOpen;
+
 // Guard anti double-click sederhana (lapisan tambahan di atas Idempotency-Key)
 let h2hCheckoutInFlight = false;
 
@@ -11242,6 +11583,10 @@ async function h2hCheckout(opts){
     return;
   }
 
+  // ==== PIN GATE: wajib konfirmasi PIN sebelum saldo dipotong ====
+  const pinToken = await pinGateRequire('Konfirmasi pembelian ' + (display_label || category));
+  if (!pinToken) return; // user batal / belum set PIN
+
   h2hCheckoutInFlight = true;
   const idemKey = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
   h2hShowLoading(true);
@@ -11258,7 +11603,7 @@ async function h2hCheckout(opts){
         'Authorization': 'Bearer ' + token,
         'Idempotency-Key': idemKey,
       },
-      body: JSON.stringify({ category, product_code, dest, payment_method, quantity, customer_name }),
+      body: JSON.stringify({ category, product_code, dest, payment_method, quantity, customer_name, pin_token: pinToken }),
     });
     const json = await res.json().catch(() => ({}));
     h2hShowLoading(false);
@@ -11860,6 +12205,10 @@ async function qrisSendTransfer(){
   const token = await h2hGetAccessToken();
   if (!token) { alert('Silakan login dulu.'); return; }
 
+  // ==== PIN GATE: wajib konfirmasi PIN sebelum saldo ditransfer ====
+  const pinToken = await pinGateRequire('Konfirmasi transfer ' + h2hFormatRupiah(amount));
+  if (!pinToken) return; // user batal / belum set PIN
+
   qrisSendInFlight = true;
   const btn = document.getElementById('qrisSendBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Memproses...'; }
@@ -11873,7 +12222,7 @@ async function qrisSendTransfer(){
         'Authorization': 'Bearer ' + token,
         'Idempotency-Key': idemKey,
       },
-      body: JSON.stringify({ to_code: qrisRecipient.code, amount, note }),
+      body: JSON.stringify({ to_code: qrisRecipient.code, amount, note, pin_token: pinToken }),
     });
     const j = await res.json().catch(() => ({}));
     if (j.success) {
