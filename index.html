@@ -1329,30 +1329,18 @@ renderBannerSlider();
   </div>
   <div class="ppob-wrap">
 
-    <div class="ppob-chips" style="margin-bottom:14px;">
-      <div class="ppob-chip active" id="qrisTabKirim" onclick="qrisSwitchTab('kirim')">↗ Kirim</div>
-      <div class="ppob-chip" id="qrisTabTerima" onclick="qrisSwitchTab('terima')">↙ Terima</div>
-    </div>
-
     <!-- ================= KIRIM ================= -->
     <div id="qrisKirimPanel">
-      <div class="ppob-chips" style="margin-bottom:10px;">
-        <div class="ppob-chip active" id="qrisMethodPhone" onclick="qrisSwitchMethod('phone')">📱 Nomor HP</div>
-        <div class="ppob-chip" id="qrisMethodScan" onclick="qrisSwitchMethod('scan')">🔳 Scan QR</div>
-      </div>
-
       <div id="qrisPhonePanel" class="ppob-card">
         <div class="ppob-label">NOMOR HP TUJUAN</div>
         <input type="tel" id="qrisPhoneInput" class="ppob-input" placeholder="Contoh: 08123456789" oninput="qrisResetRecipient()">
         <button type="button" onclick="qrisLookup('phone')" style="margin-top:10px;width:100%;background:#1a2440;color:#00d4ff;border:1px solid #00d4ff;border-radius:10px;padding:10px;font-weight:700;font-size:13px;">Cari Penerima</button>
+        <div style="text-align:center;margin-top:14px;">
+          <button type="button" onclick="qrisOpenScanner()" style="background:none;border:none;color:#8a9bbf;font-size:12.5px;font-weight:600;text-decoration:underline;cursor:pointer;padding:4px;">🔳 atau scan QR penerima</button>
+        </div>
       </div>
 
-      <div id="qrisScanPanel" class="ppob-card" style="display:none;">
-        <div class="ppob-label">ARAHKAN KAMERA KE QR PENERIMA</div>
-        <video id="qrisVideo" style="width:100%;border-radius:12px;background:#000;display:block;" playsinline muted autoplay></video>
-        <canvas id="qrisCanvas" style="display:none;"></canvas>
-        <div id="qrisScanStatus" style="margin-top:8px;font-size:12px;opacity:.7;text-align:center;">Mengaktifkan kamera...</div>
-      </div>
+      <canvas id="qrisCanvas" style="display:none;"></canvas>
 
       <div id="qrisRecipientCard" class="ppob-card" style="display:none;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
@@ -1386,6 +1374,23 @@ renderBannerSlider();
 
   </div>
 </section>
+
+<!-- ================= SCAN QR (half-screen, gaya DANA) ================= -->
+<div id="qrisScanOverlay" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(2,8,20,.85);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;">
+  <div style="width:100%;max-width:480px;background:#0a1226;border-radius:22px 22px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));">
+    <div style="width:40px;height:4px;background:#2a3348;border-radius:99px;margin:0 auto 12px;"></div>
+    <div style="font-weight:700;font-size:14px;text-align:center;margin-bottom:12px;">Scan QR Penerima</div>
+    <div style="position:relative;border-radius:16px;overflow:hidden;background:#000;height:44vh;max-height:360px;">
+      <video id="qrisVideo" style="width:100%;height:100%;object-fit:cover;display:block;" playsinline muted autoplay></video>
+      <div style="position:absolute;inset:14%;border:2px solid rgba(255,255,255,.35);border-radius:16px;pointer-events:none;"></div>
+      <button type="button" onclick="qrisPickFromGallery()" title="Pilih dari galeri" style="position:absolute;top:10px;left:10px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.5);border:none;color:#fff;font-size:16px;">🖼️</button>
+      <button type="button" id="qrisTorchBtn" onclick="qrisToggleTorch()" title="Senter" style="display:none;position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.5);border:none;color:#fff;font-size:16px;">💡</button>
+    </div>
+    <div id="qrisScanStatus" style="margin-top:10px;font-size:12px;opacity:.7;text-align:center;">Mengaktifkan kamera...</div>
+    <input type="file" id="qrisGalleryInput" accept="image/*" style="display:none;" onchange="qrisHandleGalleryFile(event)">
+    <button type="button" onclick="qrisCloseScanner()" style="margin-top:14px;width:100%;background:rgba(255,255,255,.08);color:#fff;border:none;border-radius:12px;padding:12px;font-weight:700;">Tutup</button>
+  </div>
+</div>
 
 <!-- KONFIRMASI PEMBAYARAN PAGE (generic, dipakai semua layanan PPOB) -->
 <section id="ppobConfirmPage" class="ppob-page">
@@ -5821,12 +5826,13 @@ function doPesan(){
       try { renderRiwayat(); } catch(_){} // render ulang setelah data dari Supabase masuk
       try { window.__sweepQrisExpired && window.__sweepQrisExpired(); } catch(_){}
     });
-    // Self-heal: cek ulang top up yang masih "Pending" ke H2H langsung.
-    // Ini jaga-jaga kalau polling di modal top up sempat berhenti (app
-    // ditutup / pindah tab sebelum pembayaran selesai) sehingga status di
-    // riwayat gak pernah keupdate walau pembayarannya sebenarnya sudah
-    // sukses di sisi H2H.
+    // Self-heal: cek ulang top up & transaksi (pulsa/PLN/dll) yang masih
+    // "Pending" ke H2H langsung. Ini jaga-jaga kalau polling di halaman
+    // hasil sempat berhenti (app ditutup / pindah tab sebelum transaksi
+    // kelar) sehingga status di riwayat gak pernah keupdate walau
+    // transaksinya sebenarnya udah final (sukses/gagal) di sisi H2H.
     try { window.__syncPendingTopups && window.__syncPendingTopups(u.email); } catch(_){}
+    try { window.__syncPendingOrders && window.__syncPendingOrders(u.email); } catch(_){}
   }
   function closeRiwayat(){
     document.getElementById('riwayatPanel').classList.remove('open');
@@ -5938,10 +5944,14 @@ function doPesan(){
         <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;font-style:italic;letter-spacing:1px;">DETAIL TRANSAKSI</div>
         <button onclick="window.__riwDetailClose()" style="background:rgba(255,255,255,.08);border:none;color:#fff;width:36px;height:36px;border-radius:9px;font-size:18px;cursor:pointer;">✕</button>
       </div>
-      <div style="margin:16px;background:linear-gradient(180deg,#10b981,#059669);border-radius:20px;padding:32px 20px;text-align:center;">
-        <div style="width:80px;height:80px;border-radius:20px;background:rgba(255,255,255,.18);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:40px;">✓</div>
-        <div style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:900;font-size:26px;line-height:1.1;">PAYMENT<br>SUCCESS</div>
-        <div style="margin-top:10px;font-size:11px;letter-spacing:3px;opacity:.85;font-weight:600;">TRANSAKSI BERHASIL</div>
+      <div id="rdHeaderCard" style="margin:16px;background:linear-gradient(180deg,#10b981,#059669);border-radius:20px;padding:32px 20px;text-align:center;">
+        <div id="rdHeaderIcon" style="width:80px;height:80px;border-radius:20px;background:rgba(255,255,255,.18);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:40px;">✓</div>
+        <div id="rdHeaderLabel" style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:900;font-size:26px;line-height:1.1;">PAYMENT<br>SUCCESS</div>
+        <div id="rdHeaderSub" style="margin-top:10px;font-size:11px;letter-spacing:3px;opacity:.85;font-weight:600;">TRANSAKSI BERHASIL</div>
+      </div>
+      <div id="rdPendingBanner" style="display:none;margin:0 16px 14px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:14px;padding:14px;gap:10px;align-items:center;">
+        <div style="font-size:20px;">🕐</div>
+        <div style="font-size:12.5px;color:#f5c876;line-height:1.4;">Transaksi masih diproses. Status akan diperbarui otomatis, gak perlu order ulang.</div>
       </div>
       <div style="margin:0 16px;display:flex;justify-content:space-between;padding:16px 4px;border-bottom:1px solid rgba(255,255,255,.08);">
         <div><div style="font-size:11px;letter-spacing:2px;color:#7a8aa8;font-weight:700;">TRX ID</div><div id="rdTrxId" style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:13px;margin-top:4px;">—</div></div>
@@ -5952,7 +5962,7 @@ function doPesan(){
         <div style="font-size:11px;letter-spacing:2.5px;font-weight:700;opacity:.85;">TOTAL PEMBAYARAN</div>
         <div id="rdTotal" style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:900;font-size:28px;margin-top:6px;">Rp 0</div>
       </div>
-      <div style="margin:0 16px 14px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:16px;padding:16px;">
+      <div id="rdKeyCard" style="margin:0 16px 14px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:16px;padding:16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <div style="color:#10b981;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:12px;letter-spacing:2px;">🔑 KEY KAMU</div>
           <button id="rdCopyBtn" onclick="window.__riwDetailCopy()" style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.5);color:#10b981;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:11px;letter-spacing:1.5px;padding:6px 12px;border-radius:10px;cursor:pointer;">📋 SALIN</button>
@@ -5963,8 +5973,21 @@ function doPesan(){
     </div>`);
   }
 
+  function riwStatusMeta(st){
+    if (st === 'sukses') return { icon:'✓', label:'PAYMENT<br>SUCCESS', sub:'TRANSAKSI BERHASIL', grad:'linear-gradient(180deg,#10b981,#059669)' };
+    if (st === 'menunggu') return { icon:'⏳', label:'SEDANG<br>DIPROSES', sub:'TRANSAKSI DIPROSES', grad:'linear-gradient(180deg,#f59e0b,#b45309)' };
+    return { icon:'✕', label:'TRANSAKSI<br>GAGAL', sub: st==='kadaluwarsa' ? 'SUDAH KADALUWARSA' : 'DIBATALKAN / GAGAL', grad:'linear-gradient(180deg,#ef4444,#b91c1c)' };
+  }
+
   window.__riwDetail = function(t) {
     if (typeof t === 'string') { try { t = JSON.parse(t); } catch(_){ return; } }
+    const st = (t.status||'menunggu').toLowerCase();
+    const meta = riwStatusMeta(st);
+    document.getElementById('rdHeaderCard').style.background = meta.grad;
+    document.getElementById('rdHeaderIcon').textContent = meta.icon;
+    document.getElementById('rdHeaderLabel').innerHTML = meta.label;
+    document.getElementById('rdHeaderSub').textContent = meta.sub;
+    document.getElementById('rdPendingBanner').style.display = st === 'menunggu' ? 'flex' : 'none';
     document.getElementById('rdTrxId').textContent = t.id || '—';
     document.getElementById('rdTime').textContent = t.time || '—';
     document.getElementById('rdTotal').textContent = 'Rp ' + Number((t.price||0)*(t.qty||1)).toLocaleString('id-ID');
@@ -5976,10 +5999,21 @@ function doPesan(){
         <div style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:14px;">${(t.productName||t.prod||'PRODUK').toUpperCase()}</div>
         <div style="font-size:12px;letter-spacing:2px;color:#1a6fff;font-weight:700;margin-top:4px;">${(t.variantName||'').toUpperCase()} • ${t.qty||1}X</div>
       </div>`;
-    const keys = t.key ? t.key.split('\n').filter(Boolean) : [];
-    document.getElementById('rdKeyList').innerHTML = keys.length
-      ? keys.map((k,i)=>`<div>${i+1}. ${k}</div>`).join('')
-      : '<div style="color:#6a8cb5;">Tidak ada key tersimpan</div>';
+    // Card "Key" cuma relevan buat transaksi yang beneran sukses -- buat
+    // pending/gagal disembunyikan aja, gak ada key yang bisa ditampilin.
+    const keyCard = document.getElementById('rdKeyCard');
+    if (st === 'sukses') {
+      keyCard.style.display = 'block';
+      const keys = t.key ? t.key.split('\n').filter(Boolean) : [];
+      keyCard.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="color:#10b981;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:12px;letter-spacing:2px;">🔑 KEY KAMU</div>
+          <button id="rdCopyBtn" onclick="window.__riwDetailCopy()" style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.5);color:#10b981;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:11px;letter-spacing:1.5px;padding:6px 12px;border-radius:10px;cursor:pointer;">📋 SALIN</button>
+        </div>
+        <div id="rdKeyList" style="font-size:13px;color:#10b981;word-break:break-all;line-height:1.8;">${keys.length ? keys.map((k,i)=>`<div>${i+1}. ${k}</div>`).join('') : '<div style="color:#6a8cb5;">Tidak ada key tersimpan</div>'}</div>`;
+    } else {
+      keyCard.style.display = 'none';
+    }
     document.getElementById('riwDetailModal').style.display = 'block';
     document.body.style.overflow = 'hidden';
   };
@@ -6124,13 +6158,17 @@ function doPesan(){
     const mt = (t.method||'QRIS').toUpperCase();
     if (st === 'sukses') { window.__riwDetail(t); return; }
     if (st === 'menunggu') {
+      // WA & QRIS lama masih punya alur khusus sendiri (buka chat WA /
+      // munculin lagi QR-nya) -- selain itu (top up, pulsa/PLN/dll lewat
+      // H2H) langsung dibukain halaman detail biar user bisa liat statusnya,
+      // bukan cuma toast doang.
       if (mt === 'WA') { window.__riwOpenWa(t.id); }
       else if (mt === 'QRIS') { window.__riwBayarQris(String(t.id).replace(/^#/,'')); }
-      else { if (typeof showNotif==='function') showNotif('⏳ Transaksi masih menunggu konfirmasi.'); }
+      else { window.__riwDetail(t); }
       return;
     }
-    if (st === 'batal') { if (typeof showNotif==='function') showNotif('❌ Transaksi ini dibatalkan.'); return; }
-    if (st === 'kadaluwarsa') { if (typeof showNotif==='function') showNotif('⌛ Transaksi ini sudah kadaluwarsa.'); return; }
+    // batal / kadaluwarsa -> tetep bisa dibuka detailnya, bukan cuma toast.
+    window.__riwDetail(t);
   };
 
   window.openRiwayat = openRiwayat;
@@ -8301,7 +8339,11 @@ function doPesan(){
   // Reload tiap kali settings/admin dibuka & sekali di awal
   setTimeout(()=>{
     reloadBalFromDB(); paintBal();
-    const u0 = getCU(); if (u0 && typeof window.__syncPendingTopups === 'function') window.__syncPendingTopups(u0.email);
+    const u0 = getCU();
+    if (u0) {
+      if (typeof window.__syncPendingTopups === 'function') window.__syncPendingTopups(u0.email);
+      if (typeof window.__syncPendingOrders === 'function') window.__syncPendingOrders(u0.email);
+    }
   }, 800);
   // Reload setelah login (poll user)
   let lastEmail = (getCU()||{}).email||null;
@@ -8312,10 +8354,23 @@ function doPesan(){
       if (cur){
         reloadBalFromDB();
         if (typeof window.__syncPendingTopups === 'function') window.__syncPendingTopups(cur);
+        if (typeof window.__syncPendingOrders === 'function') window.__syncPendingOrders(cur);
       }
     }
     paintBal();
   }, 1000);
+
+  // Self-heal berkala di background: sebelumnya status pending/gagal cuma
+  // ke-cek ulang kalau Riwayat dibuka atau abis login. Kalau user diem aja
+  // di Beranda, statusnya bisa nyangkut "Diproses" lama padahal di H2H
+  // udah final -- makanya ditambah pengecekan rutin tiap 25 detik selama
+  // masih login, tanpa perlu buka Riwayat atau restart app.
+  setInterval(()=>{
+    const u = getCU();
+    if (!u) return;
+    try { window.__syncPendingTopups && window.__syncPendingTopups(u.email); } catch(_){}
+    try { window.__syncPendingOrders && window.__syncPendingOrders(u.email); } catch(_){}
+  }, 25000);
 
 
   // expose untuk debug
@@ -11600,45 +11655,30 @@ window.openQrisPage = openQrisPage;
 function qrisSwitchTab(tab){
   const kirimPanel = document.getElementById('qrisKirimPanel');
   const terimaPanel = document.getElementById('qrisTerimaPanel');
-  const tabKirim = document.getElementById('qrisTabKirim');
-  const tabTerima = document.getElementById('qrisTabTerima');
   if (tab === 'terima') {
     kirimPanel.style.display = 'none';
     terimaPanel.style.display = 'block';
-    tabKirim.classList.remove('active');
-    tabTerima.classList.add('active');
-    qrisStopCamera();
+    qrisCloseScanner();
     renderMyQrisCode();
+    qrisSetBrightness(true); // layar diterangin dikit biar QR gampang di-scan orang lain
   } else {
     kirimPanel.style.display = 'block';
     terimaPanel.style.display = 'none';
-    tabTerima.classList.remove('active');
-    tabKirim.classList.add('active');
+    qrisSetBrightness(false); // balikin ke brightness normal
   }
 }
 window.qrisSwitchTab = qrisSwitchTab;
 
-function qrisSwitchMethod(method){
-  const phonePanel = document.getElementById('qrisPhonePanel');
-  const scanPanel = document.getElementById('qrisScanPanel');
-  const mPhone = document.getElementById('qrisMethodPhone');
-  const mScan = document.getElementById('qrisMethodScan');
-  qrisResetRecipient();
-  if (method === 'scan') {
-    phonePanel.style.display = 'none';
-    scanPanel.style.display = 'block';
-    mPhone.classList.remove('active');
-    mScan.classList.add('active');
-    qrisStartCamera();
-  } else {
-    phonePanel.style.display = 'block';
-    scanPanel.style.display = 'none';
-    mScan.classList.remove('active');
-    mPhone.classList.add('active');
-    qrisStopCamera();
-  }
+// Naikin/turunin brightness layar lewat Median JS Bridge (cuma jalan di dalam
+// APK yang di-build pakai Median — di browser biasa fungsi ini gak ada,
+// jadi aman di-skip pakai try/catch).
+function qrisSetBrightness(bright){
+  try {
+    if (typeof median === 'undefined' || !median?.screen?.setBrightness) return;
+    if (bright) median.screen.setBrightness({ brightness: '0.9', restoreOnNavigation: true });
+    else median.screen.setBrightness({ brightness: 'default' });
+  } catch(_){}
 }
-window.qrisSwitchMethod = qrisSwitchMethod;
 
 function qrisResetRecipient(){
   qrisRecipient = null;
@@ -11647,14 +11687,38 @@ function qrisResetRecipient(){
 }
 window.qrisResetRecipient = qrisResetRecipient;
 
+function qrisOpenScanner(){
+  const ov = document.getElementById('qrisScanOverlay');
+  if (!ov) return;
+  ov.style.display = 'flex';
+  qrisStartCamera();
+}
+window.qrisOpenScanner = qrisOpenScanner;
+
+function qrisCloseScanner(){
+  const ov = document.getElementById('qrisScanOverlay');
+  if (ov) ov.style.display = 'none';
+  qrisStopCamera();
+}
+window.qrisCloseScanner = qrisCloseScanner;
+
 async function qrisStartCamera(){
   const video = document.getElementById('qrisVideo');
   const statusEl = document.getElementById('qrisScanStatus');
+  const torchBtn = document.getElementById('qrisTorchBtn');
+  if (torchBtn) torchBtn.style.display = 'none';
+  qrisTorchOn = false;
   try {
     qrisScanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
     video.srcObject = qrisScanStream;
     await video.play();
     if (statusEl) statusEl.textContent = 'Arahkan kamera ke QR Paycore...';
+    // Tampilin tombol senter kalau HP-nya emang punya flash & didukung browser
+    try {
+      const track = qrisScanStream.getVideoTracks()[0];
+      const caps = track && track.getCapabilities ? track.getCapabilities() : {};
+      if (torchBtn && caps && caps.torch) torchBtn.style.display = 'flex';
+    } catch(_){}
     qrisScanLoop();
   } catch (e) {
     if (statusEl) statusEl.textContent = '❌ Tidak bisa akses kamera. Cek izin kamera di pengaturan HP.';
@@ -11669,6 +11733,62 @@ function qrisStopCamera(){
     qrisScanStream = null;
   }
 }
+
+let qrisTorchOn = false;
+async function qrisToggleTorch(){
+  if (!qrisScanStream) return;
+  const track = qrisScanStream.getVideoTracks()[0];
+  if (!track) return;
+  try {
+    qrisTorchOn = !qrisTorchOn;
+    await track.applyConstraints({ advanced: [{ torch: qrisTorchOn }] });
+    const btn = document.getElementById('qrisTorchBtn');
+    if (btn) btn.style.background = qrisTorchOn ? 'rgba(255,196,0,.9)' : 'rgba(0,0,0,.5)';
+  } catch(_){
+    qrisTorchOn = !qrisTorchOn; // gagal -> balikin state, biar tombol gak "nyangkut" nyala
+  }
+}
+window.qrisToggleTorch = qrisToggleTorch;
+
+// ---------- Scan dari galeri (foto QR yang udah ada di HP) ----------
+function qrisPickFromGallery(){
+  const inp = document.getElementById('qrisGalleryInput');
+  if (inp) inp.click();
+}
+window.qrisPickFromGallery = qrisPickFromGallery;
+
+function qrisHandleGalleryFile(ev){
+  const file = ev.target.files && ev.target.files[0];
+  ev.target.value = ''; // reset supaya foto yang sama bisa dipilih ulang kalau perlu
+  if (!file) return;
+  const statusEl = document.getElementById('qrisScanStatus');
+  if (statusEl) statusEl.textContent = 'Membaca gambar...';
+  const img = new Image();
+  img.onload = () => {
+    try {
+      const canvas = document.getElementById('qrisCanvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = (typeof jsQR === 'function') ? jsQR(imageData.data, imageData.width, imageData.height) : null;
+      URL.revokeObjectURL(img.src);
+      if (code && code.data && code.data.startsWith(QRIS_PREFIX)) {
+        qrisStopCamera();
+        const walletCode = code.data.slice(QRIS_PREFIX.length);
+        qrisLookup('code', walletCode);
+      } else if (statusEl) {
+        statusEl.textContent = '❌ QR Paycore gak ketemu di gambar itu. Coba gambar lain atau scan langsung.';
+      }
+    } catch(_){
+      if (statusEl) statusEl.textContent = '❌ Gagal membaca gambar.';
+    }
+  };
+  img.onerror = () => { if (statusEl) statusEl.textContent = '❌ Gagal membuka gambar.'; };
+  img.src = URL.createObjectURL(file);
+}
+window.qrisHandleGalleryFile = qrisHandleGalleryFile;
 
 function qrisScanLoop(){
   const video = document.getElementById('qrisVideo');
@@ -11710,16 +11830,19 @@ async function qrisLookup(type, valueOverride){
     const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
     const j = await res.json().catch(() => ({}));
     if (!j.success) {
-      if (statusEl) statusEl.textContent = '❌ ' + (j.message || 'Penerima tidak ditemukan');
-      else alert(j.message || 'Penerima tidak ditemukan');
-      if (type === 'scan') setTimeout(() => { if (document.getElementById('qrisScanPanel').style.display !== 'none') qrisStartCamera(); }, 1500);
+      if (type === 'code' && statusEl) {
+        statusEl.textContent = '❌ ' + (j.message || 'Penerima tidak ditemukan');
+        setTimeout(() => { const ov = document.getElementById('qrisScanOverlay'); if (ov && ov.style.display !== 'none') qrisStartCamera(); }, 1500);
+      } else {
+        alert(j.message || 'Penerima tidak ditemukan');
+      }
       return;
     }
     qrisRecipient = { name: j.data.name, code: type === 'phone' ? j.data.wallet_code : valueOverride };
     document.getElementById('qrisRecipientName').textContent = j.data.name;
     document.getElementById('qrisRecipientAvatar').textContent = (j.data.name || '?')[0].toUpperCase();
     document.getElementById('qrisRecipientCard').style.display = 'block';
-    if (statusEl) statusEl.textContent = '✅ Penerima ditemukan';
+    if (type === 'code') qrisCloseScanner(); // ketemu lewat scan/galeri -> tutup overlay, balik ke form Kirim
   } catch (e) {
     alert('Gagal cek penerima, coba lagi.');
   }
