@@ -3305,7 +3305,7 @@ async function pgsToggleBiometric(){
   if (!btn) return;
 
   // Biometrik cuma bisa dipakai lewat APK (bridge native), gak lewat browser biasa
-  if (!window.AndroidBridge || typeof window.AndroidBridge.enrollBiometric !== 'function') {
+  if (!window.AndroidBridge || typeof window.AndroidBridge.authenticateBiometric !== 'function') {
     showNotif('⚠️ Biometrik cuma tersedia di aplikasi Paycore, bukan browser');
     return;
   }
@@ -3316,22 +3316,27 @@ async function pgsToggleBiometric(){
     return;
   }
 
-  const on = btn.classList.toggle('on');
-  if (on) {
-    // Native akan minta user scan sidik jari/wajah sekali untuk "mendaftarkan"
-    // perangkat ini boleh pakai biometrik menggantikan ketik PIN manual.
-    window.AndroidBridge.enrollBiometric();
+  const sedangAktif = btn.classList.contains('on');
+  if (!sedangAktif) {
+    // Minta user buktikan tau PIN-nya dulu, baru PIN itu di-cache lokal
+    // supaya bisa dipakai otomatis pas biometrik sukses nanti.
+    const ok = await pinEnrollBiometricCapturePin();
+    if (!ok) return; // user batal / PIN salah -> toggle tetap OFF
+
+    btn.classList.add('on');
     localStorage.setItem('pin_biometric_enabled', '1');
     showNotif('👆 Biometrik untuk PIN diaktifkan');
   } else {
+    btn.classList.remove('on');
     localStorage.setItem('pin_biometric_enabled', '0');
+    localStorage.removeItem(_pinCacheKey());
     showNotif('⛔ Biometrik untuk PIN dimatikan');
   }
 }
 function pgsSyncBiometricToggle(){
   const btn = document.getElementById('pgsBiometricToggle');
   if (!btn) return;
-  const on = localStorage.getItem('pin_biometric_enabled') === '1';
+  const on = localStorage.getItem('pin_biometric_enabled') === '1' && !!localStorage.getItem(_pinCacheKey());
   btn.classList.toggle('on', on);
 }
 
@@ -11381,6 +11386,14 @@ async function pinHasPin(){
 
 // --- Dipanggil dari h2hCheckout()/qrisSendTransfer() sebelum kirim transaksi.
 //     Balikin pin_token kalau PIN benar, atau null kalau user batal/belum set PIN. ---
+function _pinCacheKey(){
+  const u = (typeof getCU === 'function') ? getCU() : (window.currentUser || currentUser);
+  const email = u?.email || 'anon';
+  return 'pin_cached_' + email;
+}
+
+let _pinGateEnrollMode = false; // true = lagi capture PIN buat didaftarkan ke biometrik, bukan buat transaksi
+
 async function pinGateRequire(subtitleText){
   const sudahAdaPin = await pinHasPin();
   if (!sudahAdaPin) {
@@ -11390,6 +11403,7 @@ async function pinGateRequire(subtitleText){
   }
 
   return new Promise((resolve) => {
+    _pinGateEnrollMode = false;
     _pinGateResolve = resolve;
     _pinGateBuffer = '';
     document.getElementById('pinGateError').textContent = '';
@@ -11397,9 +11411,10 @@ async function pinGateRequire(subtitleText){
     _pinDotsRender('pinGateDots', 0);
     document.getElementById('pinGateOverlay').classList.add('open');
 
-    // Tampilkan tombol biometrik cuma kalau bridge native ada & user sudah aktifkan
+    // Tombol biometrik cuma muncul kalau bridge native ada, biometrik sudah
+    // diaktifkan user, DAN sudah ada PIN yang ke-cache dari proses aktivasi.
     const bioKey = document.getElementById('pinGateBioKey');
-    const bioAktif = localStorage.getItem('pin_biometric_enabled') === '1';
+    const bioAktif = localStorage.getItem('pin_biometric_enabled') === '1' && !!localStorage.getItem(_pinCacheKey());
     if (bioAktif && window.AndroidBridge && typeof window.AndroidBridge.authenticateBiometric === 'function') {
       bioKey.style.display = 'flex';
     } else {
@@ -11408,9 +11423,25 @@ async function pinGateRequire(subtitleText){
   });
 }
 
+// Dipakai internal saat mengaktifkan biometrik: minta user ketik PIN sekali
+// buat dibuktikan ke server, baru PIN itu di-cache lokal (bukan asal simpan).
+function pinEnrollBiometricCapturePin(){
+  return new Promise((resolve) => {
+    _pinGateEnrollMode = true;
+    _pinGateResolve = (result) => resolve(!!result);
+    _pinGateBuffer = '';
+    document.getElementById('pinGateError').textContent = '';
+    document.getElementById('pinGateSub').textContent = 'Masukkan PIN kamu untuk aktifkan biometrik';
+    _pinDotsRender('pinGateDots', 0);
+    document.getElementById('pinGateBioKey').style.display = 'none';
+    document.getElementById('pinGateOverlay').classList.add('open');
+  });
+}
+
 function pinGateCancel(){
   document.getElementById('pinGateOverlay').classList.remove('open');
   _pinGateBuffer = '';
+  _pinGateEnrollMode = false;
   if (_pinGateResolve) { _pinGateResolve(null); _pinGateResolve = null; }
 }
 
@@ -11425,9 +11456,13 @@ function pinGateBackspace(){
   _pinDotsRender('pinGateDots', _pinGateBuffer.length);
 }
 
-async function _pinGateSubmit(){
+// pinOverride dipakai pas biometrik sukses & mau auto-submit PIN yang di-cache,
+// tanpa user ngetik ulang. Tetap lewat /pin/verify server seperti biasa —
+// jadi biometrik itu "jalan pintas ngisi PIN", BUKAN jalan pintas ngelewatin
+// verifikasi server.
+async function _pinGateSubmit(pinOverride){
   const token = await h2hGetAccessToken();
-  const pinToUse = _pinGateBuffer;
+  const pinToUse = pinOverride || _pinGateBuffer;
   _pinGateBuffer = '';
   try {
     const res = await fetch(`${H2H_WORKER_URL}/pin/verify`, {
@@ -11438,11 +11473,23 @@ async function _pinGateSubmit(){
     const j = await res.json().catch(() => ({}));
     if (j.success && j.pin_token) {
       document.getElementById('pinGateOverlay').classList.remove('open');
-      if (_pinGateResolve) { _pinGateResolve(j.pin_token); _pinGateResolve = null; }
+      if (_pinGateEnrollMode) {
+        // Sukses verifikasi -> aman buat di-cache lokal untuk dipakai biometrik nanti
+        localStorage.setItem(_pinCacheKey(), btoa(pinToUse));
+        _pinGateEnrollMode = false;
+        if (_pinGateResolve) { _pinGateResolve(true); _pinGateResolve = null; }
+      } else {
+        if (_pinGateResolve) { _pinGateResolve(j.pin_token); _pinGateResolve = null; }
+      }
     } else {
       document.getElementById('pinGateError').textContent = j.message || 'PIN salah';
       _pinDotsShake('pinGateDots');
       _pinDotsRender('pinGateDots', 0);
+      if (pinOverride) {
+        // PIN hasil cache ternyata ditolak server (mis. PIN sudah diganti) —
+        // hapus cache biar gak terus-terusan gagal diam-diam.
+        localStorage.removeItem(_pinCacheKey());
+      }
     }
   } catch {
     document.getElementById('pinGateError').textContent = 'Gagal terhubung ke server';
@@ -11452,6 +11499,7 @@ async function _pinGateSubmit(){
 
 function pinGateForgot(){
   document.getElementById('pinGateOverlay').classList.remove('open');
+  _pinGateEnrollMode = false;
   if (_pinGateResolve) { _pinGateResolve(null); _pinGateResolve = null; }
   // Verifikasi ulang identitas (password/OTP) sebelum boleh reset PIN.
   // Sesuaikan dengan alur re-auth yang sudah ada di app kamu (mis. re-login modal).
@@ -11459,38 +11507,35 @@ function pinGateForgot(){
   if (typeof openPengaturan === 'function') openPengaturan();
 }
 
-// Dipanggil dari native lewat window.AndroidBridge saat biometrik sukses.
-// Native TIDAK mengirim PIN mentah ke sini — dia langsung minta Worker
-// bikinkan pin_token pakai endpoint khusus /pin/verify-biometric yang
-// hanya menerima "biometric assertion token" dari native, bukan angka PIN.
-async function pinGateBiometric(){
+// ---- Integrasi bridge sidik jari (sesuai kode yang dikasih) ----
+function pinGateBiometric(){
   if (!window.AndroidBridge || typeof window.AndroidBridge.authenticateBiometric !== 'function') return;
-  window.AndroidBridge.authenticateBiometric(); // native akan panggil balik onBiometricResult(...)
+  window.AndroidBridge.authenticateBiometric();
 }
-async function onBiometricResult(success, assertionToken){
-  if (!success) {
-    document.getElementById('pinGateError').textContent = 'Verifikasi biometrik gagal';
+
+// Dipanggil native setelah scan sidik jari SUKSES.
+window.onBiometricSuccess = function(){
+  const cached = localStorage.getItem(_pinCacheKey());
+  if (!cached) {
+    document.getElementById('pinGateError').textContent = 'Biometrik belum siap, masukkan PIN manual dulu';
     return;
   }
-  const token = await h2hGetAccessToken();
-  try {
-    const res = await fetch(`${H2H_WORKER_URL}/pin/verify-biometric`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-      body: JSON.stringify({ assertion_token: assertionToken }),
-    });
-    const j = await res.json().catch(() => ({}));
-    if (j.success && j.pin_token) {
-      document.getElementById('pinGateOverlay').classList.remove('open');
-      if (_pinGateResolve) { _pinGateResolve(j.pin_token); _pinGateResolve = null; }
-    } else {
-      document.getElementById('pinGateError').textContent = j.message || 'Verifikasi biometrik gagal';
-    }
-  } catch {
-    document.getElementById('pinGateError').textContent = 'Gagal terhubung ke server';
+  let pin;
+  try { pin = atob(cached); } catch { pin = null; }
+  if (!pin) {
+    document.getElementById('pinGateError').textContent = 'Data biometrik rusak, masukkan PIN manual';
+    localStorage.removeItem(_pinCacheKey());
+    return;
   }
-}
-window.onBiometricResult = onBiometricResult;
+  _pinDotsRender('pinGateDots', 6);
+  _pinGateSubmit(pin);
+};
+
+// Opsional: kalau native juga manggil ini pas sidik jari GAGAL/dibatalkan
+window.onBiometricFailed = function(){
+  document.getElementById('pinGateError').textContent = 'Verifikasi biometrik gagal, masukkan PIN manual';
+};
+
 
 // ============================================================
 // SETUP / GANTI PIN — dibuka dari menu Pengaturan
