@@ -857,11 +857,11 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
   <!-- LAYANAN PPOB -->
   <div class="pc-sec-title">Layanan PPOB</div>
   <div class="ppob-grid" id="ppobMainGrid">
-    <div class="ppob-item" onclick="openPulsaPage()"><div class="ppob-ic" style="background:rgba(77,91,255,0.14);color:#8f9bff;">📱</div><div class="ppob-name">Pulsa</div></div>
-    <div class="ppob-item" onclick="openDataPage()"><div class="ppob-ic" style="background:rgba(155,89,255,0.14);color:#c79bff;">📶</div><div class="ppob-name">Paket Data</div></div>
-    <div class="ppob-item" onclick="openEwalletPage()"><div class="ppob-ic" style="background:rgba(0,212,255,0.14);color:var(--accent2);">👛</div><div class="ppob-name">E-Wallet</div></div>
-    <div class="ppob-item" onclick="openVoucherGamePage()"><div class="ppob-ic" style="background:rgba(77,91,255,0.14);color:#8f9bff;">🎮</div><div class="ppob-name">Voucher Game</div></div>
-    <div class="ppob-item" onclick="openPlnPage()"><div class="ppob-ic" style="background:rgba(255,165,0,0.14);color:#ffb347;">⚡</div><div class="ppob-name">PLN</div></div>
+    <div class="ppob-item" onclick="openPulsaPage()"><div class="ppob-ic" style="background:transparent;padding:0;overflow:hidden;"><img src="https://id-preview--6e6f34a1-5938-4c35-acde-5f0ae1e74068.lovable.app/__l5e/assets-v1/95d1f0ed-8c54-4bab-8f24-eb2c5c22a58a/pulsa.png" alt="Pulsa" style="width:100%;height:100%;object-fit:contain;display:block;"></div><div class="ppob-name">Pulsa</div></div>
+    <div class="ppob-item" onclick="openDataPage()"><div class="ppob-ic" style="background:transparent;padding:0;overflow:hidden;"><img src="https://id-preview--6e6f34a1-5938-4c35-acde-5f0ae1e74068.lovable.app/__l5e/assets-v1/57191eb1-f70c-4ee5-92b8-45078a1f01ae/data.png" alt="Paket Data" style="width:100%;height:100%;object-fit:contain;display:block;"></div><div class="ppob-name">Paket Data</div></div>
+    <div class="ppob-item" onclick="openEwalletPage()"><div class="ppob-ic" style="background:transparent;padding:0;overflow:hidden;"><img src="https://id-preview--6e6f34a1-5938-4c35-acde-5f0ae1e74068.lovable.app/__l5e/assets-v1/d36c390d-822c-4bd1-8b98-ece6410859e5/ewallet.png" alt="E-Wallet" style="width:100%;height:100%;object-fit:contain;display:block;"></div><div class="ppob-name">E-Wallet</div></div>
+    <div class="ppob-item" onclick="openVoucherGamePage()"><div class="ppob-ic" style="background:transparent;padding:0;overflow:hidden;"><img src="https://id-preview--6e6f34a1-5938-4c35-acde-5f0ae1e74068.lovable.app/__l5e/assets-v1/5967edfa-3dfe-4fa1-b788-d41d01d42229/game.png" alt="Voucher Game" style="width:100%;height:100%;object-fit:contain;display:block;"></div><div class="ppob-name">Voucher Game</div></div>
+    <div class="ppob-item" onclick="openPlnPage()"><div class="ppob-ic" style="background:transparent;padding:0;overflow:hidden;"><img src="https://id-preview--6e6f34a1-5938-4c35-acde-5f0ae1e74068.lovable.app/__l5e/assets-v1/e0522d4c-afa5-45c7-926e-8521102e22c6/pln.png" alt="PLN" style="width:100%;height:100%;object-fit:contain;display:block;"></div><div class="ppob-name">PLN</div></div>
     <div class="ppob-item" onclick="openApkPremium()"><div class="ppob-ic" style="background:rgba(0,255,136,0.14);color:var(--success);">🛡️</div><div class="ppob-name">Apk Premium</div></div>
     <div class="ppob-item" onclick="openPdamPage()"><div class="ppob-ic" style="background:rgba(0,180,255,0.14);color:#5fc9ff;">💧</div><div class="ppob-name">PDAM</div></div>
     <div class="ppob-item" id="ppobLainnyaBtn" onclick="openLainnyaMenu()"><div class="ppob-ic" style="background:rgba(155,89,255,0.14);color:#c79bff;">📋</div><div class="ppob-name">Lainnya</div></div>
@@ -5800,6 +5800,12 @@ function doPesan(){
       try { renderRiwayat(); } catch(_){} // render ulang setelah data dari Supabase masuk
       try { window.__sweepQrisExpired && window.__sweepQrisExpired(); } catch(_){}
     });
+    // Self-heal: cek ulang top up yang masih "Pending" ke H2H langsung.
+    // Ini jaga-jaga kalau polling di modal top up sempat berhenti (app
+    // ditutup / pindah tab sebelum pembayaran selesai) sehingga status di
+    // riwayat gak pernah keupdate walau pembayarannya sebenarnya sudah
+    // sukses di sisi H2H.
+    try { window.__syncPendingTopups && window.__syncPendingTopups(u.email); } catch(_){}
   }
   function closeRiwayat(){
     document.getElementById('riwayatPanel').classList.remove('open');
@@ -7671,6 +7677,56 @@ function doPesan(){
     }, 3000);
   }
 
+  // ---------- SELF-HEAL: cek ulang top up "Pending" yang ketinggalan ----------
+  // Kasus: user bayar QRIS/VA lalu nutup app/modal SEBELUM polling 3-detik
+  // (vpPollTopupStatus) sempat mendeteksi sukses. Timer polling itu mati
+  // begitu modal ditutup, jadi status di riwayat nyangkut "Pending" selama-
+  // lamanya walau uangnya sudah masuk di H2H. Fungsi ini dipanggil tiap kali
+  // Riwayat dibuka, cek ulang LANGSUNG ke H2H buat tiap invoice yang masih
+  // pending, dan update status + saldo kalau ternyata sudah sukses/gagal.
+  let _syncPendingTopupsLock = false;
+  async function syncPendingTopupsFromH2H(email){
+    if (!email || _syncPendingTopupsLock) return;
+    if (typeof H2H_WORKER_URL === 'undefined') return;
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem('vp_riw_'+email) || '[]'); } catch(_){ list = []; }
+    const pending = list.filter(t => t && t.isTopup && (t.status||'menunggu').toLowerCase() === 'menunggu');
+    if (!pending.length) return;
+
+    _syncPendingTopupsLock = true;
+    let anySuccess = false;
+    for (const t of pending) {
+      const invoice = String(t.id||'').replace(/^#/,'');
+      if (!invoice) continue;
+      try {
+        const res = await fetch(`${H2H_WORKER_URL}/topup/status?invoice=${encodeURIComponent(invoice)}`);
+        const j = await res.json().catch(() => ({}));
+        const d = j && j.data;
+        if (!d || d.status === 'pending') continue; // beneran masih pending, biarin
+
+        if (d.status === 'success') {
+          anySuccess = true;
+          try {
+            _topupToRiwayat({ id: invoice, email, amount: d.amount || t.price, method: 'H2H-'+(d.method||''), status:'sukses', ts: Date.now() });
+          } catch(_){}
+        } else {
+          try {
+            _topupToRiwayat({ id: invoice, email, amount: d.amount || t.price, method: 'H2H-'+(d.method||''), status: d.status === 'expired' ? 'kadaluwarsa' : 'batal', ts: Date.now() });
+          } catch(_){}
+        }
+      } catch(_) {
+        // gangguan jaringan sesaat — coba lagi lain kali riwayat dibuka
+      }
+    }
+    _syncPendingTopupsLock = false;
+    if (anySuccess) {
+      try { if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance(); } catch(_){}
+      try { showNotif('✅ Top up yang tertunda sudah dicek & saldo diperbarui.'); } catch(_){}
+    }
+    try { if (typeof window.renderRiwayat === 'function') window.renderRiwayat(); } catch(_){}
+  }
+  window.__syncPendingTopups = syncPendingTopupsFromH2H;
+
   // ---------- TOP UP → RIWAYAT BRIDGE ----------
   function _topupToRiwayat(t){
     if (!t || !t.email) return;
@@ -8222,12 +8278,22 @@ function doPesan(){
   // Load balance saat user login (listener event auth)
   window.addEventListener('storage', (e)=>{ if (e.key==='vp_user') { paintBal(); reloadBalFromDB(); } });
   // Reload tiap kali settings/admin dibuka & sekali di awal
-  setTimeout(()=>{ reloadBalFromDB(); paintBal(); }, 800);
+  setTimeout(()=>{
+    reloadBalFromDB(); paintBal();
+    const u0 = getCU(); if (u0 && typeof window.__syncPendingTopups === 'function') window.__syncPendingTopups(u0.email);
+  }, 800);
   // Reload setelah login (poll user)
   let lastEmail = (getCU()||{}).email||null;
   setInterval(()=>{
     const u = getCU(); const cur = u?u.email:null;
-    if (cur !== lastEmail){ lastEmail = cur; if (cur) reloadBalFromDB(); paintBal(); }
+    if (cur !== lastEmail){
+      lastEmail = cur;
+      if (cur){
+        reloadBalFromDB();
+        if (typeof window.__syncPendingTopups === 'function') window.__syncPendingTopups(cur);
+      }
+    }
+    paintBal();
   }, 1000);
 
 
