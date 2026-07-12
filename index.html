@@ -12383,6 +12383,91 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<!-- ============================================================ -->
+<!-- PULL TO REFRESH — buat WebView APK. Browser biasa (Chrome/    -->
+<!-- Safari) sudah punya gesture refresh bawaan, tapi WebView yang -->
+<!-- dipakai buat bungkus jadi APK biasanya TIDAK punya itu, jadi  -->
+<!-- perlu ditambahin manual pakai touch events di sini.           -->
+<!-- ============================================================ -->
+<div id="ptrIndicator" style="position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:center;height:60px;margin-top:-60px;z-index:99999;pointer-events:none;transition:margin-top .2s ease;">
+  <svg id="ptrSpinner" width="26" height="26" viewBox="0 0 24 24" fill="none" style="transition:transform .1s linear;">
+    <circle cx="12" cy="12" r="9" stroke="var(--accent2,#00d4ff)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="42" stroke-dashoffset="10" opacity="0.9"/>
+  </svg>
+</div>
+<script>
+(function(){
+  const INDICATOR = document.getElementById('ptrIndicator');
+  const SPINNER = document.getElementById('ptrSpinner');
+  const THRESHOLD = 70;      // jarak tarik (px) buat trigger refresh
+  const MAX_PULL = 110;      // batas maksimal indikator ditarik turun
+  let startY = 0;
+  let pulling = false;
+  let refreshing = false;
+
+  function scrollableParent(el){
+    // Cari elemen yang lagi di-scroll (biar gak nabrak modal/overlay yang punya scroll sendiri)
+    while (el && el !== document.body) {
+      const style = getComputedStyle(el);
+      if (/(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight) return el;
+      el = el.parentElement;
+    }
+    return window;
+  }
+
+  function atTop(target){
+    if (target === window) return (window.scrollY || document.documentElement.scrollTop || 0) <= 0;
+    return target.scrollTop <= 0;
+  }
+
+  let touchTarget = null;
+
+  document.addEventListener('touchstart', function(e){
+    if (refreshing || e.touches.length !== 1) return;
+    touchTarget = scrollableParent(e.target);
+    if (!atTop(touchTarget)) { pulling = false; return; }
+    startY = e.touches[0].clientY;
+    pulling = true;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function(e){
+    if (!pulling || refreshing) return;
+    const diff = e.touches[0].clientY - startY;
+    if (diff <= 0) { return; }
+    if (!atTop(touchTarget)) { pulling = false; INDICATOR.style.marginTop = '-60px'; return; }
+
+    const pull = Math.min(diff * 0.5, MAX_PULL);
+    INDICATOR.style.transition = 'none';
+    INDICATOR.style.marginTop = (pull - 60) + 'px';
+    SPINNER.style.transform = 'rotate(' + (pull * 3) + 'deg)';
+    if (pull > 12 && e.cancelable) e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchend', function(){
+    if (!pulling || refreshing) { pulling = false; return; }
+    pulling = false;
+    const currentPull = parseInt(INDICATOR.style.marginTop || '-60', 10) + 60;
+    INDICATOR.style.transition = 'margin-top .2s ease';
+
+    if (currentPull >= THRESHOLD) {
+      refreshing = true;
+      INDICATOR.style.marginTop = '10px';
+      SPINNER.style.animation = 'ptrSpin .6s linear infinite';
+      setTimeout(function(){ window.location.reload(); }, 350);
+    } else {
+      INDICATOR.style.marginTop = '-60px';
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchcancel', function(){
+    pulling = false;
+    if (!refreshing) INDICATOR.style.marginTop = '-60px';
+  }, { passive: true });
+
+  const styleTag = document.createElement('style');
+  styleTag.textContent = '@keyframes ptrSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}';
+  document.head.appendChild(styleTag);
+})();
+</script>
 </body>
 </html>
 
