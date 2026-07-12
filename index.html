@@ -683,7 +683,7 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
 .apk-modal-btn-cancel{width:100%;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:10px;padding:10px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
 
 /* ===== PPOB SERVICE PAGES ===== */
-.ppob-page{display:none;position:fixed;inset:0;background:var(--primary);z-index:360;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:40px;}
+.ppob-page{display:none;position:fixed;inset:0;background:var(--primary);z-index:385;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:40px;}
 .ppob-page.open{display:block;animation:fsSlideIn .3s ease;}
 .ppob-topbar{position:sticky;top:0;background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid var(--accent);height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;z-index:10;box-shadow:0 4px 24px rgba(26,111,255,0.25);}
 .ppob-back{width:38px;height:38px;border-radius:10px;background:rgba(26,111,255,0.15);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--accent2);font-size:20px;cursor:pointer;flex-shrink:0;}
@@ -5755,6 +5755,12 @@ function doPesan(){
   // dan gabungkan ke localStorage, biar semua device/browser lihat data yang sama.
   window.__syncRiwayatFromSupabase = async function(email){
     if (!email) return;
+    const lsKey = 'vp_riw_'+email;
+    let local = [];
+    try { local = JSON.parse(localStorage.getItem(lsKey)||'[]'); } catch(_){}
+    const merged = new Map();
+    local.forEach(t => { if (t.id) merged.set(String(t.id), t); });
+
     try {
       const { data: rows, error } = await (window._sb||supabase)
         .from('transactions')
@@ -5762,27 +5768,42 @@ function doPesan(){
         .eq('email', email)
         .order('created_at', { ascending: false })
         .limit(300);
-      if (error || !rows) return;
+      if (!error && rows) {
+        rows.map(r => ({ id: r.trx_id, ...(r.data||{}) })).filter(t=>t.id)
+          .forEach(t => merged.set(String(t.id), t)); // remote menang kalau bentrok
+      }
+    } catch(_){ /* offline / gagal fetch -> lanjut, jangan gagal total */ }
 
-      const remote = rows.map(r => ({
-        id: r.trx_id,
-        ...(r.data || {}),
-      })).filter(t => t.id);
+    // Sumber KEDUA & yang paling penting: riwayat H2H (checkout/topup) yang
+    // sudah persisten di Supabase lewat worker. Ini yang bikin riwayat gak
+    // ilang lagi walau APK di-reinstall/rebuild (localStorage kosong lagi).
+    try {
+      if (typeof H2H_WORKER_URL !== 'undefined' && typeof h2hGetAccessToken === 'function') {
+        const token = await h2hGetAccessToken();
+        if (token) {
+          const res = await fetch(`${H2H_WORKER_URL}/my-orders`, { headers: { Authorization: 'Bearer '+token } });
+          const j = await res.json().catch(() => ({}));
+          if (j.success && Array.isArray(j.data)) {
+            j.data.forEach(o => {
+              const id = '#'+String(o.id||'').replace(/^#/,'');
+              if (!id || id==='#') return;
+              merged.set(id, {
+                id, prod: o.title, productName: o.title, variantName: o.sub || '',
+                img:'', emoji: (typeof h2hCategoryEmoji==='function') ? h2hCategoryEmoji(o.category) : '🛒',
+                price: o.amount || 0, qty: 1, key: '',
+                status: o.status, method: o.method || (o.kind==='topup' ? 'TOPUP' : 'H2H'),
+                isTopup: o.kind === 'topup', category: o.category, dest: o.sub,
+                time: o.created_at ? new Date(o.created_at).toLocaleString('id-ID') : '',
+                ts: o.created_at ? new Date(o.created_at).getTime() : Date.now(),
+              });
+            });
+          }
+        }
+      }
+    } catch(_){ /* offline / worker gagal -> lanjut pakai apa yang ada */ }
 
-      const lsKey = 'vp_riw_'+email;
-      let local = [];
-      try { local = JSON.parse(localStorage.getItem(lsKey)||'[]'); } catch(_){}
-
-      // Gabungkan: entri remote jadi acuan utama (lebih dipercaya karena
-      // shared di semua device), entri lokal yang belum sempat ke-upload
-      // (misal race condition) tetap dipertahankan kalau remote gak punya.
-      const merged = new Map();
-      local.forEach(t => { if (t.id) merged.set(String(t.id), t); });
-      remote.forEach(t => { merged.set(String(t.id), t); }); // remote menang kalau bentrok
-
-      const finalList = Array.from(merged.values()).sort((a,b) => (b.ts||0) - (a.ts||0));
-      localStorage.setItem(lsKey, JSON.stringify(finalList.slice(0,300)));
-    } catch(_){ /* offline / gagal fetch -> biarkan pakai data lokal yang ada */ }
+    const finalList = Array.from(merged.values()).sort((a,b) => (b.ts||0) - (a.ts||0));
+    try { localStorage.setItem(lsKey, JSON.stringify(finalList.slice(0,300))); } catch(_){}
   };
 
   function openRiwayat(){
@@ -10457,6 +10478,16 @@ function pcGoProfil(){
 function openPpobPage(id){
   const el = document.getElementById(id);
   if (!el) return;
+  // Tutup dulu panel fullscreen lain yang mungkin masih kebuka (Riwayat /
+  // Profil) sebelum buka halaman PPOB baru. Sebelumnya ini gak dilakukan,
+  // jadi kalau halaman PPOB (termasuk QRIS) dibuka SAAT Riwayat/Profil
+  // masih aktif, dia beneran kebuka tapi ketutup di belakang panel yang
+  // z-index-nya lebih tinggi — kelihatan baru muncul setelah pindah tab.
+  const riw = document.getElementById('riwayatPanel');
+  if (riw && riw.classList.contains('open') && typeof closeRiwayat === 'function') closeRiwayat();
+  const set = document.getElementById('settingsPanel');
+  if (set && set.classList.contains('open') && typeof closePengaturan === 'function') closePengaturan();
+
   document.body.classList.add('panel-lock');
   el.classList.add('open');
 }
@@ -10843,6 +10874,11 @@ function confirmPpobBayar(){
     dest: dest,
     payment_method: paymentMethod,
     customer_name: d.number,
+    // Info tambahan HANYA buat tampilan (riwayat & halaman hasil), tidak
+    // dikirim ke backend — backend cuma butuh field di atas.
+    display_label: d.label,
+    display_nominal: d.nominal,
+    display_provider: d.provider,
   });
 }
 
@@ -11138,7 +11174,7 @@ let h2hCheckoutInFlight = false;
 
 async function h2hCheckout(opts){
   if (h2hCheckoutInFlight) return; // sedang proses, abaikan klik berikutnya
-  const { category, product_code, dest, payment_method, quantity, customer_name } = opts;
+  const { category, product_code, dest, payment_method, quantity, customer_name, display_label, display_nominal, display_provider } = opts;
 
   if (!category || !product_code || !dest || !payment_method) {
     alert('Data pembelian belum lengkap.');
@@ -11155,6 +11191,10 @@ async function h2hCheckout(opts){
   const idemKey = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
   h2hShowLoading(true);
 
+  const u = (typeof getCU === 'function') ? getCU() : null;
+  const titleTxt = display_label || category;
+  const subTxt = [display_provider, display_nominal].filter(Boolean).join(' ') || dest;
+
   try {
     const res = await fetch(`${H2H_WORKER_URL}/checkout`, {
       method: 'POST',
@@ -11169,13 +11209,24 @@ async function h2hCheckout(opts){
     h2hShowLoading(false);
 
     if (!json.success) {
-      h2hShowResultModal({ ok: false, message: json.message || 'Transaksi gagal', data: json.data });
+      if (u) _h2hOrderToRiwayat({ email: u.email, id: json.data?.ref_id || idemKey, title: titleTxt, sub: subTxt, category, dest, amount: json.data?.amount || 0, status: 'batal' });
+      h2hShowOrderResult({ status: 'failed', message: json.message || 'Transaksi gagal', refId: json.data?.ref_id, amount: json.data?.amount, title: titleTxt, sub: subTxt, category, dest });
       return;
     }
 
     if (payment_method === 'saldo') {
-      h2hShowResultModal({ ok: true, message: json.message, data: json.data });
+      const refId = json.data?.ref_id;
+      const amount = json.data?.amount;
+      const rawStatus = (json.data?.status || 'processing').toLowerCase();
+      const riwStatus = rawStatus === 'success' ? 'sukses' : rawStatus === 'failed' ? 'batal' : 'menunggu';
+      if (u) _h2hOrderToRiwayat({ email: u.email, id: refId, title: titleTxt, sub: subTxt, category, dest, amount, status: riwStatus });
       if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance(); // saldo di header ikut ke-update
+
+      h2hShowOrderResult({
+        status: rawStatus === 'success' ? 'success' : rawStatus === 'failed' ? 'failed' : 'processing',
+        message: json.message,
+        refId, amount, title: titleTxt, sub: subTxt, category, dest,
+      });
       return;
     }
 
@@ -11185,12 +11236,96 @@ async function h2hCheckout(opts){
 
   } catch (e) {
     h2hShowLoading(false);
-    h2hShowResultModal({ ok: false, message: 'Terjadi kesalahan jaringan. Coba lagi.' });
+    h2hShowOrderResult({ status: 'failed', message: 'Terjadi kesalahan jaringan. Coba lagi.', title: titleTxt, sub: subTxt, category, dest });
   } finally {
     h2hCheckoutInFlight = false;
   }
 }
 window.h2hCheckout = h2hCheckout;
+
+// ---------- Bridge: order H2H (pulsa/PLN/voucher/dll) → Riwayat lokal ----------
+// Mirip _topupToRiwayat, tapi generik buat semua jenis order (bukan cuma top up).
+function _h2hOrderToRiwayat(t){
+  if (!t || !t.email || !t.id) return;
+  const emoji = h2hCategoryEmoji(t.category);
+  const lsKey = 'vp_riw_'+t.email;
+  let cur = [];
+  try { cur = JSON.parse(localStorage.getItem(lsKey)||'[]'); } catch(e){ cur=[]; }
+  const id = '#'+String(t.id).replace(/^#/,'');
+  const time = t.time || new Date().toLocaleString('id-ID');
+  const trxData = {
+    id, prod: t.title || 'Transaksi', productName: t.title || 'Transaksi', variantName: t.sub || '',
+    img:'', emoji, price: t.amount || 0, qty: 1, key: '',
+    status: t.status || 'menunggu', method: 'H2H', isTopup: false, category: t.category, dest: t.dest,
+    time, ts: t.ts || Date.now()
+  };
+  const i = cur.findIndex(x=>x.id===id);
+  if (i>=0) cur[i] = { ...cur[i], ...trxData };
+  else cur.unshift(trxData);
+  try { localStorage.setItem(lsKey, JSON.stringify(cur.slice(0,200))); } catch(_){}
+  try {
+    const all = JSON.parse(localStorage.getItem('vp_all_trx')||'[]');
+    const ai = all.findIndex(x=>x.id===id && (x.email||'')===t.email);
+    const allRow = { ...trxData, email: t.email };
+    if (ai>=0) all[ai] = { ...all[ai], ...allRow };
+    else all.unshift(allRow);
+    localStorage.setItem('vp_all_trx', JSON.stringify(all.slice(0,500)));
+  } catch(_){}
+  try { if (typeof window.renderRiwayat==='function') window.renderRiwayat(); } catch(_){}
+}
+window.__h2hOrderToRiwayat = _h2hOrderToRiwayat;
+
+function h2hCategoryEmoji(category){
+  const map = {
+    pulsa: '📱', paket_data: '📶', pln: '⚡', e_wallet: '👛', voucher_game: '🎮',
+    pascabayar: '📄', tagihan: '📄', streaming: '🎬', paket_telp_sms: '📞',
+    cetak_voucher: '🎫', nominal_bebas: '💳', smm: '📈',
+  };
+  return map[category] || '🛒';
+}
+
+// ---------- SELF-HEAL: cek ulang order H2H yang masih "Diproses" ----------
+// Sama alasannya kayak top up: kalau halaman hasil ditutup / app dipindah
+// sebelum polling status sempat menyelesaikan, order bisa nyangkut
+// "Diproses" selamanya di Riwayat walau sebenarnya sudah sukses/gagal di
+// H2H. Fungsi ini dipanggil tiap kali Riwayat dibuka, ngecek ulang LANGSUNG
+// ke H2H (endpoint /status yang sudah ada) buat tiap order yang masih
+// menunggu, dan update Riwayat + saldo kalau statusnya sudah final.
+let _syncPendingOrdersLock = false;
+async function syncPendingH2HOrders(email){
+  if (!email || _syncPendingOrdersLock) return;
+  if (typeof H2H_WORKER_URL === 'undefined') return;
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem('vp_riw_'+email) || '[]'); } catch(_){ list = []; }
+  const pending = list.filter(t => t && !t.isTopup && (t.status||'menunggu').toLowerCase() === 'menunggu' && t.id);
+  if (!pending.length) return;
+
+  _syncPendingOrdersLock = true;
+  let anyResolved = false;
+  for (const t of pending) {
+    const refId = String(t.id||'').replace(/^#/,'');
+    if (!refId) continue;
+    try {
+      const res = await fetch(`${H2H_WORKER_URL}/status?refID=${encodeURIComponent(refId)}`);
+      const j = await res.json().catch(() => ({}));
+      const txStatus = j?.data?.transaction_status;
+      if (!txStatus) continue;
+      const map = { success:'sukses', completed:'sukses', failed:'batal', pending:'menunggu', processing:'menunggu', partial:'sukses' };
+      const newStatus = map[txStatus] || 'menunggu';
+      if (newStatus === 'menunggu') continue; // masih beneran diproses, biarin
+      anyResolved = true;
+      _h2hOrderToRiwayat({ email, id: refId, title: t.productName, sub: t.variantName, category: t.category, dest: t.dest, amount: t.price, status: newStatus, ts: Date.now() });
+    } catch(_) {
+      // gangguan jaringan sesaat — coba lagi lain kali riwayat dibuka
+    }
+  }
+  _syncPendingOrdersLock = false;
+  if (anyResolved) {
+    try { if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance(); } catch(_){}
+    try { if (typeof window.renderRiwayat === 'function') window.renderRiwayat(); } catch(_){}
+  }
+}
+window.__syncPendingOrders = syncPendingH2HOrders;
 
 // ---------- UI helpers (modal sederhana, bisa disesuaikan gaya CSS-nya) ----------
 
@@ -11215,19 +11350,122 @@ function h2hCloseModalById(id){
 }
 
 function h2hShowResultModal({ ok, message, data }){
-  h2hCloseModalById('h2hResultModal');
+  // Dipertahankan untuk kompatibilitas kode lama — sekarang meneruskan ke
+  // halaman hasil yang baru & lebih lengkap.
+  h2hShowOrderResult({
+    status: ok ? 'success' : 'failed',
+    message,
+    refId: data?.ref_id,
+    amount: data?.amount,
+  });
+}
+
+// ---------- HALAMAN HASIL TRANSAKSI (fullscreen, bukan popup kecil) ----------
+let h2hOrderResultPollTimer = null;
+let h2hOrderResultPollTries = 0;
+
+function h2hStatusMeta(status){
+  if (status === 'success') return { icon: '✓', label: 'Transaksi Berhasil', badge: 'Sukses', grad: 'linear-gradient(180deg,#10b981,#059669)', badgeBg: 'rgba(16,185,129,.15)', badgeColor: '#10b981' };
+  if (status === 'failed') return { icon: '✕', label: 'Transaksi Gagal', badge: 'Gagal', grad: 'linear-gradient(180deg,#ef4444,#b91c1c)', badgeBg: 'rgba(239,68,68,.15)', badgeColor: '#ef4444' };
+  return { icon: '⏳', label: 'Sedang Diproses', badge: 'Diproses', grad: 'linear-gradient(180deg,#f59e0b,#b45309)', badgeBg: 'rgba(245,158,11,.15)', badgeColor: '#f59e0b' };
+}
+
+function h2hShowOrderResult(opts){
+  h2hCloseModalById('h2hOrderResultPage');
+  clearInterval(h2hOrderResultPollTimer);
+  h2hOrderResultPollTries = 0;
+
+  const { status, message, refId, amount, title, sub, category, dest } = opts;
   const el = document.createElement('div');
-  el.id = 'h2hResultModal';
-  el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:99999;font-family:sans-serif;';
+  el.id = 'h2hOrderResultPage';
+  el.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0a1226;overflow-y:auto;font-family:\'Rajdhani\',sans-serif;color:#fff;';
+
+  const meta = h2hStatusMeta(status);
+  const nowStr = new Date().toLocaleString('id-ID');
+
   el.innerHTML = `
-    <div style="background:#0f1420;border:1px solid #2a3348;border-radius:16px;padding:24px;max-width:340px;width:90%;text-align:center;color:#fff;">
-      <div style="font-size:40px;margin-bottom:10px;">${ok ? '✅' : '❌'}</div>
-      <div style="font-weight:700;font-size:16px;margin-bottom:8px;">${ok ? 'Berhasil' : 'Gagal'}</div>
-      <div style="opacity:.8;font-size:13px;margin-bottom:18px;">${h2hEscapeHtml(message || '')}</div>
-      ${data?.ref_id ? `<div style="opacity:.6;font-size:11px;margin-bottom:14px;">Ref ID: ${h2hEscapeHtml(data.ref_id)}</div>` : ''}
-      <button onclick="h2hCloseModalById('h2hResultModal')" style="background:#3b82f6;color:#fff;border:none;border-radius:10px;padding:10px 24px;font-weight:600;">Tutup</button>
-    </div>`;
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#0a1226;position:sticky;top:0;z-index:5;border-bottom:1px solid rgba(255,255,255,.06);">
+      <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;font-style:italic;letter-spacing:1px;">HASIL TRANSAKSI</div>
+      <button onclick="h2hCloseOrderResult()" style="background:rgba(255,255,255,.08);border:none;color:#fff;width:36px;height:36px;border-radius:9px;font-size:18px;cursor:pointer;">✕</button>
+    </div>
+    <div style="margin:16px;background:${meta.grad};border-radius:20px;padding:32px 20px;text-align:center;">
+      <div id="h2hOrIcon" style="width:80px;height:80px;border-radius:20px;background:rgba(255,255,255,.18);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:40px;">${meta.icon}</div>
+      <div id="h2hOrLabel" style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:900;font-size:22px;line-height:1.2;">${meta.label}</div>
+      <div id="h2hOrSub" style="margin-top:10px;font-size:11px;letter-spacing:2px;opacity:.85;font-weight:600;">${h2hEscapeHtml(message||'')}</div>
+    </div>
+    <div style="margin:0 16px;display:flex;justify-content:space-between;padding:16px 4px;border-bottom:1px solid rgba(255,255,255,.08);">
+      <div><div style="font-size:11px;letter-spacing:2px;color:#7a8aa8;font-weight:700;">REF ID</div><div style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:12px;margin-top:4px;">${h2hEscapeHtml(refId||'—')}</div></div>
+      <div style="text-align:right;"><div style="font-size:11px;letter-spacing:2px;color:#7a8aa8;font-weight:700;">WAKTU</div><div style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:13px;margin-top:4px;">${nowStr}</div></div>
+    </div>
+    <div style="margin:12px 16px;background:rgba(255,255,255,.04);border-radius:16px;padding:14px;display:flex;gap:14px;align-items:center;">
+      <div style="width:52px;height:52px;border-radius:12px;background:#0f1a35;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">${h2hCategoryEmoji(category)}</div>
+      <div>
+        <div style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:14px;">${h2hEscapeHtml((title||'Transaksi').toUpperCase())}</div>
+        <div style="font-size:12px;letter-spacing:1px;color:#1a6fff;font-weight:700;margin-top:4px;">${h2hEscapeHtml(sub||dest||'')}</div>
+      </div>
+    </div>
+    <div style="margin:0 16px 14px;background:linear-gradient(180deg,#1a6fff,#1559d6);border-radius:16px;padding:16px 20px;text-align:center;">
+      <div style="font-size:11px;letter-spacing:2.5px;font-weight:700;opacity:.85;">TOTAL</div>
+      <div style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:900;font-size:26px;margin-top:6px;">${h2hFormatRupiah(amount)}</div>
+    </div>
+    <div id="h2hOrPendingBanner" style="margin:0 16px 14px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:14px;padding:14px;display:${status==='processing'?'flex':'none'};gap:10px;align-items:center;">
+      <div style="font-size:20px;">🕐</div>
+      <div style="font-size:12.5px;color:#f5c876;line-height:1.4;">Transaksi sedang diproses. Status akan diperbarui otomatis.</div>
+    </div>
+    <div style="margin:0 16px 24px;display:flex;gap:10px;">
+      <button onclick="h2hCloseOrderResult()" style="flex:1;background:rgba(255,255,255,.08);color:#fff;border:none;border-radius:12px;padding:12px;font-weight:700;">Tutup</button>
+      <button onclick="h2hCloseOrderResult();if(typeof openRiwayat==='function')openRiwayat();" style="flex:1;background:#3b82f6;color:#fff;border:none;border-radius:12px;padding:12px;font-weight:700;">Lihat Riwayat</button>
+    </div>
+  `;
   document.body.appendChild(el);
+  document.body.style.overflow = 'hidden';
+
+  if (status === 'processing' && refId) {
+    h2hOrderResultPollTimer = setInterval(() => h2hPollOrderResult(refId, { title, sub, category, dest, amount }), 4000);
+  }
+}
+window.h2hShowOrderResult = h2hShowOrderResult;
+
+function h2hCloseOrderResult(){
+  clearInterval(h2hOrderResultPollTimer);
+  h2hCloseModalById('h2hOrderResultPage');
+  document.body.style.overflow = '';
+}
+window.h2hCloseOrderResult = h2hCloseOrderResult;
+
+async function h2hPollOrderResult(refId, ctx){
+  h2hOrderResultPollTries++;
+  if (h2hOrderResultPollTries > 40) { clearInterval(h2hOrderResultPollTimer); return; } // ~2.5 menit, berhenti biar gak nyala terus
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/status?refID=${encodeURIComponent(refId)}`);
+    const j = await res.json().catch(() => ({}));
+    const txStatus = j?.data?.transaction_status;
+    const map = { success:'success', completed:'success', failed:'failed', pending:'processing', processing:'processing', partial:'success' };
+    const mapped = map[txStatus];
+    if (!mapped || mapped === 'processing') return; // masih diproses beneran, lanjut polling
+
+    clearInterval(h2hOrderResultPollTimer);
+    const meta = h2hStatusMeta(mapped);
+    const iconEl = document.getElementById('h2hOrIcon');
+    const labelEl = document.getElementById('h2hOrLabel');
+    const subEl = document.getElementById('h2hOrSub');
+    const bannerEl = document.getElementById('h2hOrPendingBanner');
+    const gradParent = iconEl ? iconEl.parentElement : null;
+    if (gradParent) gradParent.style.background = meta.grad;
+    if (iconEl) iconEl.textContent = meta.icon;
+    if (labelEl) labelEl.textContent = meta.label;
+    if (subEl) subEl.textContent = j?.data?.reason || j?.message || '';
+    if (bannerEl) bannerEl.style.display = 'none';
+
+    const u = (typeof getCU === 'function') ? getCU() : null;
+    if (u) {
+      const riwStatus = mapped === 'success' ? 'sukses' : 'batal';
+      _h2hOrderToRiwayat({ email: u.email, id: refId, title: ctx.title, sub: ctx.sub, category: ctx.category, dest: ctx.dest, amount: ctx.amount, status: riwStatus, ts: Date.now() });
+    }
+    if (mapped === 'success' && typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
+  } catch (_) {
+    // gangguan jaringan sesaat, coba lagi di interval berikutnya
+  }
 }
 
 let h2hQrisPollTimer = null;
