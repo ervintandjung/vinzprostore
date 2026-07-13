@@ -64,8 +64,8 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 #settingsQuickMenu .dd-item:first-child{border-top:none;}
 
 /* HALAMAN TERSENDIRI: EDIT PROFIL / UBAH PASSWORD / VERIFIKASI IDENTITAS */
-#editProfilPage,#ubahPasswordPage,#verifikasiIdentitasPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:390;overflow-y:auto;-webkit-overflow-scrolling:touch;max-width:480px;margin:0 auto;}
-#editProfilPage.open,#ubahPasswordPage.open,#verifikasiIdentitasPage.open{display:block;animation:fsSlideIn .3s ease;}
+#editProfilPage,#ubahPasswordPage,#verifikasiIdentitasPage,#strukSettingsPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:390;overflow-y:auto;-webkit-overflow-scrolling:touch;max-width:480px;margin:0 auto;}
+#editProfilPage.open,#ubahPasswordPage.open,#verifikasiIdentitasPage.open,#strukSettingsPage.open{display:block;animation:fsSlideIn .3s ease;}
 .pgs-subpage-content{max-width:480px;margin:0 auto;padding:18px 14px 60px;}
 .pgs-field-label{font-size:11px;font-weight:700;color:var(--accent2);margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;}
 .pgs-input{width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:12px 13px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14.5px;margin-bottom:8px;outline:none;}
@@ -2138,28 +2138,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     <button class="btn-close-ap" onclick="closeAdmin()">TUTUP</button>
   </div>
   <div class="ap-body">
-    <div id="devPanel" style="margin:14px 0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="font-family:Orbitron,sans-serif;font-weight:900;font-size:13px;color:#fff;letter-spacing:1px;">DEVICES RESELLER</div>
-        <button onclick="loadDevices()" style="background:rgba(26,111,255,.18);border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;">↻ Refresh</button>
-      </div>
-      <div id="devList" style="font-size:12px;color:var(--muted);">Klik Refresh buat muat data.</div>
-    </div>
     <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">NOMOR WHATSAPP ORDER<span class="ac-arrow">▼</span></h3>
-      <div class="ap-card-body">
-      <input class="ap-input" id="apWa" placeholder="6285954741269">
-      <button class="ap-save" onclick="apSaveWa()">💾 SIMPAN NOMOR WA</button>
-      </div>
-    </div>
-    <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">TEKS TICKER BERJALAN<span class="ac-arrow">▼</span></h3>
-      <div class="ap-card-body">
-      <input class="ap-input" id="apTicker" placeholder="Teks banner berjalan...">
-      <button class="ap-save" onclick="apSaveTicker()">💾 SIMPAN TICKER</button>
-      </div>
-    </div>
-        <div class="ap-card">
       <h3 onclick="toggleApCard(this)">BANNER SLIDESHOW<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Upload gambar banner (bisa lebih dari 1). Banner ini tampil di halaman utama untuk SEMUA pengunjung.</div>
@@ -2171,86 +2150,11 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       </div>
     </div>
     <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">EDIT HARGA & FOTO PRODUK<span class="ac-arrow">▼</span></h3>
+      <h3 onclick="toggleApCard(this)">MARKUP HARGA H2H/PPOB<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
-      <div id="apProdList"></div>
-      </div>
-    </div>
-    <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">TAMBAH PRODUK BARU<span class="ac-arrow">▼</span></h3>
-      <div class="ap-card-body">
-      <input class="ap-input" id="npName" placeholder="Nama produk">
-      <select class="ap-input" id="npCat" style="cursor:pointer" onchange="npCatToggle()">
-        <option value="free fire">Free Fire</option>
-        <option value="mlbb">MLBB</option>
-        <option value="8 ball">8 Ball</option>
-        <option value="pc">PC</option>
-        <option value="__custom">✏️ Lainnya (tulis manual)…</option>
-      </select>
-      <input class="ap-input" id="npCatCustom" placeholder="Tulis kategori (mis: tiktok, youtube)" style="display:none;text-transform:lowercase;">
-
-      <select class="ap-input" id="npPlat" style="cursor:pointer">
-        <option value="ios">iOS</option>
-        <option value="android">Android</option>
-        <option value="pc">PC</option>
-        <option value="all">All Device</option>
-      </select>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">⏱️ Varian Harga</div>
-      <div id="npVariants">
-        <div class="np-var-row" style="display:flex;gap:6px;margin-bottom:6px;">
-          <input type="text" placeholder="Nama (mis: 1 DAYS)" style="background:var(--secondary);border:1px solid var(--border);border-radius:7px;padding:7px 9px;color:var(--accent2);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;width:110px;flex-shrink:0;" value="1 DAYS">
-          <input type="number" placeholder="Harga (Rp)" style="flex:1;background:var(--secondary);border:1px solid var(--border);border-radius:7px;padding:7px 9px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:13px;">
-          <button onclick="npRemoveVar(this)" style="background:var(--danger);border:none;color:#fff;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:13px;align-self:center;">✕</button>
-        </div>
-        <div class="np-var-row" style="display:flex;gap:6px;margin-bottom:6px;">
-          <input type="text" placeholder="Nama (mis: 7 DAYS)" style="background:var(--secondary);border:1px solid var(--border);border-radius:7px;padding:7px 9px;color:var(--accent2);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;width:110px;flex-shrink:0;" value="7 DAYS">
-          <input type="number" placeholder="Harga (Rp)" style="flex:1;background:var(--secondary);border:1px solid var(--border);border-radius:7px;padding:7px 9px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:13px;">
-          <button onclick="npRemoveVar(this)" style="background:var(--danger);border:none;color:#fff;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:13px;align-self:center;">✕</button>
-        </div>
-        <div class="np-var-row" style="display:flex;gap:6px;margin-bottom:6px;">
-          <input type="text" placeholder="Nama (mis: 30 DAYS)" style="background:var(--secondary);border:1px solid var(--border);border-radius:7px;padding:7px 9px;color:var(--accent2);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;width:110px;flex-shrink:0;" value="30 DAYS">
-          <input type="number" placeholder="Harga (Rp)" style="flex:1;background:var(--secondary);border:1px solid var(--border);border-radius:7px;padding:7px 9px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:13px;">
-          <button onclick="npRemoveVar(this)" style="background:var(--danger);border:none;color:#fff;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:13px;align-self:center;">✕</button>
-        </div>
-      </div>
-      <button onclick="npAddVar()" style="background:var(--secondary);border:1px dashed var(--border);color:var(--accent2);border-radius:7px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px;">+ Tambah Varian</button>
-      <div style="margin-bottom:10px;">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">📝 Deskripsi Aplikasi (Opsional)</div>
-        <textarea id="npDesc" class="ap-input" rows="3" placeholder="Contoh: Akun premium sudah terverifikasi, bisa login multi device, support semua OS..." style="resize:vertical;font-family:'Rajdhani',sans-serif;font-size:13px;line-height:1.5;"></textarea>
-      </div>
-      <div style="margin-bottom:10px;">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;">✨ Fitur Aplikasi (Opsional)</div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">Tulis 1 fitur per baris. Contoh:<br>✅ Tanpa iklan<br>✅ Unlimited download</div>
-        <textarea id="npFeatures" class="ap-input" rows="4" placeholder="✅ Tanpa iklan&#10;✅ Unlimited download&#10;✅ Update otomatis&#10;✅ Multi device" style="resize:vertical;font-family:'Rajdhani',sans-serif;font-size:13px;line-height:1.7;"></textarea>
-      </div>
-      <div style="margin-bottom:10px;">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:600;">📷 FOTO PRODUK (OPSIONAL)</div>
-        <input type="file" id="npImg" accept="image/*" style="display:block;width:100%;background:var(--secondary);border:1.5px dashed var(--border);border-radius:9px;padding:8px;font-size:12px;color:var(--muted);margin-bottom:6px;" onchange="previewNewImg()">
-        <label for="npImg" style="display:block;width:100%;background:var(--secondary);border:1.5px dashed var(--border);border-radius:9px;padding:8px;font-size:12px;color:var(--muted);margin-bottom:6px;cursor:pointer;text-align:center;">📁 Pilih File Gambar</label>
-        <input type="text" id="npImgUrl" placeholder="Atau paste URL gambar di sini..." class="ap-input" style="margin-bottom:6px;" oninput="previewNewImgUrl()">
-        <img id="npImgPreview" style="display:none;width:60px;height:60px;border-radius:8px;object-fit:cover;">
-      </div>
-      <button class="ap-save" onclick="apAddProduct()" style="background:var(--success);color:#000;">➕ TAMBAH PRODUK</button>
-      </div>
-    </div>
-    <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">HAPUS PRODUK<span class="ac-arrow">▼</span></h3>
-      <div class="ap-card-body">
-      <div id="apDeleteList"></div>
-      </div>
-    </div>
-
-    <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">KELOLA KEY PRODUK<span class="ac-arrow">▼</span></h3>
-      <div class="ap-card-body">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Pilih produk & varian, lalu tambah key (1 baris = 1 key). Key terjual otomatis ditandai <b>SOLD</b>.</div>
-      <select class="ap-input" id="kmProd" onchange="renderKeyManager()"></select>
-      <select class="ap-input" id="kmVar" onchange="renderKeyManager()"></select>
-      <textarea id="kmInput" class="ap-input" rows="4" placeholder="MASUKKAN-KEY-1&#10;MASUKKAN-KEY-2&#10;MASUKKAN-KEY-3" style="font-family:'JetBrains Mono',monospace;resize:vertical;"></textarea>
-      <button class="ap-save" onclick="kmAddKeys()" style="background:var(--success);color:#000;margin-bottom:10px;">➕ TAMBAH KEY</button>
-      <div id="kmStats" style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;"></div>
-      <button onclick="kmDeleteSold()" style="width:100%;background:var(--danger);color:#fff;border:none;border-radius:9px;padding:9px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;margin-bottom:10px;">🗑️ HAPUS SEMUA KEY YANG SOLD</button>
-      <div id="kmList" style="max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:9px;"></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Atur markup di atas harga modal H2H, per kategori (persen atau nominal Rp). Berlaku untuk SEMUA produk PPOB/H2H (Pulsa, Paket Data, E-Wallet, Voucher Game, PLN, PascaBayar HP, Paket Telp & SMS, Streaming, SMM) dan tampil ke SEMUA pengunjung.</div>
+      <div id="apMarkupList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
+      <button class="ap-save" onclick="apSaveMarkup()" style="background:var(--success);color:#000;">💾 SIMPAN MARKUP</button>
       </div>
     </div>
   </div>
@@ -2329,6 +2233,17 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
         </div>
         <div class="pgs-item" onclick="showNotif('🔔 Pengaturan notifikasi segera hadir')">
           <div class="pgs-item-left"><span class="pgs-ico">🔔</span><span>Notifikasi</span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOKO -->
+    <div class="pgs-section">
+      <div class="pgs-section-title">Toko</div>
+      <div class="pgs-card">
+        <div class="pgs-item" onclick="openStrukSettings()">
+          <div class="pgs-item-left"><span class="pgs-ico">🖨️</span><span>Cetak Struk</span></div>
           <span class="pgs-chevron">›</span>
         </div>
       </div>
@@ -2487,10 +2402,85 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
   </div>
 </div>
 
+<!-- ═══ HALAMAN PENGATURAN STRUK (terpisah) ═══ -->
+<div id="strukSettingsPage">
+  <div class="pgs-topbar">
+    <button class="pgs-back" onclick="closeStrukSettings()">&#8592;</button>
+    <div class="pgs-title">PENGATURAN STRUK</div>
+    <div style="width:34px;flex-shrink:0;"></div>
+  </div>
+  <div class="pgs-subpage-content">
+
+    <!-- PRINTER BLUETOOTH -->
+    <div class="pgs-field-label">Printer Bluetooth</div>
+    <div style="position:relative;margin-bottom:8px;">
+      <input id="ssPrinterSearch" class="pgs-input" style="margin-bottom:0;padding-left:34px;" type="text" placeholder="Cari Printer Bluetooth" readonly onclick="ssScanPrinter()">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.6;">🔍</span>
+    </div>
+    <div id="ssPrinterStatus" style="display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:9px;min-width:0;">
+        <span style="font-size:16px;">🖨️</span>
+        <span id="ssPrinterName" style="font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Belum ada printer tersambung</span>
+      </div>
+      <button type="button" onclick="ssScanPrinter()" style="flex-shrink:0;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:11.5px;cursor:pointer;">CARI</button>
+    </div>
+
+    <!-- LOGO TOKO -->
+    <div class="pgs-field-label">Logo Toko</div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+      <div style="position:relative;flex-shrink:0;">
+        <div id="ssLogoPreview" style="width:64px;height:64px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;overflow:hidden;"></div>
+        <button type="button" onclick="ssDeleteLogo()" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:var(--danger);border:none;color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;">🗑️</button>
+      </div>
+      <div style="flex:1;">
+        <input type="file" id="ssLogoInput" accept="image/*" style="display:none;" onchange="ssLogoChange()">
+        <label for="ssLogoInput" style="display:inline-block;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">📁 Upload Logo</label>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:6px;">PNG, JPG maks. 2MB</div>
+      </div>
+    </div>
+
+    <!-- INFORMASI TOKO -->
+    <div class="pgs-field-label">Informasi Toko</div>
+    <div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Nama Toko</div>
+    <input id="ssNamaToko" class="pgs-input" type="text" placeholder="Contoh: Toko Pulsa Jaya" oninput="ssRenderPreview()">
+    <div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">No. Telepon</div>
+    <input id="ssTelepon" class="pgs-input" type="tel" placeholder="08123456789" oninput="ssRenderPreview()">
+    <div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Alamat</div>
+    <textarea id="ssAlamat" class="pgs-input" rows="2" placeholder="Jl. Merdeka No. 10" style="resize:vertical;" oninput="ssRenderPreview()"></textarea>
+    <div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Teks Footer</div>
+    <input id="ssFooter" class="pgs-input" type="text" placeholder="Terima kasih atas transaksi Anda" oninput="ssRenderPreview()">
+    <div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Powered By</div>
+    <input id="ssPoweredBy" class="pgs-input" type="text" placeholder="Powered by Vinzprostore" style="margin-bottom:20px;" oninput="ssRenderPreview()">
+
+    <!-- UKURAN KERTAS -->
+    <div class="pgs-field-label">Ukuran Kertas</div>
+    <div style="display:flex;gap:10px;margin-bottom:20px;">
+      <div id="ssPaper58" onclick="ssSetPaper('58')" style="flex:1;text-align:center;padding:14px 6px;border-radius:12px;border:1.5px solid var(--border);background:var(--secondary);cursor:pointer;">
+        <div style="font-weight:900;font-size:17px;color:#fff;">58mm</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">32 karakter</div>
+      </div>
+      <div id="ssPaper80" onclick="ssSetPaper('80')" style="flex:1;text-align:center;padding:14px 6px;border-radius:12px;border:1.5px solid var(--accent);background:rgba(77,91,255,.12);cursor:pointer;">
+        <div style="font-weight:900;font-size:17px;color:var(--accent2);">80mm</div>
+        <div style="font-size:11px;color:var(--accent2);margin-top:2px;">48 karakter</div>
+      </div>
+    </div>
+
+    <!-- PREVIEW STRUK -->
+    <div class="pgs-field-label">Preview Struk</div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:18px 8px;margin-bottom:20px;display:flex;justify-content:center;">
+      <div id="ssPreviewBox" style="background:#fff;color:#222;padding:16px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;width:280px;box-shadow:0 4px 16px rgba(0,0,0,.25);"></div>
+    </div>
+
+    <button id="btnSaveStruk" class="pgs-btn-primary" onclick="ssSaveSettings()">💾 SIMPAN PENGATURAN</button>
+    <button class="pgs-btn-outline" onclick="ssTestPrint()">🖨️ CETAK CONTOH STRUK</button>
+  </div>
+</div>
+
 <!-- NOTIF -->
 <div class="notif" id="notif"></div>
 
 <script>
+
 // ══════════════════════════════
 // EMAILJS CONFIG — GANTI DENGAN MILIKMU!
 // ══════════════════════════════
@@ -2733,6 +2723,31 @@ function initProducts() {
 }
 
 let waNum = '6285954741269'; // akan di-load dari Supabase settings
+
+// ══════════════════════════════
+// MARKUP HARGA H2H/PPOB — per kategori, persen atau nominal
+// ══════════════════════════════
+const MARKUP_CATEGORIES = [
+  { key: 'pulsa', label: 'Pulsa' },
+  { key: 'paket_data', label: 'Paket Data' },
+  { key: 'e_wallet', label: 'E-Wallet' },
+  { key: 'voucher_game', label: 'Voucher Game' },
+  { key: 'pln', label: 'PLN' },
+  { key: 'pascabayar', label: 'PascaBayar HP' },
+  { key: 'paket_telp_sms', label: 'Paket Telp & SMS' },
+  { key: 'streaming', label: 'Streaming' },
+  { key: 'smm', label: 'SMM (IG/TikTok/YT/dll)' },
+];
+let markupConfig = {}; // { [kategori]: { type: 'percent'|'nominal', value: number } }
+
+function vpApplyMarkup(category, price) {
+  const base = Number(price) || 0;
+  const m = markupConfig[category];
+  if (!m || !m.value) return base;
+  const val = Number(m.value) || 0;
+  const result = m.type === 'nominal' ? (base + val) : (base + (base * val / 100));
+  return Math.max(0, Math.round(result));
+}
 
 // ══════════════════════════════
 // UTILS
@@ -3518,6 +3533,281 @@ async function submitVerifikasiIdentitas(){
   } catch(e) { errEl.textContent = 'Error: ' + (e.message||e); errEl.style.display = 'block'; }
   finally { btn.disabled = false; btn.textContent = 'KIRIM UNTUK DIVERIFIKASI'; }
 }
+
+// ══════════════════════════════
+// PENGATURAN STRUK (Cetak Struk / Bluetooth Printer)
+// ══════════════════════════════
+const SS_STORAGE_KEY = 'vp_struk_settings';
+let ssLogoData = '';
+let ssPaperSize = '80'; // '58' atau '80'
+let ssPrinterDevice = null; // hasil navigator.bluetooth.requestDevice()
+let ssPrinterCharacteristic = null;
+
+function ssGetSettings(){
+  try {
+    const raw = localStorage.getItem(SS_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e){}
+  return {};
+}
+
+function ssFillForm(){
+  const s = ssGetSettings();
+  document.getElementById('ssNamaToko').value = s.namaToko || '';
+  document.getElementById('ssTelepon').value = s.telepon || '';
+  document.getElementById('ssAlamat').value = s.alamat || '';
+  document.getElementById('ssFooter').value = s.footer || 'Terima kasih atas transaksi Anda';
+  document.getElementById('ssPoweredBy').value = s.poweredBy || 'Powered by Vinzprostore';
+  ssLogoData = s.logo || '';
+  ssPaperSize = s.paperSize || '80';
+  ssRenderLogo();
+  ssSetPaper(ssPaperSize);
+  const pName = document.getElementById('ssPrinterName');
+  if (s.printerName) { pName.textContent = '✅ ' + s.printerName; pName.style.color = 'var(--success)'; }
+  else { pName.textContent = 'Belum ada printer tersambung'; pName.style.color = 'var(--muted)'; }
+}
+
+function ssRenderLogo(){
+  const box = document.getElementById('ssLogoPreview');
+  if (!box) return;
+  if (ssLogoData) {
+    box.innerHTML = `<img src="${ssLogoData}" style="width:100%;height:100%;object-fit:cover;">`;
+  } else {
+    box.innerHTML = `<span style="font-size:24px;">🧾</span>`;
+  }
+}
+
+function ssLogoChange(){
+  const file = document.getElementById('ssLogoInput').files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showNotif('❌ Ukuran logo maksimal 2MB'); return; }
+  showNotif('⏳ Mengunggah logo...');
+  const r = new FileReader();
+  r.onload = e => {
+    compressImage(e.target.result, 300, 300, 0.85, dataUrl => {
+      ssLogoData = dataUrl;
+      ssRenderLogo();
+      ssRenderPreview();
+      showNotif('✅ Logo berhasil diupload');
+    });
+  };
+  r.readAsDataURL(file);
+}
+function ssDeleteLogo(){
+  ssLogoData = '';
+  document.getElementById('ssLogoInput').value = '';
+  ssRenderLogo();
+  ssRenderPreview();
+}
+
+function ssSetPaper(size){
+  ssPaperSize = size;
+  const b58 = document.getElementById('ssPaper58');
+  const b80 = document.getElementById('ssPaper80');
+  const active = 'border:1.5px solid var(--accent);background:rgba(77,91,255,.12);cursor:pointer;';
+  const inactive = 'border:1.5px solid var(--border);background:var(--secondary);cursor:pointer;';
+  if (b58 && b80) {
+    b58.style.cssText = 'flex:1;text-align:center;padding:14px 6px;border-radius:12px;' + (size === '58' ? active : inactive);
+    b80.style.cssText = 'flex:1;text-align:center;padding:14px 6px;border-radius:12px;' + (size === '80' ? active : inactive);
+    b58.querySelector('div').style.color = size === '58' ? 'var(--accent2)' : '#fff';
+    b58.querySelectorAll('div')[1].style.color = size === '58' ? 'var(--accent2)' : 'var(--muted)';
+    b80.querySelector('div').style.color = size === '80' ? 'var(--accent2)' : '#fff';
+    b80.querySelectorAll('div')[1].style.color = size === '80' ? 'var(--accent2)' : 'var(--muted)';
+  }
+  ssRenderPreview();
+}
+
+// Bikin garis putus-putus sepanjang lebar kertas (32 char utk 58mm, 48 char utk 80mm)
+function ssDashLine(){ return '-'.repeat(ssPaperSize === '58' ? 32 : 48); }
+// Rata kiri-kanan ala struk kasir (label ... nilai), dipotong kalau kepanjangan
+function ssPadRow(label, value){
+  const width = ssPaperSize === '58' ? 32 : 48;
+  label = String(label); value = String(value);
+  const space = Math.max(1, width - label.length - value.length);
+  return label + ' '.repeat(space) + value;
+}
+
+function ssBuildStrukData(){
+  // Data contoh dipakai buat preview & cetak percobaan
+  return {
+    invoice: 'INV' + new Date().toISOString().slice(0,10).replace(/-/g,'') + Math.floor(1000+Math.random()*9000),
+    tanggal: new Date().toLocaleString('id-ID',{ day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }),
+    produk: 'Telkomsel 10rb',
+    tujuan: '08123456789',
+    sn: '1234567890',
+    harga: 'Rp 10.500',
+    status: 'Sukses',
+  };
+}
+
+function ssRenderPreview(trx){
+  const box = document.getElementById('ssPreviewBox');
+  if (!box) return;
+  trx = trx || ssBuildStrukData();
+  const namaToko = document.getElementById('ssNamaToko').value.trim() || 'Nama Toko Anda';
+  const footer = document.getElementById('ssFooter').value.trim() || 'Terima kasih atas transaksi Anda';
+  const poweredBy = document.getElementById('ssPoweredBy').value.trim() || 'Powered by Vinzprostore';
+  const width = ssPaperSize === '58' ? 260 : 300;
+  box.style.width = width + 'px';
+  box.innerHTML = `
+    <div style="text-align:center;margin-bottom:8px;">
+      ${ssLogoData ? `<img src="${ssLogoData}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;margin-bottom:4px;">` : ''}
+      <div style="font-weight:700;font-size:12.5px;">${namaToko}</div>
+    </div>
+    <div>${ssDashLine()}</div>
+    <div>${ssPadRow('Invoice', trx.invoice)}</div>
+    <div>${ssPadRow('Tanggal', trx.tanggal)}</div>
+    <div>${ssPadRow('Produk', trx.produk)}</div>
+    <div>${ssPadRow('Tujuan', trx.tujuan)}</div>
+    <div>${ssPadRow('SN', trx.sn)}</div>
+    <div style="font-weight:700;">${ssPadRow('Harga', trx.harga)}</div>
+    <div style="color:#1a9c53;">${ssPadRow('Status', trx.status)}</div>
+    <div>${ssDashLine()}</div>
+    <div style="text-align:center;margin-top:6px;opacity:.85;">${footer}</div>
+    <div style="text-align:center;margin-top:4px;opacity:.5;font-size:10px;">${poweredBy}</div>
+  `;
+}
+
+function openStrukSettings(){
+  if (!currentUser) return;
+  ssFillForm();
+  ssRenderPreview();
+  document.getElementById('strukSettingsPage').classList.add('open');
+}
+function closeStrukSettings(){
+  document.getElementById('strukSettingsPage').classList.remove('open');
+}
+
+function ssSaveSettings(){
+  const s = {
+    namaToko: document.getElementById('ssNamaToko').value.trim(),
+    telepon: document.getElementById('ssTelepon').value.trim(),
+    alamat: document.getElementById('ssAlamat').value.trim(),
+    footer: document.getElementById('ssFooter').value.trim() || 'Terima kasih atas transaksi Anda',
+    poweredBy: document.getElementById('ssPoweredBy').value.trim() || 'Powered by Vinzprostore',
+    logo: ssLogoData,
+    paperSize: ssPaperSize,
+    printerName: ssPrinterDevice ? ssPrinterDevice.name : (ssGetSettings().printerName || ''),
+  };
+  try {
+    localStorage.setItem(SS_STORAGE_KEY, JSON.stringify(s));
+    showNotif('✅ Pengaturan struk disimpan!');
+  } catch(e) {
+    showNotif('❌ Gagal simpan pengaturan: ' + (e.message || e));
+  }
+}
+
+// ── Cari & sambungkan printer Bluetooth (Web Bluetooth API — butuh Chrome/WebView yang mendukung) ──
+async function ssScanPrinter(){
+  if (!navigator.bluetooth || typeof navigator.bluetooth.requestDevice !== 'function') {
+    showNotif('⚠️ Bluetooth belum didukung di browser/APK ini. Gunakan Chrome versi terbaru atau APK dengan dukungan Web Bluetooth.');
+    return;
+  }
+  try {
+    showNotif('🔍 Mencari printer Bluetooth di sekitar...');
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb', '0000ffe0-0000-1000-8000-00805f9b34fb']
+    });
+    ssPrinterDevice = device;
+    const nameEl = document.getElementById('ssPrinterName');
+    nameEl.textContent = '✅ ' + (device.name || 'Printer terpilih');
+    nameEl.style.color = 'var(--success)';
+    showNotif('✅ Printer "' + (device.name || 'tanpa nama') + '" dipilih. Klik SIMPAN PENGATURAN untuk menyimpan.');
+  } catch(e) {
+    if (e && e.name === 'NotFoundError') { showNotif('⚠️ Pencarian dibatalkan / tidak ada printer dipilih.'); return; }
+    showNotif('❌ Gagal mencari printer: ' + (e.message || e));
+  }
+}
+
+// Konversi teks struk (dari ssRenderPreview) jadi perintah ESC/POS sederhana lalu kirim ke printer
+async function ssPrintToBluetooth(trx){
+  if (!navigator.bluetooth) {
+    showNotif('⚠️ Bluetooth tidak didukung di browser/APK ini.');
+    return false;
+  }
+  try {
+    let device = ssPrinterDevice;
+    if (!device) {
+      showNotif('🔍 Pilih printer dulu...');
+      device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb', '0000ffe0-0000-1000-8000-00805f9b34fb']
+      });
+      ssPrinterDevice = device;
+    }
+    const server = await device.gatt.connect();
+    const services = await server.getPrimaryServices();
+    let writeChar = null;
+    for (const svc of services) {
+      const chars = await svc.getCharacteristics();
+      writeChar = chars.find(c => c.properties.write || c.properties.writeWithoutResponse) || writeChar;
+      if (writeChar) break;
+    }
+    if (!writeChar) throw new Error('Printer tidak punya karakteristik tulis (write) yang cocok.');
+
+    const s = ssGetSettings();
+    const namaToko = s.namaToko || 'Nama Toko Anda';
+    const lines = [];
+    lines.push('\x1b\x61\x01'); // center align
+    lines.push(namaToko + '\n');
+    lines.push('\x1b\x61\x00'); // left align
+    lines.push(ssDashLine() + '\n');
+    lines.push(ssPadRow('Invoice', trx.invoice) + '\n');
+    lines.push(ssPadRow('Tanggal', trx.tanggal) + '\n');
+    lines.push(ssPadRow('Produk', trx.produk) + '\n');
+    lines.push(ssPadRow('Tujuan', trx.tujuan) + '\n');
+    lines.push(ssPadRow('SN', trx.sn) + '\n');
+    lines.push(ssPadRow('Harga', trx.harga) + '\n');
+    lines.push(ssPadRow('Status', trx.status) + '\n');
+    lines.push(ssDashLine() + '\n');
+    lines.push('\x1b\x61\x01');
+    lines.push((s.footer || 'Terima kasih atas transaksi Anda') + '\n');
+    lines.push((s.poweredBy || 'Powered by Vinzprostore') + '\n\n\n');
+    lines.push('\x1d\x56\x00'); // full cut (kalau didukung printer)
+
+    const text = lines.join('');
+    const bytes = new TextEncoder().encode(text);
+    // Kirim per-chunk (banyak printer BLE cuma terima <=20 byte per write)
+    const chunkSize = 20;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.slice(i, i + chunkSize);
+      if (writeChar.properties.writeWithoutResponse) await writeChar.writeValueWithoutResponse(chunk);
+      else await writeChar.writeValue(chunk);
+    }
+    return true;
+  } catch(e) {
+    console.warn('ssPrintToBluetooth error:', e);
+    showNotif('❌ Gagal cetak ke printer: ' + (e.message || e));
+    return false;
+  }
+}
+
+async function ssTestPrint(){
+  const trx = ssBuildStrukData();
+  ssRenderPreview(trx);
+  const ok = await ssPrintToBluetooth(trx);
+  if (ok) {
+    showNotif('✅ Struk contoh terkirim ke printer!');
+  } else if (!navigator.bluetooth) {
+    // Fallback tanpa Bluetooth: salin teks struk supaya tetap bisa dibagikan/dicetak manual
+    const s = ssGetSettings();
+    const txt = [
+      s.namaToko || 'Nama Toko Anda', ssDashLine(),
+      ssPadRow('Invoice', trx.invoice), ssPadRow('Tanggal', trx.tanggal),
+      ssPadRow('Produk', trx.produk), ssPadRow('Tujuan', trx.tujuan),
+      ssPadRow('SN', trx.sn), ssPadRow('Harga', trx.harga), ssPadRow('Status', trx.status),
+      ssDashLine(), s.footer || 'Terima kasih atas transaksi Anda', s.poweredBy || 'Powered by Vinzprostore'
+    ].join('\n');
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt);
+        showNotif('📋 Bluetooth tidak tersedia — teks struk disalin, bisa ditempel/cetak manual.');
+      }
+    } catch(e){}
+  }
+}
+
 function pgsToggle2FA(){
   const btn = document.getElementById('pgs2FAToggle');
   if (!btn) return;
@@ -4016,11 +4306,8 @@ function _openAdminPanelNow(){
   document.getElementById('adminPanel').classList.add('open');
   try { hideBuyNotif(); } catch(e){}
   document.body.style.overflow = 'hidden';
-  document.getElementById('apWa').value = waNum;
-  document.getElementById('apTicker').value = document.getElementById('tickerTxt').textContent || '';
-  renderApProds();
-  renderApDelete();
   if (typeof renderApBanners === 'function') renderApBanners();
+  if (typeof apLoadMarkup === 'function') apLoadMarkup();
   setTimeout(wrapApCardBodies, 100);
 }
 
@@ -4283,6 +4570,50 @@ function updateImgPreview(id, src) {
   }
 }
 
+// ══════════════════════════════
+// ADMIN: MARKUP HARGA PER KATEGORI
+// ══════════════════════════════
+function renderApMarkup() {
+  const wrap = document.getElementById('apMarkupList');
+  if (!wrap) return;
+  wrap.innerHTML = MARKUP_CATEGORIES.map(c => {
+    const cfg = markupConfig[c.key] || { type: 'percent', value: 0 };
+    return `
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="flex:1;font-size:12.5px;font-weight:600;color:var(--text);">${c.label}</div>
+        <select class="ap-input" id="apMarkupType_${c.key}" style="width:64px;flex-shrink:0;margin-bottom:0;padding:8px 6px;">
+          <option value="percent" ${cfg.type === 'percent' ? 'selected' : ''}>%</option>
+          <option value="nominal" ${cfg.type === 'nominal' ? 'selected' : ''}>Rp</option>
+        </select>
+        <input type="number" class="ap-input" id="apMarkupValue_${c.key}" value="${cfg.value || 0}" min="0" style="width:84px;flex-shrink:0;margin-bottom:0;padding:8px 8px;" placeholder="0">
+      </div>`;
+  }).join('');
+}
+
+async function apLoadMarkup() {
+  try {
+    const { data, error } = await _sb.from('settings').select('value').eq('key', 'markup').maybeSingle();
+    if (!error && data && data.value) markupConfig = data.value;
+  } catch (e) { console.warn('Markup load error:', e); }
+  renderApMarkup();
+}
+
+function apSaveMarkup() {
+  const cfg = {};
+  MARKUP_CATEGORIES.forEach(c => {
+    const typeEl = document.getElementById('apMarkupType_' + c.key);
+    const valEl = document.getElementById('apMarkupValue_' + c.key);
+    if (!typeEl || !valEl) return;
+    const value = Number(valEl.value) || 0;
+    cfg[c.key] = { type: typeEl.value, value };
+  });
+  markupConfig = cfg;
+  _sb.from('settings').upsert({ key: 'markup', value: cfg }).then(({ error }) => {
+    if (error) { showNotif('❌ Gagal simpan markup: ' + error.message); return; }
+    showNotif('✅ Markup harga disimpan untuk semua kategori!');
+  });
+}
+
 function toggleApCard(h3){
   const card = h3.closest('.ap-card');
   if(!card) return;
@@ -4527,6 +4858,7 @@ async function initApp() {
       for (const s of settings) {
         if (s.key === 'wa' && s.value) waNum = s.value;
         if (s.key === 'ticker' && s.value) document.getElementById('tickerTxt').textContent = s.value;
+        if (s.key === 'markup' && s.value) markupConfig = s.value;
       }
     }
   } catch(e) { console.warn('Settings load error:', e); }
@@ -7988,6 +8320,7 @@ function doPesan(){
     { id: 'editProfilPage',  close: () => window.closeEditProfil && window.closeEditProfil() },
     { id: 'ubahPasswordPage', close: () => window.closeUbahPassword && window.closeUbahPassword() },
     { id: 'verifikasiIdentitasPage', close: () => window.closeVerifikasiIdentitas && window.closeVerifikasiIdentitas() },
+    { id: 'strukSettingsPage', close: () => window.closeStrukSettings && window.closeStrukSettings() },
     { id: 'agenResellerPage', close: () => window.closeAgenReseller && window.closeAgenReseller() },
     { id: 'settingsPanel',   close: () => window.closePengaturan&& window.closePengaturan() },
     { id: 'adminPanel',      close: () => window.closeAdmin     && window.closeAdmin() },
@@ -11917,6 +12250,9 @@ async function h2hFetchProducts(category, operatorFilter){
     // Satu kartu per nominal, yang termurah yang ditampilkan
     rows = h2hDedupeByNominal(rows);
 
+    // Terapkan markup admin (persen/nominal) per kategori di atas harga modal
+    rows = rows.map(r => ({ ...r, price: vpApplyMarkup(category, r.price) }));
+
     return rows;
   } catch (e) {
     console.error('h2hFetchProducts exception:', e);
@@ -12030,6 +12366,8 @@ async function h2hFetchSmmServices(platformKeyword){
         return hay.includes(target);
       });
     }
+    // Terapkan markup admin ke harga per 1000 SMM
+    rows = rows.map(r => ({ ...r, price_per_1k: vpApplyMarkup('smm', r.price_per_1k) }));
     return rows;
   } catch (e) {
     console.error('h2hFetchSmmServices exception:', e);
