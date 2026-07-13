@@ -11314,8 +11314,20 @@ function fillPpobNumber(type, number){
   const input = document.getElementById(inputId);
   if (input){ input.value = number; detectProvider(type); }
 }
+// Nyimpen field mana yang lagi nunggu hasil pilih kontak (pulsa/data),
+// dipakai lagi di onContactPicked() karena callback native gak bawa parameter type.
+let _pendingContactPickType = null;
+
 function pickPpobContact(type){
   const inputId = type === 'pulsa' ? 'pulsaInput' : 'dataInput';
+  // Prioritas 1: bridge native Android (APK). Native yang buka picker kontak
+  // OS, terus manggil balik window.onContactPicked(name, phone).
+  if (window.AndroidBridge && typeof window.AndroidBridge.pickContact === 'function'){
+    _pendingContactPickType = type;
+    window.AndroidBridge.pickContact(); // native akan panggil onContactPicked(name, phone)
+    return;
+  }
+  // Prioritas 2: Contact Picker API browser (Chrome Android/WebView yang support).
   if ('contacts' in navigator && 'ContactsManager' in window){
     navigator.contacts.select(['tel'], { multiple:false }).then(contacts => {
       if (contacts && contacts[0] && contacts[0].tel && contacts[0].tel[0]){
@@ -11328,6 +11340,19 @@ function pickPpobContact(type){
     showNotif('📱 Akses kontak tidak didukung di browser ini. Silakan ketik manual.');
   }
 }
+
+// Dipanggil NATIVE (evaluateJavascript) setelah user pilih kontak lewat
+// picker Android. name boleh kosong/undefined, phone wajib ada.
+window.onContactPicked = function(name, phone){
+  const type = _pendingContactPickType;
+  _pendingContactPickType = null;
+  if (!type || !phone) return;
+  const inputId = type === 'pulsa' ? 'pulsaInput' : 'dataInput';
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  input.value = String(phone).replace(/\D/g,'');
+  detectProvider(type);
+};
 document.addEventListener('DOMContentLoaded', function(){
   renderPpobFreqList('pulsa');
   renderPpobFreqList('data');
