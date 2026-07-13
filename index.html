@@ -8,8 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <style>
 :root {
   --primary:#0a0a0f;--secondary:#17171d;--card:#18181f;--card2:#131318;
@@ -64,15 +62,35 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 #settingsQuickMenu .dd-item{border-top:1px solid rgba(255,255,255,0.05);}
 #settingsQuickMenu .dd-item:first-child{border-top:none;}
 
+/* HALAMAN TERSENDIRI: EDIT PROFIL / UBAH PASSWORD / VERIFIKASI IDENTITAS */
+#editProfilPage,#ubahPasswordPage,#verifikasiIdentitasPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:390;overflow-y:auto;-webkit-overflow-scrolling:touch;max-width:480px;margin:0 auto;}
+#editProfilPage.open,#ubahPasswordPage.open,#verifikasiIdentitasPage.open{display:block;animation:fsSlideIn .3s ease;}
+.pgs-subpage-content{max-width:480px;margin:0 auto;padding:18px 14px 60px;}
+.pgs-field-label{font-size:11px;font-weight:700;color:var(--accent2);margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;}
+.pgs-input{width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:12px 13px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14.5px;margin-bottom:8px;outline:none;}
+.pgs-input:disabled{background:rgba(255,255,255,0.04);color:var(--muted);border-color:rgba(106,140,181,0.3);}
+.pgs-input::placeholder{color:var(--muted);}
+.pgs-err{display:none;font-size:12px;color:var(--danger);margin-bottom:8px;}
+.pgs-btn-primary{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:13px;font-family:'Orbitron',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:14px;}
+.pgs-btn-primary:active{transform:scale(.98);}
+.pgs-btn-primary:disabled{opacity:.6;}
+.pgs-btn-outline{width:100%;background:var(--secondary);color:var(--accent2);border:1.5px solid var(--accent);border-radius:10px;padding:13px;font-family:'Orbitron',sans-serif;font-size:11.5px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:14px;}
+.pgs-hint{font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:16px;}
+.pgs-status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;}
+.pgs-status-badge.belum{background:rgba(255,68,85,.08);border:1px solid rgba(255,68,85,.35);color:var(--danger);}
+.pgs-status-badge.pending{background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.35);color:var(--gold);}
+.pgs-status-badge.verified{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.35);color:var(--success);}
+.pgs-upload-box{border:1.5px dashed var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;margin-bottom:14px;background:rgba(255,255,255,0.02);}
+.pgs-upload-box img{max-width:100%;max-height:140px;border-radius:8px;display:block;margin:6px auto 0;}
+.pgs-upload-box .puh-txt{font-size:12px;color:var(--muted);}
+.pgs-upload-box .puh-ico{font-size:26px;margin-bottom:4px;}
+
 
 
 /* PUSAT INFORMASI - HIDDEN FULLSCREEN PAGE */
 #pusatInformasi{display:none;position:fixed;inset:0;background:var(--primary);z-index:360;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:40px;}
 #pusatInformasi.open{display:block;animation:fsSlideIn .3s ease;}
 
-/* APK PREMIUM - HIDDEN FULLSCREEN PAGE */
-#apkPremiumPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:360;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:40px;}
-#apkPremiumPage.open{display:block;animation:fsSlideIn .3s ease;}
 #topUpPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:360;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:40px;}
 #topUpPage.open{display:block;animation:fsSlideIn .3s ease;}
 .ap-topbar{position:sticky;top:0;background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid var(--accent);height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;z-index:10;box-shadow:0 4px 24px rgba(26,111,255,0.25);}
@@ -215,10 +233,6 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 .bn-item.active{color:var(--accent);}
 /* Tombol QRIS besar mengambang di tengah, ala FinPay */
 .bottom-nav-5{align-items:flex-end;}
-.bn-item-qris-big{flex:0 0 76px;position:relative;color:var(--accent);}
-.bn-qris-circle{width:56px;height:56px;border-radius:50%;background:linear-gradient(180deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(77,91,255,.45);margin-top:-28px;border:4px solid #111116;}
-.bn-qris-circle svg{width:24px;height:24px;color:#fff;stroke:#fff;}
-.bn-qris-label{font-size:11px;font-weight:700;color:var(--accent);margin-top:2px;}
 body.has-bottom-nav{padding-bottom:70px;}
 
 /* HEADER */
@@ -904,9 +918,7 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
       </button>
     </div>
     <div class="pc-topup-row" style="display:flex;gap:8px;align-items:stretch;">
-      <button class="btn-topup" style="flex:1.3;padding:10px 6px;font-size:13px;" onclick="(typeof currentUser!=='undefined' && currentUser) ? openTopUp() : openAuth('masuk')">⊕ Top Up</button>
-      <button class="btn-topup" style="flex:1;padding:10px 6px;font-size:13px;background:rgba(0,212,255,0.12);color:var(--accent2);border:1px solid var(--accent2);" onclick="(typeof currentUser!=='undefined' && currentUser) ? openQrisPage('kirim') : openAuth('masuk')">↗ Kirim</button>
-      <button class="btn-topup" style="flex:1;padding:10px 6px;font-size:13px;background:rgba(77,255,145,0.12);color:#4dffb0;border:1px solid #4dffb0;" onclick="(typeof currentUser!=='undefined' && currentUser) ? openQrisPage('terima') : openAuth('masuk')">↙ Terima</button>
+      <button class="btn-topup" style="flex:1;padding:10px 6px;font-size:13px;" onclick="(typeof currentUser!=='undefined' && currentUser) ? openTopUp() : openAuth('masuk')">⊕ Top Up</button>
     </div>
   </div>
 
@@ -940,7 +952,6 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
     <div class="ppob-item" onclick="openEwalletPage()"><div class="ppob-ic" style="background:transparent;padding:0;overflow:hidden;"><img src="https://id-preview--6e6f34a1-5938-4c35-acde-5f0ae1e74068.lovable.app/__l5e/assets-v1/d36c390d-822c-4bd1-8b98-ece6410859e5/ewallet.png" alt="E-Wallet" style="width:100%;height:100%;object-fit:contain;display:block;"></div><div class="ppob-name">E-Wallet</div></div>
     <div class="ppob-item" onclick="openVoucherGamePage()"><div class="ppob-ic" style="background:transparent;padding:0;overflow:hidden;"><img src="https://id-preview--6e6f34a1-5938-4c35-acde-5f0ae1e74068.lovable.app/__l5e/assets-v1/5967edfa-3dfe-4fa1-b788-d41d01d42229/game.png" alt="Voucher Game" style="width:100%;height:100%;object-fit:contain;display:block;"></div><div class="ppob-name">Voucher Game</div></div>
     <div class="ppob-item" onclick="openPlnPage()"><div class="ppob-ic" style="background:transparent;padding:0;overflow:hidden;"><img src="https://id-preview--6e6f34a1-5938-4c35-acde-5f0ae1e74068.lovable.app/__l5e/assets-v1/e0522d4c-afa5-45c7-926e-8521102e22c6/pln.png" alt="PLN" style="width:100%;height:100%;object-fit:contain;display:block;"></div><div class="ppob-name">PLN</div></div>
-    <div class="ppob-item" onclick="openApkPremium()"><div class="ppob-ic" style="background:rgba(0,255,136,0.14);color:var(--success);">🛡️</div><div class="ppob-name">Apk Premium</div></div>
     <div class="ppob-item" onclick="openPdamPage()"><div class="ppob-ic" style="background:rgba(0,180,255,0.14);color:#5fc9ff;">💧</div><div class="ppob-name">PDAM</div></div>
     <div class="ppob-item" id="ppobLainnyaBtn" onclick="openLainnyaMenu()"><div class="ppob-ic" style="background:rgba(155,89,255,0.14);color:#c79bff;">📋</div><div class="ppob-name">Lainnya</div></div>
   </div>
@@ -992,94 +1003,6 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
   renderBannerSlider();
   </script>
 </div>
-
-<!-- APK PREMIUM / PRODUK GAME - HIDDEN FULLSCREEN PAGE -->
-<section id="apkPremiumPage">
-  <div class="ap-topbar">
-    <div class="ap-back" onclick="closeApkPremium()">←</div>
-    <div class="tt">APK PREMIUM</div>
-  </div>
-
-<!-- BANNER SLIDESHOW -->
-<div class="banner-wrap" style="padding:14px 14px 0;">
-  <div style="border-radius:16px;overflow:hidden;position:relative;border:1px solid rgba(0,212,255,0.3);box-shadow:0 8px 28px rgba(0,80,255,0.2);min-height:120px;background:linear-gradient(135deg,#0c1f56,#1040a0);">
-    <div id="bannerSlider" style="display:flex;transition:transform .4s ease;will-change:transform;"></div>
-    <div id="bannerDots" style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:5;"></div>
-  </div>
-</div>
-<script>
-window._bannerImages = [];
-window._bannerCur = 0;
-window._bannerTimer = null;
-function renderBannerSlider(){
-  const slider = document.getElementById('bannerSlider');
-  const dotsEl = document.getElementById('bannerDots');
-  if (!slider || !dotsEl) return;
-  const imgs = (window._bannerImages && window._bannerImages.length) ? window._bannerImages : [];
-  if (!imgs.length){
-    slider.innerHTML = '<div style="min-width:100%;padding:24px 16px;color:#fff;font-family:Orbitron,sans-serif;"><div style="font-size:11px;color:#ffd700;margin-bottom:6px;">⭐ VINZ STORE</div><div style="font-size:16px;font-weight:900;">VIP MODS & KEY PREMIUM</div><div style="font-size:11px;color:#00d4ff;margin-top:4px;">Proses instan 24 jam</div></div>';
-    dotsEl.innerHTML = '';
-    if (window._bannerTimer){ clearInterval(window._bannerTimer); window._bannerTimer = null; }
-    return;
-  }
-  slider.innerHTML = imgs.map(src => `<img src="${src}" style="min-width:100%;width:100%;display:block;object-fit:cover;max-height:200px;" alt="">`).join('');
-  dotsEl.innerHTML = imgs.map((_,j)=>`<div data-i="${j}" style="width:${j===0?'20px':'8px'};height:8px;border-radius:4px;background:${j===0?'#fff':'rgba(255,255,255,0.4)'};transition:.25s;cursor:pointer;"></div>`).join('');
-  Array.from(dotsEl.children).forEach((d,j)=>d.onclick=()=>bannerGoTo(j));
-  window._bannerCur = 0;
-  slider.style.transform = 'translateX(0)';
-  if (window._bannerTimer) clearInterval(window._bannerTimer);
-  if (imgs.length > 1){
-    window._bannerTimer = setInterval(()=>bannerGoTo((window._bannerCur+1)%imgs.length), 3800);
-  }
-}
-function bannerGoTo(i){
-  window._bannerCur = i;
-  const slider = document.getElementById('bannerSlider');
-  if (slider) slider.style.transform = 'translateX(-'+(i*100)+'%)';
-  const dotsEl = document.getElementById('bannerDots');
-  if (dotsEl){
-    Array.from(dotsEl.children).forEach((d,j)=>{
-      d.style.width = j===i?'20px':'8px';
-      d.style.background = j===i?'#fff':'rgba(255,255,255,0.4)';
-    });
-  }
-}
-renderBannerSlider();
-</script>
-
-<!-- TICKER -->
-<div class="ticker-bar">
-  <div class="ticker-inner" id="tickerTxt">🚀 Bergabung di VinzPro Store — Top 1 VIP Mods Terbaik Di Indonesia 🚀 Ribuan Member Sudah Percaya 🚀 Key Instan & Aman 🚀</div>
-</div>
-
-<!-- SEARCH -->
-<div class="search-wrap">
-  <div class="search-box">
-    <span style="color:var(--muted)">🔍</span>
-    <input type="text" id="searchInput" placeholder="Cari game atau produk favoritmu..." oninput="renderProducts()">
-  </div>
-</div>
-
-<!-- TABS -->
-<div class="tabs-wrap">
-  <div class="tabs">
-    <div class="tab active" onclick="setTab('semua',this)">SEMUA</div>
-    <div class="tab" onclick="setTab('free fire',this)">FREE FIRE</div>
-    <div class="tab" onclick="setTab('mlbb',this)">MLBB</div>
-    <div class="tab" onclick="setTab('8 ball',this)">8 BALL</div>
-    <div class="tab" onclick="setTab('pc',this)">PC</div>
-    <div class="tab" onclick="setTab('apk premium',this)">APK PREMIUM</div>
-  </div>
-</div>
-
-<!-- PRODUCT GRID -->
-<div class="section" id="produkGameSec">
-  <div class="sec-title">PRODUK GAME POPULER</div>
-  <div class="product-grid" id="productGrid"></div>
-</div>
-
-</section>
-<!-- END APK PREMIUM PAGE -->
 
 <!-- TOP UP SALDO - HIDDEN FULLSCREEN PAGE -->
 <section id="topUpPage">
@@ -1399,77 +1322,6 @@ renderBannerSlider();
   </div>
 </section>
 
-<!-- QRIS PAYCORE — Kirim & Terima saldo antar pengguna -->
-<section id="qrisPage" class="ppob-page">
-  <div class="ppob-topbar">
-    <div class="ppob-back" onclick="closePpobPage('qrisPage')">←</div>
-    <div class="tt">QRIS PAYCORE</div>
-  </div>
-  <div class="ppob-wrap">
-
-    <!-- ================= KIRIM ================= -->
-    <div id="qrisKirimPanel">
-      <div id="qrisPhonePanel" class="ppob-card">
-        <div class="ppob-label">NOMOR HP TUJUAN</div>
-        <input type="tel" id="qrisPhoneInput" class="ppob-input" placeholder="Contoh: 08123456789" oninput="qrisResetRecipient()">
-        <button type="button" onclick="qrisLookup('phone')" style="margin-top:10px;width:100%;background:#1a2440;color:#00d4ff;border:1px solid #00d4ff;border-radius:10px;padding:10px;font-weight:700;font-size:13px;">Cari Penerima</button>
-        <div style="text-align:center;margin-top:14px;">
-          <button type="button" onclick="qrisOpenScanner()" style="background:none;border:none;color:#8a9bbf;font-size:12.5px;font-weight:600;text-decoration:underline;cursor:pointer;padding:4px;">🔳 atau scan QR penerima</button>
-        </div>
-      </div>
-
-      <canvas id="qrisCanvas" style="display:none;"></canvas>
-
-      <div id="qrisRecipientCard" class="ppob-card" style="display:none;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#4d5bff,#00d4ff);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex-shrink:0;" id="qrisRecipientAvatar">👤</div>
-          <div>
-            <div style="font-weight:700;font-size:14px;" id="qrisRecipientName">-</div>
-            <div style="font-size:11px;opacity:.6;">✅ Penerima ditemukan</div>
-          </div>
-        </div>
-        <div class="ppob-label">NOMINAL</div>
-        <input type="number" id="qrisAmountInput" class="ppob-input" placeholder="0" style="font-size:22px;font-weight:800;" min="1000">
-        <div class="ppob-label" style="margin-top:12px;">CATATAN (OPSIONAL)</div>
-        <input type="text" id="qrisNoteInput" class="ppob-input" placeholder="Contoh: bayar patungan" maxlength="80">
-        <button type="button" onclick="qrisSendTransfer()" id="qrisSendBtn" style="margin-top:16px;width:100%;background:linear-gradient(135deg,#4d5bff,#00d4ff);color:#fff;border:none;border-radius:10px;padding:13px;font-weight:800;font-size:15px;">Kirim Sekarang</button>
-      </div>
-    </div>
-
-    <!-- ================= TERIMA ================= -->
-    <div id="qrisTerimaPanel" style="display:none;">
-      <div class="ppob-card" style="text-align:center;">
-        <div style="font-size:13px;opacity:.75;margin-bottom:16px;">Minta pengirim scan QR ini dari aplikasi Paycore</div>
-        <div style="position:relative;width:220px;height:220px;margin:0 auto 16px;background:#fff;border-radius:16px;padding:10px;display:flex;align-items:center;justify-content:center;">
-          <div id="qrisMyCodeCanvas"></div>
-          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#4d5bff,#00d4ff);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;color:#fff;box-shadow:0 0 0 5px #fff;">P</div>
-        </div>
-        <div style="font-weight:700;font-size:15px;" id="qrisMyName">-</div>
-        <div style="font-size:12px;opacity:.6;margin-bottom:16px;" id="qrisMyPhone">Nomor HP belum diisi</div>
-        <button type="button" onclick="qrisShareCode()" style="width:100%;background:#1a2440;color:#fff;border:1px solid #2a3348;border-radius:10px;padding:11px;font-weight:700;font-size:13px;">📤 Bagikan QR Saya</button>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<!-- ================= SCAN QR (half-screen, gaya DANA) ================= -->
-<div id="qrisScanOverlay" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(2,8,20,.85);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;">
-  <div style="width:100%;max-width:480px;background:#0a1226;border-radius:22px 22px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));">
-    <div style="width:40px;height:4px;background:#2a3348;border-radius:99px;margin:0 auto 12px;"></div>
-    <div style="font-weight:700;font-size:14px;text-align:center;margin-bottom:12px;">Scan QR Penerima</div>
-    <div style="position:relative;border-radius:16px;overflow:hidden;background:#000;height:44vh;max-height:360px;">
-      <video id="qrisVideo" style="width:100%;height:100%;object-fit:cover;display:block;" playsinline muted autoplay></video>
-      <div style="position:absolute;inset:14%;border:2px solid rgba(255,255,255,.35);border-radius:16px;pointer-events:none;"></div>
-      <button type="button" onclick="qrisPickFromGallery()" title="Pilih dari galeri" style="position:absolute;top:10px;left:10px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.5);border:none;color:#fff;font-size:16px;">🖼️</button>
-      <button type="button" id="qrisTorchBtn" onclick="qrisToggleTorch()" title="Senter" style="display:none;position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.5);border:none;color:#fff;font-size:16px;">💡</button>
-    </div>
-    <div id="qrisScanStatus" style="margin-top:10px;font-size:12px;opacity:.7;text-align:center;">Mengaktifkan kamera...</div>
-    <input type="file" id="qrisGalleryInput" accept="image/*" style="display:none;" onchange="qrisHandleGalleryFile(event)">
-    <button type="button" onclick="qrisCloseScanner()" style="margin-top:14px;width:100%;background:rgba(255,255,255,.08);color:#fff;border:none;border-radius:12px;padding:12px;font-weight:700;">Tutup</button>
-  </div>
-</div>
-
 <!-- KONFIRMASI PEMBAYARAN PAGE (generic, dipakai semua layanan PPOB) -->
 <section id="ppobConfirmPage" class="ppob-page">
   <div class="pcf-topbar">
@@ -1627,39 +1479,6 @@ renderBannerSlider();
   </div>
 </div>
 </section>
-
-<footer>
-  <div class="footer-box">
-    <div class="footer-brand">
-      <div class="logo-icon" style="overflow:hidden;"><img src="data:image/webp;base64,UklGRpwEAABXRUJQVlA4IJAEAABQEwCdASpAAEAAPpk8lkkloyIhN/gMALATCWwAnTMTAbSIrM2zgzEL3cKbkn/gb5LvNk+m5wfcsnCpegauX1is1HyQ6hrKR43q315iHxtepDP1+20CJ8tJCwhEVUgRn0DaaHZF5pvgtZYn0eNEYuJVVwU0Be0fvPXGnCmOxZ0PO1izuqr8d9sgqGEAzMtN0T9QzAxcklLQMlHozjq6n27zpDYAAP786utBOELeVJU6skrTdFdZSn4f2xHtsnkch8w4MLehl3jqqM3+wgXcWrSHl3DKAXhYC78Ypfe0i/p8WDW9cYTglvIgCvoVfg9KOL5t5xfbSUeIzSYvLMxbew3BMvsAlhrTehfv6A0ekPq78yt89RHuAuQVrlgCUfopYqqvReiAaSMsi4C8l/Qrh5DuTIdZk6e9IADLsOKBqwhWTZm1l1cN0R+AHEs3q2vdW3jNrfyRYs+1sgdg4rMRLyKb2wTykIM2KRCDGxKs1y15+26Kilvi20tLdYOjq+PIT8vL8zecq/wSOHe8ITILRLc4cOQSCxHjC9zfqRAONMsjBYIgDK6ddeFwvyck9RaX0JS5UvX5FjqLhdlfxzieSCKv7H6nob06uda0Zrzzg0ZjKQwNsDw0lufQ0iyOmgiOyRqaWQm9bMOcvVADeUsQA8kjIdZyQyWQjihaTyX+CFlrl96OicgADf3QINykgvNkLkAyJ1p/jgisO41siYUYi0lP1RHjcMn/mz57iTGi0reBW9Rh6Yf8GpEwUw1i5Fd4FKMeRJfuq820Bu0vRpE1euZC9TPrzP9N32fN3eXZUppzOGCAUd4ev4WMji5Tpl6P2nH3pUiUK6zn06noQr35kVGW+3Pvsp794MefoGP3J9iwKc/I39sC6wnvPCfu2YpXf2x8/XnP7aamO1xavSJEdiBLgf4s8YLUP0gTIXQSpcbTZCLLOgFnARnjhui52ybuzjaaxXVv0/PIlR5QoXnHpVtsLJhxXLMH/8sdi5vRdMHPH5wyOIkkW/o6f5ZxDUc6O4o94T8eUA2KF0lY36PbRiK/56LCu7jl13XfBw8YPB+rCR+P6kH7xxf9ld87zTZaX+LH0c2jI6+ksUBW4x0sxY1ZZoEGvrA7bmrDgNjCITuEkm9evdqxhKITAHAstcP2FXxWWEDpBGlJSVOwLiLqLbIVyNJnjHhsLvO1+Owfs2inLtnJI/maI7ZlqFxmJZr/exbIHksr+UB8KREoZMBTCR0yuFLMhbIvAHhEX4ZCIOJgJc7YfNFlRNUrp93ReQ5uHwDaWA3Uhd7Z2NC1/TyfWwIQe6qZshBFmkkexrHGR4uiOc3UXPoFoYmUqSpY+z9/A6PeO0mkXqjC9Mm6idkzAFLzvyunilhe+Cd7VQtqdC9ACgCqf/ztrgywc7AaC7TSJ0oSFFNd2au5fXZby9kYEg4XQVOjKpeXCG4V+a7tgxVcYrOGovCbnQbUuQix9m0bdybTyvWNXoSvZR9naB1QgRHfiIshfTW+5L3nuBZnC23YGAGpxqg+rwaSRD5Mvxk5zejFNP4wCf6MWBCLHrifZgAA" alt="Vinz Store" style="width:100%;height:100%;object-fit:cover;border-radius:10px;"></div>
-      <div class="fl">Vinz Store</div>
-    </div>
-    <p style="margin-bottom:10px;">VINZPROSTORE adalah platform top-up & VIP Mods tercepat dan terpercaya. Dapatkan key, voucher, dan item game impianmu dengan harga terbaik dan proses instan 24 jam.</p>
-    <div class="footer-contact">
-      <a class="wa" href="https://wa.me/6285954741269" target="_blank" rel="noopener" aria-label="WhatsApp">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.002-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      </a>
-      <a class="tel" href="tel:+6285954741269" aria-label="Telepon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-      </a>
-    </div>
-    <div class="foot-menu">
-      <div class="foot-col">
-        <h5>INFORMASI</h5>
-        <a onclick="openPusatInfo('cara')">Cara Beli</a>
-        <a onclick="openPusatInfo('faq')">Bantuan / FAQ</a>
-        <a onclick="openPusatInfo('syarat')">Syarat Ketentuan</a>
-      </div>
-      <div class="foot-col">
-        <h5>LAYANAN</h5>
-        <a onclick="openPusatInfo('privasi')">Kebijakan Privasi</a>
-        <a onclick="openPusatInfo('kontak')">Hubungi Kami</a>
-        <a href="mailto:alpintandjung@gmail.com?subject=Kerjasama%20Partnership">Kerjasama</a>
-      </div>
-    </div>
-    <div style="border-top:1px solid rgba(106,140,181,0.15);padding-top:12px;margin-top:10px;font-size:13px;color:var(--muted);letter-spacing:.5px;text-align:center;">© 2026 VINZPROSTORE. HAK CIPTA DILINDUNGI.</div>
-  </div>
-</footer>
 
 <!-- FULLSCREEN PRODUCT PAGE -->
 <div id="prodFullscreen">
@@ -2156,7 +1975,6 @@ renderBannerSlider();
         <option value="mlbb">MLBB</option>
         <option value="8 ball">8 Ball</option>
         <option value="pc">PC</option>
-        <option value="apk premium">Apk Premium</option>
         <option value="__custom">✏️ Lainnya (tulis manual)…</option>
       </select>
       <input class="ap-input" id="npCatCustom" placeholder="Tulis kategori (mis: tiktok, youtube)" style="display:none;text-transform:lowercase;">
@@ -2246,84 +2064,23 @@ renderBannerSlider();
           <div class="pgs-profile-email" id="pgsProfileEmail">-</div>
         </div>
       </div>
-      <div class="pgs-badge" style="cursor:pointer;" onclick="openQrisPage('terima')">QRIS-ku</div>
     </div>
 
     <!-- AKUN -->
     <div class="pgs-section">
       <div class="pgs-section-title">Akun</div>
       <div class="pgs-card">
-        <div class="pgs-item" onclick="pgsToggleEditProfile()">
+        <div class="pgs-item" onclick="openEditProfil()">
           <div class="pgs-item-left"><span class="pgs-ico">👤</span><span>Edit Profil</span></div>
-          <span class="pgs-chevron" id="pgsEditProfileChevron">›</span>
-        </div>
-        <div id="pgsEditProfileBody" class="pgs-editbody">
-
-          <!-- FOTO PROFIL -->
-          <div style="font-size:11px;font-weight:700;color:var(--accent2);margin:10px 0 10px;text-transform:uppercase;letter-spacing:1px;">Foto Profil</div>
-          <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
-            <div id="setAvatarPreview" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;color:#fff;border:3px solid var(--accent2);overflow:hidden;flex-shrink:0;"></div>
-            <div style="flex:1;">
-              <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Klik tombol di bawah untuk pilih foto</div>
-              <input type="file" id="setAvatarInput" accept="image/*" style="display:none;" onchange="setAvatarChange()">
-              <label for="setAvatarInput" style="display:inline-block;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">Pilih Foto</label>
-              <button type="button" onclick="deleteAvatar()" style="display:inline-block;margin-left:6px;background:transparent;border:1.5px solid #ff4d4f;color:#ff4d4f;border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">Hapus Foto</button>
-            </div>
-          </div>
-          <button id="btnSaveAvatar" onclick="saveAvatar()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:18px;">SIMPAN FOTO</button>
-
-          <!-- GANTI NAMA -->
-          <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Ganti Nama</div>
-          <input id="setName" type="text" placeholder="Nama kamu" style="width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:8px;">
-          <div id="setNameErr" style="display:none;font-size:12px;color:var(--danger);margin-bottom:8px;"></div>
-          <button id="btnSaveName" onclick="saveName()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:18px;">SIMPAN NAMA</button>
-
-          <!-- NOMOR HP (buat Kirim/Terima QRIS) -->
-          <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Nomor HP (opsional, buat QRIS-ku)</div>
-          <input id="setPhone" type="tel" placeholder="Contoh: 08123456789" style="width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:8px;">
-          <div id="setPhoneErr" style="display:none;font-size:12px;color:var(--danger);margin-bottom:8px;"></div>
-          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Diisi supaya orang lain bisa kirim saldo ke kamu lewat nomor HP (selain scan QR).</div>
-          <button id="btnSavePhone" onclick="savePhone()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:18px;">SIMPAN NOMOR HP</button>
-
-          <!-- GANTI EMAIL -->
-          <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Ganti Email</div>
-          <div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Email Saat Ini</div>
-          <input id="setEmail" type="email" disabled style="width:100%;background:rgba(255,255,255,0.04);border:1.5px solid rgba(106,140,181,0.3);border-radius:9px;padding:10px 13px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:12px;">
-          <div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Email Baru</div>
-          <input id="setNewEmail" type="email" placeholder="email.baru@kamu.com" style="width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;margin-bottom:8px;">
-          <div id="setEmailErr" style="display:none;font-size:12px;color:var(--danger);margin-bottom:8px;"></div>
-          <button id="btnRequestEmail" onclick="requestEmailChange()" style="width:100%;background:var(--secondary);color:var(--accent2);border:1.5px solid var(--accent);border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:12px;">KIRIM KODE OTP KE EMAIL BARU</button>
-
-          <!-- OTP Section -->
-          <div id="setEmailOtpSection" style="display:none;background:var(--card2);border-radius:12px;padding:14px;border:1px solid var(--border);">
-            <div style="text-align:center;margin-bottom:12px;">
-              <div style="font-size:11px;color:var(--muted);">Kode OTP dikirim ke</div>
-              <div id="setOtpTarget" style="font-size:13px;font-weight:700;color:var(--accent2);"></div>
-            </div>
-            <div style="position:relative;display:flex;gap:6px;justify-content:center;margin-bottom:10px;" onclick="document.getElementById('setotpHidden').focus()">
-              <input id="setotpHidden" type="tel" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
-                style="position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;z-index:10;font-size:16px;border:none;background:transparent;cursor:pointer;"
-                oninput="otpHiddenInput('setotp')" onkeydown="otpHiddenBack(event,'setotp')">
-              <div class="otp-input" id="setotp0" style="width:38px;height:46px;font-size:20px;"></div>
-              <div class="otp-input" id="setotp1" style="width:38px;height:46px;font-size:20px;"></div>
-              <div class="otp-input" id="setotp2" style="width:38px;height:46px;font-size:20px;"></div>
-              <div class="otp-input" id="setotp3" style="width:38px;height:46px;font-size:20px;"></div>
-              <div class="otp-input" id="setotp4" style="width:38px;height:46px;font-size:20px;"></div>
-              <div class="otp-input" id="setotp5" style="width:38px;height:46px;font-size:20px;"></div>
-            </div>
-            <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:10px;">
-              Tidak dapat kode? <span id="setResendArea"></span>
-            </div>
-            <button id="btnVerifyEmail" onclick="verifyEmailChange()" style="width:100%;background:var(--success);color:#000;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;">VERIFIKASI &amp; UBAH EMAIL</button>
-          </div>
+          <span class="pgs-chevron">›</span>
         </div>
 
-        <div class="pgs-item" onclick="showNotif('🔒 Ubah password segera hadir')">
+        <div class="pgs-item" onclick="openUbahPassword()">
           <div class="pgs-item-left"><span class="pgs-ico">🔑</span><span>Ubah Password</span></div>
           <span class="pgs-chevron">›</span>
         </div>
-        <div class="pgs-item" onclick="showNotif('🪪 Verifikasi identitas segera hadir')">
-          <div class="pgs-item-left"><span class="pgs-ico">🛡️</span><span>Verifikasi Identitas</span></div>
+        <div class="pgs-item" onclick="openVerifikasiIdentitas()">
+          <div class="pgs-item-left"><span class="pgs-ico">🛡️</span><span class="pgs-label">Verifikasi Identitas<span class="pgs-sub" id="viStatusSub">Belum diverifikasi</span></span></div>
           <span class="pgs-chevron">›</span>
         </div>
       </div>
@@ -2390,6 +2147,147 @@ renderBannerSlider();
     <button class="pgs-logout" onclick="doLogout()">Keluar Akun</button>
     <div class="pgs-version">Vinzprostore</div>
 
+  </div>
+</div>
+
+<!-- ═══ HALAMAN EDIT PROFIL (terpisah) ═══ -->
+<div id="editProfilPage">
+  <div class="pgs-topbar">
+    <button class="pgs-back" onclick="closeEditProfil()">&#8592;</button>
+    <div class="pgs-title">EDIT PROFIL</div>
+    <div style="width:34px;flex-shrink:0;"></div>
+  </div>
+  <div class="pgs-subpage-content">
+
+    <!-- FOTO PROFIL -->
+    <div class="pgs-field-label">Foto Profil</div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+      <div id="setAvatarPreview" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;color:#fff;border:3px solid var(--accent2);overflow:hidden;flex-shrink:0;"></div>
+      <div style="flex:1;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Klik tombol di bawah untuk pilih foto</div>
+        <input type="file" id="setAvatarInput" accept="image/*" style="display:none;" onchange="setAvatarChange()">
+        <label for="setAvatarInput" style="display:inline-block;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">Pilih Foto</label>
+        <button type="button" onclick="deleteAvatar()" style="display:inline-block;margin-left:6px;background:transparent;border:1.5px solid #ff4d4f;color:#ff4d4f;border-radius:9px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;">Hapus Foto</button>
+      </div>
+    </div>
+    <button id="btnSaveAvatar" class="pgs-btn-primary" onclick="saveAvatar()">SIMPAN FOTO</button>
+
+    <!-- GANTI NAMA -->
+    <div class="pgs-field-label">Ganti Nama</div>
+    <input id="setName" class="pgs-input" type="text" placeholder="Nama kamu">
+    <div id="setNameErr" class="pgs-err"></div>
+    <button id="btnSaveName" class="pgs-btn-primary" onclick="saveName()">SIMPAN NAMA</button>
+
+    <!-- GANTI EMAIL -->
+    <div class="pgs-field-label">Ganti Email</div>
+    <div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Email Saat Ini</div>
+    <input id="setEmail" class="pgs-input" type="email" disabled style="margin-bottom:12px;">
+    <div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Email Baru</div>
+    <input id="setNewEmail" class="pgs-input" type="email" placeholder="email.baru@kamu.com">
+    <div id="setEmailErr" class="pgs-err"></div>
+    <button id="btnRequestEmail" class="pgs-btn-outline" onclick="requestEmailChange()">KIRIM KODE OTP KE EMAIL BARU</button>
+
+    <!-- OTP Section -->
+    <div id="setEmailOtpSection" style="display:none;background:var(--card2);border-radius:12px;padding:14px;border:1px solid var(--border);">
+      <div style="text-align:center;margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--muted);">Kode OTP dikirim ke</div>
+        <div id="setOtpTarget" style="font-size:13px;font-weight:700;color:var(--accent2);"></div>
+      </div>
+      <div style="position:relative;display:flex;gap:6px;justify-content:center;margin-bottom:10px;" onclick="document.getElementById('setotpHidden').focus()">
+        <input id="setotpHidden" type="tel" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+          style="position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;z-index:10;font-size:16px;border:none;background:transparent;cursor:pointer;"
+          oninput="otpHiddenInput('setotp')" onkeydown="otpHiddenBack(event,'setotp')">
+        <div class="otp-input" id="setotp0" style="width:38px;height:46px;font-size:20px;"></div>
+        <div class="otp-input" id="setotp1" style="width:38px;height:46px;font-size:20px;"></div>
+        <div class="otp-input" id="setotp2" style="width:38px;height:46px;font-size:20px;"></div>
+        <div class="otp-input" id="setotp3" style="width:38px;height:46px;font-size:20px;"></div>
+        <div class="otp-input" id="setotp4" style="width:38px;height:46px;font-size:20px;"></div>
+        <div class="otp-input" id="setotp5" style="width:38px;height:46px;font-size:20px;"></div>
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:10px;">
+        Tidak dapat kode? <span id="setResendArea"></span>
+      </div>
+      <button id="btnVerifyEmail" onclick="verifyEmailChange()" style="width:100%;background:var(--success);color:#000;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;">VERIFIKASI &amp; UBAH EMAIL</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HALAMAN UBAH PASSWORD (terpisah) ═══ -->
+<div id="ubahPasswordPage">
+  <div class="pgs-topbar">
+    <button class="pgs-back" onclick="closeUbahPassword()">&#8592;</button>
+    <div class="pgs-title">UBAH PASSWORD</div>
+    <div style="width:34px;flex-shrink:0;"></div>
+  </div>
+  <div class="pgs-subpage-content">
+    <div class="pgs-hint">🔒 Masukkan password kamu saat ini, lalu buat password baru minimal 6 karakter.</div>
+    <div id="upErr" class="pgs-err"></div>
+
+    <div class="pgs-field-label">Password Saat Ini</div>
+    <div class="pw-wrap" style="margin-bottom:14px;">
+      <input id="upCurrent" class="pgs-input" style="margin-bottom:0;" type="password" placeholder="Password saat ini" autocomplete="current-password">
+      <button class="pw-eye" onclick="togglePw('upCurrent',this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    </div>
+
+    <div class="pgs-field-label">Password Baru</div>
+    <div class="pw-wrap" style="margin-bottom:14px;">
+      <input id="upNew1" class="pgs-input" style="margin-bottom:0;" type="password" placeholder="Min. 6 karakter" autocomplete="new-password">
+      <button class="pw-eye" onclick="togglePw('upNew1',this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    </div>
+
+    <div class="pgs-field-label">Konfirmasi Password Baru</div>
+    <div class="pw-wrap" style="margin-bottom:20px;">
+      <input id="upNew2" class="pgs-input" style="margin-bottom:0;" type="password" placeholder="Ulangi password baru" autocomplete="new-password">
+      <button class="pw-eye" onclick="togglePw('upNew2',this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    </div>
+
+    <button id="btnUbahPassword" class="pgs-btn-primary" onclick="submitUbahPassword()">SIMPAN PASSWORD BARU</button>
+  </div>
+</div>
+
+<!-- ═══ HALAMAN VERIFIKASI IDENTITAS (terpisah) ═══ -->
+<div id="verifikasiIdentitasPage">
+  <div class="pgs-topbar">
+    <button class="pgs-back" onclick="closeVerifikasiIdentitas()">&#8592;</button>
+    <div class="pgs-title">VERIFIKASI IDENTITAS</div>
+    <div style="width:34px;flex-shrink:0;"></div>
+  </div>
+  <div class="pgs-subpage-content">
+    <div id="viStatusBadge" class="pgs-status-badge belum">⏳ Belum Diverifikasi</div>
+    <div class="pgs-hint">Verifikasi identitas membantu mengamankan akun kamu dan membuka limit transaksi lebih tinggi. Lengkapi data sesuai KTP di bawah ini.</div>
+
+    <div id="viFormWrap">
+      <div class="pgs-field-label">Nama Lengkap (sesuai KTP)</div>
+      <input id="viNama" class="pgs-input" type="text" placeholder="Nama sesuai KTP">
+
+      <div class="pgs-field-label">Nomor NIK (KTP)</div>
+      <input id="viNik" class="pgs-input" type="text" inputmode="numeric" maxlength="16" placeholder="16 digit NIK">
+
+      <div class="pgs-field-label">Tanggal Lahir</div>
+      <input id="viTgl" class="pgs-input" type="date">
+
+      <div class="pgs-field-label">Foto KTP</div>
+      <input type="file" id="viKtpInput" accept="image/*" style="display:none;" onchange="viFileChange('viKtpInput','viKtpBox','viKtpData')">
+      <div class="pgs-upload-box" id="viKtpBox" onclick="document.getElementById('viKtpInput').click()">
+        <div class="puh-ico">🪪</div>
+        <div class="puh-txt">Klik untuk unggah foto KTP</div>
+      </div>
+
+      <div class="pgs-field-label">Foto Selfie Sambil Pegang KTP</div>
+      <input type="file" id="viSelfieInput" accept="image/*" style="display:none;" onchange="viFileChange('viSelfieInput','viSelfieBox','viSelfieData')">
+      <div class="pgs-upload-box" id="viSelfieBox" onclick="document.getElementById('viSelfieInput').click()">
+        <div class="puh-ico">🤳</div>
+        <div class="puh-txt">Klik untuk unggah foto selfie + KTP</div>
+      </div>
+
+      <div id="viErr" class="pgs-err"></div>
+      <button id="btnSubmitVerifikasi" class="pgs-btn-primary" onclick="submitVerifikasiIdentitas()">KIRIM UNTUK DIVERIFIKASI</button>
+    </div>
+
+    <div id="viPendingWrap" style="display:none;">
+      <div class="pgs-hint">Data kamu sudah terkirim dan sedang ditinjau oleh tim kami. Proses biasanya memakan waktu 1x24 jam.</div>
+      <button class="pgs-btn-outline" onclick="viResetForm()">Kirim Ulang Data</button>
+    </div>
   </div>
 </div>
 
@@ -3174,8 +3072,6 @@ function showPengaturan() {
   if (!currentUser) return;
   // Isi data awal
   document.getElementById('setName').value = currentUser.name || '';
-  const setPhoneEl = document.getElementById('setPhone');
-  if (setPhoneEl) setPhoneEl.value = currentUser.phone || '';
   document.getElementById('setEmail').value = currentUser.email || '';
   document.getElementById('setNewEmail').value = '';
   document.getElementById('setEmailErr').style.display = 'none';
@@ -3226,13 +3122,10 @@ function showPengaturan() {
     }
   } catch(e){}
 
-  // Sinkron label tema, toggle biometrik & tutup panel Edit Profil setiap dibuka ulang
+  // Sinkron label tema & toggle biometrik
   pgsSyncTheme();
   pgsSyncBiometricToggle();
-  const pgsEditBody = document.getElementById('pgsEditProfileBody');
-  const pgsEditChevron = document.getElementById('pgsEditProfileChevron');
-  if (pgsEditBody) pgsEditBody.classList.remove('open');
-  if (pgsEditChevron) pgsEditChevron.textContent = '›';
+  viSyncStatusLabel();
 
   const sp = document.getElementById('settingsPanel');
   sp.classList.add('open');
@@ -3271,13 +3164,169 @@ function closePengaturan() {
   if (settingsOtpTimer) clearInterval(settingsOtpTimer);
 }
 
-// ── Redesign Pengaturan: helper UI ──
-function pgsToggleEditProfile(){
-  const body = document.getElementById('pgsEditProfileBody');
-  const chev = document.getElementById('pgsEditProfileChevron');
-  if (!body) return;
-  const open = body.classList.toggle('open');
-  if (chev) chev.textContent = open ? '⌄' : '›';
+// ── Redesign Pengaturan: halaman Edit Profil tersendiri ──
+function openEditProfil(){
+  if (!currentUser) return;
+  // Pastikan data terisi ulang paling baru
+  document.getElementById('setName').value = currentUser.name || '';
+  document.getElementById('setEmail').value = currentUser.email || '';
+  document.getElementById('setNewEmail').value = '';
+  document.getElementById('setEmailErr').style.display = 'none';
+  document.getElementById('setNameErr').style.display = 'none';
+  document.getElementById('setEmailOtpSection').style.display = 'none';
+  settingsAvatarData = currentUser.avatarData || '';
+  const av = document.getElementById('setAvatarPreview');
+  if (settingsAvatarData) {
+    av.innerHTML = `<img src="${settingsAvatarData}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  } else {
+    av.innerHTML = `<span style="font-size:26px;font-weight:900;">${(currentUser.name||'U')[0].toUpperCase()}</span>`;
+  }
+  document.getElementById('editProfilPage').classList.add('open');
+}
+function closeEditProfil(){
+  document.getElementById('editProfilPage').classList.remove('open');
+  if (settingsOtpTimer) clearInterval(settingsOtpTimer);
+}
+
+// ── Halaman Ubah Password tersendiri ──
+function openUbahPassword(){
+  if (!currentUser) return;
+  document.getElementById('upCurrent').value = '';
+  document.getElementById('upNew1').value = '';
+  document.getElementById('upNew2').value = '';
+  document.getElementById('upErr').style.display = 'none';
+  document.getElementById('ubahPasswordPage').classList.add('open');
+}
+function closeUbahPassword(){
+  document.getElementById('ubahPasswordPage').classList.remove('open');
+}
+async function submitUbahPassword(){
+  const errEl = document.getElementById('upErr');
+  errEl.style.display = 'none';
+  const cur = document.getElementById('upCurrent').value;
+  const p1 = document.getElementById('upNew1').value;
+  const p2 = document.getElementById('upNew2').value;
+  if (!cur) { errEl.textContent = 'Masukkan password saat ini!'; errEl.style.display = 'block'; return; }
+  if (!p1 || p1.length < 6) { errEl.textContent = 'Password baru minimal 6 karakter!'; errEl.style.display = 'block'; return; }
+  if (p1 !== p2) { errEl.textContent = 'Konfirmasi password tidak cocok!'; errEl.style.display = 'block'; return; }
+  if (p1 === cur) { errEl.textContent = 'Password baru tidak boleh sama dengan password lama!'; errEl.style.display = 'block'; return; }
+  const btn = document.getElementById('btnUbahPassword');
+  btn.disabled = true; btn.textContent = '⏳ Memeriksa...';
+  try {
+    const { data: uData, error: uErr } = await _sb.from('users').select('password').eq('email', currentUser.email).single();
+    if (uErr || !uData) { errEl.textContent = 'Gagal memuat akun. Coba lagi.'; errEl.style.display = 'block'; return; }
+    if (uData.password !== cur) { errEl.textContent = 'Password saat ini salah!'; errEl.style.display = 'block'; return; }
+    btn.textContent = '⏳ Menyimpan...';
+    const { error } = await _sb.from('users').update({ password: p1 }).eq('email', currentUser.email);
+    if (error) { errEl.textContent = 'Gagal: ' + error.message; errEl.style.display = 'block'; return; }
+    try { await _sb.auth.updateUser({ password: p1 }); } catch(e) {}
+    document.getElementById('upCurrent').value = '';
+    document.getElementById('upNew1').value = '';
+    document.getElementById('upNew2').value = '';
+    showNotif('✅ Password berhasil diubah!');
+    closeUbahPassword();
+  } catch(e) { errEl.textContent = 'Error: ' + (e.message||e); errEl.style.display = 'block'; }
+  finally { btn.disabled = false; btn.textContent = 'SIMPAN PASSWORD BARU'; }
+}
+
+// ── Halaman Verifikasi Identitas tersendiri ──
+let viKtpData = null, viSelfieData = null;
+function _viStatusKey(){ return currentUser ? ('vp_identity_status_' + currentUser.email) : null; }
+function viGetStatus(){
+  const key = _viStatusKey();
+  if (!key) return 'belum';
+  try { return localStorage.getItem(key) || 'belum'; } catch(e) { return 'belum'; }
+}
+function viSyncStatusLabel(){
+  const sub = document.getElementById('viStatusSub');
+  if (!sub) return;
+  const st = viGetStatus();
+  sub.textContent = st === 'verified' ? 'Terverifikasi' : st === 'pending' ? 'Menunggu peninjauan' : 'Belum diverifikasi';
+}
+function openVerifikasiIdentitas(){
+  if (!currentUser) return;
+  const st = viGetStatus();
+  const badge = document.getElementById('viStatusBadge');
+  const formWrap = document.getElementById('viFormWrap');
+  const pendingWrap = document.getElementById('viPendingWrap');
+  badge.className = 'pgs-status-badge ' + st;
+  badge.textContent = st === 'verified' ? '✅ Terverifikasi' : st === 'pending' ? '⏳ Menunggu Peninjauan' : '⏳ Belum Diverifikasi';
+  if (st === 'pending') {
+    formWrap.style.display = 'none';
+    pendingWrap.style.display = 'block';
+    pendingWrap.innerHTML = '<div class="pgs-hint">Data kamu sudah terkirim dan sedang ditinjau oleh tim kami. Proses biasanya memakan waktu 1x24 jam.</div><button class="pgs-btn-outline" onclick="viResetForm()">Kirim Ulang Data</button>';
+  } else if (st === 'verified') {
+    formWrap.style.display = 'none';
+    pendingWrap.style.display = 'block';
+    pendingWrap.innerHTML = '<div class="pgs-hint">🎉 Identitas kamu sudah terverifikasi. Terima kasih!</div>';
+  } else {
+    formWrap.style.display = 'block';
+    pendingWrap.style.display = 'none';
+  }
+  document.getElementById('verifikasiIdentitasPage').classList.add('open');
+}
+function closeVerifikasiIdentitas(){
+  document.getElementById('verifikasiIdentitasPage').classList.remove('open');
+}
+function viFileChange(inputId, boxId, dataVar){
+  const file = document.getElementById(inputId).files[0];
+  if (!file) return;
+  const box = document.getElementById(boxId);
+  box.innerHTML = '<div class="puh-txt">⏳ Memproses foto...</div>';
+  const r = new FileReader();
+  r.onload = e => {
+    compressImage(e.target.result, 900, 900, 0.75, dataUrl => {
+      if (dataVar === 'viKtpData') viKtpData = dataUrl; else viSelfieData = dataUrl;
+      box.innerHTML = `<img src="${dataUrl}"><div class="puh-txt" style="margin-top:8px;">✅ Foto terpilih, klik untuk ganti</div>`;
+    });
+  };
+  r.readAsDataURL(file);
+}
+function viResetForm(){
+  viKtpData = null; viSelfieData = null;
+  const key = _viStatusKey();
+  if (key) { try { localStorage.removeItem(key); } catch(e){} }
+  viSyncStatusLabel();
+  document.getElementById('viNama').value = '';
+  document.getElementById('viNik').value = '';
+  document.getElementById('viTgl').value = '';
+  document.getElementById('viKtpBox').innerHTML = '<div class="puh-ico">🪪</div><div class="puh-txt">Klik untuk unggah foto KTP</div>';
+  document.getElementById('viSelfieBox').innerHTML = '<div class="puh-ico">🤳</div><div class="puh-txt">Klik untuk unggah foto selfie + KTP</div>';
+  document.getElementById('viErr').style.display = 'none';
+  document.getElementById('viFormWrap').style.display = 'block';
+  document.getElementById('viPendingWrap').style.display = 'none';
+  const badge = document.getElementById('viStatusBadge');
+  badge.className = 'pgs-status-badge belum';
+  badge.textContent = '⏳ Belum Diverifikasi';
+}
+async function submitVerifikasiIdentitas(){
+  const errEl = document.getElementById('viErr');
+  errEl.style.display = 'none';
+  const nama = document.getElementById('viNama').value.trim();
+  const nik = document.getElementById('viNik').value.trim();
+  const tgl = document.getElementById('viTgl').value;
+  if (!nama || nama.length < 3) { errEl.textContent = 'Masukkan nama lengkap sesuai KTP!'; errEl.style.display = 'block'; return; }
+  if (!/^\d{16}$/.test(nik)) { errEl.textContent = 'NIK harus 16 digit angka!'; errEl.style.display = 'block'; return; }
+  if (!tgl) { errEl.textContent = 'Masukkan tanggal lahir!'; errEl.style.display = 'block'; return; }
+  if (!viKtpData) { errEl.textContent = 'Unggah foto KTP terlebih dahulu!'; errEl.style.display = 'block'; return; }
+  if (!viSelfieData) { errEl.textContent = 'Unggah foto selfie + KTP terlebih dahulu!'; errEl.style.display = 'block'; return; }
+  const btn = document.getElementById('btnSubmitVerifikasi');
+  btn.disabled = true; btn.textContent = '⏳ Mengirim...';
+  try {
+    // Best-effort simpan ke Supabase (tabel identity_verifications, buat dulu di SQL Editor kalau perlu)
+    try {
+      await _sb.from('identity_verifications').insert({
+        email: currentUser.email, nama, nik, tanggal_lahir: tgl,
+        foto_ktp: viKtpData, foto_selfie: viSelfieData, status: 'pending'
+      });
+    } catch(e) { /* tabel belum ada di Supabase, lanjut simpan status lokal saja */ }
+    const key = _viStatusKey();
+    if (key) localStorage.setItem(key, 'pending');
+    viSyncStatusLabel();
+    showNotif('📨 Data verifikasi terkirim, menunggu peninjauan!');
+    openVerifikasiIdentitas();
+  } catch(e) { errEl.textContent = 'Error: ' + (e.message||e); errEl.style.display = 'block'; }
+  finally { btn.disabled = false; btn.textContent = 'KIRIM UNTUK DIVERIFIKASI'; }
 }
 function pgsToggle2FA(){
   const btn = document.getElementById('pgs2FAToggle');
@@ -3373,28 +3422,6 @@ async function saveName() {
     showNotif('✅ Nama berhasil disimpan!');
   } catch(e) { errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block'; }
   finally { btn.disabled = false; btn.textContent = '💾 SIMPAN NAMA'; }
-}
-
-async function savePhone() {
-  const raw = document.getElementById('setPhone').value.trim();
-  const errEl = document.getElementById('setPhoneErr');
-  errEl.style.display = 'none';
-  const btn = document.getElementById('btnSavePhone');
-  btn.disabled = true; btn.textContent = '⏳ Menyimpan...';
-  try {
-    let normalized = raw ? raw.replace(/[^\d]/g, '') : null;
-    if (normalized && normalized.startsWith('0')) normalized = '62' + normalized.slice(1);
-    const { error } = await _sb.from('users').update({ phone: normalized }).eq('email', currentUser.email);
-    if (error) {
-      errEl.textContent = error.message.includes('duplicate') ? 'Nomor HP ini sudah dipakai akun lain.' : ('Gagal: ' + error.message);
-      errEl.style.display = 'block';
-      return;
-    }
-    currentUser.phone = normalized;
-    localStorage.setItem('vp_user', JSON.stringify(currentUser));
-    showNotif('✅ Nomor HP berhasil disimpan!');
-  } catch(e) { errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block'; }
-  finally { btn.disabled = false; btn.textContent = '💾 SIMPAN NOMOR HP'; }
 }
 
 async function saveAvatar() {
@@ -5717,6 +5744,45 @@ function doPesan(){
 .promo-empty{text-align:center;padding:60px 20px;color:var(--muted);}
 .promo-empty-ic{font-size:48px;margin-bottom:12px;}
 .promo-empty-sub{font-size:12.5px;margin-top:4px;}
+
+/* ═══ PROMO: JADI AGEN & RESELLER ═══ */
+.ar-promo-card{position:relative;border-radius:18px;overflow:hidden;padding:20px;margin-bottom:22px;cursor:pointer;background:linear-gradient(135deg,#1a0533,#4a0080 55%,#0c1f56);border:1px solid rgba(200,140,255,0.35);box-shadow:0 10px 30px rgba(120,0,255,0.25);}
+.ar-promo-card:active{transform:scale(.98);}
+.ar-promo-glow{position:absolute;top:-40px;right:-40px;width:150px;height:150px;background:radial-gradient(circle,rgba(190,120,255,.45),transparent 70%);filter:blur(6px);pointer-events:none;}
+.ar-promo-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);padding:4px 11px;border-radius:20px;font-family:'Orbitron',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:#fff;margin-bottom:10px;}
+.ar-promo-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:17px;color:#fff;letter-spacing:.5px;line-height:1.3;margin-bottom:6px;}
+.ar-promo-title span{background:linear-gradient(90deg,#c79bff,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.ar-promo-sub{font-size:12px;color:rgba(255,255,255,0.75);line-height:1.6;margin-bottom:14px;max-width:88%;}
+.ar-promo-btn{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#1a0533;border:none;border-radius:10px;padding:9px 16px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:800;letter-spacing:.5px;}
+
+#agenResellerPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:390;overflow-y:auto;-webkit-overflow-scrolling:touch;max-width:480px;margin:0 auto;}
+#agenResellerPage.open{display:block;animation:fsSlideIn .3s ease;}
+.ar-hero{background:linear-gradient(160deg,#1a0533,#4a0080 60%,#0c1f56);padding:26px 18px 24px;text-align:center;position:relative;overflow:hidden;}
+.ar-hero::before{content:"";position:absolute;top:-60px;left:-30px;width:200px;height:200px;background:radial-gradient(circle,rgba(190,120,255,.4),transparent 70%);filter:blur(10px);}
+.ar-hero-ic{font-size:38px;margin-bottom:8px;}
+.ar-hero-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:20px;color:#fff;letter-spacing:.5px;line-height:1.3;margin-bottom:8px;position:relative;}
+.ar-hero-title span{background:linear-gradient(90deg,#c79bff,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.ar-hero-sub{font-size:12px;color:rgba(255,255,255,0.75);line-height:1.6;position:relative;max-width:340px;margin:0 auto;}
+.ar-body{padding:18px 14px 40px;}
+.ar-sec-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(0,212,255,.75);margin:4px 0 10px 2px;text-transform:uppercase;}
+.ar-tiers{display:flex;flex-direction:column;gap:12px;margin-bottom:22px;}
+.ar-tier{border-radius:16px;padding:16px;border:1.5px solid var(--border);background:rgba(255,255,255,0.03);cursor:pointer;transition:.15s;position:relative;}
+.ar-tier.selected{border-color:var(--accent2);background:rgba(0,212,255,0.07);box-shadow:0 0 0 1px rgba(0,212,255,.35);}
+.ar-tier-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.ar-tier-name{display:flex;align-items:center;gap:9px;font-family:'Orbitron',sans-serif;font-weight:800;font-size:13.5px;color:#fff;}
+.ar-tier-radio{width:19px;height:19px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.ar-tier.selected .ar-tier-radio{border-color:var(--accent2);}
+.ar-tier.selected .ar-tier-radio::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent2);}
+.ar-tier-tag{font-size:9.5px;font-weight:700;letter-spacing:1px;padding:3px 9px;border-radius:20px;text-transform:uppercase;}
+.ar-tier-tag.reseller{background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.4);color:var(--accent2);}
+.ar-tier-tag.agen{background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.4);color:var(--gold);}
+.ar-tier-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;}
+.ar-tier-list li{font-size:12px;color:var(--text);display:flex;gap:8px;line-height:1.5;}
+.ar-tier-list li::before{content:"✓";color:var(--success);font-weight:900;flex-shrink:0;}
+.ar-form-hint{font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:16px;}
+.ar-btn-submit{width:100%;background:linear-gradient(90deg,#25D366,#1fb757);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Orbitron',sans-serif;font-size:12.5px;font-weight:800;letter-spacing:.6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(37,211,102,.3);margin-top:6px;}
+.ar-btn-submit:active{transform:scale(.98);}
+.ar-btn-submit:disabled{opacity:.6;}
 </style>
 
 <div id="promoPanel">
@@ -5741,10 +5807,156 @@ function doPesan(){
       </div>
     </div>
 
+    <div class="ar-promo-card" onclick="openAgenReseller()">
+      <div class="ar-promo-glow"></div>
+      <div class="ar-promo-badge">🚀 PROGRAM KEMITRAAN</div>
+      <div class="ar-promo-title">Jadi <span>Agen &amp; Reseller</span><br>Vinzprostore</div>
+      <div class="ar-promo-sub">Dapatkan harga khusus, limit lebih besar, dan penghasilan tambahan dengan jualan produk digital.</div>
+      <span class="ar-promo-btn">Daftar Sekarang →</span>
+    </div>
+
     <div class="promo-section-title">Sedang Berlangsung</div>
     <div class="promo-list" id="promoList"></div>
   </div>
 </div>
+
+<!-- ═══ HALAMAN JADI AGEN & RESELLER ═══ -->
+<div id="agenResellerPage">
+  <div class="pgs-topbar">
+    <button class="pgs-back" onclick="closeAgenReseller()">&#8592;</button>
+    <div class="pgs-title">AGEN &amp; RESELLER</div>
+    <div style="width:34px;flex-shrink:0;"></div>
+  </div>
+
+  <div class="ar-hero">
+    <div class="ar-hero-ic">🤝</div>
+    <div class="ar-hero-title">Jadi <span>Agen &amp; Reseller</span><br>Vinzprostore</div>
+    <div class="ar-hero-sub">Jual produk digital dengan harga khusus, limit lebih besar, dan dukungan penuh dari tim kami.</div>
+  </div>
+
+  <div class="ar-body">
+    <div class="ar-sec-title">Pilih Paket Kemitraan</div>
+    <div class="ar-tiers">
+      <div class="ar-tier selected" id="arTierReseller" onclick="arSelectTier('reseller')">
+        <div class="ar-tier-head">
+          <div class="ar-tier-name">🛍️ Reseller <span class="ar-tier-tag reseller">Pemula</span></div>
+          <div class="ar-tier-radio"></div>
+        </div>
+        <ul class="ar-tier-list">
+          <li>Harga khusus reseller di semua produk</li>
+          <li>Minimal deposit terjangkau</li>
+          <li>Bebas jual kembali ke pelanggan sendiri</li>
+          <li>Akses ke grup info stok &amp; update harga</li>
+        </ul>
+      </div>
+      <div class="ar-tier" id="arTierAgen" onclick="arSelectTier('agen')">
+        <div class="ar-tier-head">
+          <div class="ar-tier-name">👑 Agen <span class="ar-tier-tag agen">Level Tinggi</span></div>
+          <div class="ar-tier-radio"></div>
+        </div>
+        <ul class="ar-tier-list">
+          <li>Semua benefit Reseller, plus:</li>
+          <li>Harga terendah di semua produk</li>
+          <li>Limit order &amp; stok jauh lebih besar</li>
+          <li>Garansi replace &amp; support prioritas</li>
+          <li>Bisa buka sub-reseller sendiri</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ar-sec-title">Data Pendaftaran</div>
+    <div id="arErr" class="pgs-err"></div>
+    <div class="pgs-field-label">Nama Lengkap</div>
+    <input id="arNama" class="pgs-input" type="text" placeholder="Nama kamu">
+    <div class="pgs-field-label">Nomor WhatsApp Aktif</div>
+    <input id="arWa" class="pgs-input" type="tel" inputmode="numeric" placeholder="Contoh: 08123456789">
+    <div class="pgs-field-label">Kota Domisili</div>
+    <input id="arKota" class="pgs-input" type="text" placeholder="Kota kamu tinggal">
+    <div class="pgs-field-label">Catatan (opsional)</div>
+    <textarea id="arCatatan" class="pgs-input" rows="3" placeholder="Contoh: sudah punya pelanggan tetap / mau mulai jualan game top up" style="resize:vertical;"></textarea>
+
+    <div class="ar-form-hint">Setelah kirim, data kamu akan tersimpan dan otomatis diarahkan ke WhatsApp admin untuk proses aktivasi akun Agen/Reseller.</div>
+
+    <button id="btnDaftarAgenReseller" class="ar-btn-submit" onclick="submitAgenReseller()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.28-1.38a9.9 9.9 0 0 0 4.76 1.21h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2z"/></svg>
+      DAFTAR SEKARANG VIA WHATSAPP
+    </button>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  let _arTier = 'reseller';
+
+  window.arSelectTier = function(tier){
+    _arTier = tier;
+    const rs = document.getElementById('arTierReseller');
+    const ag = document.getElementById('arTierAgen');
+    if (rs) rs.classList.toggle('selected', tier === 'reseller');
+    if (ag) ag.classList.toggle('selected', tier === 'agen');
+  };
+
+  window.openAgenReseller = function(){
+    const u = (function(){ try { return JSON.parse(localStorage.getItem('vp_user')||'null'); } catch(e){ return null; } })();
+    document.getElementById('arNama').value = u?.name || '';
+    document.getElementById('arWa').value = '';
+    document.getElementById('arKota').value = '';
+    document.getElementById('arCatatan').value = '';
+    document.getElementById('arErr').style.display = 'none';
+    arSelectTier('reseller');
+    document.getElementById('agenResellerPage').classList.add('open');
+  };
+  window.closeAgenReseller = function(){
+    document.getElementById('agenResellerPage').classList.remove('open');
+  };
+
+  window.submitAgenReseller = async function(){
+    const errEl = document.getElementById('arErr');
+    errEl.style.display = 'none';
+    const nama = document.getElementById('arNama').value.trim();
+    const waRaw = document.getElementById('arWa').value.trim();
+    const kota = document.getElementById('arKota').value.trim();
+    const catatan = document.getElementById('arCatatan').value.trim();
+
+    if (!nama || nama.length < 3) { errEl.textContent = 'Masukkan nama lengkap kamu!'; errEl.style.display = 'block'; return; }
+    if (!/^0?8\d{8,12}$/.test(waRaw.replace(/[\s-]/g,''))) { errEl.textContent = 'Masukkan nomor WhatsApp yang valid!'; errEl.style.display = 'block'; return; }
+    if (!kota) { errEl.textContent = 'Masukkan kota domisili kamu!'; errEl.style.display = 'block'; return; }
+
+    const btn = document.getElementById('btnDaftarAgenReseller');
+    btn.disabled = true;
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = '⏳ Memproses...';
+
+    const u = (function(){ try { return JSON.parse(localStorage.getItem('vp_user')||'null'); } catch(e){ return null; } })();
+    const waClean = waRaw.replace(/\D/g,'').replace(/^0/, '62');
+
+    try {
+      // Best-effort simpan ke Supabase (tabel reseller_applications, buat dulu di SQL Editor kalau perlu)
+      try {
+        await window._sb.from('reseller_applications').insert({
+          email: u?.email || null, nama, whatsapp: waClean, kota, catatan,
+          tier: _arTier, status: 'pending'
+        });
+      } catch(e) { /* tabel belum ada, tetap lanjut ke WhatsApp */ }
+
+      const tierLabel = _arTier === 'agen' ? 'AGEN' : 'RESELLER';
+      const pesan = `Halo Admin Vinzprostore, saya mau daftar sebagai *${tierLabel}*.\n\nNama: ${nama}\nWhatsApp: ${waRaw}\nKota: ${kota}${catatan ? '\nCatatan: ' + catatan : ''}\n\nMohon info langkah selanjutnya ya. Terima kasih!`;
+      const adminWa = window._apWa ? window._apWa.replace(/\D/g,'') : ((function(){ try { return localStorage.getItem('vp_wa')||'6285954741269'; } catch(e){ return '6285954741269'; } })());
+
+      if (typeof showNotif === 'function') showNotif('✅ Pendaftaran terkirim, diarahkan ke WhatsApp!');
+      window.open('https://wa.me/' + adminWa + '?text=' + encodeURIComponent(pesan), '_blank');
+      closeAgenReseller();
+    } catch(e) {
+      errEl.textContent = 'Error: ' + (e.message || e);
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  };
+})();
+</script>
 
 <script>
 (function(){
@@ -7485,6 +7697,10 @@ function doPesan(){
     { id: 'qrOverlay',       close: () => window.closeQrPayment && window.closeQrPayment() },
     { id: 'successOverlay',  close: () => window.closeSuccess   && window.closeSuccess() },
     { id: 'authOverlay',     close: () => { if (typeof authGateActive!=='undefined' && authGateActive && !currentUser) return; const el=document.getElementById('authOverlay'); if(el) el.classList.remove('open'); } },
+    { id: 'editProfilPage',  close: () => window.closeEditProfil && window.closeEditProfil() },
+    { id: 'ubahPasswordPage', close: () => window.closeUbahPassword && window.closeUbahPassword() },
+    { id: 'verifikasiIdentitasPage', close: () => window.closeVerifikasiIdentitas && window.closeVerifikasiIdentitas() },
+    { id: 'agenResellerPage', close: () => window.closeAgenReseller && window.closeAgenReseller() },
     { id: 'settingsPanel',   close: () => window.closePengaturan&& window.closePengaturan() },
     { id: 'adminPanel',      close: () => window.closeAdmin     && window.closeAdmin() },
     { id: 'riwayatPanel',    close: () => window.closeRiwayat   && window.closeRiwayat() },
@@ -10090,17 +10306,6 @@ function closePusatInfo(){
   el.classList.remove('open');
   document.body.classList.remove('panel-lock');
 }
-function openApkPremium(){
-  const el=document.getElementById('apkPremiumPage');
-  el.classList.add('open');
-  document.body.classList.add('panel-lock');
-  el.scrollTop=0;
-}
-function closeApkPremium(){
-  const el=document.getElementById('apkPremiumPage');
-  el.classList.remove('open');
-  document.body.classList.remove('panel-lock');
-}
 function openTopUp(){
   const el=document.getElementById('topUpPage');
   el.classList.add('open');
@@ -10688,12 +10893,6 @@ function tuClearActive(){
   <button class="bn-item" id="bnRiwayat" onclick="pcGoRiwayat()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
     Riwayat
-  </button>
-  <button class="bn-item bn-item-qris-big" id="bnQris" onclick="qrisBnScanDirect()">
-    <span class="bn-qris-circle">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
-    </span>
-    <span class="bn-qris-label">QRIS</span>
   </button>
   <button class="bn-item" id="bnPromo" onclick="pcGoPromo()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83a2 2 0 0 0-1.42-.58L4 3.25a1 1 0 0 0-1 1l.17 5.58a2 2 0 0 0 .58 1.42l9.58 9.58a2 2 0 0 0 2.83 0l4.43-4.42a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/></svg>
@@ -11555,7 +11754,7 @@ async function pinHasPin(){
   } catch { return false; }
 }
 
-// --- Dipanggil dari h2hCheckout()/qrisSendTransfer() sebelum kirim transaksi.
+// --- Dipanggil dari h2hCheckout() sebelum kirim transaksi.
 //     Balikin pin_token kalau PIN benar, atau null kalau user batal/belum set PIN. ---
 function _pinCacheKey(){
   const u = (typeof getCU === 'function') ? getCU() : (window.currentUser || currentUser);
@@ -11841,25 +12040,19 @@ async function h2hCheckout(opts){
       return;
     }
 
-    if (payment_method === 'saldo') {
-      const refId = json.data?.ref_id;
-      const amount = json.data?.amount;
-      const rawStatus = (json.data?.status || 'processing').toLowerCase();
-      const riwStatus = rawStatus === 'success' ? 'sukses' : rawStatus === 'failed' ? 'batal' : 'menunggu';
-      if (u) _h2hOrderToRiwayat({ email: u.email, id: refId, title: titleTxt, sub: subTxt, category, dest, amount, status: riwStatus });
-      if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance(); // saldo di header ikut ke-update
+    // Metode bayar checkout H2H sekarang cuma SALDO (QRIS sudah dihapus)
+    const refId = json.data?.ref_id;
+    const amount = json.data?.amount;
+    const rawStatus = (json.data?.status || 'processing').toLowerCase();
+    const riwStatus = rawStatus === 'success' ? 'sukses' : rawStatus === 'failed' ? 'batal' : 'menunggu';
+    if (u) _h2hOrderToRiwayat({ email: u.email, id: refId, title: titleTxt, sub: subTxt, category, dest, amount, status: riwStatus });
+    if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance(); // saldo di header ikut ke-update
 
-      h2hShowOrderResult({
-        status: rawStatus === 'success' ? 'success' : rawStatus === 'failed' ? 'failed' : 'processing',
-        message: json.message,
-        refId, amount, title: titleTxt, sub: subTxt, category, dest,
-      });
-      return;
-    }
-
-    // QRIS: tampilkan modal QR + mulai polling status
-    h2hShowQrisModal(json.data);
-    h2hPollQrisStatus(json.data.ref_id);
+    h2hShowOrderResult({
+      status: rawStatus === 'success' ? 'success' : rawStatus === 'failed' ? 'failed' : 'processing',
+      message: json.message,
+      refId, amount, title: titleTxt, sub: subTxt, category, dest,
+    });
 
   } catch (e) {
     h2hShowLoading(false);
@@ -11976,17 +12169,6 @@ function h2hCloseModalById(id){
   if (el) el.remove();
 }
 
-function h2hShowResultModal({ ok, message, data }){
-  // Dipertahankan untuk kompatibilitas kode lama — sekarang meneruskan ke
-  // halaman hasil yang baru & lebih lengkap.
-  h2hShowOrderResult({
-    status: ok ? 'success' : 'failed',
-    message,
-    refId: data?.ref_id,
-    amount: data?.amount,
-  });
-}
-
 // ---------- HALAMAN HASIL TRANSAKSI (fullscreen, bukan popup kecil) ----------
 let h2hOrderResultPollTimer = null;
 let h2hOrderResultPollTries = 0;
@@ -12095,78 +12277,6 @@ async function h2hPollOrderResult(refId, ctx){
   }
 }
 
-let h2hQrisPollTimer = null;
-let h2hQrisCountdownTimer = null;
-
-function h2hShowQrisModal(tx){
-  h2hCloseModalById('h2hQrisModal');
-  const el = document.createElement('div');
-  el.id = 'h2hQrisModal';
-  el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:99999;font-family:sans-serif;';
-  el.innerHTML = `
-    <div style="background:#0f1420;border:1px solid #2a3348;border-radius:16px;padding:24px;max-width:340px;width:90%;text-align:center;color:#fff;">
-      <div style="font-weight:700;font-size:16px;margin-bottom:4px;">Scan QRIS untuk Bayar</div>
-      <div style="opacity:.7;font-size:13px;margin-bottom:14px;">${h2hFormatRupiah(tx.amount)}</div>
-      <img src="${tx.qris_url}" style="width:220px;height:220px;background:#fff;border-radius:12px;padding:8px;margin-bottom:14px;" />
-      <div id="h2hQrisCountdown" style="font-size:13px;opacity:.8;margin-bottom:6px;">Menunggu pembayaran...</div>
-      <div id="h2hQrisStatusText" style="font-size:12px;opacity:.6;margin-bottom:14px;">Ref ID: ${h2hEscapeHtml(tx.ref_id)}</div>
-      <button onclick="h2hCancelQrisModal()" style="background:transparent;color:#ff6b6b;border:1px solid #ff6b6b;border-radius:10px;padding:8px 20px;font-weight:600;">Batalkan</button>
-    </div>`;
-  document.body.appendChild(el);
-
-  const expiresAt = tx.expires_at ? new Date(tx.expires_at).getTime() : Date.now() + 600000;
-  clearInterval(h2hQrisCountdownTimer);
-  h2hQrisCountdownTimer = setInterval(() => {
-    const diff = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
-    const m = String(Math.floor(diff / 60)).padStart(2, '0');
-    const s = String(diff % 60).padStart(2, '0');
-    const cd = document.getElementById('h2hQrisCountdown');
-    if (cd) cd.textContent = diff > 0 ? `Sisa waktu: ${m}:${s}` : 'Waktu habis';
-    if (diff <= 0) clearInterval(h2hQrisCountdownTimer);
-  }, 1000);
-}
-
-function h2hCancelQrisModal(){
-  clearInterval(h2hQrisPollTimer);
-  clearInterval(h2hQrisCountdownTimer);
-  h2hCloseModalById('h2hQrisModal');
-}
-window.h2hCancelQrisModal = h2hCancelQrisModal;
-window.h2hCloseModalById = h2hCloseModalById;
-
-function h2hPollQrisStatus(refId){
-  clearInterval(h2hQrisPollTimer);
-  h2hQrisPollTimer = setInterval(async () => {
-    try {
-      const res = await fetch(`${H2H_WORKER_URL}/checkout/qris-status?ref_id=${encodeURIComponent(refId)}`);
-      const json = await res.json().catch(() => ({}));
-      const tx = json.data;
-      if (!tx) return;
-
-      const statusText = document.getElementById('h2hQrisStatusText');
-
-      if (tx.payment_status === 'waiting_payment') {
-        return; // masih nunggu, lanjut polling
-      }
-
-      clearInterval(h2hQrisPollTimer);
-      clearInterval(h2hQrisCountdownTimer);
-      h2hCloseModalById('h2hQrisModal');
-
-      if (tx.payment_status === 'expired') {
-        h2hShowResultModal({ ok: false, message: 'Waktu pembayaran QRIS habis. Silakan buat pesanan baru.', data: tx });
-      } else if (tx.status === 'processing' || tx.status === 'success') {
-        h2hShowResultModal({ ok: true, message: 'Pembayaran berhasil, pesanan sedang diproses.', data: tx });
-        if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
-      } else if (tx.status === 'failed') {
-        h2hShowResultModal({ ok: false, message: tx.refund_required ? 'Pembayaran diterima tapi order gagal. Refund akan diproses.' : 'Order gagal.', data: tx });
-      }
-    } catch {
-      // gangguan jaringan sesaat, biarkan polling coba lagi di interval berikutnya
-    }
-  }, 3000);
-}
-
 // ---------- Cek Akun Game (validasi username sebelum bayar) ----------
 window._voucherGameChecked = false;
 
@@ -12211,340 +12321,6 @@ async function h2hCheckGameAccount(){
 }
 window.h2hCheckGameAccount = h2hCheckGameAccount;
 
-
-// ---------- QRIS Paycore: Kirim & Terima saldo antar pengguna ----------
-const QRIS_PREFIX = 'PAYCOREPAY:';
-let qrisRecipient = null; // { name, code }
-let qrisScanStream = null;
-let qrisScanRAF = null;
-let _qrisDirectScanFromNav = false; // true kalau scanner dibuka langsung dari tombol QRIS bottom nav
-
-// Dipanggil dari tombol QRIS di bottom nav: langsung buka kamera scan,
-// TANPA nampilin halaman "QRIS Paycore" (cari penerima) dulu ke user.
-// Latar belakangnya otomatis halaman yang lagi aktif (Beranda/Riwayat/
-// Profil/Promo) karena qrisPage disiapkan di belakang layar secara instan,
-// terus overlay scanner langsung ditumpuk di atasnya di frame yang sama.
-function qrisBnScanDirect(){
-  if (typeof currentUser === 'undefined' || !currentUser) { openAuth('masuk'); return; }
-  openQrisPage('kirim');       // siapin form Kirim di belakang layar (buat nampung hasil scan)
-  _qrisDirectScanFromNav = true;
-  qrisOpenScanner();
-}
-window.qrisBnScanDirect = qrisBnScanDirect;
-
-function openQrisPage(tab){
-  if (typeof openPpobPage === 'function') openPpobPage('qrisPage');
-  qrisSwitchTab(tab || 'kirim');
-}
-window.openQrisPage = openQrisPage;
-
-function qrisSwitchTab(tab){
-  const kirimPanel = document.getElementById('qrisKirimPanel');
-  const terimaPanel = document.getElementById('qrisTerimaPanel');
-  if (tab === 'terima') {
-    kirimPanel.style.display = 'none';
-    terimaPanel.style.display = 'block';
-    qrisCloseScanner();
-    renderMyQrisCode();
-    qrisSetBrightness(true); // layar diterangin dikit biar QR gampang di-scan orang lain
-  } else {
-    kirimPanel.style.display = 'block';
-    terimaPanel.style.display = 'none';
-    qrisSetBrightness(false); // balikin ke brightness normal
-  }
-}
-window.qrisSwitchTab = qrisSwitchTab;
-
-// Naikin/turunin brightness layar lewat Median JS Bridge (cuma jalan di dalam
-// APK yang di-build pakai Median — di browser biasa fungsi ini gak ada,
-// jadi aman di-skip pakai try/catch).
-function qrisSetBrightness(bright){
-  try {
-    if (typeof median === 'undefined' || !median?.screen?.setBrightness) return;
-    if (bright) median.screen.setBrightness({ brightness: '0.9', restoreOnNavigation: true });
-    else median.screen.setBrightness({ brightness: 'default' });
-  } catch(_){}
-}
-
-function qrisResetRecipient(){
-  qrisRecipient = null;
-  const card = document.getElementById('qrisRecipientCard');
-  if (card) card.style.display = 'none';
-}
-window.qrisResetRecipient = qrisResetRecipient;
-
-function qrisOpenScanner(){
-  const ov = document.getElementById('qrisScanOverlay');
-  if (!ov) return;
-  ov.style.display = 'flex';
-  qrisStartCamera();
-}
-window.qrisOpenScanner = qrisOpenScanner;
-
-function qrisCloseScanner(){
-  const ov = document.getElementById('qrisScanOverlay');
-  if (ov) ov.style.display = 'none';
-  qrisStopCamera();
-
-  // Kalau scanner ini dibuka LANGSUNG dari tombol QRIS bottom nav (bukan
-  // dari link "atau scan QR penerima" di dalam form Kirim yang memang sudah
-  // kebuka), dan user batal tanpa berhasil scan (qrisRecipient masih
-  // kosong), tutup juga halaman qrisPage-nya biar user balik ke halaman
-  // semula (Beranda/Riwayat/Profil/Promo) — bukan malah nyangkut di form
-  // "Cari Penerima" yang sama sekali belum pernah dia buka sendiri.
-  if (_qrisDirectScanFromNav) {
-    if (!qrisRecipient && typeof closePpobPage === 'function') {
-      closePpobPage('qrisPage');
-    }
-    _qrisDirectScanFromNav = false;
-  }
-}
-window.qrisCloseScanner = qrisCloseScanner;
-
-async function qrisStartCamera(){
-  const video = document.getElementById('qrisVideo');
-  const statusEl = document.getElementById('qrisScanStatus');
-  const torchBtn = document.getElementById('qrisTorchBtn');
-  if (torchBtn) torchBtn.style.display = 'none';
-  qrisTorchOn = false;
-  try {
-    qrisScanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    video.srcObject = qrisScanStream;
-    await video.play();
-    if (statusEl) statusEl.textContent = 'Arahkan kamera ke QR Paycore...';
-    // Tampilin tombol senter kalau HP-nya emang punya flash & didukung browser
-    try {
-      const track = qrisScanStream.getVideoTracks()[0];
-      const caps = track && track.getCapabilities ? track.getCapabilities() : {};
-      if (torchBtn && caps && caps.torch) torchBtn.style.display = 'flex';
-    } catch(_){}
-    qrisScanLoop();
-  } catch (e) {
-    if (statusEl) statusEl.textContent = '❌ Tidak bisa akses kamera. Cek izin kamera di pengaturan HP.';
-  }
-}
-
-function qrisStopCamera(){
-  if (qrisScanRAF) cancelAnimationFrame(qrisScanRAF);
-  qrisScanRAF = null;
-  if (qrisScanStream) {
-    qrisScanStream.getTracks().forEach(t => t.stop());
-    qrisScanStream = null;
-  }
-}
-
-let qrisTorchOn = false;
-async function qrisToggleTorch(){
-  if (!qrisScanStream) return;
-  const track = qrisScanStream.getVideoTracks()[0];
-  if (!track) return;
-  try {
-    qrisTorchOn = !qrisTorchOn;
-    await track.applyConstraints({ advanced: [{ torch: qrisTorchOn }] });
-    const btn = document.getElementById('qrisTorchBtn');
-    if (btn) btn.style.background = qrisTorchOn ? 'rgba(255,196,0,.9)' : 'rgba(0,0,0,.5)';
-  } catch(_){
-    qrisTorchOn = !qrisTorchOn; // gagal -> balikin state, biar tombol gak "nyangkut" nyala
-  }
-}
-window.qrisToggleTorch = qrisToggleTorch;
-
-// ---------- Scan dari galeri (foto QR yang udah ada di HP) ----------
-function qrisPickFromGallery(){
-  const inp = document.getElementById('qrisGalleryInput');
-  if (inp) inp.click();
-}
-window.qrisPickFromGallery = qrisPickFromGallery;
-
-function qrisHandleGalleryFile(ev){
-  const file = ev.target.files && ev.target.files[0];
-  ev.target.value = ''; // reset supaya foto yang sama bisa dipilih ulang kalau perlu
-  if (!file) return;
-  const statusEl = document.getElementById('qrisScanStatus');
-  if (statusEl) statusEl.textContent = 'Membaca gambar...';
-  const img = new Image();
-  img.onload = () => {
-    try {
-      const canvas = document.getElementById('qrisCanvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = (typeof jsQR === 'function') ? jsQR(imageData.data, imageData.width, imageData.height) : null;
-      URL.revokeObjectURL(img.src);
-      if (code && code.data && code.data.startsWith(QRIS_PREFIX)) {
-        qrisStopCamera();
-        const walletCode = code.data.slice(QRIS_PREFIX.length);
-        qrisLookup('code', walletCode);
-      } else if (statusEl) {
-        statusEl.textContent = '❌ QR Paycore gak ketemu di gambar itu. Coba gambar lain atau scan langsung.';
-      }
-    } catch(_){
-      if (statusEl) statusEl.textContent = '❌ Gagal membaca gambar.';
-    }
-  };
-  img.onerror = () => { if (statusEl) statusEl.textContent = '❌ Gagal membuka gambar.'; };
-  img.src = URL.createObjectURL(file);
-}
-window.qrisHandleGalleryFile = qrisHandleGalleryFile;
-
-function qrisScanLoop(){
-  const video = document.getElementById('qrisVideo');
-  const canvas = document.getElementById('qrisCanvas');
-  if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
-    qrisScanRAF = requestAnimationFrame(qrisScanLoop);
-    return;
-  }
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const code = (typeof jsQR === 'function') ? jsQR(imageData.data, imageData.width, imageData.height) : null;
-  if (code && code.data && code.data.startsWith(QRIS_PREFIX)) {
-    qrisStopCamera();
-    const walletCode = code.data.slice(QRIS_PREFIX.length);
-    qrisLookup('code', walletCode);
-  } else {
-    qrisScanRAF = requestAnimationFrame(qrisScanLoop);
-  }
-}
-
-async function qrisLookup(type, valueOverride){
-  const statusEl = document.getElementById('qrisScanStatus');
-  const token = await h2hGetAccessToken();
-  if (!token) { alert('Silakan login dulu.'); return; }
-
-  let url;
-  if (type === 'phone') {
-    const phone = (document.getElementById('qrisPhoneInput')?.value || '').trim();
-    if (!phone) { alert('Isi nomor HP dulu.'); return; }
-    url = `${H2H_WORKER_URL}/wallet/lookup?phone=${encodeURIComponent(phone)}`;
-  } else {
-    url = `${H2H_WORKER_URL}/wallet/lookup?code=${encodeURIComponent(valueOverride)}`;
-  }
-
-  try {
-    const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
-    const j = await res.json().catch(() => ({}));
-    if (!j.success) {
-      if (type === 'code' && statusEl) {
-        statusEl.textContent = '❌ ' + (j.message || 'Penerima tidak ditemukan');
-        setTimeout(() => { const ov = document.getElementById('qrisScanOverlay'); if (ov && ov.style.display !== 'none') qrisStartCamera(); }, 1500);
-      } else {
-        alert(j.message || 'Penerima tidak ditemukan');
-      }
-      return;
-    }
-    qrisRecipient = { name: j.data.name, code: type === 'phone' ? j.data.wallet_code : valueOverride };
-    document.getElementById('qrisRecipientName').textContent = j.data.name;
-    document.getElementById('qrisRecipientAvatar').textContent = (j.data.name || '?')[0].toUpperCase();
-    document.getElementById('qrisRecipientCard').style.display = 'block';
-    if (type === 'code') qrisCloseScanner(); // ketemu lewat scan/galeri -> tutup overlay, balik ke form Kirim
-  } catch (e) {
-    alert('Gagal cek penerima, coba lagi.');
-  }
-}
-window.qrisLookup = qrisLookup;
-
-let qrisSendInFlight = false;
-async function qrisSendTransfer(){
-  if (qrisSendInFlight) return;
-  if (!qrisRecipient) { alert('Cari/scan penerima dulu.'); return; }
-  const amount = parseInt(document.getElementById('qrisAmountInput')?.value || '0', 10);
-  if (!amount || amount < 1000) { alert('Nominal minimal Rp1.000.'); return; }
-  const note = (document.getElementById('qrisNoteInput')?.value || '').trim();
-
-  const token = await h2hGetAccessToken();
-  if (!token) { alert('Silakan login dulu.'); return; }
-
-  // ==== PIN GATE: wajib konfirmasi PIN sebelum saldo ditransfer ====
-  const pinToken = await pinGateRequire('Konfirmasi transfer ' + h2hFormatRupiah(amount));
-  if (!pinToken) return; // user batal / belum set PIN
-
-  qrisSendInFlight = true;
-  const btn = document.getElementById('qrisSendBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Memproses...'; }
-  const idemKey = crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random();
-
-  try {
-    const res = await fetch(`${H2H_WORKER_URL}/wallet/transfer`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token,
-        'Idempotency-Key': idemKey,
-      },
-      body: JSON.stringify({ to_code: qrisRecipient.code, amount, note, pin_token: pinToken }),
-    });
-    const j = await res.json().catch(() => ({}));
-    if (j.success) {
-      h2hShowResultModal({ ok: true, message: j.message || 'Transfer berhasil' });
-      document.getElementById('qrisAmountInput').value = '';
-      document.getElementById('qrisNoteInput').value = '';
-      qrisResetRecipient();
-      document.getElementById('qrisPhoneInput').value = '';
-      if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
-    } else {
-      h2hShowResultModal({ ok: false, message: j.message || 'Transfer gagal' });
-    }
-  } catch (e) {
-    h2hShowResultModal({ ok: false, message: 'Terjadi kesalahan jaringan.' });
-  } finally {
-    qrisSendInFlight = false;
-    if (btn) { btn.disabled = false; btn.textContent = 'Kirim Sekarang'; }
-  }
-}
-window.qrisSendTransfer = qrisSendTransfer;
-
-async function renderMyQrisCode(){
-  const token = await h2hGetAccessToken();
-  if (!token) return;
-  try {
-    const res = await fetch(`${H2H_WORKER_URL}/wallet/my-code`, {
-      headers: { 'Authorization': 'Bearer ' + token },
-    });
-    const j = await res.json().catch(() => ({}));
-    if (!j.success) return;
-    const code = j.data.wallet_code;
-    window._myQrisCode = code;
-
-    const wrap = document.getElementById('qrisMyCodeCanvas');
-    if (wrap) {
-      wrap.innerHTML = '';
-      if (typeof QRCode !== 'undefined') {
-        new QRCode(wrap, {
-          text: QRIS_PREFIX + code,
-          width: 200,
-          height: 200,
-          correctLevel: QRCode.CorrectLevel.H,
-        });
-      }
-    }
-
-    const u = JSON.parse(localStorage.getItem('vp_user') || 'null');
-    document.getElementById('qrisMyName').textContent = (u && u.name) ? u.name : 'Pengguna Paycore';
-    document.getElementById('qrisMyPhone').textContent = (u && u.phone) ? u.phone : 'Nomor HP belum diisi (opsional)';
-  } catch (e) {
-    console.error('renderMyQrisCode error:', e);
-  }
-}
-
-async function qrisShareCode(){
-  const code = window._myQrisCode;
-  if (!code) return;
-  const text = `Kirim saldo Paycore ke saya lewat kode: ${code}`;
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: 'QRIS Paycore Saya', text });
-    } else {
-      await navigator.clipboard.writeText(text);
-      alert('Kode QRIS disalin ke clipboard: ' + code);
-    }
-  } catch (e) { /* user cancel share, abaikan */ }
-}
-window.qrisShareCode = qrisShareCode;
 
 // Panggil h2hLoadHistory() dan render sendiri hasilnya, atau otomatis
 // mengisi <div id="h2hHistoryList"> kalau elemen itu ada di halaman.
