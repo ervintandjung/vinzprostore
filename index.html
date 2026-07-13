@@ -7029,81 +7029,194 @@ function doPesan(){
     renderRiwPagination(filtered.length, window.__riwPage, totalPages);
   }
 
-  // ── Modal DETAIL transaksi sukses ──
+  // ── Modal DETAIL transaksi (redesign: Material light-layout adapted to dark) ──
   if (!document.getElementById('riwDetailModal')) {
     document.body.insertAdjacentHTML('beforeend', `
-    <div id="riwDetailModal" style="display:none;position:fixed;inset:0;z-index:9999;background:#0a1226;overflow-y:auto;font-family:'Rajdhani',sans-serif;color:#fff;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#0a1226;position:sticky;top:0;z-index:5;border-bottom:1px solid rgba(255,255,255,.06);">
-        <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;font-style:italic;letter-spacing:1px;">DETAIL TRANSAKSI</div>
-        <button onclick="window.__riwDetailClose()" style="background:rgba(255,255,255,.08);border:none;color:#fff;width:36px;height:36px;border-radius:9px;font-size:18px;cursor:pointer;">✕</button>
+    <style>
+      #riwDetailModal .ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-feature-settings:'liga';-webkit-font-smoothing:antialiased;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+      #riwDetailModal .ms.fill{font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
+      #riwDetailModal *{box-sizing:border-box;}
+      #riwDetailModal .rd-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;}
+      #riwDetailModal .rd-row + .rd-row{border-top:1px solid rgba(255,255,255,.06);}
+      #riwDetailModal .rd-lbl{display:flex;align-items:center;gap:10px;color:#8a97b3;font-size:13px;font-weight:500;}
+      #riwDetailModal .rd-val{color:#e8ebf5;font-size:13px;font-weight:600;text-align:right;max-width:60%;word-break:break-word;}
+      #riwDetailModal .rd-ico-sq{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+      #riwDetailModal .rd-btn{width:100%;height:46px;border-radius:999px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;transition:transform .15s;}
+      #riwDetailModal .rd-btn:active{transform:scale(.97);}
+      #riwDetailModal .rd-btn.primary{color:#fff;}
+      #riwDetailModal .rd-btn.ghost{background:rgba(255,255,255,.04);color:#e8ebf5;border:1px solid rgba(255,255,255,.14);}
+      @keyframes rdFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+      #riwDetailModal .rd-float{animation:rdFloat 3.4s ease-in-out infinite;}
+    </style>
+    <div id="riwDetailModal" style="display:none;position:fixed;inset:0;z-index:9999;background:#0a1226;overflow-y:auto;font-family:'Plus Jakarta Sans',sans-serif;color:#e8ebf5;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(10,18,38,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);position:sticky;top:0;z-index:5;border-bottom:1px solid rgba(255,255,255,.06);">
+        <button onclick="window.__riwDetailClose()" style="width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#e8ebf5;display:flex;align-items:center;justify-content:center;cursor:pointer;"><span class="ms" style="font-size:20px;">arrow_back</span></button>
+        <div style="font-size:16px;font-weight:700;letter-spacing:.2px;">Status Transaksi</div>
+        <div style="width:36px;"></div>
       </div>
-      <div id="rdHeaderCard" style="margin:16px;background:linear-gradient(180deg,#10b981,#059669);border-radius:20px;padding:32px 20px;text-align:center;">
-        <div id="rdHeaderIcon" style="width:80px;height:80px;border-radius:20px;background:rgba(255,255,255,.18);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:40px;">✓</div>
-        <div id="rdHeaderLabel" style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:900;font-size:26px;line-height:1.1;">PAYMENT<br>SUCCESS</div>
-        <div id="rdHeaderSub" style="margin-top:10px;font-size:11px;letter-spacing:3px;opacity:.85;font-weight:600;">TRANSAKSI BERHASIL</div>
-      </div>
-      <div id="rdPendingBanner" style="display:none;margin:0 16px 14px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:14px;padding:14px;gap:10px;align-items:center;">
-        <div style="font-size:20px;">🕐</div>
-        <div style="font-size:12.5px;color:#f5c876;line-height:1.4;">Transaksi masih diproses. Status akan diperbarui otomatis, gak perlu order ulang.</div>
-      </div>
-      <div style="margin:0 16px;display:flex;justify-content:space-between;padding:16px 4px;border-bottom:1px solid rgba(255,255,255,.08);">
-        <div><div style="font-size:11px;letter-spacing:2px;color:#7a8aa8;font-weight:700;">TRX ID</div><div id="rdTrxId" style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:13px;margin-top:4px;">—</div></div>
-        <div style="text-align:right;"><div style="font-size:11px;letter-spacing:2px;color:#7a8aa8;font-weight:700;">WAKTU</div><div id="rdTime" style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:13px;margin-top:4px;">—</div></div>
-      </div>
-      <div id="rdProdCard" style="margin:12px 16px;background:rgba(255,255,255,.04);border-radius:16px;padding:14px;display:flex;gap:14px;align-items:center;"></div>
-      <div style="margin:0 16px 14px;background:linear-gradient(180deg,#1a6fff,#1559d6);border-radius:16px;padding:16px 20px;text-align:center;">
-        <div style="font-size:11px;letter-spacing:2.5px;font-weight:700;opacity:.85;">TOTAL PEMBAYARAN</div>
-        <div id="rdTotal" style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:900;font-size:28px;margin-top:6px;">Rp 0</div>
-      </div>
-      <div id="rdKeyCard" style="margin:0 16px 14px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:16px;padding:16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="color:#10b981;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:12px;letter-spacing:2px;">🔑 KEY KAMU</div>
-          <button id="rdCopyBtn" onclick="window.__riwDetailCopy()" style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.5);color:#10b981;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:11px;letter-spacing:1.5px;padding:6px 12px;border-radius:10px;cursor:pointer;">📋 SALIN</button>
+
+      <div id="rdHeroWrap" style="position:relative;padding:26px 20px 18px;text-align:center;overflow:hidden;">
+        <div id="rdHeroGlow" style="position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,.18) 0%,rgba(10,18,38,0) 65%);pointer-events:none;"></div>
+        <div style="position:relative;display:inline-block;">
+          <div id="rdHeroRing" style="width:104px;height:104px;border-radius:50%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 12px 40px rgba(0,0,0,.35);">
+            <div id="rdHeroInner" class="rd-float" style="width:78px;height:78px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(16,185,129,.35);">
+              <span id="rdHeroIcon" class="ms fill" style="font-size:40px;color:#fff;">check</span>
+            </div>
+          </div>
+          <div id="rdHeroBadge" style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:5px 16px;border-radius:999px;font-size:12px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:nowrap;">Berhasil</div>
         </div>
-        <div id="rdKeyList" style="font-size:13px;color:#10b981;word-break:break-all;line-height:1.8;">—</div>
+        <h2 id="rdHeroTitle" style="margin-top:22px;font-size:20px;font-weight:800;color:#fff;letter-spacing:-.2px;">Transaksi Berhasil!</h2>
+        <p id="rdHeroDesc" style="margin-top:6px;font-size:13px;color:#8a97b3;line-height:1.5;padding:0 20px;">Pembelian Anda telah berhasil diproses.</p>
       </div>
-      <div style="height:20px;"></div>
+
+      <div id="rdPendingBanner" style="display:none;margin:0 16px 12px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.28);border-radius:16px;padding:12px 14px;gap:10px;align-items:center;">
+        <span class="ms" style="font-size:22px;color:#f59e0b;">schedule</span>
+        <div style="font-size:12.5px;color:#f5c876;line-height:1.5;">Transaksi masih diproses. Status akan diperbarui otomatis, gak perlu order ulang.</div>
+      </div>
+
+      <div style="margin:6px 16px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:14px 16px;">
+        <div class="rd-row">
+          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoId"><span class="ms" style="font-size:16px;">description</span></div>ID Transaksi</div>
+          <div style="display:flex;align-items:center;gap:8px;"><span id="rdTrxId" class="rd-val">—</span><button onclick="window.__riwDetailCopyId()" style="background:transparent;border:none;color:#8a97b3;cursor:pointer;padding:2px;" title="Salin ID"><span class="ms" style="font-size:16px;">content_copy</span></button></div>
+        </div>
+        <div class="rd-row">
+          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoProd"><span class="ms" style="font-size:16px;">shopping_bag</span></div>Produk</div>
+          <div id="rdProdName" class="rd-val">—</div>
+        </div>
+        <div id="rdVarRow" class="rd-row" style="display:none;">
+          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoVar"><span class="ms" style="font-size:16px;">tune</span></div>Varian</div>
+          <div id="rdVarName" class="rd-val">—</div>
+        </div>
+        <div class="rd-row">
+          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoQty"><span class="ms" style="font-size:16px;">inventory_2</span></div>Jumlah</div>
+          <div id="rdQty" class="rd-val">1×</div>
+        </div>
+        <div class="rd-row">
+          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoTime"><span class="ms" style="font-size:16px;">schedule</span></div>Waktu</div>
+          <div id="rdTime" class="rd-val">—</div>
+        </div>
+        <div class="rd-row">
+          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoTotal"><span class="ms" style="font-size:16px;">payments</span></div>Total</div>
+          <div id="rdTotal" class="rd-val" style="font-weight:800;font-size:15px;color:#fff;">Rp 0</div>
+        </div>
+        <div class="rd-row">
+          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoStatus"><span class="ms fill" style="font-size:16px;">check_circle</span></div>Status</div>
+          <div id="rdStatusPill" style="padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(16,185,129,.12);color:#10b981;">Berhasil</div>
+        </div>
+      </div>
+
+      <div id="rdKeyCard" style="display:none;margin:0 16px 12px;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.22);border-radius:20px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:8px;color:#10b981;font-weight:700;font-size:13px;"><span class="ms" style="font-size:16px;">vpn_key</span><span id="rdKeyLabelTxt">Key Kamu</span></div>
+          <button id="rdCopyBtn" onclick="window.__riwDetailCopy()" style="background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.4);color:#10b981;font-weight:700;font-size:12px;padding:5px 12px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;"><span class="ms" style="font-size:14px;">content_copy</span>Salin</button>
+        </div>
+        <div id="rdKeyList" style="font-size:13px;color:#a8f0cf;word-break:break-all;line-height:1.75;">—</div>
+      </div>
+
+      <div style="margin:6px 16px 8px;display:flex;flex-direction:column;gap:10px;">
+        <button id="rdBtnPrimary" class="rd-btn primary" onclick="window.__riwDetailClose()" style="background:#10b981;box-shadow:0 6px 18px rgba(16,185,129,.32);"><span class="ms" style="font-size:18px;">receipt_long</span>Kembali ke Riwayat</button>
+        <button class="rd-btn ghost" onclick="window.__riwDetailHome()"><span class="ms" style="font-size:18px;">home</span>Kembali ke Beranda</button>
+      </div>
+
+      <a href="https://wa.me/6285954741269" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;margin:12px 16px 20px;">
+        <div style="background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.22);border-radius:18px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:34px;height:34px;border-radius:50%;background:rgba(37,211,102,.14);display:flex;align-items:center;justify-content:center;color:#25D366;"><span class="ms" style="font-size:18px;">headset_mic</span></div>
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <span style="font-weight:700;font-size:12.5px;color:#25D366;">Butuh bantuan?</span>
+              <span style="font-size:11.5px;color:#8a97b3;">Hubungi CS jika ada kendala</span>
+            </div>
+          </div>
+          <span class="ms" style="font-size:20px;color:#25D366;">chevron_right</span>
+        </div>
+      </a>
+      <div style="height:16px;"></div>
     </div>`);
   }
 
   function riwStatusMeta(st){
-    if (st === 'sukses') return { icon:'✓', label:'PAYMENT<br>SUCCESS', sub:'TRANSAKSI BERHASIL', grad:'linear-gradient(180deg,#10b981,#059669)' };
-    if (st === 'menunggu') return { icon:'⏳', label:'SEDANG<br>DIPROSES', sub:'TRANSAKSI DIPROSES', grad:'linear-gradient(180deg,#f59e0b,#b45309)' };
-    return { icon:'✕', label:'TRANSAKSI<br>GAGAL', sub: st==='kadaluwarsa' ? 'SUDAH KADALUWARSA' : 'DIBATALKAN / GAGAL', grad:'linear-gradient(180deg,#ef4444,#b91c1c)' };
+    if (st === 'sukses') return {
+      icon:'check', title:'Transaksi Berhasil!', desc:'Pembelian Anda telah berhasil diproses.',
+      badge:'Berhasil', pill:'Berhasil', color:'#10b981', colorSoft:'rgba(16,185,129,.12)',
+      glow:'radial-gradient(circle,rgba(16,185,129,.20) 0%,rgba(10,18,38,0) 65%)',
+      shadow:'0 8px 24px rgba(16,185,129,.35)', float:false
+    };
+    if (st === 'menunggu') return {
+      icon:'hourglass_top', title:'Sedang Diproses', desc:'Transaksi Anda sedang kami proses. Mohon tunggu sebentar.',
+      badge:'Diproses', pill:'Diproses', color:'#f59e0b', colorSoft:'rgba(245,158,11,.14)',
+      glow:'radial-gradient(circle,rgba(245,158,11,.20) 0%,rgba(10,18,38,0) 65%)',
+      shadow:'0 8px 24px rgba(245,158,11,.35)', float:true
+    };
+    return {
+      icon:'close', title:'Transaksi Gagal', desc: st==='kadaluwarsa' ? 'Transaksi kadaluwarsa. Silakan coba order ulang.' : 'Transaksi dibatalkan atau gagal diproses.',
+      badge:'Gagal', pill:'Gagal', color:'#ef4444', colorSoft:'rgba(239,68,68,.14)',
+      glow:'radial-gradient(circle,rgba(239,68,68,.20) 0%,rgba(10,18,38,0) 65%)',
+      shadow:'0 8px 24px rgba(239,68,68,.35)', float:false
+    };
   }
 
   window.__riwDetail = function(t) {
     if (typeof t === 'string') { try { t = JSON.parse(t); } catch(_){ return; } }
     const st = (t.status||'menunggu').toLowerCase();
-    const meta = riwStatusMeta(st);
-    document.getElementById('rdHeaderCard').style.background = meta.grad;
-    document.getElementById('rdHeaderIcon').textContent = meta.icon;
-    document.getElementById('rdHeaderLabel').innerHTML = meta.label;
-    document.getElementById('rdHeaderSub').textContent = meta.sub;
+    const m = riwStatusMeta(st);
+    window.__rdLastTrxId = t.id || '';
+    // Hero
+    document.getElementById('rdHeroGlow').style.background = m.glow;
+    const inner = document.getElementById('rdHeroInner');
+    inner.style.background = m.color;
+    inner.style.boxShadow = m.shadow;
+    inner.classList.toggle('rd-float', !!m.float);
+    const ic = document.getElementById('rdHeroIcon');
+    ic.textContent = m.icon;
+    ic.classList.toggle('fill', st==='sukses');
+    const badge = document.getElementById('rdHeroBadge');
+    badge.textContent = m.badge; badge.style.background = m.color;
+    document.getElementById('rdHeroTitle').textContent = m.title;
+    document.getElementById('rdHeroDesc').textContent = m.desc;
+    // Banner pending
     document.getElementById('rdPendingBanner').style.display = st === 'menunggu' ? 'flex' : 'none';
+    // Detail rows
     document.getElementById('rdTrxId').textContent = t.id || '—';
     document.getElementById('rdTime').textContent = t.time || '—';
+    document.getElementById('rdProdName').textContent = (t.productName || t.prod || 'Produk');
+    const varRow = document.getElementById('rdVarRow');
+    if (t.variantName) { varRow.style.display = 'flex'; document.getElementById('rdVarName').textContent = t.variantName; }
+    else { varRow.style.display = 'none'; }
+    document.getElementById('rdQty').textContent = (t.qty||1) + '×';
     document.getElementById('rdTotal').textContent = 'Rp ' + Number((t.price||0)*(t.qty||1)).toLocaleString('id-ID');
-    const imgHtml = t.img
-      ? `<img src="${t.img}" alt="" style="width:60px;height:60px;border-radius:12px;object-fit:cover;flex-shrink:0;">`
-      : `<div style="width:60px;height:60px;border-radius:12px;background:#0f1a35;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">${t.emoji||'📦'}</div>`;
-    document.getElementById('rdProdCard').innerHTML = `${imgHtml}
-      <div>
-        <div style="font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:14px;">${(t.productName||t.prod||'PRODUK').toUpperCase()}</div>
-        <div style="font-size:12px;letter-spacing:2px;color:#1a6fff;font-weight:700;margin-top:4px;">${(t.variantName||'').toUpperCase()} • ${t.qty||1}X</div>
-      </div>`;
-    // Card "Key" cuma relevan buat transaksi yang beneran sukses -- buat
-    // pending/gagal disembunyikan aja, gak ada key yang bisa ditampilin.
+    // Icon squares tint per status
+    ['rdIcoId','rdIcoProd','rdIcoVar','rdIcoQty','rdIcoTime','rdIcoTotal','rdIcoStatus'].forEach(id => {
+      const el = document.getElementById(id); if (!el) return;
+      el.style.background = m.colorSoft; el.style.color = m.color;
+    });
+    // Status pill
+    const pill = document.getElementById('rdStatusPill');
+    pill.textContent = m.pill;
+    pill.style.background = m.colorSoft;
+    pill.style.color = m.color;
+    // Primary button (color follows status)
+    const pb = document.getElementById('rdBtnPrimary');
+    pb.style.background = m.color;
+    pb.style.boxShadow = '0 6px 18px ' + m.colorSoft.replace('.14',',.32').replace('.12',',.32');
+    // Key card (sukses only) — khusus PLN: judul jadi "Token PLN" & isi nomor token.
+    // Produk digital biasa (non-PPOB, punya t.key) tetap tampil sebagai "Key Kamu".
+    // Kategori PPOB lain (pulsa/e-wallet/dll) tidak menampilkan kartu ini sama sekali.
     const keyCard = document.getElementById('rdKeyCard');
-    if (st === 'sukses') {
+    const keyLabelEl = document.getElementById('rdKeyLabelTxt');
+    if (st === 'sukses' && t.category === 'pln') {
       keyCard.style.display = 'block';
-      const keys = t.key ? t.key.split('\n').filter(Boolean) : [];
-      keyCard.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="color:#10b981;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:12px;letter-spacing:2px;">🔑 KEY KAMU</div>
-          <button id="rdCopyBtn" onclick="window.__riwDetailCopy()" style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.5);color:#10b981;font-family:'Orbitron',sans-serif;font-style:italic;font-weight:800;font-size:11px;letter-spacing:1.5px;padding:6px 12px;border-radius:10px;cursor:pointer;">📋 SALIN</button>
-        </div>
-        <div id="rdKeyList" style="font-size:13px;color:#10b981;word-break:break-all;line-height:1.8;">${keys.length ? keys.map((k,i)=>`<div>${i+1}. ${k}</div>`).join('') : '<div style="color:#6a8cb5;">Tidak ada key tersimpan</div>'}</div>`;
+      if (keyLabelEl) keyLabelEl.textContent = 'Token PLN';
+      const plnToken = t.token || t.sn || t.key || '';
+      document.getElementById('rdKeyList').innerHTML = plnToken
+        ? `<div>${String(plnToken)}</div>`
+        : '<div style="color:#6a8cb5;">Token belum tersedia</div>';
+    } else if (st === 'sukses' && !t.category && t.key) {
+      keyCard.style.display = 'block';
+      if (keyLabelEl) keyLabelEl.textContent = 'Key Kamu';
+      const keys = String(t.key).split('\n').filter(Boolean);
+      document.getElementById('rdKeyList').innerHTML = keys.length
+        ? keys.map((k,i)=>`<div>${i+1}. ${k}</div>`).join('')
+        : '<div style="color:#6a8cb5;">Tidak ada key tersimpan</div>';
     } else {
       keyCard.style.display = 'none';
     }
@@ -7114,12 +7227,23 @@ function doPesan(){
     document.getElementById('riwDetailModal').style.display = 'none';
     document.body.style.overflow = '';
   };
+  window.__riwDetailHome = function() {
+    window.__riwDetailClose();
+    try { if (typeof showBeranda === 'function') showBeranda(); else if (typeof window.__goHome === 'function') window.__goHome(); } catch(_){}
+  };
+  window.__riwDetailCopyId = function() {
+    const id = window.__rdLastTrxId || '';
+    if (!id) return;
+    const done = () => { if (typeof showNotif==='function') showNotif('✅ ID tersalin'); };
+    if (navigator.clipboard) navigator.clipboard.writeText(id).then(done).catch(done);
+    else { const a=document.createElement('textarea');a.value=id;document.body.appendChild(a);a.select();try{document.execCommand('copy');}catch(_){}document.body.removeChild(a);done(); }
+  };
   window.__riwDetailCopy = function() {
     const el = document.getElementById('rdKeyList');
     const text = el ? el.innerText.trim() : '';
     if (!text || text.includes('Tidak ada')) return;
     const btn = document.getElementById('rdCopyBtn');
-    const done = () => { if(btn){const o=btn.innerHTML;btn.innerHTML='✓ TERSALIN';setTimeout(()=>btn.innerHTML=o,1500);} if(typeof showNotif==='function') showNotif('✅ Key tersalin'); };
+    const done = () => { if(btn){const o=btn.innerHTML;btn.innerHTML='<span class="ms" style="font-size:14px;">check</span>Tersalin';setTimeout(()=>btn.innerHTML=o,1500);} if(typeof showNotif==='function') showNotif('✅ Key tersalin'); };
     if (navigator.clipboard) navigator.clipboard.writeText(text).then(done).catch(()=>{const a=document.createElement('textarea');a.value=text;document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);done();});
     else { const a=document.createElement('textarea');a.value=text;document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);done(); }
   };
@@ -12890,7 +13014,8 @@ async function h2hCheckout(opts){
     const amount = json.data?.amount;
     const rawStatus = (json.data?.status || 'processing').toLowerCase();
     const riwStatus = rawStatus === 'success' ? 'sukses' : rawStatus === 'failed' ? 'batal' : 'menunggu';
-    if (u) _h2hOrderToRiwayat({ email: u.email, id: refId, title: titleTxt, sub: subTxt, category, dest, amount, status: riwStatus });
+    const plnToken = json.data?.sn || json.data?.token || '';
+    if (u) _h2hOrderToRiwayat({ email: u.email, id: refId, title: titleTxt, sub: subTxt, category, dest, amount, status: riwStatus, token: plnToken });
     if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance(); // saldo di header ikut ke-update
 
     h2hShowOrderResult({
@@ -12920,7 +13045,7 @@ function _h2hOrderToRiwayat(t){
   const time = t.time || new Date().toLocaleString('id-ID');
   const trxData = {
     id, prod: t.title || 'Transaksi', productName: t.title || 'Transaksi', variantName: t.sub || '',
-    img:'', emoji, price: t.amount || 0, qty: 1, key: '',
+    img:'', emoji, price: t.amount || 0, qty: 1, key: '', token: t.token || '',
     status: t.status || 'menunggu', method: 'H2H', isTopup: false, category: t.category, dest: t.dest,
     time, ts: t.ts || Date.now()
   };
@@ -13329,7 +13454,8 @@ async function h2hPollOrderResult(refId, ctx){
     const u = (typeof getCU === 'function') ? getCU() : null;
     if (u) {
       const riwStatus = mapped === 'success' ? 'sukses' : 'batal';
-      _h2hOrderToRiwayat({ email: u.email, id: refId, title: ctx.title, sub: ctx.sub, category: ctx.category, dest: ctx.dest, amount: ctx.amount, status: riwStatus, ts: Date.now() });
+      const plnToken = j?.data?.sn || j?.data?.token || '';
+      _h2hOrderToRiwayat({ email: u.email, id: refId, title: ctx.title, sub: ctx.sub, category: ctx.category, dest: ctx.dest, amount: ctx.amount, status: riwStatus, ts: Date.now(), token: plnToken });
     }
     if (mapped === 'success' && typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
   } catch (_) {
