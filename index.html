@@ -718,6 +718,8 @@ body.light-mode .dd-user strong{color:#0d1f3c !important;}
 .ppob-nom.active .pn-harga{color:var(--accent2);}
 .pn-check{display:none;}
 .ppob-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:15px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;transition:.2s;margin-bottom:10px;}
+.ppob-btn:disabled,.ppob-btn.ppob-btn-disabled{background:#3a3a42;color:rgba(255,255,255,0.4);cursor:not-allowed;box-shadow:none;}
+.ppob-btn:disabled:active,.ppob-btn.ppob-btn-disabled:active{transform:none;}
 .ppob-btn:active{opacity:.85;}
 .ppob-btn-alt{width:100%;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:14px;padding:13px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;transition:.2s;}
 .ppob-btn-alt:active{opacity:.85;}
@@ -1504,7 +1506,7 @@ renderBannerSlider();
 
     <div class="pcf-card">
       <div class="pcf-h">Metode pembayaran</div>
-      <div class="pcf-pm-row" onclick="openPcfPayMethod()">
+      <div class="pcf-pm-row">
         <div class="pcf-pm-left">
           <div class="pcf-pm-ico" id="pcfPmIcon">💰</div>
           <div class="pcf-pm-text">
@@ -1512,7 +1514,6 @@ renderBannerSlider();
             <div class="pcf-pm-sub" id="pcfPmSub">Bayar langsung pakai saldo akun</div>
           </div>
         </div>
-        <div class="pcf-pm-chevron">›</div>
       </div>
     </div>
 
@@ -1534,16 +1535,6 @@ renderBannerSlider();
         <div class="pcf-pm-text">
           <div class="pcf-pm-name">Saldo</div>
           <div class="pcf-pm-sub" id="pcfPmOptSaldoSub">Bayar langsung pakai saldo akun kamu</div>
-        </div>
-      </div>
-      <div class="pcf-pm-check"></div>
-    </div>
-    <div class="pcf-pm-option" id="pcfPmOptQris" onclick="selectPcfPayMethod('qris')">
-      <div class="pcf-pm-opt-left">
-        <div class="pcf-pm-ico">🔳</div>
-        <div class="pcf-pm-text">
-          <div class="pcf-pm-name">QRIS</div>
-          <div class="pcf-pm-sub">Scan QR pakai e-wallet / m-banking apa saja</div>
         </div>
       </div>
       <div class="pcf-pm-check"></div>
@@ -3305,8 +3296,12 @@ async function pgsToggleBiometric(){
   if (!btn) return;
 
   // Biometrik cuma bisa dipakai lewat APK (bridge native), gak lewat browser biasa
-  if (!window.AndroidBridge || typeof window.AndroidBridge.authenticateBiometric !== 'function') {
-    showNotif('⚠️ Biometrik cuma tersedia di aplikasi Paycore, bukan browser');
+  if (!window.AndroidBridge) {
+    showNotif('⚠️ window.AndroidBridge TIDAK TERDETEKSI. Cek addJavascriptInterface() di MainActivity.kt kamu, atau kamu lagi buka lewat browser biasa bukan APK.');
+    return;
+  }
+  if (typeof window.AndroidBridge.authenticateBiometric !== 'function') {
+    showNotif('⚠️ AndroidBridge ada, tapi method authenticateBiometric() tidak ditemukan. Cek nama fungsi & @JavascriptInterface di kode Kotlin kamu.');
     return;
   }
   const sudahAdaPin = await pinHasPin();
@@ -5694,6 +5689,155 @@ function doPesan(){
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════
+     PROMO & PENAWARAN PANEL
+     ════════════════════════════════════════════ -->
+<style>
+#promoPanel{display:none;position:fixed;inset:0;background:#0a0a0f;z-index:380;overflow-y:auto;}
+#promoPanel.open{display:block;animation:fsSlideIn .3s ease;}
+#promoPanel.open ~ .bottom-nav{z-index:400;}
+
+.promo-redeem-card{background:linear-gradient(135deg,#0c1f56,#1040a0,#0c1f56);border:1px solid rgba(0,212,255,0.3);border-radius:18px;padding:18px;margin-bottom:22px;box-shadow:0 8px 28px rgba(0,80,255,0.2);}
+.promo-redeem-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:12.5px;color:#fff;letter-spacing:1px;margin-bottom:3px;}
+.promo-redeem-sub{font-size:11.5px;color:var(--accent2);margin-bottom:14px;}
+.promo-redeem-row{display:flex;gap:8px;}
+.promo-redeem-row input{flex:1;min-width:0;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:12px 14px;color:#fff;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:'Rajdhani',sans-serif;}
+.promo-redeem-row input::placeholder{color:rgba(255,255,255,0.35);text-transform:none;letter-spacing:normal;font-weight:500;}
+.promo-redeem-btn{flex-shrink:0;background:var(--gold,#facc15);color:#000;border:none;border-radius:10px;padding:0 18px;font-family:'Orbitron',sans-serif;font-weight:800;font-size:12px;letter-spacing:.5px;cursor:pointer;}
+.promo-redeem-btn:active{transform:scale(.96);}
+.promo-redeem-btn:disabled{opacity:.5;}
+
+.promo-section-title{font-family:'Rajdhani',sans-serif;font-weight:800;font-size:15px;color:#fff;margin:4px 0 12px;letter-spacing:.3px;}
+.promo-list{display:flex;flex-direction:column;gap:14px;}
+.promo-card{position:relative;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);cursor:pointer;background:rgba(255,255,255,0.035);transition:.15s;}
+.promo-card:active{transform:scale(.98);}
+.promo-card img{width:100%;display:block;aspect-ratio:16/7;object-fit:cover;}
+.promo-card-badge{position:absolute;top:10px;left:10px;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);color:#fff;font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.4px;}
+
+.promo-empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.promo-empty-ic{font-size:48px;margin-bottom:12px;}
+.promo-empty-sub{font-size:12.5px;margin-top:4px;}
+</style>
+
+<div id="promoPanel">
+  <div class="riw-header">
+    <div class="riw-header-left">
+      <div class="pc-avatar">P</div>
+      <div class="pc-brand-title" style="font-size:20px;">PAYCORE</div>
+    </div>
+    <button class="riw-bell" onclick="showNotif('🔔 Belum ada notifikasi baru.')" aria-label="Notifikasi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="riw-bell-dot"></span>
+    </button>
+  </div>
+  <h1 class="riw-page-title">Promo &amp; Penawaran</h1>
+  <div class="riw-body">
+    <div class="promo-redeem-card">
+      <div class="promo-redeem-title">PUNYA KODE PROMO?</div>
+      <div class="promo-redeem-sub">Masukkan kode buat klaim bonus saldo/cashback</div>
+      <div class="promo-redeem-row">
+        <input type="text" id="promoCodeInput" placeholder="Contoh: PAYCORE10" maxlength="20" autocomplete="off">
+        <button class="promo-redeem-btn" id="promoRedeemBtn" onclick="promoRedeemCode()">PAKAI</button>
+      </div>
+    </div>
+
+    <div class="promo-section-title">Sedang Berlangsung</div>
+    <div class="promo-list" id="promoList"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  function _promoGetUser(){
+    try { return JSON.parse(localStorage.getItem('vp_user')||'null'); } catch(e){ return null; }
+  }
+
+  function renderPromoList(){
+    const wrap = document.getElementById('promoList');
+    if (!wrap) return;
+    const imgs = (window._bannerImages && window._bannerImages.length) ? window._bannerImages : [];
+    if (!imgs.length){
+      wrap.innerHTML = '<div class="promo-empty"><div class="promo-empty-ic">🎁</div>Belum ada promo saat ini<div class="promo-empty-sub">Cek lagi nanti ya, promo baru bakal muncul di sini</div></div>';
+      return;
+    }
+    wrap.innerHTML = imgs.map((src) => `
+      <div class="promo-card" onclick="showNotif('🎉 Promo ini masih berlaku, cek syarat & ketentuan di deskripsi produk terkait ya!')">
+        <span class="promo-card-badge">PROMO</span>
+        <img src="${src}" alt="Promo" loading="lazy">
+      </div>
+    `).join('');
+  }
+  window.renderPromoList = renderPromoList;
+
+  // Ikut redraw otomatis kalau admin update banner dari panel admin
+  const _origRenderBannerSlider = window.renderBannerSlider;
+  window.renderBannerSlider = function(){
+    if (typeof _origRenderBannerSlider === 'function') _origRenderBannerSlider();
+    try { renderPromoList(); } catch(_){}
+  };
+
+  window.openPromo = function(){
+    document.getElementById('promoPanel').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    renderPromoList();
+  };
+  window.closePromo = function(){
+    document.getElementById('promoPanel').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  // ── Redeem kode promo ──
+  // CATATAN: endpoint /promo/redeem BELUM ada di Worker (h2h-gateway).
+  // Kalau nanti sudah dibuatkan, tinggal jalan otomatis tanpa ubah kode di
+  // sini. Sebelum itu, request bakal gagal (404) dan kasih pesan yang jelas
+  // ke user alih-alih error mentah.
+  window.promoRedeemCode = async function(){
+    const input = document.getElementById('promoCodeInput');
+    const btn = document.getElementById('promoRedeemBtn');
+    const code = (input?.value || '').trim().toUpperCase();
+    if (!code) { showNotif('⚠️ Masukkan kode promo dulu'); return; }
+
+    const u = _promoGetUser();
+    if (!u) {
+      if (typeof openAuth === 'function') openAuth('masuk');
+      showNotif('⚠️ Login dulu untuk klaim kode promo!');
+      return;
+    }
+
+    btn.disabled = true;
+    const origText = btn.textContent;
+    btn.textContent = '...';
+    try {
+      const token = (typeof h2hGetAccessToken === 'function') ? await h2hGetAccessToken() : null;
+      const res = await fetch(`${window.H2H_WORKER_URL || ''}/promo/redeem`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ code }),
+      });
+      if (res.status === 404) {
+        showNotif('🚧 Fitur redeem kode promo belum aktif, coba lagi nanti ya');
+        return;
+      }
+      const j = await res.json().catch(() => ({}));
+      if (j.success) {
+        showNotif('🎉 ' + (j.message || 'Kode promo berhasil dipakai!'), 'var(--success)');
+        input.value = '';
+        if (typeof pcUpdateSaldoCard === 'function') pcUpdateSaldoCard();
+      } else {
+        showNotif('❌ ' + (j.message || 'Kode promo tidak valid'), 'var(--danger)');
+      }
+    } catch (e) {
+      showNotif('⚠️ Gagal terhubung ke server, coba lagi.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = origText;
+    }
+  };
+})();
+</script>
+
 <script>
 (function(){
   'use strict';
@@ -7344,6 +7488,7 @@ function doPesan(){
     { id: 'settingsPanel',   close: () => window.closePengaturan&& window.closePengaturan() },
     { id: 'adminPanel',      close: () => window.closeAdmin     && window.closeAdmin() },
     { id: 'riwayatPanel',    close: () => window.closeRiwayat   && window.closeRiwayat() },
+    { id: 'promoPanel',      close: () => window.closePromo     && window.closePromo() },
     { id: 'prodFullscreen',  close: () => window.closeProdFullscreen && window.closeProdFullscreen() }
   ];
 
@@ -10544,7 +10689,7 @@ function tuClearActive(){
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
     Riwayat
   </button>
-  <button class="bn-item bn-item-qris-big" id="bnQris" onclick="(typeof currentUser!=='undefined' && currentUser) ? openQrisPage('kirim') : openAuth('masuk')">
+  <button class="bn-item bn-item-qris-big" id="bnQris" onclick="qrisBnScanDirect()">
     <span class="bn-qris-circle">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
     </span>
@@ -10625,6 +10770,8 @@ function pcGoBeranda(){
   if (riw && riw.classList.contains('open') && typeof closeRiwayat==='function') closeRiwayat();
   const set = document.getElementById('settingsPanel');
   if (set && set.classList.contains('open') && typeof closePengaturan==='function') closePengaturan();
+  const promo = document.getElementById('promoPanel');
+  if (promo && promo.classList.contains('open') && typeof closePromo==='function') closePromo();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function pcGoRiwayat(){
@@ -10632,13 +10779,26 @@ function pcGoRiwayat(){
   document.getElementById('bnRiwayat').classList.add('active');
   const set = document.getElementById('settingsPanel');
   if (set && set.classList.contains('open') && typeof closePengaturan==='function') closePengaturan();
+  const promo = document.getElementById('promoPanel');
+  if (promo && promo.classList.contains('open') && typeof closePromo==='function') closePromo();
   if (typeof openRiwayat === 'function') openRiwayat();
+}
+function pcGoPromo(){
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('bnPromo').classList.add('active');
+  const riw = document.getElementById('riwayatPanel');
+  if (riw && riw.classList.contains('open') && typeof closeRiwayat==='function') closeRiwayat();
+  const set = document.getElementById('settingsPanel');
+  if (set && set.classList.contains('open') && typeof closePengaturan==='function') closePengaturan();
+  if (typeof openPromo === 'function') openPromo();
 }
 function pcGoProfil(){
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('bnProfil').classList.add('active');
   const riw = document.getElementById('riwayatPanel');
   if (riw && riw.classList.contains('open') && typeof closeRiwayat==='function') closeRiwayat();
+  const promo = document.getElementById('promoPanel');
+  if (promo && promo.classList.contains('open') && typeof closePromo==='function') closePromo();
   if (typeof currentUser !== 'undefined' && currentUser) {
     if (typeof showPengaturan === 'function') showPengaturan();
   } else {
@@ -10659,6 +10819,8 @@ function openPpobPage(id){
   if (riw && riw.classList.contains('open') && typeof closeRiwayat === 'function') closeRiwayat();
   const set = document.getElementById('settingsPanel');
   if (set && set.classList.contains('open') && typeof closePengaturan === 'function') closePengaturan();
+  const promo = document.getElementById('promoPanel');
+  if (promo && promo.classList.contains('open') && typeof closePromo === 'function') closePromo();
 
   document.body.classList.add('panel-lock');
   el.classList.add('open');
@@ -10962,14 +11124,9 @@ function selectPcfPayMethod(method, silent){
   if (!silent) closePcfPayMethod();
 }
 function pcfComputePayment(){
-  const method = window._pcfPayMethod || 'saldo';
   const priceNum = window._pcfPriceNum || 0;
   const pts = (typeof window.vpGetPoints === 'function') ? (window.vpGetPoints() || 0) : 0;
-
-  const optSaldo = document.getElementById('pcfPmOptSaldo');
-  const optQris = document.getElementById('pcfPmOptQris');
-  if (optSaldo) optSaldo.classList.toggle('sel', method === 'saldo');
-  if (optQris) optQris.classList.toggle('sel', method === 'qris');
+  const balance = (typeof window.vpGetBalance === 'function') ? (window.vpGetBalance() || 0) : 0;
 
   const icon = document.getElementById('pcfPmIcon');
   const name = document.getElementById('pcfPmName');
@@ -10978,33 +11135,38 @@ function pcfComputePayment(){
   const poinRow = document.getElementById('pcfPoinRow');
   const poinCut = document.getElementById('pcfPoinCut');
   const totalEl = document.getElementById('pcfTotal');
+  const bayarBtn = document.getElementById('pcfBayarBtn');
 
-  if (method === 'qris') {
-    window._pcfPoinUsed = 0;
-    if (icon) icon.textContent = '🔳';
-    if (name) name.textContent = 'QRIS';
-    if (sub) sub.textContent = 'Scan QR pakai e-wallet / m-banking';
-    if (poinRow) poinRow.style.display = 'none';
-    if (totalEl) totalEl.textContent = pcfRupiah(priceNum);
+  // Metode pembayaran selalu Saldo (QRIS sudah dihapus dari pilihan)
+  window._pcfPayMethod = 'saldo';
+
+  const poinUsed = Math.min(pts, priceNum);
+  const sisa = Math.max(0, priceNum - poinUsed);
+  window._pcfPoinUsed = poinUsed;
+
+  if (icon) icon.textContent = '💰';
+  const saldoText = 'Saldo kamu: Rp' + balance.toLocaleString('id-ID');
+  if (poinUsed > 0) {
+    if (name) name.textContent = 'Saldo + Poin';
+    if (sub) sub.textContent = poinUsed.toLocaleString('id-ID') + ' poin (Rp' + poinUsed.toLocaleString('id-ID') + ') otomatis dipakai · ' + saldoText;
+    if (poinRow) poinRow.style.display = 'flex';
+    if (poinCut) poinCut.textContent = '- ' + pcfRupiah(poinUsed) + ' (' + poinUsed.toLocaleString('id-ID') + ' poin)';
   } else {
-    const poinUsed = Math.min(pts, priceNum);
-    const sisa = Math.max(0, priceNum - poinUsed);
-    window._pcfPoinUsed = poinUsed;
-    if (icon) icon.textContent = '💰';
-    if (poinUsed > 0) {
-      if (name) name.textContent = 'Saldo + Poin';
-      if (sub) sub.textContent = poinUsed.toLocaleString('id-ID') + ' poin (Rp' + poinUsed.toLocaleString('id-ID') + ') otomatis dipakai';
-      if (poinRow) poinRow.style.display = 'flex';
-      if (poinCut) poinCut.textContent = '- ' + pcfRupiah(poinUsed) + ' (' + poinUsed.toLocaleString('id-ID') + ' poin)';
-    } else {
-      if (name) name.textContent = 'Saldo';
-      if (sub) sub.textContent = 'Bayar langsung pakai saldo akun';
-      if (poinRow) poinRow.style.display = 'none';
-    }
-    if (totalEl) totalEl.textContent = pcfRupiah(sisa);
-    if (optSaldoSub) optSaldoSub.textContent = pts > 0
-      ? 'Otomatis digabung poin · kamu punya ' + pts.toLocaleString('id-ID') + ' poin (1 poin = Rp1)'
-      : 'Bayar langsung pakai saldo akun kamu';
+    if (name) name.textContent = 'Saldo';
+    if (sub) sub.textContent = saldoText;
+    if (poinRow) poinRow.style.display = 'none';
+  }
+  if (totalEl) totalEl.textContent = pcfRupiah(sisa);
+  if (optSaldoSub) optSaldoSub.textContent = pts > 0
+    ? 'Otomatis digabung poin · kamu punya ' + pts.toLocaleString('id-ID') + ' poin (1 poin = Rp1)'
+    : 'Bayar langsung pakai saldo akun kamu';
+
+  // Tombol Bayar Sekarang cuma aktif (biru) kalau saldo cukup buat nutup
+  // sisa tagihan setelah poin dipakai. Kalau kurang, tombol abu-abu & non-klik.
+  const cukup = balance >= sisa;
+  if (bayarBtn) {
+    bayarBtn.disabled = !cukup;
+    bayarBtn.classList.toggle('ppob-btn-disabled', !cukup);
   }
 }
 
@@ -11034,8 +11196,17 @@ function confirmPpobBayar(){
     return;
   }
 
+  // Pengaman kedua di luar disabled state tombol: cek ulang saldo cukup atau
+  // tidak sebelum benar-benar lanjut checkout.
+  const balanceNow = (typeof window.vpGetBalance === 'function') ? (window.vpGetBalance() || 0) : 0;
+  const sisaTagihan = Math.max(0, (window._pcfPriceNum || 0) - (window._pcfPoinUsed || 0));
+  if (balanceNow < sisaTagihan) {
+    showNotif('⚠️ Saldo kamu tidak cukup. Silakan top up dulu.');
+    return;
+  }
+
   const dest = (_pcfType === 'voucher' && d.zoneId) ? (d.number + ' ' + d.zoneId) : d.number;
-  const paymentMethod = window._pcfPayMethod === 'qris' ? 'qris' : 'saldo';
+  const paymentMethod = 'saldo';
 
   if (_pcfType === 'pulsa' || _pcfType === 'data') ppobSaveFreqNumber(_pcfType, d.number);
   closePpobConfirm();
@@ -12046,6 +12217,20 @@ const QRIS_PREFIX = 'PAYCOREPAY:';
 let qrisRecipient = null; // { name, code }
 let qrisScanStream = null;
 let qrisScanRAF = null;
+let _qrisDirectScanFromNav = false; // true kalau scanner dibuka langsung dari tombol QRIS bottom nav
+
+// Dipanggil dari tombol QRIS di bottom nav: langsung buka kamera scan,
+// TANPA nampilin halaman "QRIS Paycore" (cari penerima) dulu ke user.
+// Latar belakangnya otomatis halaman yang lagi aktif (Beranda/Riwayat/
+// Profil/Promo) karena qrisPage disiapkan di belakang layar secara instan,
+// terus overlay scanner langsung ditumpuk di atasnya di frame yang sama.
+function qrisBnScanDirect(){
+  if (typeof currentUser === 'undefined' || !currentUser) { openAuth('masuk'); return; }
+  openQrisPage('kirim');       // siapin form Kirim di belakang layar (buat nampung hasil scan)
+  _qrisDirectScanFromNav = true;
+  qrisOpenScanner();
+}
+window.qrisBnScanDirect = qrisBnScanDirect;
 
 function openQrisPage(tab){
   if (typeof openPpobPage === 'function') openPpobPage('qrisPage');
@@ -12100,6 +12285,19 @@ function qrisCloseScanner(){
   const ov = document.getElementById('qrisScanOverlay');
   if (ov) ov.style.display = 'none';
   qrisStopCamera();
+
+  // Kalau scanner ini dibuka LANGSUNG dari tombol QRIS bottom nav (bukan
+  // dari link "atau scan QR penerima" di dalam form Kirim yang memang sudah
+  // kebuka), dan user batal tanpa berhasil scan (qrisRecipient masih
+  // kosong), tutup juga halaman qrisPage-nya biar user balik ke halaman
+  // semula (Beranda/Riwayat/Profil/Promo) — bukan malah nyangkut di form
+  // "Cari Penerima" yang sama sekali belum pernah dia buka sendiri.
+  if (_qrisDirectScanFromNav) {
+    if (!qrisRecipient && typeof closePpobPage === 'function') {
+      closePpobPage('qrisPage');
+    }
+    _qrisDirectScanFromNav = false;
+  }
 }
 window.qrisCloseScanner = qrisCloseScanner;
 
