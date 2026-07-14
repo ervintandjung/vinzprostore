@@ -201,6 +201,12 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 .profit-amt .cur{font-size:14px;color:var(--gold);margin-right:4px;}
 .profit-sub{font-size:10.5px;color:var(--muted);margin-top:4px;position:relative;z-index:1;}
 
+/* TOP LOADING BAR (kayak GoPay) — garis tipis gradient biru-hijau yang
+   "berjalan" pas app baru dibuka / lagi refresh data Beranda. */
+.pc-top-progress{position:fixed;top:0;left:0;right:0;max-width:480px;margin:0 auto;height:3px;z-index:600;opacity:0;pointer-events:none;background:linear-gradient(90deg,#4d5bff,#00d4ff,#00ff88,#4d5bff);background-size:300% 100%;transition:opacity .2s ease;}
+.pc-top-progress.show{opacity:1;animation:pcProgressSlide 1s linear infinite;}
+@keyframes pcProgressSlide{0%{background-position:0% 0%;}100%{background-position:100% 0%;}}
+
 /* LAYANAN PPOB GRID */
 .pc-sec-title{font-size:17px;font-weight:700;color:#fff;margin:22px 0 12px;padding:0 2px;}
 .ppob-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 8px;}
@@ -901,6 +907,10 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 </style>
 </head>
 <body class="has-bottom-nav">
+
+<!-- ===== TOP LOADING BAR (kayak GoPay) — muncul otomatis pas app baru
+     dibuka / lagi refresh data Beranda ===== -->
+<div id="pcTopProgress" class="pc-top-progress"></div>
 
 <!-- ===== PIN GATE (dipakai tiap mau checkout/transfer) ===== -->
 <div class="pin-overlay" id="pinGateOverlay">
@@ -2614,6 +2624,7 @@ window.pgsUpdateResellerMenu = pgsUpdateResellerMenu;
 async function openResellerMenu(){
   document.body.classList.add('panel-lock');
   document.getElementById('resellerMenuPage').classList.add('open');
+  if (typeof pcSaveExtraPage === 'function') pcSaveExtraPage('resellerMenuPage');
   document.getElementById('rmMarkupList').innerHTML = '<div style="padding:16px;text-align:center;opacity:.6;font-size:13px;">Memuat markup...</div>';
   document.getElementById('rmReferralCode').value = 'Memuat...';
 
@@ -2635,6 +2646,7 @@ window.openResellerMenu = openResellerMenu;
 function closeResellerMenu(){
   document.body.classList.remove('panel-lock');
   document.getElementById('resellerMenuPage').classList.remove('open');
+  if (typeof pcClearExtraPage === 'function') pcClearExtraPage('resellerMenuPage');
 }
 window.closeResellerMenu = closeResellerMenu;
 
@@ -3013,19 +3025,42 @@ function vpApplyMarkup(category, price) {
 // ══════════════════════════════
 const VP_TIER_RATIO = { reseller: 0.75, agen: 0.5 };
 
+// Loading bar tipis di atas (kayak GoPay) — dipanggil pas app mulai
+// nge-load data (initApp) dan pas Beranda di-refresh.
+function pcShowTopProgress(){
+  const el = document.getElementById('pcTopProgress');
+  if (el) el.classList.add('show');
+}
+function pcHideTopProgress(){
+  const el = document.getElementById('pcTopProgress');
+  if (el) setTimeout(() => el.classList.remove('show'), 200); // kasih jeda dikit biar kerasa "kelar"-nya
+}
+window.pcShowTopProgress = pcShowTopProgress;
+window.pcHideTopProgress = pcHideTopProgress;
+
 async function vpApplyReferralPricing() {
   try {
-    if (!currentUser || !currentUser.referred_by) return; // bukan hasil referral -> pakai markup admin biasa
+    // SELALU mulai dari markup admin asli (baseline), bukan dari
+    // markupConfig yang mungkin masih sisa override akun sebelumnya —
+    // ini yang bikin harga "nyangkut" ke markup lama pas ganti akun.
+    const baseline = window._adminMarkupConfig || markupConfig;
+    if (!currentUser || !currentUser.referred_by) {
+      markupConfig = { ...baseline }; // bukan hasil referral -> pakai markup admin biasa
+      return;
+    }
     const { data: referrer } = await _sb.from('users')
       .select('role,custom_markup')
       .eq('email', currentUser.referred_by)
       .single();
-    if (!referrer || !VP_TIER_RATIO[referrer.role]) return; // referrer bukan agen/reseller aktif
+    if (!referrer || !VP_TIER_RATIO[referrer.role]) {
+      markupConfig = { ...baseline }; // referrer bukan agen/reseller aktif
+      return;
+    }
     const ratio = VP_TIER_RATIO[referrer.role];
     const custom = vpParseJsonSetting(referrer.custom_markup) || {};
     const merged = {};
     MARKUP_CATEGORIES.forEach(c => {
-      const adminCfg = markupConfig[c.key] || { type: 'percent', value: 0 };
+      const adminCfg = baseline[c.key] || { type: 'percent', value: 0 };
       const own = custom[c.key];
       merged[c.key] = (own && own.value != null)
         ? own
@@ -3148,6 +3183,10 @@ async function doLogin() {
     document.getElementById('authOverlay').classList.remove('open');
     renderHeader();
     if (typeof pgsUpdateResellerMenu === 'function') pgsUpdateResellerMenu();
+    // PENTING: harga produk (markup) tergantung siapa yang login (referral
+    // agen/reseller atau bukan) — kalau gak di-refresh di sini, harga bakal
+    // "nyangkut" ke markup akun sebelumnya sampai halaman di-reload manual.
+    if (typeof vpApplyReferralPricing === 'function') await vpApplyReferralPricing();
     showNotif('✅ Selamat datang, ' + currentUser.name + '!');
     // Langsung sinkron riwayat & refresh Pemasukan/Pengeluaran begitu login
     // berhasil, biar gak nunjukin Rp 0 dulu sebelum ke Riwayat.
@@ -3535,6 +3574,7 @@ async function doVerifyOTP() {
     currentUser = { email: otpPendingUser.email, name: otpPendingUser.name, verified: true, role: 'member', referred_by: otpPendingUser.referredBy || null };
     localStorage.setItem('vp_user', JSON.stringify(currentUser));
     renderHeader();
+    if (typeof vpApplyReferralPricing === 'function') await vpApplyReferralPricing();
     showNotif('✅ Email terverifikasi! Selamat datang, ' + currentUser.name + '!');
     if (typeof pcRefreshStatsFromServer === 'function') pcRefreshStatsFromServer();
   } else {
@@ -3561,6 +3601,8 @@ function doLogout() {
   localStorage.removeItem('vp_user');
   // Logout dari Supabase Auth juga (hapus session JWT)
   try { _sb.auth.signOut(); } catch(e) {}
+  // Balikin harga produk ke markup admin polos (tanpa referral akun tadi)
+  if (window._adminMarkupConfig) markupConfig = { ...window._adminMarkupConfig };
   renderHeader();
   showNotif('👋 Berhasil logout!');
   // Tutup panel Pengaturan lalu arahkan otomatis ke halaman login
@@ -3694,10 +3736,12 @@ function openEditProfil(){
     av.innerHTML = `<span style="font-size:26px;font-weight:900;">${(currentUser.name||'U')[0].toUpperCase()}</span>`;
   }
   document.getElementById('editProfilPage').classList.add('open');
+  if (typeof pcSaveExtraPage === 'function') pcSaveExtraPage('editProfilPage');
 }
 function closeEditProfil(){
   document.getElementById('editProfilPage').classList.remove('open');
   if (settingsOtpTimer) clearInterval(settingsOtpTimer);
+  if (typeof pcClearExtraPage === 'function') pcClearExtraPage('editProfilPage');
 }
 
 // ── Halaman Ubah Password tersendiri ──
@@ -3708,9 +3752,11 @@ function openUbahPassword(){
   document.getElementById('upNew2').value = '';
   document.getElementById('upErr').style.display = 'none';
   document.getElementById('ubahPasswordPage').classList.add('open');
+  if (typeof pcSaveExtraPage === 'function') pcSaveExtraPage('ubahPasswordPage');
 }
 function closeUbahPassword(){
   document.getElementById('ubahPasswordPage').classList.remove('open');
+  if (typeof pcClearExtraPage === 'function') pcClearExtraPage('ubahPasswordPage');
 }
 async function submitUbahPassword(){
   const errEl = document.getElementById('upErr');
@@ -3776,9 +3822,11 @@ function openVerifikasiIdentitas(){
     pendingWrap.style.display = 'none';
   }
   document.getElementById('verifikasiIdentitasPage').classList.add('open');
+  if (typeof pcSaveExtraPage === 'function') pcSaveExtraPage('verifikasiIdentitasPage');
 }
 function closeVerifikasiIdentitas(){
   document.getElementById('verifikasiIdentitasPage').classList.remove('open');
+  if (typeof pcClearExtraPage === 'function') pcClearExtraPage('verifikasiIdentitasPage');
 }
 function viFileChange(inputId, boxId, dataVar){
   const file = document.getElementById(inputId).files[0];
@@ -3996,9 +4044,11 @@ function openStrukSettings(){
   ssFillForm();
   ssRenderPreview();
   document.getElementById('strukSettingsPage').classList.add('open');
+  if (typeof pcSaveExtraPage === 'function') pcSaveExtraPage('strukSettingsPage');
 }
 function closeStrukSettings(){
   document.getElementById('strukSettingsPage').classList.remove('open');
+  if (typeof pcClearExtraPage === 'function') pcClearExtraPage('strukSettingsPage');
 }
 
 function ssSaveSettings(){
@@ -5045,7 +5095,7 @@ function renderApMarkup() {
 async function apLoadMarkup() {
   try {
     const { data, error } = await _sb.from('settings').select('value').eq('key', 'markup').maybeSingle();
-    if (!error && data && data.value) markupConfig = vpParseJsonSetting(data.value) || {};
+    if (!error && data && data.value) { markupConfig = vpParseJsonSetting(data.value) || {}; window._adminMarkupConfig = { ...markupConfig }; }
   } catch (e) { console.warn('Markup load error:', e); }
   renderApMarkup();
 }
@@ -5060,6 +5110,7 @@ function apSaveMarkup() {
     cfg[c.key] = { type: typeEl.value, value };
   });
   markupConfig = cfg;
+  window._adminMarkupConfig = { ...cfg };
   _sb.from('settings').upsert({ key: 'markup', value: JSON.stringify(cfg) }).then(({ error }) => {
     if (error) { showNotif('❌ Gagal simpan markup: ' + error.message); return; }
     showNotif('✅ Markup harga disimpan untuk semua kategori!');
@@ -5323,6 +5374,7 @@ function apDeleteProd(id) {
 // INIT — load dari Supabase
 // ══════════════════════════════
 async function initApp() {
+  if (typeof pcShowTopProgress === 'function') pcShowTopProgress();
   renderHeader();
 
   // Wajib login/daftar dulu sebelum bisa lanjut ke beranda
@@ -5343,7 +5395,7 @@ async function initApp() {
       for (const s of settings) {
         if (s.key === 'wa' && s.value) waNum = s.value;
         if (s.key === 'ticker' && s.value) document.getElementById('tickerTxt').textContent = s.value;
-        if (s.key === 'markup' && s.value) markupConfig = vpParseJsonSetting(s.value) || {};
+        if (s.key === 'markup' && s.value) { markupConfig = vpParseJsonSetting(s.value) || {}; window._adminMarkupConfig = { ...markupConfig }; }
       }
     }
   } catch(e) { console.warn('Settings load error:', e); }
@@ -5370,6 +5422,8 @@ async function initApp() {
   // Balikin ke tab terakhir (Riwayat/Agen-Reseller/Profil) kalau sebelum
   // refresh/reload user lagi di situ — jangan selalu lempar ke Beranda.
   if (typeof pcRestoreLastTab === 'function') pcRestoreLastTab();
+
+  if (typeof pcHideTopProgress === 'function') pcHideTopProgress();
 }
 
 
@@ -7013,9 +7067,11 @@ function doPesan(){
     document.getElementById('arErr').style.display = 'none';
     arSelectTier('reseller');
     document.getElementById('agenResellerPage').classList.add('open');
+    if (typeof pcSaveExtraPage === 'function') pcSaveExtraPage('agenResellerPage');
   };
   window.closeAgenReseller = function(){
     document.getElementById('agenResellerPage').classList.remove('open');
+    if (typeof pcClearExtraPage === 'function') pcClearExtraPage('agenResellerPage');
   };
 
   window.submitAgenReseller = async function(){
@@ -11550,11 +11606,13 @@ function openTopUp(){
   document.body.classList.add('panel-lock');
   el.scrollTop=0;
   if (typeof window.vpReloadBalance==='function') window.vpReloadBalance();
+  if (typeof pcSaveExtraPage === 'function') pcSaveExtraPage('topUpPage');
 }
 function closeTopUp(){
   const el=document.getElementById('topUpPage');
   el.classList.remove('open');
   document.body.classList.remove('panel-lock');
+  if (typeof pcClearExtraPage === 'function') pcClearExtraPage('topUpPage');
 }
 function tuSetAmt(v,el){
   const input=document.getElementById('topupAmt');
@@ -12258,6 +12316,14 @@ function pcGoBeranda(){
   const promo = document.getElementById('promoPanel');
   if (promo && promo.classList.contains('open') && typeof closePromo==='function') closePromo();
   window.scrollTo({top:0,behavior:'smooth'});
+
+  // Refresh singkat kayak GoPay tiap balik ke Beranda: saldo & ringkasan
+  // Pemasukan/Pengeluaran di-refresh lagi, ditandain loading bar tipis di atas.
+  if (typeof pcShowTopProgress === 'function') pcShowTopProgress();
+  Promise.all([
+    (typeof window.vpReloadBalance === 'function') ? window.vpReloadBalance() : Promise.resolve(),
+    (currentUser && typeof pcRefreshStatsFromServer === 'function') ? pcRefreshStatsFromServer() : Promise.resolve(),
+  ]).finally(() => { if (typeof pcHideTopProgress === 'function') pcHideTopProgress(); });
 }
 function pcGoRiwayat(){
   try { localStorage.setItem('vp_last_tab', 'riwayat'); } catch(e){}
@@ -12303,13 +12369,69 @@ function pcGoProfil(){
 function pcRestoreLastTab(){
   let tab = null;
   try { tab = localStorage.getItem('vp_last_tab'); } catch(e){}
-  if (!tab || tab === 'beranda') return; // default sudah Beranda, gak perlu apa2
-  if (!(typeof currentUser !== 'undefined' && currentUser)) return; // belum login, biarin auth gate yang tampil
-  if (tab === 'riwayat' && typeof pcGoRiwayat === 'function') pcGoRiwayat();
-  else if (tab === 'promo' && typeof pcGoPromo === 'function') pcGoPromo();
-  else if (tab === 'profil' && typeof pcGoProfil === 'function') pcGoProfil();
+  if (tab && tab !== 'beranda' && (typeof currentUser !== 'undefined' && currentUser)) {
+    // sudah login, boleh balik ke tab terakhir
+    if (tab === 'riwayat' && typeof pcGoRiwayat === 'function') pcGoRiwayat();
+    else if (tab === 'promo' && typeof pcGoPromo === 'function') pcGoPromo();
+    else if (tab === 'profil' && typeof pcGoProfil === 'function') pcGoProfil();
+  }
+  // Selain 4 tab utama, coba juga balikin ke halaman "kedua" yang lagi
+  // dibuka (Top Up, Pulsa, PLN, Edit Profil, Agen/Reseller, dll) biar
+  // refresh di halaman mana pun gak selalu balik ke Beranda.
+  if (typeof pcRestoreExtraPage === 'function') pcRestoreExtraPage();
 }
 window.pcRestoreLastTab = pcRestoreLastTab;
+
+// ══════════════════════════════
+// PERSISTENSI HALAMAN "KEDUA" (bukan 4 tab bawah)
+// Contoh: Top Up, Pulsa, PLN, Voucher Game, Edit Profil, Ubah Password,
+// Verifikasi Identitas, Struk Settings, Agen/Reseller, Menu Reseller.
+// Disimpan terpisah dari vp_last_tab supaya kalau user lagi di salah satu
+// halaman ini terus refresh, dia balik lagi ke halaman yang sama persis,
+// bukan ke Beranda.
+// ══════════════════════════════
+const PC_EXTRA_PAGE_KEY = 'vp_last_extra_page';
+function pcSaveExtraPage(id){
+  try { if (id) localStorage.setItem(PC_EXTRA_PAGE_KEY, id); } catch(e){}
+}
+function pcClearExtraPage(id){
+  try {
+    const cur = localStorage.getItem(PC_EXTRA_PAGE_KEY);
+    if (!id || cur === id) localStorage.removeItem(PC_EXTRA_PAGE_KEY);
+  } catch(e){}
+}
+window.pcSaveExtraPage = pcSaveExtraPage;
+window.pcClearExtraPage = pcClearExtraPage;
+
+function pcRestoreExtraPage(){
+  let id = null;
+  try { id = localStorage.getItem(PC_EXTRA_PAGE_KEY); } catch(e){}
+  if (!id) return;
+
+  // Halaman-halaman ini butuh login. Kalau ternyata sesi login sudah
+  // hilang (mis. localStorage kepencet clear), jangan coba dibuka —
+  // biar gak muncul halaman kosong/error, cukup lupakan aja.
+  const needsLogin = ['editProfilPage','ubahPasswordPage','verifikasiIdentitasPage','strukSettingsPage','agenResellerPage','resellerMenuPage'];
+  if (needsLogin.indexOf(id) !== -1 && !(typeof currentUser !== 'undefined' && currentUser)) {
+    pcClearExtraPage();
+    return;
+  }
+
+  const ppobIds = ['pulsaPage','dataPage','ewalletPage','voucherGamePage','plnPage','pdamPage','pascabayarhpPage','streamingPage','telpsmsPage','smmOrderPage','lainnyaMenuPage'];
+
+  if (ppobIds.indexOf(id) !== -1 && typeof openPpobPage === 'function') { openPpobPage(id); return; }
+  if (id === 'topUpPage' && typeof openTopUp === 'function') { openTopUp(); return; }
+  if (id === 'agenResellerPage' && typeof window.openAgenReseller === 'function') { window.openAgenReseller(); return; }
+  if (id === 'editProfilPage' && typeof openEditProfil === 'function') { openEditProfil(); return; }
+  if (id === 'ubahPasswordPage' && typeof openUbahPassword === 'function') { openUbahPassword(); return; }
+  if (id === 'verifikasiIdentitasPage' && typeof openVerifikasiIdentitas === 'function') { openVerifikasiIdentitas(); return; }
+  if (id === 'strukSettingsPage' && typeof openStrukSettings === 'function') { openStrukSettings(); return; }
+  if (id === 'resellerMenuPage' && typeof window.openResellerMenu === 'function') { window.openResellerMenu(); return; }
+
+  // ID gak dikenal (versi lama dsb) — buang aja biar gak nyangkut selamanya.
+  pcClearExtraPage();
+}
+window.pcRestoreExtraPage = pcRestoreExtraPage;
 
 // ── PPOB SERVICE PAGES FUNCTIONS ──
 function openPpobPage(id){
@@ -12329,12 +12451,14 @@ function openPpobPage(id){
 
   document.body.classList.add('panel-lock');
   el.classList.add('open');
+  if (typeof pcSaveExtraPage === 'function') pcSaveExtraPage(id);
 }
 function closePpobPage(id){
   const el = document.getElementById(id);
   if (!el) return;
   el.classList.remove('open');
   document.body.classList.remove('panel-lock');
+  if (typeof pcClearExtraPage === 'function') pcClearExtraPage(id);
 }
 function openPulsaPage(){ openPpobPage('pulsaPage'); }
 function openDataPage(){ openPpobPage('dataPage'); }
