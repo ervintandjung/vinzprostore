@@ -12198,6 +12198,23 @@ function tuClearActive(){
   };
 </script>
 
+<style>
+/* Halaman2 ini (Admin Panel, Edit Profil, Ubah Password, Verifikasi Identitas,
+   Pengaturan Struk, Jadi Agen & Reseller) numpuk di atas panel Profil/Agen-
+   Reseller yg masih "open" di belakangnya, jadi bottom-nav ikut kepaksa
+   nongol (dari rule #settingsPanel.open ~ .bottom-nav / #promoPanel.open ~
+   .bottom-nav). Rule di bawah ini bikin halaman2 tsb full screen beneran
+   tanpa bottom-nav, sama kayak halaman pulsa/paket data. */
+#adminPanel.open ~ .bottom-nav,
+#editProfilPage.open ~ .bottom-nav,
+#ubahPasswordPage.open ~ .bottom-nav,
+#verifikasiIdentitasPage.open ~ .bottom-nav,
+#strukSettingsPage.open ~ .bottom-nav,
+#resellerMenuPage.open ~ .bottom-nav{
+  display:none!important;
+}
+</style>
+
 <!-- BOTTOM NAV -->
 <div class="bottom-nav bottom-nav-5">
   <button class="bn-item active" id="bnBeranda" onclick="pcGoBeranda()">
