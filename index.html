@@ -187,6 +187,18 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 .btn-topup{width:100%;background:linear-gradient(90deg,#2563eb,#3b82f6);box-shadow:0 0 20px rgba(59,130,246,0.3),0 0 60px rgba(59,130,246,0.1);color:#fff;border:none;border-radius:14px;padding:15px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;}
 .btn-topup:active{opacity:.85;}
 
+/* SALDO PROFIT CARD (khusus admin/owner) — kartu ke-2, terpisah dari saldo H2H asli */
+#profitSaldoCard{display:none;background:rgba(255,215,0,0.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,215,0,0.25);border-radius:20px;padding:18px 22px;position:relative;overflow:hidden;box-shadow:0 0 20px rgba(255,215,0,0.12);margin-top:12px;}
+#profitSaldoCard.show{display:block;}
+#profitSaldoCard::after{content:'';position:absolute;top:-50px;right:-50px;width:160px;height:160px;background:radial-gradient(circle,rgba(255,215,0,0.14),transparent 70%);pointer-events:none;}
+.profit-top-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;position:relative;z-index:1;}
+.profit-top-row svg{width:13px;height:13px;color:var(--gold);flex-shrink:0;}
+.profit-top-row .lbl{font-size:11px;color:var(--gold);letter-spacing:1.5px;font-weight:700;}
+.profit-amt-row{display:flex;align-items:baseline;gap:8px;position:relative;z-index:1;}
+.profit-amt{font-family:'Orbitron',sans-serif;font-weight:900;font-size:22px;color:#fff;}
+.profit-amt .cur{font-size:14px;color:var(--gold);margin-right:4px;}
+.profit-sub{font-size:10.5px;color:var(--muted);margin-top:4px;position:relative;z-index:1;}
+
 /* LAYANAN PPOB GRID */
 .pc-sec-title{font-size:17px;font-weight:700;color:#fff;margin:22px 0 12px;padding:0 2px;}
 .ppob-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 8px;}
@@ -868,7 +880,20 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 .pin-key.pin-key-ghost{background:transparent;border:none;cursor:default;}
 .pin-key.pin-key-bio{background:transparent;border:none;color:var(--accent2);font-size:24px;}
 .pin-forgot{margin-top:22px;font-size:12.5px;color:var(--accent2);font-weight:700;cursor:pointer;text-decoration:underline;}
+.pin-bio-icon-big{width:92px;height:92px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:42px;margin-bottom:16px;cursor:pointer;box-shadow:0 0 0 0 rgba(0,212,255,.45);animation:pinBioPulse 1.8s infinite;}
+.pin-bio-icon-big:active{transform:scale(.94);}
+@keyframes pinBioPulse{0%{box-shadow:0 0 0 0 rgba(0,212,255,.45);}70%{box-shadow:0 0 0 16px rgba(0,212,255,0);}100%{box-shadow:0 0 0 0 rgba(0,212,255,0);}}
 .pin-setup-steps{font-size:11.5px;color:var(--muted);text-align:center;letter-spacing:.5px;margin-bottom:4px;}
+
+/* PICKER PRINTER BLUETOOTH (native) */
+.ssbt-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:none;align-items:flex-end;justify-content:center;max-width:480px;margin:0 auto;}
+.ssbt-overlay.open{display:flex;}
+.ssbt-sheet{width:100%;background:var(--secondary);border-radius:18px 18px 0 0;padding:18px 16px 26px;max-height:70vh;overflow-y:auto;}
+.ssbt-head{display:flex;align-items:center;justify-content:space-between;font-family:'Orbitron',sans-serif;font-weight:700;font-size:12.5px;color:#fff;letter-spacing:1px;margin-bottom:6px;}
+.ssbt-close{cursor:pointer;color:var(--muted);font-size:16px;}
+.ssbt-hint{font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+.ssbt-item{display:flex;align-items:center;gap:10px;padding:12px 10px;border-radius:10px;background:var(--card2);border:1px solid var(--border);margin-bottom:8px;cursor:pointer;}
+.ssbt-item:active{background:rgba(77,91,255,.15);}
 
 </style>
 </head>
@@ -877,29 +902,45 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 <!-- ===== PIN GATE (dipakai tiap mau checkout/transfer) ===== -->
 <div class="pin-overlay" id="pinGateOverlay">
   <div class="pin-close" onclick="pinGateCancel()">✕</div>
-  <div class="pin-icon">🔒</div>
-  <div class="pin-title">MASUKKAN PIN</div>
-  <div class="pin-sub" id="pinGateSub">Konfirmasi transaksi kamu</div>
-  <div class="pin-dots" id="pinGateDots">
-    <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
-    <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
+
+  <!-- Layar sidik jari — ini yang muncul PERTAMA kalau biometrik aktif,
+       karena lebih simpel buat user. Sidik jari native langsung ke-trigger
+       otomatis begitu layar ini tampil. -->
+  <div id="pinGateBioWrap" style="display:none;flex-direction:column;align-items:center;">
+    <div class="pin-bio-icon-big" id="pinGateBioIconBig" onclick="pinGateBiometric()">👆</div>
+    <div class="pin-title">SIDIK JARI</div>
+    <div class="pin-sub" id="pinGateBioSub">Tempelkan jari kamu untuk konfirmasi transaksi</div>
+    <div class="pin-error-msg" id="pinGateBioError"></div>
+    <div class="pin-forgot" onclick="pinGateShowKeypad()">Gunakan PIN</div>
   </div>
-  <div class="pin-error-msg" id="pinGateError"></div>
-  <div class="pin-keypad" id="pinGateKeypad">
-    <div class="pin-key" onclick="pinGateInput('1')">1</div>
-    <div class="pin-key" onclick="pinGateInput('2')">2</div>
-    <div class="pin-key" onclick="pinGateInput('3')">3</div>
-    <div class="pin-key" onclick="pinGateInput('4')">4</div>
-    <div class="pin-key" onclick="pinGateInput('5')">5</div>
-    <div class="pin-key" onclick="pinGateInput('6')">6</div>
-    <div class="pin-key" onclick="pinGateInput('7')">7</div>
-    <div class="pin-key" onclick="pinGateInput('8')">8</div>
-    <div class="pin-key" onclick="pinGateInput('9')">9</div>
-    <div class="pin-key pin-key-bio" id="pinGateBioKey" onclick="pinGateBiometric()" style="display:none;">👆</div>
-    <div class="pin-key" onclick="pinGateInput('0')">0</div>
-    <div class="pin-key" onclick="pinGateBackspace()">⌫</div>
+
+  <!-- Layar keypad PIN manual — fallback, atau default kalau biometrik
+       gak aktif/gak tersedia. -->
+  <div id="pinGateKeypadWrap" style="display:flex;flex-direction:column;align-items:center;">
+    <div class="pin-icon">🔒</div>
+    <div class="pin-title">MASUKKAN PIN</div>
+    <div class="pin-sub" id="pinGateSub">Konfirmasi transaksi kamu</div>
+    <div class="pin-dots" id="pinGateDots">
+      <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
+      <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
+    </div>
+    <div class="pin-error-msg" id="pinGateError"></div>
+    <div class="pin-keypad" id="pinGateKeypad">
+      <div class="pin-key" onclick="pinGateInput('1')">1</div>
+      <div class="pin-key" onclick="pinGateInput('2')">2</div>
+      <div class="pin-key" onclick="pinGateInput('3')">3</div>
+      <div class="pin-key" onclick="pinGateInput('4')">4</div>
+      <div class="pin-key" onclick="pinGateInput('5')">5</div>
+      <div class="pin-key" onclick="pinGateInput('6')">6</div>
+      <div class="pin-key" onclick="pinGateInput('7')">7</div>
+      <div class="pin-key" onclick="pinGateInput('8')">8</div>
+      <div class="pin-key" onclick="pinGateInput('9')">9</div>
+      <div class="pin-key pin-key-bio" id="pinGateBioKey" onclick="pinGateBiometric()" style="visibility:hidden;">👆</div>
+      <div class="pin-key" onclick="pinGateInput('0')">0</div>
+      <div class="pin-key" onclick="pinGateBackspace()">⌫</div>
+    </div>
+    <div class="pin-forgot" onclick="pinGateForgot()">Lupa PIN?</div>
   </div>
-  <div class="pin-forgot" onclick="pinGateForgot()">Lupa PIN?</div>
 </div>
 
 <!-- ===== SETUP / GANTI PIN (dibuka dari Pengaturan) ===== -->
@@ -969,6 +1010,20 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     <div class="pc-topup-row" style="display:flex;gap:8px;align-items:stretch;">
       <button class="btn-topup" style="flex:1;padding:16px 6px;font-size:17px;" onclick="(typeof currentUser!=='undefined' && currentUser) ? openTopUp() : openAuth('masuk')">⊕ Top Up</button>
     </div>
+  </div>
+
+  <!-- SALDO PROFIT CARD — CUMA MUNCUL UNTUK AKUN ADMIN/OWNER (alpintandjung@gmail.com).
+       Terpisah dari saldo H2H asli di atas: kartu ini murni pembukuan pendapatan
+       dari fee top up + markup produk, supaya tidak nyampur sama saldo H2H asli. -->
+  <div id="profitSaldoCard">
+    <div class="profit-top-row">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span class="lbl">SALDO PROFIT KAMU</span>
+    </div>
+    <div class="profit-amt-row">
+      <div class="profit-amt"><span class="cur">Rp</span><span id="profitSaldoAmt" data-real="0">0</span></div>
+    </div>
+    <div class="profit-sub">Terkumpul dari fee top up &amp; markup produk (terpisah dari saldo H2H asli)</div>
   </div>
 
   <!-- QUICK STATS -->
@@ -1397,26 +1452,30 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
   <div class="ppob-wrap">
     <div class="pi-badge">TAGIHAN</div>
     <div class="pi-title">BAYAR <span>PASCABAYAR HP</span></div>
-    <div class="pi-sub">Masukkan nomor HP pascabayar dan pilih provider</div>
+    <div class="pi-sub">Masukkan nomor HP pascabayar, provider terdeteksi otomatis</div>
 
-    <div class="ppob-card">
-      <div class="ppob-label">NOMOR HANDPHONE</div>
-      <input type="tel" id="pascabayarhpInput" class="ppob-input" placeholder="Contoh: 08123456789" maxlength="15">
-      <div class="ppob-label" style="margin-top:8px;">PROVIDER</div>
-      <div class="ppob-chips" id="pascabayarhpProvider">
-        <div class="ppob-chip active" data-provider="Telkomsel" onclick="selectPpobProvider(this,'pascabayarhp')">Telkomsel</div>
-        <div class="ppob-chip" data-provider="Indosat" onclick="selectPpobProvider(this,'pascabayarhp')">Indosat</div>
-        <div class="ppob-chip" data-provider="XL" onclick="selectPpobProvider(this,'pascabayarhp')">XL</div>
-        <div class="ppob-chip" data-provider="Tri" onclick="selectPpobProvider(this,'pascabayarhp')">Tri</div>
-        <div class="ppob-chip" data-provider="Axis" onclick="selectPpobProvider(this,'pascabayarhp')">Axis</div>
-        <div class="ppob-chip" data-provider="Smartfren" onclick="selectPpobProvider(this,'pascabayarhp')">Smartfren</div>
+    <div class="ppob-contact-card">
+      <div class="ppob-contact-row">
+        <div class="ppob-contact-main">
+          <div class="ppob-contact-text">
+            <div class="lbl">Nomor HP Pascabayar</div>
+            <input type="tel" id="pascabayarhpInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" oninput="detectProvider('pascabayarhp')" onkeydown="if(event.key==='Enter'){h2hCekTagihanPascabayarhp();}">
+          </div>
+          <div class="ppob-prov-logo" id="pascabayarhpProvBadge"></div>
+        </div>
+        <div class="ppob-contact-kontak" onclick="pickPpobContact('pascabayarhp')">
+          <div class="ck-ic">👤</div>
+          <div class="ck-lb">Kontak</div>
+        </div>
       </div>
     </div>
 
-    <div class="ppob-card">
+    <button class="ppob-btn" id="pascabayarhpCekBtn" onclick="h2hCekTagihanPascabayarhp()">🔍 Cek Tagihan</button>
+
+    <div class="ppob-card" id="pascabayarhpNominalCard" style="display:none;">
       <div class="ppob-label">PILIH TAGIHAN</div>
       <div class="ppob-nom-grid" id="pascabayarhpNominal">
-        <div style="grid-column:1/-1;padding:16px;text-align:center;opacity:.6;font-size:13px;">Pilih provider untuk melihat produk yang tersedia.</div>
+        <div style="grid-column:1/-1;padding:16px;text-align:center;opacity:.6;font-size:13px;">Memuat tagihan...</div>
       </div>
     </div>
   </div>
@@ -2476,6 +2535,18 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
   </div>
 </div>
 
+<!-- PICKER PRINTER BLUETOOTH (native Android, dipakai kalau window.AndroidBridge ada) -->
+<div class="ssbt-overlay" id="ssBtPickerOverlay">
+  <div class="ssbt-sheet">
+    <div class="ssbt-head">
+      <span>PILIH PRINTER BLUETOOTH</span>
+      <span class="ssbt-close" onclick="ssClosePrinterPicker()">✕</span>
+    </div>
+    <div class="ssbt-hint">Pastikan printer sudah di-pairing lewat Pengaturan Bluetooth HP kamu.</div>
+    <div id="ssBtPickerList"></div>
+  </div>
+</div>
+
 <!-- NOTIF -->
 <div class="notif" id="notif"></div>
 
@@ -2739,6 +2810,16 @@ const MARKUP_CATEGORIES = [
   { key: 'smm', label: 'SMM (IG/TikTok/YT/dll)' },
 ];
 let markupConfig = {}; // { [kategori]: { type: 'percent'|'nominal', value: number } }
+
+// Kolom settings.value di Supabase tipe text, jadi objek (kayak markupConfig)
+// bisa balik sebagai string JSON mentah, bukan objek. Helper ini parse aman
+// dua-duanya (string JSON ATAU objek yang udah ke-parse otomatis).
+function vpParseJsonSetting(v) {
+  if (typeof v === 'string') {
+    try { return JSON.parse(v); } catch (e) { return v; }
+  }
+  return v;
+}
 
 function vpApplyMarkup(category, price) {
   const base = Number(price) || 0;
@@ -3540,8 +3621,18 @@ async function submitVerifikasiIdentitas(){
 const SS_STORAGE_KEY = 'vp_struk_settings';
 let ssLogoData = '';
 let ssPaperSize = '80'; // '58' atau '80'
-let ssPrinterDevice = null; // hasil navigator.bluetooth.requestDevice()
+let ssPrinterDevice = null; // hasil navigator.bluetooth.requestDevice() — fallback browser biasa
 let ssPrinterCharacteristic = null;
+let ssNativePrinterAddress = ''; // MAC address printer yang dipilih via AndroidBridge (APK)
+let ssNativePrinterName = '';
+let _ssScanResolve = null;
+let _ssConnectResolve = null, _ssConnectReject = null;
+let _ssPrintResolve = null, _ssPrintReject = null;
+
+// True kalau app-nya APK WebView dengan bridge printer native (bukan browser biasa)
+function ssNativeAvailable(){
+  return !!(window.AndroidBridge && typeof window.AndroidBridge.scanBluetoothPrinters === 'function');
+}
 
 function ssGetSettings(){
   try {
@@ -3560,6 +3651,8 @@ function ssFillForm(){
   document.getElementById('ssPoweredBy').value = s.poweredBy || 'Powered by Vinzprostore';
   ssLogoData = s.logo || '';
   ssPaperSize = s.paperSize || '80';
+  ssNativePrinterAddress = s.printerAddress || '';
+  ssNativePrinterName = s.printerName || '';
   ssRenderLogo();
   ssSetPaper(ssPaperSize);
   const pName = document.getElementById('ssPrinterName');
@@ -3645,6 +3738,8 @@ function ssRenderPreview(trx){
   if (!box) return;
   trx = trx || ssBuildStrukData();
   const namaToko = document.getElementById('ssNamaToko').value.trim() || 'Nama Toko Anda';
+  const alamat = document.getElementById('ssAlamat').value.trim();
+  const telepon = document.getElementById('ssTelepon').value.trim();
   const footer = document.getElementById('ssFooter').value.trim() || 'Terima kasih atas transaksi Anda';
   const poweredBy = document.getElementById('ssPoweredBy').value.trim() || 'Powered by Vinzprostore';
   const width = ssPaperSize === '58' ? 260 : 300;
@@ -3653,6 +3748,8 @@ function ssRenderPreview(trx){
     <div style="text-align:center;margin-bottom:8px;">
       ${ssLogoData ? `<img src="${ssLogoData}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;margin-bottom:4px;">` : ''}
       <div style="font-weight:700;font-size:12.5px;">${namaToko}</div>
+      ${alamat ? `<div style="font-size:10.5px;opacity:.8;">${alamat}</div>` : ''}
+      ${telepon ? `<div style="font-size:10.5px;opacity:.8;">${telepon}</div>` : ''}
     </div>
     <div>${ssDashLine()}</div>
     <div>${ssPadRow('Invoice', trx.invoice)}</div>
@@ -3687,7 +3784,8 @@ function ssSaveSettings(){
     poweredBy: document.getElementById('ssPoweredBy').value.trim() || 'Powered by Vinzprostore',
     logo: ssLogoData,
     paperSize: ssPaperSize,
-    printerName: ssPrinterDevice ? ssPrinterDevice.name : (ssGetSettings().printerName || ''),
+    printerName: ssNativePrinterAddress ? ssNativePrinterName : (ssPrinterDevice ? ssPrinterDevice.name : (ssGetSettings().printerName || '')),
+    printerAddress: ssNativePrinterAddress || (ssGetSettings().printerAddress || ''),
   };
   try {
     localStorage.setItem(SS_STORAGE_KEY, JSON.stringify(s));
@@ -3697,10 +3795,34 @@ function ssSaveSettings(){
   }
 }
 
-// ── Cari & sambungkan printer Bluetooth (Web Bluetooth API — butuh Chrome/WebView yang mendukung) ──
+// ── Cari & sambungkan printer Bluetooth ──
+// Prioritas: kalau APK punya window.AndroidBridge (native Bluetooth Classic/SPP),
+// pakai itu — karena Web Bluetooth API gak jalan di WebView. Kalau dibuka di
+// browser biasa (Chrome dsb, bukan APK), fallback ke Web Bluetooth API.
 async function ssScanPrinter(){
+  if (ssNativeAvailable()) {
+    showNotif('🔍 Mencari printer Bluetooth ter-pairing...');
+    try {
+      const list = await new Promise((resolve, reject) => {
+        _ssScanResolve = resolve;
+        window.AndroidBridge.scanBluetoothPrinters();
+        setTimeout(() => reject(new Error('Waktu pencarian habis')), 12000);
+      });
+      if (!list.length) {
+        showNotif('⚠️ Belum ada printer ter-pairing. Pairing dulu lewat Pengaturan Bluetooth HP kamu.');
+        return;
+      }
+      ssShowPrinterPicker(list);
+    } catch(e) {
+      showNotif('❌ Gagal mencari printer: ' + (e.message || e));
+    }
+    return;
+  }
+
+  // Fallback Web Bluetooth — cuma jalan kalau dibuka lewat browser yang support,
+  // BUKAN di WebView APK biasa.
   if (!navigator.bluetooth || typeof navigator.bluetooth.requestDevice !== 'function') {
-    showNotif('⚠️ Bluetooth belum didukung di browser/APK ini. Gunakan Chrome versi terbaru atau APK dengan dukungan Web Bluetooth.');
+    showNotif('⚠️ Bluetooth belum didukung di browser/APK ini. Gunakan Chrome versi terbaru atau APK dengan dukungan printer native.');
     return;
   }
   try {
@@ -3720,8 +3842,132 @@ async function ssScanPrinter(){
   }
 }
 
-// Konversi teks struk (dari ssRenderPreview) jadi perintah ESC/POS sederhana lalu kirim ke printer
+// Dipanggil NATIVE lewat evaluateJavascript setelah scanBluetoothPrinters() selesai,
+// bawa JSON string array [{name, address}, ...]
+window.onBluetoothScanResult = function(json){
+  let list = [];
+  try { list = JSON.parse(json); } catch(e) {}
+  if (_ssScanResolve) { _ssScanResolve(list); _ssScanResolve = null; }
+};
+
+function ssShowPrinterPicker(list){
+  const box = document.getElementById('ssBtPickerList');
+  box.innerHTML = list.map(d => `
+    <div class="ssbt-item" onclick='ssPickPrinter(${JSON.stringify(d.address)}, ${JSON.stringify(d.name || "Printer")})'>
+      <span style="font-size:18px;">🖨️</span>
+      <div style="min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.name || 'Tanpa nama'}</div>
+        <div style="font-size:10.5px;color:var(--muted);">${d.address}</div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('ssBtPickerOverlay').classList.add('open');
+}
+function ssClosePrinterPicker(){
+  document.getElementById('ssBtPickerOverlay').classList.remove('open');
+}
+
+async function ssPickPrinter(address, name){
+  ssClosePrinterPicker();
+  showNotif('🔗 Menyambungkan ke ' + name + '...');
+  try {
+    await ssNativeConnect(address);
+    ssNativePrinterAddress = address;
+    ssNativePrinterName = name;
+    const nameEl = document.getElementById('ssPrinterName');
+    nameEl.textContent = '✅ ' + name;
+    nameEl.style.color = 'var(--success)';
+    showNotif('✅ Printer "' + name + '" tersambung. Klik SIMPAN PENGATURAN untuk menyimpan.');
+  } catch(e) {
+    showNotif('❌ Gagal menyambungkan printer: ' + (e.message || e));
+  }
+}
+
+// Suruh native connect ke printer (dipanggil pas milih printer di picker,
+// dan juga sebelum tiap kali cetak jaga-jaga koneksinya udah putus)
+function ssNativeConnect(address){
+  return new Promise((resolve, reject) => {
+    _ssConnectResolve = resolve;
+    _ssConnectReject = reject;
+    window.AndroidBridge.connectBluetoothPrinter(address);
+    setTimeout(() => { if (_ssConnectReject) { _ssConnectReject(new Error('Waktu sambung habis')); _ssConnectResolve = null; _ssConnectReject = null; } }, 10000);
+  });
+}
+window.onPrinterConnected = function(name, address){
+  if (_ssConnectResolve) { _ssConnectResolve({ name, address }); _ssConnectResolve = null; _ssConnectReject = null; }
+};
+window.onPrinterConnectFailed = function(msg){
+  if (_ssConnectReject) { _ssConnectReject(new Error(msg || 'Gagal konek printer')); _ssConnectResolve = null; _ssConnectReject = null; }
+};
+
+function ssNativePrint(base64Data){
+  return new Promise((resolve, reject) => {
+    _ssPrintResolve = resolve;
+    _ssPrintReject = reject;
+    window.AndroidBridge.printReceipt(base64Data);
+    setTimeout(() => { if (_ssPrintReject) { _ssPrintReject(new Error('Waktu cetak habis')); _ssPrintResolve = null; _ssPrintReject = null; } }, 10000);
+  });
+}
+window.onPrintComplete = function(){
+  if (_ssPrintResolve) { _ssPrintResolve(); _ssPrintResolve = null; _ssPrintReject = null; }
+};
+window.onPrintFailed = function(msg){
+  if (_ssPrintReject) { _ssPrintReject(new Error(msg || 'Gagal cetak')); _ssPrintResolve = null; _ssPrintReject = null; }
+};
+
+function ssUint8ToBase64(bytes){
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+// Bikin teks perintah ESC/POS dari data struk — dipakai baik jalur native maupun Web Bluetooth
+function ssBuildEscPosText(trx){
+  const s = ssGetSettings();
+  const namaToko = s.namaToko || 'Nama Toko Anda';
+  const lines = [];
+  lines.push('\x1b\x61\x01'); // center align
+  lines.push(namaToko + '\n');
+  if (s.alamat) lines.push(s.alamat + '\n');
+  if (s.telepon) lines.push(s.telepon + '\n');
+  lines.push('\x1b\x61\x00'); // left align
+  lines.push(ssDashLine() + '\n');
+  lines.push(ssPadRow('Invoice', trx.invoice) + '\n');
+  lines.push(ssPadRow('Tanggal', trx.tanggal) + '\n');
+  lines.push(ssPadRow('Produk', trx.produk) + '\n');
+  lines.push(ssPadRow('Tujuan', trx.tujuan) + '\n');
+  lines.push(ssPadRow('SN', trx.sn) + '\n');
+  lines.push(ssPadRow('Harga', trx.harga) + '\n');
+  lines.push(ssPadRow('Status', trx.status) + '\n');
+  lines.push(ssDashLine() + '\n');
+  lines.push('\x1b\x61\x01');
+  lines.push((s.footer || 'Terima kasih atas transaksi Anda') + '\n');
+  lines.push((s.poweredBy || 'Powered by Vinzprostore') + '\n\n\n');
+  lines.push('\x1d\x56\x00'); // full cut (kalau didukung printer)
+  return lines.join('');
+}
+
+// Cetak ke printer — native (APK) kalau ada, kalau enggak fallback Web Bluetooth (browser biasa)
 async function ssPrintToBluetooth(trx){
+  const text = ssBuildEscPosText(trx);
+  const bytes = new TextEncoder().encode(text);
+
+  if (ssNativeAvailable()) {
+    try {
+      if (!ssNativePrinterAddress) ssNativePrinterAddress = ssGetSettings().printerAddress || '';
+      if (!ssNativePrinterAddress) {
+        showNotif('🔍 Pilih printer dulu...');
+        return false;
+      }
+      await ssNativeConnect(ssNativePrinterAddress); // aman dipanggil ulang walau sudah konek
+      await ssNativePrint(ssUint8ToBase64(bytes));
+      return true;
+    } catch(e) {
+      showNotif('❌ Gagal cetak ke printer: ' + (e.message || e));
+      return false;
+    }
+  }
+
   if (!navigator.bluetooth) {
     showNotif('⚠️ Bluetooth tidak didukung di browser/APK ini.');
     return false;
@@ -3746,28 +3992,6 @@ async function ssPrintToBluetooth(trx){
     }
     if (!writeChar) throw new Error('Printer tidak punya karakteristik tulis (write) yang cocok.');
 
-    const s = ssGetSettings();
-    const namaToko = s.namaToko || 'Nama Toko Anda';
-    const lines = [];
-    lines.push('\x1b\x61\x01'); // center align
-    lines.push(namaToko + '\n');
-    lines.push('\x1b\x61\x00'); // left align
-    lines.push(ssDashLine() + '\n');
-    lines.push(ssPadRow('Invoice', trx.invoice) + '\n');
-    lines.push(ssPadRow('Tanggal', trx.tanggal) + '\n');
-    lines.push(ssPadRow('Produk', trx.produk) + '\n');
-    lines.push(ssPadRow('Tujuan', trx.tujuan) + '\n');
-    lines.push(ssPadRow('SN', trx.sn) + '\n');
-    lines.push(ssPadRow('Harga', trx.harga) + '\n');
-    lines.push(ssPadRow('Status', trx.status) + '\n');
-    lines.push(ssDashLine() + '\n');
-    lines.push('\x1b\x61\x01');
-    lines.push((s.footer || 'Terima kasih atas transaksi Anda') + '\n');
-    lines.push((s.poweredBy || 'Powered by Vinzprostore') + '\n\n\n');
-    lines.push('\x1d\x56\x00'); // full cut (kalau didukung printer)
-
-    const text = lines.join('');
-    const bytes = new TextEncoder().encode(text);
     // Kirim per-chunk (banyak printer BLE cuma terima <=20 byte per write)
     const chunkSize = 20;
     for (let i = 0; i < bytes.length; i += chunkSize) {
@@ -3789,16 +4013,18 @@ async function ssTestPrint(){
   const ok = await ssPrintToBluetooth(trx);
   if (ok) {
     showNotif('✅ Struk contoh terkirim ke printer!');
-  } else if (!navigator.bluetooth) {
-    // Fallback tanpa Bluetooth: salin teks struk supaya tetap bisa dibagikan/dicetak manual
+  } else if (!ssNativeAvailable() && !navigator.bluetooth) {
+    // Fallback tanpa dukungan Bluetooth sama sekali: salin teks struk supaya tetap bisa dibagikan/dicetak manual
     const s = ssGetSettings();
     const txt = [
-      s.namaToko || 'Nama Toko Anda', ssDashLine(),
+      s.namaToko || 'Nama Toko Anda',
+      s.alamat || '', s.telepon || '',
+      ssDashLine(),
       ssPadRow('Invoice', trx.invoice), ssPadRow('Tanggal', trx.tanggal),
       ssPadRow('Produk', trx.produk), ssPadRow('Tujuan', trx.tujuan),
       ssPadRow('SN', trx.sn), ssPadRow('Harga', trx.harga), ssPadRow('Status', trx.status),
       ssDashLine(), s.footer || 'Terima kasih atas transaksi Anda', s.poweredBy || 'Powered by Vinzprostore'
-    ].join('\n');
+    ].filter(Boolean).join('\n');
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(txt);
@@ -4593,7 +4819,7 @@ function renderApMarkup() {
 async function apLoadMarkup() {
   try {
     const { data, error } = await _sb.from('settings').select('value').eq('key', 'markup').maybeSingle();
-    if (!error && data && data.value) markupConfig = data.value;
+    if (!error && data && data.value) markupConfig = vpParseJsonSetting(data.value) || {};
   } catch (e) { console.warn('Markup load error:', e); }
   renderApMarkup();
 }
@@ -4608,7 +4834,7 @@ function apSaveMarkup() {
     cfg[c.key] = { type: typeEl.value, value };
   });
   markupConfig = cfg;
-  _sb.from('settings').upsert({ key: 'markup', value: cfg }).then(({ error }) => {
+  _sb.from('settings').upsert({ key: 'markup', value: JSON.stringify(cfg) }).then(({ error }) => {
     if (error) { showNotif('❌ Gagal simpan markup: ' + error.message); return; }
     showNotif('✅ Markup harga disimpan untuk semua kategori!');
   });
@@ -4849,6 +5075,11 @@ async function initApp() {
   if (!currentUser) {
     authGateActive = true;
     openAuth('masuk');
+  } else {
+    // Udah login dari sesi sebelumnya (gak perlu login ulang) — tapi kalau
+    // user aktifin "Autentikasi Dua Faktor" di Pengaturan, wajib verifikasi
+    // dulu (sidik jari lalu/atau PIN) sebelum konten Beranda ditampilkan.
+    await appSecurityGateCheck();
   }
 
   // Load settings (wa, ticker)
@@ -4858,7 +5089,7 @@ async function initApp() {
       for (const s of settings) {
         if (s.key === 'wa' && s.value) waNum = s.value;
         if (s.key === 'ticker' && s.value) document.getElementById('tickerTxt').textContent = s.value;
-        if (s.key === 'markup' && s.value) markupConfig = s.value;
+        if (s.key === 'markup' && s.value) markupConfig = vpParseJsonSetting(s.value) || {};
       }
     }
   } catch(e) { console.warn('Settings load error:', e); }
@@ -11881,7 +12112,7 @@ function detectProviderName(num){
   return '';
 }
 function detectProvider(type){
-  const map = { pulsa:{i:'pulsaInput',b:'pulsaProvBadge',a:'pulsaAvatar'}, data:{i:'dataInput',b:'dataProvBadge',a:'dataAvatar'} };
+  const map = { pulsa:{i:'pulsaInput',b:'pulsaProvBadge',a:'pulsaAvatar'}, data:{i:'dataInput',b:'dataProvBadge',a:'dataAvatar'}, pascabayarhp:{i:'pascabayarhpInput',b:'pascabayarhpProvBadge'} };
   const cfg = map[type]; if (!cfg) return;
   const input = document.getElementById(cfg.i);
   const badge = document.getElementById(cfg.b);
@@ -11995,7 +12226,7 @@ function getPpobData(type){
     voucher: {pageId:'voucherGamePage', inputId:'voucherInput', provWrapId:'voucherProvider', nomWrapId:'voucherNominal', label:'Voucher Game', category:'voucher_game'},
     pln: {pageId:'plnPage', inputId:'plnInput', provWrapId:null, nomWrapId:'plnNominal', label:'Token PLN', category:'pln'},
     pdam: {pageId:'pdamPage', inputId:'pdamInput', provWrapId:'pdamProvider', nomWrapId:'pdamNominal', label:'PDAM', category:'pascabayar'},
-    pascabayarhp: {pageId:'pascabayarhpPage', inputId:'pascabayarhpInput', provWrapId:'pascabayarhpProvider', nomWrapId:'pascabayarhpNominal', label:'PascaBayar HP', category:'pascabayar'},
+    pascabayarhp: {pageId:'pascabayarhpPage', inputId:'pascabayarhpInput', provWrapId:null, nomWrapId:'pascabayarhpNominal', label:'PascaBayar HP', category:'pascabayar'},
     streaming: {pageId:'streamingPage', inputId:'streamingInput', provWrapId:null, nomWrapId:'streamingNominal', label:'Streaming', category:'streaming'},
     telpsms: {pageId:'telpsmsPage', inputId:'telpsmsInput', provWrapId:'telpsmsProvider', nomWrapId:'telpsmsNominal', label:'Paket Telp & SMS', category:'paket_telp_sms'}
   };
@@ -12004,7 +12235,7 @@ function getPpobData(type){
   const input = document.getElementById(cfg.inputId);
   const number = input ? input.value.trim() : '';
   let provider = '';
-  if (type === 'pulsa' || type === 'data') {
+  if (type === 'pulsa' || type === 'data' || type === 'pascabayarhp') {
     provider = detectProviderName(number);
   } else if (cfg.provWrapId) {
     const active = document.querySelector('#' + cfg.provWrapId + ' .ppob-chip.active');
@@ -12611,8 +12842,16 @@ window.smmOrder = smmOrder;
       if (zoneWrap) zoneWrap.style.display = (provider === 'Mobile Legends') ? 'block' : 'none';
       if (typeof h2hClearGameCheck === 'function') h2hClearGameCheck();
     }
-    if (type === 'pascabayarhp') h2hLoadPascabayarhp(provider);
     if (type === 'telpsms') h2hLoadTelpsms(provider);
+  };
+
+  // Tombol "Cek Tagihan" di halaman Pascabayar HP — provider dideteksi
+  // otomatis dari nomor HP yang diketik, lalu benar-benar cek tagihan real
+  // ke H2H lewat endpoint /bill/check (lihat modul h2hCekTagihanPascabayarhp
+  // di bawah, dekat H2H_WORKER_URL) — persis alur h2h.id: isi nomor, tekan
+  // Cek Tagihan, baru tagihan asli (nominal & nama pelanggan) muncul.
+  window.h2hCekTagihanPascabayarhp = function(){
+    if (typeof h2hRunCekTagihanPascabayarhp === 'function') h2hRunCekTagihanPascabayarhp();
   };
 
   // Nempel di fungsi detectProvider yang sudah ada (input nomor pulsa/data)
@@ -12629,7 +12868,6 @@ window.smmOrder = smmOrder;
     h2hLoadPln();
     h2hLoadEwallet('Dana');     // sesuai chip default yang aktif
     h2hLoadVoucher('Free Fire'); // sesuai chip default yang aktif
-    h2hLoadPascabayarhp('Telkomsel'); // sesuai chip default yang aktif
     h2hLoadTelpsms('Telkomsel');      // sesuai chip default yang aktif
     h2hLoadStreaming();               // daftar produk streaming, gak difilter provider
   });
@@ -12714,6 +12952,71 @@ async function pinHasPin(){
 let _pinGateEnrollMode = false; // true = lagi capture PIN buat didaftarkan ke biometrik, bukan buat transaksi
 let _pinEnrollBiometricResolve = null; // resolve promise pgsToggleBiometric, dipakai pas enrollBiometric() native selesai
 
+// ============================================================
+// APP SECURITY GATE — verifikasi 2 langkah pas APP DIBUKA
+// (bukan pas checkout). Dipicu dari initApp() kalau user sudah
+// login dari sesi sebelumnya (gak login ulang) TAPI toggle
+// "Autentikasi Dua Faktor" di Pengaturan lagi ON. Kalau "Biometrik
+// untuk PIN" juga ON, sidik jari dicoba duluan otomatis; gagal 3x
+// baru jatuh ke keypad PIN manual.
+// ============================================================
+let _appGateActive = false;   // true selagi overlay ini nge-block akses ke Beranda
+let _appGateBioFails = 0;     // hitung kegagalan sidik jari khusus di gate ini
+
+async function appSecurityGateCheck(){
+  if (!currentUser) return; // gak ada sesi -> alur login biasa yang urus
+
+  const twoFAOn = localStorage.getItem('vp_2fa_' + currentUser.email) === '1';
+  if (!twoFAOn) return; // 2FA mati -> langsung ke Beranda seperti biasa
+
+  const sudahAdaPin = await pinHasPin();
+  if (!sudahAdaPin) return; // gak ada PIN buat diverifikasi, gak mungkin nge-lock
+
+  await new Promise((resolve) => {
+    _appGateActive = true;
+    _appGateBioFails = 0;
+    _pinGateEnrollMode = false;
+    _pinGateBuffer = '';
+    // Pakai slot resolve yang sama dengan pinGateRequire supaya submit PIN
+    // (manual maupun hasil sidik jari) otomatis nutup gate ini juga.
+    _pinGateResolve = () => { _appGateActive = false; resolve(); };
+
+    const overlay = document.getElementById('pinGateOverlay');
+    document.getElementById('pinGateError').textContent = '';
+    document.getElementById('pinGateSub').textContent = 'Verifikasi keamanan sebelum masuk aplikasi';
+    _pinDotsRender('pinGateDots', 0);
+
+    // App-lock selalu pakai layar keypad (bio key di dalam keypad ikut
+    // muncul/kepencet otomatis di bawah kalau biometrik aktif) — beda dari
+    // pinGateRequire() yang punya layar sidik jari terpisah buat checkout.
+    document.getElementById('pinGateBioWrap').style.display = 'none';
+    document.getElementById('pinGateKeypadWrap').style.display = 'flex';
+
+    // Selama app-lock, tombol ✕ disembunyikan — verifikasi wajib, gak boleh
+    // dilewatin biar bisa lanjut ke Beranda.
+    const closeBtn = overlay.querySelector('.pin-close');
+    if (closeBtn) closeBtn.style.display = 'none';
+
+    const bioKey = document.getElementById('pinGateBioKey');
+    const bioAktif = localStorage.getItem('pin_biometric_enabled') === '1';
+    const bioBisa = bioAktif && window.AndroidBridge && typeof window.AndroidBridge.authenticateBiometric === 'function';
+    bioKey.style.visibility = bioBisa ? 'visible' : 'hidden';
+
+    overlay.classList.add('open');
+
+    if (bioBisa) {
+      // Sidik jari duluan yang muncul otomatis begitu overlay kebuka.
+      setTimeout(() => window.AndroidBridge.authenticateBiometric(), 300);
+    }
+  });
+
+  // Balikin tombol ✕ seperti semula buat dipakai pinGateRequire() versi
+  // transaksi (checkout/transfer) yang memang boleh dibatalkan.
+  const overlayAfter = document.getElementById('pinGateOverlay');
+  const closeBtnAfter = overlayAfter.querySelector('.pin-close');
+  if (closeBtnAfter) closeBtnAfter.style.display = 'flex';
+}
+
 async function pinGateRequire(subtitleText){
   const sudahAdaPin = await pinHasPin();
   if (!sudahAdaPin) {
@@ -12727,7 +13030,9 @@ async function pinGateRequire(subtitleText){
     _pinGateResolve = resolve;
     _pinGateBuffer = '';
     document.getElementById('pinGateError').textContent = '';
+    document.getElementById('pinGateBioError').textContent = '';
     document.getElementById('pinGateSub').textContent = subtitleText || 'Konfirmasi transaksi kamu';
+    document.getElementById('pinGateBioSub').textContent = subtitleText || 'Tempelkan jari kamu untuk konfirmasi transaksi';
     _pinDotsRender('pinGateDots', 0);
     document.getElementById('pinGateOverlay').classList.add('open');
 
@@ -12736,10 +13041,19 @@ async function pinGateRequire(subtitleText){
     // ada localStorage lagi) — native yang nyimpen terenkripsi via Keystore.
     const bioKey = document.getElementById('pinGateBioKey');
     const bioAktif = localStorage.getItem('pin_biometric_enabled') === '1';
-    if (bioAktif && window.AndroidBridge && typeof window.AndroidBridge.authenticateBiometric === 'function') {
-      bioKey.style.display = 'flex';
+    const bioBisa = bioAktif && window.AndroidBridge && typeof window.AndroidBridge.authenticateBiometric === 'function';
+    bioKey.style.visibility = bioBisa ? 'visible' : 'hidden';
+
+    if (bioBisa) {
+      // Biometrik direkomendasikan karena lebih simpel: langsung tampilkan
+      // layar sidik jari & trigger prompt native-nya otomatis. User tetap
+      // bisa pilih "Gunakan PIN" buat pindah ke keypad manual kapan saja.
+      document.getElementById('pinGateKeypadWrap').style.display = 'none';
+      document.getElementById('pinGateBioWrap').style.display = 'flex';
+      setTimeout(() => window.AndroidBridge.authenticateBiometric(), 300);
     } else {
-      bioKey.style.display = 'none';
+      document.getElementById('pinGateBioWrap').style.display = 'none';
+      document.getElementById('pinGateKeypadWrap').style.display = 'flex';
     }
   });
 }
@@ -12758,12 +13072,26 @@ function pinEnrollBiometricCapturePin(){
     document.getElementById('pinGateError').textContent = '';
     document.getElementById('pinGateSub').textContent = 'Masukkan PIN kamu untuk aktifkan biometrik';
     _pinDotsRender('pinGateDots', 0);
-    document.getElementById('pinGateBioKey').style.display = 'none';
+    document.getElementById('pinGateBioKey').style.visibility = 'hidden';
+    document.getElementById('pinGateBioWrap').style.display = 'none';
+    document.getElementById('pinGateKeypadWrap').style.display = 'flex';
     document.getElementById('pinGateOverlay').classList.add('open');
   });
 }
 
+// Dipanggil kalau user di layar sidik jari milih "Gunakan PIN" — pindah ke
+// keypad manual tanpa nutup overlay (transaksi yang lagi jalan tetap sama).
+function pinGateShowKeypad(){
+  document.getElementById('pinGateBioWrap').style.display = 'none';
+  document.getElementById('pinGateKeypadWrap').style.display = 'flex';
+  document.getElementById('pinGateError').textContent = '';
+}
+
 function pinGateCancel(){
+  // Pas lagi app-lock (verifikasi wajib begitu app dibuka), tombol ✕ ini
+  // memang disembunyikan (lihat appSecurityGateCheck), tapi jaga-jaga saja
+  // biar gak ada jalan buat nge-skip verifikasi.
+  if (_appGateActive) return;
   document.getElementById('pinGateOverlay').classList.remove('open');
   _pinGateBuffer = '';
   _pinGateEnrollMode = false;
@@ -12872,7 +13200,32 @@ window.onBiometricFailed = function(){
     _pinEnrollBiometricResolve = null;
     return;
   }
-  document.getElementById('pinGateError').textContent = 'Verifikasi biometrik gagal, masukkan PIN manual';
+
+  if (_appGateActive) {
+    // Ini gagal sidik jari pas verifikasi WAJIB begitu app dibuka (bukan pas
+    // checkout). Kasih kesempatan 3x, lewat itu tombol sidik jari
+    // disembunyikan & user wajib lanjut pakai PIN manual.
+    _appGateBioFails++;
+    if (_appGateBioFails >= 3) {
+      const bioKey = document.getElementById('pinGateBioKey');
+      if (bioKey) bioKey.style.visibility = 'hidden';
+      document.getElementById('pinGateError').textContent = 'Sidik jari gagal 3x, masukkan PIN kamu';
+    } else {
+      document.getElementById('pinGateError').textContent =
+        `Sidik jari gagal (${_appGateBioFails}/3), coba lagi atau masukkan PIN`;
+    }
+    return;
+  }
+
+  // Konteks pinGateRequire() (checkout): kalau masih di layar sidik jari,
+  // tampilkan error di situ aja (biar user bisa coba lagi atau pindah ke
+  // PIN); kalau user sudah pindah ke keypad manual, tampilkan di sana.
+  const bioWrapVisible = document.getElementById('pinGateBioWrap').style.display !== 'none';
+  if (bioWrapVisible) {
+    document.getElementById('pinGateBioError').textContent = 'Sidik jari gagal, coba lagi atau gunakan PIN';
+  } else {
+    document.getElementById('pinGateError').textContent = 'Verifikasi biometrik gagal, masukkan PIN manual';
+  }
 };
 
 
@@ -12978,6 +13331,15 @@ async function h2hCheckout(opts){
     return;
   }
 
+  // ==== KHUSUS ADMIN/OWNER: pilih mau bayar pakai Saldo H2H atau Saldo Profit ====
+  let paySource = 'h2h';
+  const _cu = (typeof getCU === 'function') ? getCU() : (typeof currentUser !== 'undefined' ? currentUser : null);
+  if (_cu && _cu.isAdminH2H && typeof window.h2hAskPaySource === 'function') {
+    const chosen = await window.h2hAskPaySource();
+    if (!chosen) return; // admin batal di halaman pilih saldo
+    paySource = chosen;
+  }
+
   // ==== PIN GATE: wajib konfirmasi PIN sebelum saldo dipotong ====
   const pinToken = await pinGateRequire('Konfirmasi pembelian ' + (display_label || category));
   if (!pinToken) return; // user batal / belum set PIN
@@ -12998,10 +13360,11 @@ async function h2hCheckout(opts){
         'Authorization': 'Bearer ' + token,
         'Idempotency-Key': idemKey,
       },
-      body: JSON.stringify({ category, product_code, dest, payment_method, quantity, customer_name, pin_token: pinToken }),
+      body: JSON.stringify({ category, product_code, dest, payment_method, quantity, customer_name, pin_token: pinToken, pay_source: paySource }),
     });
     const json = await res.json().catch(() => ({}));
     h2hShowLoading(false);
+    if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance(); // saldo profit ikut ke-update kalau admin
 
     if (!json.success) {
       if (u) _h2hOrderToRiwayat({ email: u.email, id: json.data?.ref_id || idemKey, title: titleTxt, sub: subTxt, category, dest, amount: json.data?.amount || 0, status: 'batal' });
@@ -13032,6 +13395,162 @@ async function h2hCheckout(opts){
   }
 }
 window.h2hCheckout = h2hCheckout;
+
+// ============================================================
+// H2H BILL CHECK / PAY MODULE — Pascabayar HP (dan pascabayar lain
+// ke depannya), sesuai dokumentasi resmi H2H:
+//   POST https://api.h2h.id/api/bill/check
+//   Body: { buyer_sku_code, customer_no, payment_sku_code? }
+//   Endpoint ini butuh Sanctum Bearer token MILIK AKUN H2H RESELLER
+//   (bukan token login user situs ini) — jadi tidak boleh dipanggil
+//   langsung dari browser. Wajib lewat proxy di H2H_WORKER_URL supaya
+//   token reseller aman di server, sama seperti /pln/check & /game/check.
+//
+// Worker route yang DIBUTUHKAN (belum ada di h2h-gateway, minta dibuatkan):
+//   1) POST {H2H_WORKER_URL}/bill/check   — publik (tanpa Authorization
+//      dari client), body diteruskan apa adanya ke api.h2h.id/api/bill/check
+//      dengan header Authorization: Bearer <token H2H reseller, disimpan
+//      sebagai secret di worker>. Response diteruskan apa adanya juga.
+//   2) POST {H2H_WORKER_URL}/bill/pay     — WAJIB pakai Authorization:
+//      Bearer <supabase access_token milik user situs> (sama seperti
+//      /checkout). Body: { inquiry_id, buyer_sku_code, customer_no,
+//      payment_method:'saldo', pin_token }. Worker yang verifikasi PIN,
+//      potong saldo user di Supabase, baru panggil H2H buat bayar tagihan
+//      pakai inquiry_id tsb, lalu balikin { success, message, data:{ ref_id,
+//      status, amount } } — persis pola response /checkout yang sudah ada.
+// ============================================================
+
+async function h2hRunCekTagihanPascabayarhp(){
+  const input = document.getElementById('pascabayarhpInput');
+  const number = input ? input.value.trim() : '';
+  const card = document.getElementById('pascabayarhpNominalCard');
+  const grid = document.getElementById('pascabayarhpNominal');
+
+  if (!number) {
+    if (typeof showNotif === 'function') showNotif('⚠️ Silakan isi nomor HP pascabayar terlebih dahulu.');
+    if (input) input.focus();
+    return;
+  }
+  const prov = typeof detectProviderName === 'function' ? detectProviderName(number) : '';
+  if (!prov) {
+    if (typeof showNotif === 'function') showNotif('⚠️ Provider tidak terdeteksi, periksa kembali nomor HP-nya.');
+    return;
+  }
+
+  window._pascabayarhpBill = null;
+  if (card) card.style.display = 'block';
+  if (grid) grid.innerHTML = '<div style="grid-column:1/-1;padding:16px;text-align:center;opacity:.7;font-size:13px;">🔄 Mengecek tagihan...</div>';
+  if (card) card.scrollIntoView({ behavior:'smooth', block:'start' });
+
+  // buyer_sku_code diambil dari produk pascabayar HP sesuai provider,
+  // hasil sync H2H yang sudah tersimpan di tabel h2h_products.
+  const rows = await h2hFetchProducts('pascabayar', prov);
+  const produk = rows && rows.find(r => r.product_code) || null;
+  if (!produk) {
+    if (grid) grid.innerHTML = '<div style="grid-column:1/-1;padding:16px;text-align:center;color:#ff6b6b;font-size:13px;">❌ Produk PascaBayar HP untuk ' + h2hEscapeHtml(prov) + ' belum tersedia.</div>';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/bill/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ buyer_sku_code: produk.product_code, customer_no: number }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!j.success || !j.data) {
+      if (grid) grid.innerHTML = '<div style="grid-column:1/-1;padding:16px;text-align:center;color:#ff6b6b;font-size:13px;">❌ ' + h2hEscapeHtml(j.message || 'Tagihan tidak ditemukan. Periksa kembali nomor HP-nya.') + '</div>';
+      return;
+    }
+    window._pascabayarhpBill = {
+      ...j.data,
+      provider: prov,
+      buyer_sku_code: produk.product_code,
+      customer_no: number,
+      label: produk.name || ('PascaBayar HP ' + prov),
+    };
+    h2hRenderTagihanPascabayarhp(j.data);
+  } catch (e) {
+    if (grid) grid.innerHTML = '<div style="grid-column:1/-1;padding:16px;text-align:center;color:#ff6b6b;font-size:13px;">❌ Terjadi kesalahan jaringan. Coba lagi.</div>';
+  }
+}
+window.h2hRunCekTagihanPascabayarhp = h2hRunCekTagihanPascabayarhp;
+
+function h2hRenderTagihanPascabayarhp(d){
+  const grid = document.getElementById('pascabayarhpNominal');
+  if (!grid) return;
+  const rp = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+  const total = d.grand_total || d.total_amount || 0;
+  grid.innerHTML =
+    '<div style="grid-column:1/-1;background:linear-gradient(160deg,var(--card2),rgba(19,19,24,.6));border:1px solid var(--border);border-radius:14px;padding:16px;">' +
+      '<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Nama Pelanggan</div>' +
+      '<div style="font-weight:800;font-size:15px;color:#fff;margin-bottom:12px;">' + h2hEscapeHtml(d.customer_name || '-') + '</div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-top:1px solid var(--border);"><span style="color:var(--muted);">Periode</span><span>' + h2hEscapeHtml(d.period || '-') + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;"><span style="color:var(--muted);">Tagihan</span><span>' + rp(d.bill_amount) + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;"><span style="color:var(--muted);">Biaya Admin</span><span>' + rp(d.admin_fee) + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;padding:10px 0 2px;border-top:1px solid var(--border);margin-top:4px;"><span>Total Bayar</span><span style="color:var(--accent2);">' + rp(total) + '</span></div>' +
+      '<button class="ppob-btn" style="margin-top:12px;margin-bottom:0;" onclick="h2hBayarTagihanPascabayarhp()">Bayar Sekarang</button>' +
+    '</div>';
+}
+
+async function h2hBayarTagihanPascabayarhp(){
+  const bill = window._pascabayarhpBill;
+  if (!bill || !bill.inquiry_id) { if (typeof showNotif === 'function') showNotif('⚠️ Cek tagihan dulu sebelum bayar.'); return; }
+
+  const token = await h2hGetAccessToken();
+  if (!token) { if (typeof showNotif === 'function') showNotif('⚠️ Silakan login dulu untuk membayar tagihan.'); return; }
+
+  const totalBayar = bill.grand_total || bill.total_amount || 0;
+  const balanceNow = (typeof window.vpGetBalance === 'function') ? (window.vpGetBalance() || 0) : 0;
+  if (balanceNow < totalBayar) { if (typeof showNotif === 'function') showNotif('⚠️ Saldo kamu tidak cukup. Silakan top up dulu.'); return; }
+
+  const pinToken = await pinGateRequire('Konfirmasi pembayaran ' + (bill.label || 'PascaBayar HP'));
+  if (!pinToken) return; // user batal / belum set PIN
+
+  h2hShowLoading(true);
+  const u = (typeof getCU === 'function') ? getCU() : null;
+  const titleTxt = bill.label || ('PascaBayar HP ' + (bill.provider || ''));
+  const subTxt = bill.customer_no;
+
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/bill/pay`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({
+        inquiry_id: bill.inquiry_id,
+        buyer_sku_code: bill.buyer_sku_code,
+        customer_no: bill.customer_no,
+        payment_method: 'saldo',
+        pin_token: pinToken,
+      }),
+    });
+    const j = await res.json().catch(() => ({}));
+    h2hShowLoading(false);
+
+    if (!j.success) {
+      if (u) _h2hOrderToRiwayat({ email: u.email, id: j.data?.ref_id || bill.inquiry_id, title: titleTxt, sub: subTxt, category: 'pascabayar', dest: bill.customer_no, amount: j.data?.amount || totalBayar, status: 'batal' });
+      h2hShowOrderResult({ status: 'failed', message: j.message || 'Pembayaran gagal.', refId: j.data?.ref_id, amount: totalBayar, title: titleTxt, sub: subTxt, category: 'pascabayar', dest: bill.customer_no });
+      return;
+    }
+
+    const refId = j.data?.ref_id;
+    const rawStatus = (j.data?.status || 'processing').toLowerCase();
+    const riwStatus = rawStatus === 'success' ? 'sukses' : rawStatus === 'failed' ? 'batal' : 'menunggu';
+    if (u) _h2hOrderToRiwayat({ email: u.email, id: refId, title: titleTxt, sub: subTxt, category: 'pascabayar', dest: bill.customer_no, amount: j.data?.amount || totalBayar, status: riwStatus });
+    if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
+
+    h2hShowOrderResult({
+      status: rawStatus === 'success' ? 'success' : rawStatus === 'failed' ? 'failed' : 'processing',
+      message: j.message,
+      refId, amount: j.data?.amount || totalBayar, title: titleTxt, sub: subTxt, category: 'pascabayar', dest: bill.customer_no,
+    });
+    window._pascabayarhpBill = null;
+  } catch (e) {
+    h2hShowLoading(false);
+    h2hShowOrderResult({ status: 'failed', message: 'Terjadi kesalahan jaringan. Coba lagi.', title: titleTxt, sub: subTxt, category: 'pascabayar', dest: bill.customer_no });
+  }
+}
+window.h2hBayarTagihanPascabayarhp = h2hBayarTagihanPascabayarhp;
 
 // ---------- Bridge: order H2H (pulsa/PLN/voucher/dll) → Riwayat lokal ----------
 // Mirip _topupToRiwayat, tapi generik buat semua jenis order (bukan cuma top up).
@@ -13571,6 +14090,19 @@ window.h2hLoadHistory = h2hLoadHistory;
           localStorage.setItem('vp_user', JSON.stringify(u));
           window.dispatchEvent(new Event('vp:balance'));
         }
+        // Tampilkan kartu "Saldo Profit" ke-2 (cuma buat admin/owner), pakai
+        // angka dari profit_ledger (TERPISAH dari saldo H2H asli di atas).
+        window._profitBalance = parseInt(j.data.profit_balance || 0) || 0;
+        const pCard = document.getElementById('profitSaldoCard');
+        const pAmt = document.getElementById('profitSaldoAmt');
+        if (pCard) pCard.classList.add('show');
+        if (pAmt) {
+          pAmt.setAttribute('data-real', String(window._profitBalance));
+          pAmt.textContent = window._profitBalance.toLocaleString('id-ID');
+        }
+      } else {
+        const pCard = document.getElementById('profitSaldoCard');
+        if (pCard) pCard.classList.remove('show');
       }
     } catch (e) {
       console.error('h2h admin balance check failed:', e);
@@ -13586,6 +14118,52 @@ window.h2hLoadHistory = h2hLoadHistory;
 document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('h2hHistoryList')) h2hLoadHistory();
 });
+</script>
+
+<!-- ============================================================ -->
+<!-- PILIH SUMBER SALDO (khusus admin/owner) — muncul di halaman   -->
+<!-- konfirmasi pembelian, biar admin bisa pilih bayar pakai Saldo -->
+<!-- H2H (asli) atau Saldo Profit (pendapatan yang sudah terkumpul)-->
+<!-- ============================================================ -->
+<div id="paySourcePicker" style="display:none;position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center;">
+  <div style="width:100%;max-width:480px;background:var(--secondary,#17171d);border-radius:20px 20px 0 0;padding:20px 18px 26px;animation:fsSlideIn .25s ease;">
+    <div style="width:36px;height:4px;background:rgba(255,255,255,0.15);border-radius:3px;margin:0 auto 16px;"></div>
+    <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;color:#fff;margin-bottom:4px;">PILIH SUMBER SALDO</div>
+    <div style="font-size:12px;color:var(--muted,#8a8fa3);margin-bottom:16px;">Khusus akun admin/owner — pilih saldo mana yang mau dipakai untuk pembelian ini.</div>
+    <button id="psPickH2h" style="width:100%;text-align:left;background:rgba(77,91,255,0.08);border:1.5px solid rgba(77,91,255,0.35);border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;color:#fff;font-family:'Rajdhani',sans-serif;">
+      <div style="font-weight:700;font-size:14.5px;">💳 Saldo H2H (Asli)</div>
+      <div style="font-size:11.5px;color:var(--muted,#8a8fa3);margin-top:3px;">Langsung dari saldo H2H, tidak mengurangi Saldo Profit.</div>
+    </button>
+    <button id="psPickProfit" style="width:100%;text-align:left;background:rgba(255,215,0,0.06);border:1.5px solid rgba(255,215,0,0.3);border-radius:14px;padding:14px;margin-bottom:14px;cursor:pointer;color:#fff;font-family:'Rajdhani',sans-serif;">
+      <div style="font-weight:700;font-size:14.5px;">💰 Saldo Profit Kamu</div>
+      <div style="font-size:11.5px;color:var(--muted,#8a8fa3);margin-top:3px;">Dipotong dari pendapatan yang sudah terkumpul (fee top up + markup).</div>
+    </button>
+    <button id="psCancel" style="width:100%;background:transparent;border:none;color:var(--muted,#8a8fa3);padding:10px;font-family:'Rajdhani',sans-serif;font-size:13.5px;cursor:pointer;">Batal</button>
+  </div>
+</div>
+<script>
+(function(){
+  window.h2hAskPaySource = function(){
+    return new Promise((resolve) => {
+      const modal = document.getElementById('paySourcePicker');
+      if (!modal) return resolve('h2h'); // fallback aman kalau modal gak ada
+      modal.style.display = 'flex';
+      document.body.classList.add('panel-lock');
+
+      function cleanup(result){
+        modal.style.display = 'none';
+        document.body.classList.remove('panel-lock');
+        document.getElementById('psPickH2h').onclick = null;
+        document.getElementById('psPickProfit').onclick = null;
+        document.getElementById('psCancel').onclick = null;
+        resolve(result);
+      }
+      document.getElementById('psPickH2h').onclick = () => cleanup('h2h');
+      document.getElementById('psPickProfit').onclick = () => cleanup('profit');
+      document.getElementById('psCancel').onclick = () => cleanup(null);
+    });
+  };
+})();
 </script>
 
 <!-- ============================================================ -->
