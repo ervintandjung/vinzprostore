@@ -17,8 +17,9 @@
   --wa:#25D366;--radius:14px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{overscroll-behavior:none;}
-body{font-family:'Rajdhani',sans-serif;background:var(--primary);color:var(--text);min-height:100vh;overflow-x:hidden;max-width:480px;margin:0 auto;}
+html{overflow-x:hidden;overflow-x:clip;}
+html,body{overscroll-behavior:none;scrollbar-gutter:stable both-edges;}
+body{font-family:'Rajdhani',sans-serif;background:var(--primary);color:var(--text);min-height:100vh;overflow-x:hidden;overflow-x:clip;width:100%;max-width:480px;margin:0 auto;}
 body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
 
@@ -64,7 +65,8 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 #settingsQuickMenu .dd-item:first-child{border-top:none;}
 
 /* HALAMAN TERSENDIRI: EDIT PROFIL / UBAH PASSWORD / VERIFIKASI IDENTITAS */
-#editProfilPage,#ubahPasswordPage,#verifikasiIdentitasPage,#strukSettingsPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:390;overflow-y:auto;-webkit-overflow-scrolling:touch;max-width:480px;margin:0 auto;}
+#editProfilPage,#ubahPasswordPage,#verifikasiIdentitasPage,#strukSettingsPage,#resellerMenuPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:390;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;max-width:480px;margin:0 auto;}
+#resellerMenuPage.open{display:block;animation:fsSlideIn .3s ease;}
 #editProfilPage.open,#ubahPasswordPage.open,#verifikasiIdentitasPage.open,#strukSettingsPage.open{display:block;animation:fsSlideIn .3s ease;}
 .pgs-subpage-content{max-width:480px;margin:0 auto;padding:18px 14px 60px;}
 .pgs-field-label{font-size:11px;font-weight:700;color:var(--accent2);margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;}
@@ -286,9 +288,9 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 .banner-top1 .t2{font-size:8px;font-weight:800;color:#000;}
 
 /* TICKER */
-.ticker-bar{background:#040d1a;border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;padding:7px 0;}
+.ticker-bar{background:#040d1a;border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;padding:7px 0;overscroll-behavior-x:contain;}
 .ticker-inner{white-space:nowrap;font-size:11px;color:var(--accent2);animation:marquee 22s linear infinite;}
-@keyframes marquee{0%{transform:translateX(100vw)}100%{transform:translateX(-100%)}}
+@keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
 
 /* SEARCH */
 .search-wrap{padding:12px 14px;}
@@ -298,7 +300,8 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 
 /* TABS */
 .tabs-wrap{padding:0 14px 10px;}
-.tabs{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;}
+.tabs{display:flex;gap:7px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;padding-bottom:2px;}
+.tabs::-webkit-scrollbar{display:none;}
 .tabs::-webkit-scrollbar{display:none;}
 .tab{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;color:var(--muted);transition:.2s;letter-spacing:.5px;}
 .tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
@@ -2043,6 +2046,13 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
               <button class="pw-eye" onclick="togglePw('regPass',this)" tabindex="-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
           </div>
+          <div class="auth-field">
+            <label>Kode Referral (opsional)</label>
+            <div class="afi-wrap">
+              <span class="afi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
+              <input type="text" id="regRefCode" placeholder="Kode referral agen/reseller (kalau ada)" style="text-transform:uppercase;">
+            </div>
+          </div>
           <div class="auth-terms-row">
             <input type="checkbox" id="agreeTerms">
             <span>Saya menyetujui <a>Syarat &amp; Ketentuan</a> serta <a>Kebijakan Privasi</a> Vinzprostore.</span>
@@ -2216,6 +2226,20 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       <button class="ap-save" onclick="apSaveMarkup()" style="background:var(--success);color:#000;">💾 SIMPAN MARKUP</button>
       </div>
     </div>
+    <div class="ap-card">
+      <h3 onclick="toggleApCard(this)">KELOLA ROLE RESELLER/AGEN<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Jadikan akun user sebagai Reseller (markup maks. 75% dari markup admin) atau Agen (maks. 50%). Setelah dijadikan Reseller/Agen, menu "Menu Reseller/Agen" otomatis muncul di Pengaturan akun tersebut.</div>
+      <input type="email" id="apRoleEmail" class="ap-input" placeholder="Email user...">
+      <select id="apRoleSelect" class="ap-input">
+        <option value="member">Member (biasa)</option>
+        <option value="reseller">Reseller</option>
+        <option value="agen">Agen</option>
+      </select>
+      <button class="ap-save" onclick="apSetUserRole()" style="background:var(--gold,#ffd700);color:#000;">✅ SET ROLE</button>
+      <div id="apRoleResult" style="font-size:11.5px;color:var(--muted);margin-top:8px;"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2254,6 +2278,10 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
         </div>
         <div class="pgs-item" onclick="openVerifikasiIdentitas()">
           <div class="pgs-item-left"><span class="pgs-ico">🛡️</span><span class="pgs-label">Verifikasi Identitas<span class="pgs-sub" id="viStatusSub">Belum diverifikasi</span></span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
+        <div class="pgs-item" id="pgsResellerMenuItem" style="display:none;" onclick="openResellerMenu()">
+          <div class="pgs-item-left"><span class="pgs-ico">🏷️</span><span class="pgs-label">Menu Reseller/Agen<span class="pgs-sub" id="pgsResellerMenuSub">Atur markup harga kamu</span></span></div>
           <span class="pgs-chevron">›</span>
         </div>
       </div>
@@ -2534,6 +2562,151 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     <button class="pgs-btn-outline" onclick="ssTestPrint()">🖨️ CETAK CONTOH STRUK</button>
   </div>
 </div>
+
+<!-- ═══ HALAMAN MENU RESELLER/AGEN (atur markup harga sendiri) ═══ -->
+<div id="resellerMenuPage">
+  <div class="pgs-topbar">
+    <button class="pgs-back" onclick="closeResellerMenu()">&#8592;</button>
+    <div class="pgs-title" id="rmTitle">MENU RESELLER</div>
+    <div style="width:34px;flex-shrink:0;"></div>
+  </div>
+  <div class="pgs-subpage-content">
+
+    <div class="pgs-hint" id="rmIntro" style="margin-bottom:16px;">
+      Markup harga kamu dibatasi maksimal <b id="rmRatioTxt">75%</b> dari markup admin di tiap kategori.
+      User yang daftar pakai kode referral kamu akan otomatis kena harga versi kamu ini.
+    </div>
+
+    <div class="pgs-field-label">Kode Referral Kamu</div>
+    <div style="display:flex;gap:8px;margin-bottom:20px;">
+      <input id="rmReferralCode" class="pgs-input" style="margin-bottom:0;flex:1;" readonly value="Memuat...">
+      <button class="pgs-btn-outline" style="width:auto;margin-bottom:0;padding:0 16px;white-space:nowrap;" onclick="rmCopyReferral()">📋 Salin</button>
+    </div>
+
+    <div class="pgs-field-label">Markup Harga per Kategori</div>
+    <div id="rmMarkupList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+      <div style="padding:16px;text-align:center;opacity:.6;font-size:13px;">Memuat markup...</div>
+    </div>
+
+    <button id="btnSaveResellerMarkup" class="pgs-btn-primary" onclick="rmSaveMarkup()">💾 SIMPAN MARKUP</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════
+// MENU RESELLER/AGEN — kelola markup sendiri (dibatasi rasio dari markup
+// admin) + lihat/salin kode referral sendiri. Cuma kepakek kalau role akun
+// = 'reseller' atau 'agen' (member biasa gak lihat menu ini sama sekali).
+// ══════════════════════════════
+let _rmInfo = null; // cache hasil GET /reseller/info
+
+function pgsUpdateResellerMenu(){
+  const item = document.getElementById('pgsResellerMenuItem');
+  if (!item) return;
+  const role = currentUser && currentUser.role;
+  const isRA = role === 'reseller' || role === 'agen';
+  item.style.display = isRA ? 'flex' : 'none';
+  const sub = document.getElementById('pgsResellerMenuSub');
+  if (sub) sub.textContent = role === 'agen' ? 'Atur markup harga Agen kamu' : 'Atur markup harga Reseller kamu';
+}
+window.pgsUpdateResellerMenu = pgsUpdateResellerMenu;
+
+async function openResellerMenu(){
+  document.body.classList.add('panel-lock');
+  document.getElementById('resellerMenuPage').classList.add('open');
+  document.getElementById('rmMarkupList').innerHTML = '<div style="padding:16px;text-align:center;opacity:.6;font-size:13px;">Memuat markup...</div>';
+  document.getElementById('rmReferralCode').value = 'Memuat...';
+
+  const token = await h2hGetAccessToken();
+  if (!token) { showNotif('⚠️ Silakan login dulu.'); return; }
+
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/reseller/info`, { headers: { 'Authorization': 'Bearer ' + token } });
+    const j = await res.json().catch(() => ({}));
+    if (!j.success) { showNotif('❌ ' + (j.message || 'Gagal memuat data reseller/agen')); return; }
+    _rmInfo = j.data;
+    renderResellerMenu();
+  } catch (e) {
+    showNotif('❌ Terjadi kesalahan jaringan.');
+  }
+}
+window.openResellerMenu = openResellerMenu;
+
+function closeResellerMenu(){
+  document.body.classList.remove('panel-lock');
+  document.getElementById('resellerMenuPage').classList.remove('open');
+}
+window.closeResellerMenu = closeResellerMenu;
+
+function renderResellerMenu(){
+  const info = _rmInfo;
+  if (!info) return;
+  const isAgen = info.role === 'agen';
+  document.getElementById('rmTitle').textContent = isAgen ? 'MENU AGEN' : 'MENU RESELLER';
+  document.getElementById('rmRatioTxt').textContent = Math.round((info.ratio || 0) * 100) + '%';
+  document.getElementById('rmReferralCode').value = info.referral_code || '-';
+
+  const wrap = document.getElementById('rmMarkupList');
+  const adminM = info.admin_markup || {};
+  const customM = info.custom_markup || {};
+  wrap.innerHTML = MARKUP_CATEGORIES.map(c => {
+    const adminCfg = adminM[c.key] || { type: 'percent', value: 0 };
+    const cap = Math.round((Number(adminCfg.value) || 0) * (info.ratio || 0) * 100) / 100;
+    const cur = customM[c.key];
+    const curVal = (cur && cur.value != null) ? cur.value : cap;
+    return `
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 13px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div style="font-size:13px;font-weight:700;color:var(--text);">${c.label}</div>
+          <div style="font-size:10.5px;color:var(--muted);">Maks ${cap}${adminCfg.type === 'nominal' ? '' : '%'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" class="pgs-input" id="rmVal_${c.key}" style="margin-bottom:0;flex:1;" min="0" max="${cap}" value="${curVal}">
+          <span style="font-size:12px;color:var(--muted);flex-shrink:0;">${adminCfg.type === 'nominal' ? 'Rp' : '%'}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function rmCopyReferral(){
+  const val = document.getElementById('rmReferralCode').value;
+  if (!val || val === '-' || val === 'Memuat...') return;
+  navigator.clipboard?.writeText(val).then(() => showNotif('📋 Kode referral disalin!'));
+}
+window.rmCopyReferral = rmCopyReferral;
+
+async function rmSaveMarkup(){
+  if (!_rmInfo) return;
+  const token = await h2hGetAccessToken();
+  if (!token) { showNotif('⚠️ Silakan login dulu.'); return; }
+
+  const btn = document.getElementById('btnSaveResellerMarkup');
+  btn.disabled = true; btn.textContent = '⏳ Menyimpan...';
+
+  const adminM = _rmInfo.admin_markup || {};
+  let anyFail = false;
+  for (const c of MARKUP_CATEGORIES) {
+    const input = document.getElementById('rmVal_' + c.key);
+    if (!input) continue;
+    const value = Number(input.value) || 0;
+    const type = (adminM[c.key] && adminM[c.key].type) || 'percent';
+    try {
+      const res = await fetch(`${H2H_WORKER_URL}/reseller/markup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ category: c.key, type, value }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!j.success) { anyFail = true; showNotif('❌ ' + c.label + ': ' + (j.message || 'gagal disimpan')); }
+    } catch (e) { anyFail = true; }
+  }
+
+  btn.disabled = false; btn.textContent = '💾 SIMPAN MARKUP';
+  if (!anyFail) showNotif('✅ Markup harga kamu berhasil disimpan!');
+  openResellerMenu(); // refresh angka terbaru dari server
+}
+window.rmSaveMarkup = rmSaveMarkup;
+</script>
 
 <!-- PICKER PRINTER BLUETOOTH (native Android, dipakai kalau window.AndroidBridge ada) -->
 <div class="ssbt-overlay" id="ssBtPickerOverlay">
@@ -2831,6 +3004,39 @@ function vpApplyMarkup(category, price) {
 }
 
 // ══════════════════════════════
+// MARKUP AGEN/RESELLER — kalau akun yang login didaftarkan pakai kode
+// referral seorang agen/reseller, harga produk yang ditampilkan/dipakai
+// checkout HARUS ikut markup agen/reseller itu (dibatasi 3/4 utk reseller,
+// 1/2 utk agen dari markup admin) — bukan markup admin biasa. Kalau daftar
+// tanpa referral (atau pakai kode promo umum yang gak nyantol ke akun
+// manapun), tetap pakai markupConfig admin standar seperti biasa.
+// ══════════════════════════════
+const VP_TIER_RATIO = { reseller: 0.75, agen: 0.5 };
+
+async function vpApplyReferralPricing() {
+  try {
+    if (!currentUser || !currentUser.referred_by) return; // bukan hasil referral -> pakai markup admin biasa
+    const { data: referrer } = await _sb.from('users')
+      .select('role,custom_markup')
+      .eq('email', currentUser.referred_by)
+      .single();
+    if (!referrer || !VP_TIER_RATIO[referrer.role]) return; // referrer bukan agen/reseller aktif
+    const ratio = VP_TIER_RATIO[referrer.role];
+    const custom = vpParseJsonSetting(referrer.custom_markup) || {};
+    const merged = {};
+    MARKUP_CATEGORIES.forEach(c => {
+      const adminCfg = markupConfig[c.key] || { type: 'percent', value: 0 };
+      const own = custom[c.key];
+      merged[c.key] = (own && own.value != null)
+        ? own
+        : { type: adminCfg.type, value: Math.round((Number(adminCfg.value) || 0) * ratio * 100) / 100 };
+    });
+    markupConfig = merged; // dipakai otomatis oleh semua pemanggil vpApplyMarkup
+  } catch (e) { console.warn('vpApplyReferralPricing error:', e); }
+}
+window.vpApplyReferralPricing = vpApplyReferralPricing;
+
+// ══════════════════════════════
 // UTILS
 // ══════════════════════════════
 function rp(n) { return 'Rp ' + Number(n).toLocaleString('id-ID'); }
@@ -2916,7 +3122,7 @@ async function doLogin() {
     const { data: authData, error: authErr } = await _sb.auth.signInWithPassword({ email, password: pass });
     if (authErr) {
       // Fallback: cek custom table users (untuk akun lama sebelum migrasi)
-      const { data: uData, error: uErr } = await _sb.from('users').select('name,password,verified').eq('email', email).single();
+      const { data: uData, error: uErr } = await _sb.from('users').select('name,password,verified,role,referred_by').eq('email', email).single();
       if (uErr || !uData) { showAuthErr('Email belum terdaftar! Silakan daftar dulu.'); return; }
       if (uData.password !== pass) { showAuthErr('Password salah!'); return; }
       // Akun lama: auto-migrate ke Supabase Auth
@@ -2925,13 +3131,13 @@ async function doLogin() {
         // Coba login lagi setelah signup
         await _sb.auth.signInWithPassword({ email, password: pass });
       }
-      currentUser = { email, name: uData.name, verified: uData.verified };
+      currentUser = { email, name: uData.name, verified: uData.verified, role: uData.role || 'member', referred_by: uData.referred_by || null };
     } else {
       // Login Auth berhasil — ambil nama dari table users
-      const { data: uData } = await _sb.from('users').select('name,verified').eq('email', email).single();
+      const { data: uData } = await _sb.from('users').select('name,verified,role,referred_by').eq('email', email).single();
       const name = uData?.name || authData.user?.user_metadata?.username || email.split('@')[0];
       const verified = uData?.verified ?? true;
-      currentUser = { email, name, verified };
+      currentUser = { email, name, verified, role: uData?.role || 'member', referred_by: uData?.referred_by || null };
       // Update table users kalau belum ada
       if (!uData) {
         await _sb.from('users').upsert({ email, name, password: pass, verified: true });
@@ -2941,6 +3147,7 @@ async function doLogin() {
     authGateActive = false;
     document.getElementById('authOverlay').classList.remove('open');
     renderHeader();
+    if (typeof pgsUpdateResellerMenu === 'function') pgsUpdateResellerMenu();
     showNotif('✅ Selamat datang, ' + currentUser.name + '!');
     // Langsung sinkron riwayat & refresh Pemasukan/Pengeluaran begitu login
     // berhasil, biar gak nunjukin Rp 0 dulu sebelum ke Riwayat.
@@ -2970,8 +3177,26 @@ async function doRegister() {
     if (existing) { showAuthErr('Email sudah terdaftar! Silakan masuk.'); return; }
   } catch(e) { /* tidak ada = lanjut */ }
 
+  // Kode referral (opsional). Cuma dianggap referral agen/reseller kalau
+  // kodenya BENERAN cocok dengan akun ber-role reseller/agen — kalau tidak
+  // cocok (misal orang isi kode promo umum kayak "Paycore"), dianggap
+  // kosong dan harga tetap pakai markup admin biasa.
+  let referredBy = null;
+  const refInput = document.getElementById('regRefCode');
+  const refCode = refInput ? refInput.value.trim().toUpperCase() : '';
+  if (refCode) {
+    try {
+      const { data: owner } = await _sb.from('users')
+        .select('email,role')
+        .eq('referral_code', refCode)
+        .in('role', ['reseller', 'agen'])
+        .single();
+      if (owner && owner.email) referredBy = owner.email;
+    } catch (e) { /* kode gak cocok = anggap gak pakai referral */ }
+  }
+
   // Simpan sebagai pending, belum verified
-  otpPendingUser = { name, email, pass };
+  otpPendingUser = { name, email, pass, referredBy };
   otpCode  = String(Math.floor(100000 + Math.random() * 900000));
   otpEmail = email;
 
@@ -3275,7 +3500,8 @@ async function doVerifyOTP() {
         email: targetEmail,
         name: otpPendingUser.name,
         password: otpPendingUser.pass,
-        verified: true
+        verified: true,
+        referred_by: otpPendingUser.referredBy || null
       });
       if (error) { showAuthErr2('Gagal daftar: ' + error.message); return; }
 
@@ -3306,7 +3532,7 @@ async function doVerifyOTP() {
   document.getElementById('authStep2').style.display = 'none';
 
   if (otpPendingUser) {
-    currentUser = { email: otpPendingUser.email, name: otpPendingUser.name, verified: true };
+    currentUser = { email: otpPendingUser.email, name: otpPendingUser.name, verified: true, role: 'member', referred_by: otpPendingUser.referredBy || null };
     localStorage.setItem('vp_user', JSON.stringify(currentUser));
     renderHeader();
     showNotif('✅ Email terverifikasi! Selamat datang, ' + currentUser.name + '!');
@@ -4840,6 +5066,34 @@ function apSaveMarkup() {
   });
 }
 
+// ══════════════════════════════
+// ADMIN: SET ROLE USER (member / reseller / agen)
+// ══════════════════════════════
+async function apSetUserRole() {
+  const emailEl = document.getElementById('apRoleEmail');
+  const roleEl = document.getElementById('apRoleSelect');
+  const resultEl = document.getElementById('apRoleResult');
+  const email = emailEl.value.trim().toLowerCase();
+  const role = roleEl.value;
+  if (!email) { resultEl.textContent = '⚠️ Masukkan email dulu.'; return; }
+
+  resultEl.textContent = '⏳ Menyimpan...';
+  try {
+    const { data: existing, error: findErr } = await _sb.from('users').select('email,name,role').eq('email', email).single();
+    if (findErr || !existing) { resultEl.textContent = '❌ User dengan email itu tidak ditemukan.'; return; }
+
+    const { error } = await _sb.from('users').update({ role }).eq('email', email);
+    if (error) { resultEl.textContent = '❌ Gagal: ' + error.message; return; }
+
+    resultEl.textContent = `✅ ${existing.name || email} sekarang berrole "${role}".`;
+    showNotif(`✅ Role ${email} diubah jadi ${role}`);
+    emailEl.value = '';
+  } catch (e) {
+    resultEl.textContent = '❌ Terjadi kesalahan: ' + e.message;
+  }
+}
+window.apSetUserRole = apSetUserRole;
+
 function toggleApCard(h3){
   const card = h3.closest('.ap-card');
   if(!card) return;
@@ -5093,6 +5347,8 @@ async function initApp() {
       }
     }
   } catch(e) { console.warn('Settings load error:', e); }
+  await vpApplyReferralPricing();
+  if (typeof pgsUpdateResellerMenu === 'function') pgsUpdateResellerMenu();
 
   // Load banners (global) — tampilkan dari cache lokal dulu lalu sync dari cloud
   window._bannerImages = getBanners();
@@ -5110,6 +5366,10 @@ async function initApp() {
   if (currentUser && typeof pcRefreshStatsFromServer === 'function') {
     pcRefreshStatsFromServer();
   }
+
+  // Balikin ke tab terakhir (Riwayat/Agen-Reseller/Profil) kalau sebelum
+  // refresh/reload user lagi di situ — jangan selalu lempar ke Beranda.
+  if (typeof pcRestoreLastTab === 'function') pcRestoreLastTab();
 }
 
 
@@ -6391,7 +6651,8 @@ function doPesan(){
 .riw-search-box input::placeholder{color:rgba(255,255,255,0.3);}
 .riw-periode-btn{display:flex;align-items:center;gap:8px;width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:13px 14px;color:rgba(255,255,255,0.55);font-size:13.5px;font-weight:600;cursor:pointer;font-family:'Rajdhani',sans-serif;margin-bottom:14px;text-align:left;}
 .riw-periode-btn:active{color:#fff;border-color:rgba(255,255,255,0.2);}
-.riw-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin:0 -18px;padding-left:18px;padding-right:18px;}
+.riw-tabs{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;padding-bottom:2px;margin:0 -18px;padding-left:18px;padding-right:18px;}
+.riw-tabs::-webkit-scrollbar{display:none;}
 .riw-tabs::-webkit-scrollbar{display:none;}
 .riw-tab{flex-shrink:0;background:rgba(255,255,255,0.05);border:1px solid transparent;color:rgba(255,255,255,0.5);font-size:13px;font-weight:700;padding:9px 18px;border-radius:10px;cursor:pointer;white-space:nowrap;font-family:'Rajdhani',sans-serif;transition:.2s;}
 .riw-tab.active{background:#3b82f6;color:#fff;box-shadow:0 4px 14px rgba(59,130,246,0.3);}
@@ -6516,7 +6777,7 @@ function doPesan(){
 .ar-promo-sub{font-size:12px;color:rgba(255,255,255,0.75);line-height:1.6;margin-bottom:14px;max-width:88%;}
 .ar-promo-btn{display:inline-flex;align-items:center;gap:6px;background:#fff;color:#1a0533;border:none;border-radius:10px;padding:9px 16px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:800;letter-spacing:.5px;}
 
-#agenResellerPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:390;overflow-y:auto;-webkit-overflow-scrolling:touch;max-width:480px;margin:0 auto;}
+#agenResellerPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:390;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;max-width:480px;margin:0 auto;}
 #agenResellerPage.open{display:block;animation:fsSlideIn .3s ease;}
 .ar-hero{background:linear-gradient(160deg,#1a0533,#4a0080 60%,#0c1f56);padding:26px 18px 24px;text-align:center;position:relative;overflow:hidden;}
 .ar-hero::before{content:"";position:absolute;top:-60px;left:-30px;width:200px;height:200px;background:radial-gradient(circle,rgba(190,120,255,.4),transparent 70%);filter:blur(10px);}
@@ -8677,6 +8938,7 @@ function doPesan(){
     { id: 'verifikasiIdentitasPage', close: () => window.closeVerifikasiIdentitas && window.closeVerifikasiIdentitas() },
     { id: 'strukSettingsPage', close: () => window.closeStrukSettings && window.closeStrukSettings() },
     { id: 'agenResellerPage', close: () => window.closeAgenReseller && window.closeAgenReseller() },
+    { id: 'resellerMenuPage', close: () => window.closeResellerMenu && window.closeResellerMenu() },
     { id: 'settingsPanel',   close: () => window.closePengaturan&& window.closePengaturan() },
     { id: 'adminPanel',      close: () => window.closeAdmin     && window.closeAdmin() },
     { id: 'riwayatPanel',    close: () => window.closeRiwayat   && window.closeRiwayat() },
@@ -11985,6 +12247,7 @@ function pcCloseSubpages(){
   if (verifP && verifP.classList.contains('open') && typeof closeVerifikasiIdentitas==='function') closeVerifikasiIdentitas();
 }
 function pcGoBeranda(){
+  try { localStorage.setItem('vp_last_tab', 'beranda'); } catch(e){}
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('bnBeranda').classList.add('active');
   pcCloseSubpages();
@@ -11997,6 +12260,7 @@ function pcGoBeranda(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function pcGoRiwayat(){
+  try { localStorage.setItem('vp_last_tab', 'riwayat'); } catch(e){}
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('bnRiwayat').classList.add('active');
   pcCloseSubpages();
@@ -12007,6 +12271,7 @@ function pcGoRiwayat(){
   if (typeof openRiwayat === 'function') openRiwayat();
 }
 function pcGoPromo(){
+  try { localStorage.setItem('vp_last_tab', 'promo'); } catch(e){}
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('bnPromo').classList.add('active');
   pcCloseSubpages();
@@ -12017,6 +12282,7 @@ function pcGoPromo(){
   if (typeof openPromo === 'function') openPromo();
 }
 function pcGoProfil(){
+  try { localStorage.setItem('vp_last_tab', 'profil'); } catch(e){}
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('bnProfil').classList.add('active');
   pcCloseSubpages();
@@ -12030,6 +12296,20 @@ function pcGoProfil(){
     if (typeof openAuth === 'function') openAuth('masuk');
   }
 }
+
+// Balikin user ke tab terakhir yang lagi dibuka SEBELUM refresh/reload,
+// biar refresh di mana aja gak selalu ke-lempar balik ke Beranda.
+// Dipanggil sekali di akhir initApp(), setelah konten dasar siap.
+function pcRestoreLastTab(){
+  let tab = null;
+  try { tab = localStorage.getItem('vp_last_tab'); } catch(e){}
+  if (!tab || tab === 'beranda') return; // default sudah Beranda, gak perlu apa2
+  if (!(typeof currentUser !== 'undefined' && currentUser)) return; // belum login, biarin auth gate yang tampil
+  if (tab === 'riwayat' && typeof pcGoRiwayat === 'function') pcGoRiwayat();
+  else if (tab === 'promo' && typeof pcGoPromo === 'function') pcGoPromo();
+  else if (tab === 'profil' && typeof pcGoProfil === 'function') pcGoProfil();
+}
+window.pcRestoreLastTab = pcRestoreLastTab;
 
 // ── PPOB SERVICE PAGES FUNCTIONS ──
 function openPpobPage(id){
@@ -13507,6 +13787,15 @@ async function h2hBayarTagihanPascabayarhp(){
   const pinToken = await pinGateRequire('Konfirmasi pembayaran ' + (bill.label || 'PascaBayar HP'));
   if (!pinToken) return; // user batal / belum set PIN
 
+  // ==== KHUSUS ADMIN/OWNER: pilih mau bayar pakai Saldo H2H atau Saldo Profit ====
+  let paySource = 'h2h';
+  const _cuBill = (typeof getCU === 'function') ? getCU() : (typeof currentUser !== 'undefined' ? currentUser : null);
+  if (_cuBill && _cuBill.isAdminH2H && typeof window.h2hAskPaySource === 'function') {
+    const chosen = await window.h2hAskPaySource();
+    if (!chosen) return; // admin batal di halaman pilih saldo
+    paySource = chosen;
+  }
+
   h2hShowLoading(true);
   const u = (typeof getCU === 'function') ? getCU() : null;
   const titleTxt = bill.label || ('PascaBayar HP ' + (bill.provider || ''));
@@ -13522,10 +13811,12 @@ async function h2hBayarTagihanPascabayarhp(){
         customer_no: bill.customer_no,
         payment_method: 'saldo',
         pin_token: pinToken,
+        pay_source: paySource,
       }),
     });
     const j = await res.json().catch(() => ({}));
     h2hShowLoading(false);
+    if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance(); // saldo profit ikut ke-update kalau admin
 
     if (!j.success) {
       if (u) _h2hOrderToRiwayat({ email: u.email, id: j.data?.ref_id || bill.inquiry_id, title: titleTxt, sub: subTxt, category: 'pascabayar', dest: bill.customer_no, amount: j.data?.amount || totalBayar, status: 'batal' });
@@ -14073,44 +14364,81 @@ window.h2hLoadHistory = h2hLoadHistory;
 // trigger event 'vp:balance' yang sudah didengarkan pcUpdateSaldoCard.
 (function(){
   const _origReloadBal = window.vpReloadBalance;
+
+  function _applyAdminBalance(j){
+    if (j && j.success && j.data && j.data.is_admin) {
+      const u = JSON.parse(localStorage.getItem('vp_user') || 'null');
+      if (u) {
+        u.balance = parseInt(j.data.balance || 0) || 0;
+        u.isAdminH2H = true;
+        localStorage.setItem('vp_user', JSON.stringify(u));
+        window.dispatchEvent(new Event('vp:balance'));
+      }
+      // Tampilkan kartu "Saldo Profit" ke-2 (cuma buat admin/owner), pakai
+      // angka dari profit_ledger (TERPISAH dari saldo H2H asli di atas).
+      window._profitBalance = parseInt(j.data.profit_balance || 0) || 0;
+      const pCard = document.getElementById('profitSaldoCard');
+      const pAmt = document.getElementById('profitSaldoAmt');
+      if (pCard) pCard.classList.add('show');
+      if (pAmt) {
+        pAmt.setAttribute('data-real', String(window._profitBalance));
+        pAmt.textContent = window._profitBalance.toLocaleString('id-ID');
+      }
+      return true;
+    } else {
+      const pCard = document.getElementById('profitSaldoCard');
+      if (pCard) pCard.classList.remove('show');
+      return false;
+    }
+  }
+
   window.vpReloadBalance = async function(){
-    if (typeof _origReloadBal === 'function') await _origReloadBal();
+    // Kalau dari sesi SEBELUMNYA kita udah tau akun ini admin/owner, jangan
+    // jalanin dulu proses saldo internal biasa (users.balance) — itu yang
+    // bikin angka "kedip" ganti-ganti (internal dulu, baru H2H) tiap kali
+    // buka app / pindah halaman. Untuk akun admin yang sudah dikenali,
+        // langsung loncat ke saldo H2H asli aja.
+    let cachedUser = null;
+    try { cachedUser = JSON.parse(localStorage.getItem('vp_user') || 'null'); } catch(e){}
+    const knownAdmin = !!(cachedUser && cachedUser.isAdminH2H);
+
+    if (!knownAdmin && typeof _origReloadBal === 'function') {
+      await _origReloadBal();
+    }
+
     try {
-      const token = await h2hGetAccessToken();
-      if (!token) return;
+      // Token Supabase kadang belum siap persis pas app baru kebuka —
+      // dicoba beberapa kali dengan jeda, biar kartu profit & saldo H2H
+      // gak perlu nunggu di-refresh manual dulu baru muncul.
+      let token = await h2hGetAccessToken();
+      for (let i = 0; i < 5 && !token; i++) {
+        await new Promise(r => setTimeout(r, 500));
+        token = await h2hGetAccessToken();
+      }
+      if (!token) {
+        if (knownAdmin && typeof _origReloadBal === 'function') await _origReloadBal();
+        return;
+      }
+
       const res = await fetch(`${H2H_WORKER_URL}/my-balance`, {
         headers: { 'Authorization': 'Bearer ' + token },
       });
       const j = await res.json().catch(() => ({}));
-      if (j.success && j.data && j.data.is_admin) {
-        const u = JSON.parse(localStorage.getItem('vp_user') || 'null');
-        if (u) {
-          u.balance = parseInt(j.data.balance || 0) || 0;
-          u.isAdminH2H = true;
-          localStorage.setItem('vp_user', JSON.stringify(u));
-          window.dispatchEvent(new Event('vp:balance'));
-        }
-        // Tampilkan kartu "Saldo Profit" ke-2 (cuma buat admin/owner), pakai
-        // angka dari profit_ledger (TERPISAH dari saldo H2H asli di atas).
-        window._profitBalance = parseInt(j.data.profit_balance || 0) || 0;
-        const pCard = document.getElementById('profitSaldoCard');
-        const pAmt = document.getElementById('profitSaldoAmt');
-        if (pCard) pCard.classList.add('show');
-        if (pAmt) {
-          pAmt.setAttribute('data-real', String(window._profitBalance));
-          pAmt.textContent = window._profitBalance.toLocaleString('id-ID');
-        }
-      } else {
-        const pCard = document.getElementById('profitSaldoCard');
-        if (pCard) pCard.classList.remove('show');
+      const wasAdmin = _applyAdminBalance(j);
+
+      // Kalau ternyata BUKAN admin (misal ganti akun) padahal tadi di-skip
+      // karena cache lama bilang admin, pastikan saldo internal tetap ke-load.
+      if (!wasAdmin && knownAdmin && typeof _origReloadBal === 'function') {
+        await _origReloadBal();
       }
     } catch (e) {
       console.error('h2h admin balance check failed:', e);
     }
   };
+
   // Jalankan sekali begitu skrip ini load (menyusul pemanggilan awal yang sudah ada)
   document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => { if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance(); }, 900);
+    setTimeout(() => { if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance(); }, 300);
   });
 })();
 
