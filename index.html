@@ -71,7 +71,7 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 #editProfilPage.open,#ubahPasswordPage.open,#verifikasiIdentitasPage.open,#strukSettingsPage.open{display:block;animation:fsSlideIn .3s ease;}
 .pgs-subpage-content{max-width:480px;margin:0 auto;padding:18px 14px 60px;}
 .pgs-field-label{font-size:11px;font-weight:700;color:var(--accent2);margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;}
-.pgs-input{width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:12px 13px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14.5px;margin-bottom:8px;outline:none;}
+.pgs-input{width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:12px 13px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14.5px;margin-bottom:8px;outline:none;}
 .pgs-input:disabled{background:rgba(255,255,255,0.04);color:var(--muted);border-color:rgba(106,140,181,0.3);}
 .pgs-input::placeholder{color:var(--muted);}
 .pgs-err{display:none;font-size:12px;color:var(--danger);margin-bottom:8px;}
@@ -629,6 +629,9 @@ body.light-mode [style*="color: #fff"],
 body.light-mode [style*="color: #ffffff"],
 body.light-mode .sec-title,
 body.light-mode .prod-name,
+body.light-mode .saldo-amt,
+body.light-mode .profit-amt,
+body.light-mode .pc-sec-title,
 body.light-mode .dd-user strong,
 body.light-mode .fs-title,
 body.light-mode .fs-dl-title,
@@ -644,6 +647,13 @@ body.light-mode .auth-field input,
 body.light-mode .ap-input,
 body.light-mode .ap-price-input,
 body.light-mode .otp-input{color:#0d1f3c !important;}
+
+/* Cetak struk (window.print) — paksa teks gelap & background putih di kertas, apapun temanya di layar */
+@media print{
+  body,body.light-mode,body:not(.light-mode){background:#fff !important;color:#000 !important;}
+  *{background:#fff !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important;}
+  .bottom-nav,header,.theme-toggle,button:not(.rd-btn.ghost){display:none !important;}
+}
 /* Exceptions: keep white text on colored backgrounds */
 body.light-mode .btn-daftar,
 body.light-mode .logo-icon,
@@ -2556,7 +2566,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     <div class="pgs-field-label">Ukuran Kertas</div>
     <div style="display:flex;gap:10px;margin-bottom:20px;">
       <div id="ssPaper58" onclick="ssSetPaper('58')" style="flex:1;text-align:center;padding:14px 6px;border-radius:12px;border:1.5px solid var(--border);background:var(--secondary);cursor:pointer;">
-        <div style="font-weight:900;font-size:17px;color:#fff;">58mm</div>
+        <div style="font-weight:900;font-size:17px;color:var(--text);">58mm</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px;">32 karakter</div>
       </div>
       <div id="ssPaper80" onclick="ssSetPaper('80')" style="flex:1;text-align:center;padding:14px 6px;border-radius:12px;border:1.5px solid var(--accent);background:rgba(77,91,255,.12);cursor:pointer;">
@@ -4353,9 +4363,9 @@ function ssSetPaper(size){
   if (b58 && b80) {
     b58.style.cssText = 'flex:1;text-align:center;padding:14px 6px;border-radius:12px;' + (size === '58' ? active : inactive);
     b80.style.cssText = 'flex:1;text-align:center;padding:14px 6px;border-radius:12px;' + (size === '80' ? active : inactive);
-    b58.querySelector('div').style.color = size === '58' ? 'var(--accent2)' : '#fff';
+    b58.querySelector('div').style.color = size === '58' ? 'var(--accent2)' : 'var(--text)';
     b58.querySelectorAll('div')[1].style.color = size === '58' ? 'var(--accent2)' : 'var(--muted)';
-    b80.querySelector('div').style.color = size === '80' ? 'var(--accent2)' : '#fff';
+    b80.querySelector('div').style.color = size === '80' ? 'var(--accent2)' : 'var(--text)';
     b80.querySelectorAll('div')[1].style.color = size === '80' ? 'var(--accent2)' : 'var(--muted)';
   }
   ssRenderPreview();
@@ -7184,6 +7194,9 @@ function doPesan(){
 .riw-card-date{font-size:13.5px;color:rgba(255,255,255,0.4);font-weight:500;}
 .riw-card-amount{font-size:19px;color:#fff;font-weight:700;}
 
+.riw-month-label{font-family:'Rajdhani',sans-serif;font-weight:800;font-size:14px;color:var(--muted);letter-spacing:.3px;margin:22px 2px 12px;}
+.riw-month-label:first-child{margin-top:0;}
+
 .riw-pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;}
 .riw-page-btn{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-family:'Rajdhani',sans-serif;font-weight:700;}
 .riw-page-btn.active{background:#3b82f6;color:#fff;box-shadow:0 4px 14px rgba(59,130,246,0.3);border-color:transparent;}
@@ -7247,7 +7260,6 @@ function doPesan(){
       </div>
     </div>
     <div id="riwList"></div>
-    <div class="riw-pagination" id="riwPagination"></div>
   </div>
 </div>
 
@@ -7969,33 +7981,20 @@ function doPesan(){
     if (/e-?wallet|gopay|ovo|dana|shopeepay|linkaja/.test(s)) return 'e-wallet';
     return 'game';
   }
-  function riwGoPage(p){
-    window.__riwPage = p;
-    renderRiwayat();
-    const panel = document.getElementById('riwayatPanel');
-    if (panel) panel.scrollTo({top:0, behavior:'smooth'});
-  }
-  function renderRiwPagination(totalItems, page, totalPages){
-    const pg = document.getElementById('riwPagination');
-    if (!pg) return;
-    if (totalItems <= 0 || totalPages <= 1){ pg.innerHTML = ''; return; }
-    let html = `<button class="riw-page-btn" ${page<=1?'disabled':''} onclick="window.riwGoPage(${page-1})">‹</button>`;
-    for (let i=1; i<=totalPages; i++){
-      html += `<button class="riw-page-btn ${i===page?'active':''}" onclick="window.riwGoPage(${i})">${i}</button>`;
-    }
-    html += `<button class="riw-page-btn" ${page>=totalPages?'disabled':''} onclick="window.riwGoPage(${page+1})">›</button>`;
-    pg.innerHTML = html;
-  }
   function setRiwFilter(cat, btn){
     window.__riwFilter = cat;
-    window.__riwPage = 1;
     document.querySelectorAll('.riw-tab').forEach(b=>b.classList.remove('active'));
     if (btn) btn.classList.add('active');
     renderRiwayat();
   }
   function riwOnSearchInput(){
-    window.__riwPage = 1;
     renderRiwayat();
+  }
+  function riwMonthLabel(ts){
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return 'Lainnya';
+    const months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    return months[d.getMonth()]+' '+d.getFullYear();
   }
   function renderRiwayat(){
     const u = _getUser();
@@ -8009,7 +8008,6 @@ function doPesan(){
         <div style="font-family:'Orbitron',sans-serif;font-weight:700;color:#fff;margin-bottom:6px;">BELUM ADA RIWAYAT</div>
         <div style="font-size:12px;">Order pertama kamu akan muncul di sini.</div>
       </div>`;
-      renderRiwPagination(0, 1, 1);
       return;
     }
     const searchVal = (document.getElementById('riwSearchInput')?.value || '').toLowerCase().trim();
@@ -8020,277 +8018,81 @@ function doPesan(){
       const matchesFilter = activeFilter === 'semua' || riwCategoryOf(t) === activeFilter;
       return matchesSearch && matchesFilter;
     });
-    const pageSize = 5;
-    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-    if (!window.__riwPage) window.__riwPage = 1;
-    if (window.__riwPage > totalPages) window.__riwPage = totalPages;
-    if (window.__riwPage < 1) window.__riwPage = 1;
     if (!filtered.length){
       el.innerHTML = `<div class="riw-empty">
         <div class="riw-empty-ic">🔍</div>
         <div style="font-family:'Orbitron',sans-serif;font-weight:700;color:#fff;margin-bottom:6px;">TIDAK ADA HASIL</div>
         <div style="font-size:12px;">Coba ubah kata kunci atau filter.</div>
       </div>`;
-      renderRiwPagination(0, 1, 1);
       return;
     }
-    const pageItems = filtered.slice((window.__riwPage-1)*pageSize, window.__riwPage*pageSize);
-    el.innerHTML = pageItems.map(t => {
-      const st = (t.status||'menunggu').toLowerCase();
-      const statusMeta = st==='sukses' ? {label:'Sukses', cls:'sukses'}
-                        : st==='menunggu' ? {label:'Pending', cls:'pending'}
-                                    : {label:'Gagal', cls:'gagal'}; // batal / kadaluwarsa
-      const totalRp = rp((t.price||0) * (t.qty||1));
-      const titleTxt = ((t.productName||t.prod||'Produk') + (t.variantName ? ' '+t.variantName : '')).replace(/"/g,'&quot;');
-      const safeId = String(t.id||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
-      return `<div class="riw-card" onclick="window.__riwCardTap('${safeId}')">
-        <div class="riw-card-top">
-          <div class="riw-card-title">${titleTxt}</div>
-          <span class="riw-status-pill riw-status-${statusMeta.cls}">${statusMeta.label}</span>
-        </div>
-        <div class="riw-card-bottom">
-          <span class="riw-card-date">${t.time||''}</span>
-          <span class="riw-card-amount">${totalRp}</span>
-        </div>
-      </div>`;
+    // Kelompokkan otomatis per bulan (kayak DANA) — bulan baru otomatis muncul
+    // begitu ada transaksi pertama di bulan itu, tanpa perlu halaman/pagination.
+    const groups = [];
+    const groupMap = new Map();
+    filtered.forEach(t => {
+      const ts = t.ts || Date.parse(t.time) || 0;
+      const label = riwMonthLabel(ts);
+      if (!groupMap.has(label)){
+        const g = { label, items: [] };
+        groupMap.set(label, g);
+        groups.push(g);
+      }
+      groupMap.get(label).items.push(t);
+    });
+    el.innerHTML = groups.map(g => {
+      const cardsHtml = g.items.map(t => {
+        const st = (t.status||'menunggu').toLowerCase();
+        const statusMeta = st==='sukses' ? {label:'Sukses', cls:'sukses'}
+                          : st==='menunggu' ? {label:'Pending', cls:'pending'}
+                                      : {label:'Gagal', cls:'gagal'}; // batal / kadaluwarsa
+        const totalRp = rp((t.price||0) * (t.qty||1));
+        const titleTxt = ((t.productName||t.prod||'Produk') + (t.variantName ? ' '+t.variantName : '')).replace(/"/g,'&quot;');
+        const safeId = String(t.id||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        return `<div class="riw-card" onclick="window.__riwCardTap('${safeId}')">
+          <div class="riw-card-top">
+            <div class="riw-card-title">${titleTxt}</div>
+            <span class="riw-status-pill riw-status-${statusMeta.cls}">${statusMeta.label}</span>
+          </div>
+          <div class="riw-card-bottom">
+            <span class="riw-card-date">${t.time||''}</span>
+            <span class="riw-card-amount">${totalRp}</span>
+          </div>
+        </div>`;
+      }).join('');
+      return `<div class="riw-month-label">${g.label}</div>${cardsHtml}`;
     }).join('');
-
-    renderRiwPagination(filtered.length, window.__riwPage, totalPages);
   }
 
-  // ── Modal DETAIL transaksi (redesign: Material light-layout adapted to dark) ──
-  if (!document.getElementById('riwDetailModal')) {
-    document.body.insertAdjacentHTML('beforeend', `
-    <style>
-      #riwDetailModal .ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-feature-settings:'liga';-webkit-font-smoothing:antialiased;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
-      #riwDetailModal .ms.fill{font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24;}
-      #riwDetailModal *{box-sizing:border-box;}
-      #riwDetailModal .rd-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;}
-      #riwDetailModal .rd-row + .rd-row{border-top:1px solid rgba(255,255,255,.06);}
-      #riwDetailModal .rd-lbl{display:flex;align-items:center;gap:10px;color:#8a97b3;font-size:13px;font-weight:500;}
-      #riwDetailModal .rd-val{color:#e8ebf5;font-size:13px;font-weight:600;text-align:right;max-width:60%;word-break:break-word;}
-      #riwDetailModal .rd-ico-sq{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-      #riwDetailModal .rd-btn{width:100%;height:46px;border-radius:999px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;transition:transform .15s;}
-      #riwDetailModal .rd-btn:active{transform:scale(.97);}
-      #riwDetailModal .rd-btn.primary{color:#fff;}
-      #riwDetailModal .rd-btn.ghost{background:rgba(255,255,255,.04);color:#e8ebf5;border:1px solid rgba(255,255,255,.14);}
-      @keyframes rdFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
-      #riwDetailModal .rd-float{animation:rdFloat 3.4s ease-in-out infinite;}
-    </style>
-    <div id="riwDetailModal" style="display:none;position:fixed;inset:0;z-index:9999;background:#0a1226;overflow-y:auto;font-family:'Plus Jakarta Sans',sans-serif;color:#e8ebf5;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(10,18,38,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);position:sticky;top:0;z-index:5;border-bottom:1px solid rgba(255,255,255,.06);">
-        <button onclick="window.__riwDetailClose()" style="width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#e8ebf5;display:flex;align-items:center;justify-content:center;cursor:pointer;"><span class="ms" style="font-size:20px;">arrow_back</span></button>
-        <div style="font-size:16px;font-weight:700;letter-spacing:.2px;">Status Transaksi</div>
-        <div style="width:36px;"></div>
-      </div>
-
-      <div id="rdHeroWrap" style="position:relative;padding:26px 20px 18px;text-align:center;overflow:hidden;">
-        <div id="rdHeroGlow" style="position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(16,185,129,.18) 0%,rgba(10,18,38,0) 65%);pointer-events:none;"></div>
-        <div style="position:relative;display:inline-block;">
-          <div id="rdHeroRing" style="width:104px;height:104px;border-radius:50%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 12px 40px rgba(0,0,0,.35);">
-            <div id="rdHeroInner" class="rd-float" style="width:78px;height:78px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(16,185,129,.35);">
-              <span id="rdHeroIcon" class="ms fill" style="font-size:40px;color:#fff;">check</span>
-            </div>
-          </div>
-          <div id="rdHeroBadge" style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:5px 16px;border-radius:999px;font-size:12px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:nowrap;">Berhasil</div>
-        </div>
-        <h2 id="rdHeroTitle" style="margin-top:22px;font-size:20px;font-weight:800;color:#fff;letter-spacing:-.2px;">Transaksi Berhasil!</h2>
-        <p id="rdHeroDesc" style="margin-top:6px;font-size:13px;color:#8a97b3;line-height:1.5;padding:0 20px;">Pembelian Anda telah berhasil diproses.</p>
-      </div>
-
-      <div id="rdPendingBanner" style="display:none;margin:0 16px 12px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.28);border-radius:16px;padding:12px 14px;gap:10px;align-items:center;">
-        <span class="ms" style="font-size:22px;color:#f59e0b;">schedule</span>
-        <div style="font-size:12.5px;color:#f5c876;line-height:1.5;">Transaksi masih diproses. Status akan diperbarui otomatis, gak perlu order ulang.</div>
-      </div>
-
-      <div style="margin:6px 16px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:14px 16px;">
-        <div class="rd-row" style="flex-direction:column;align-items:flex-start;gap:7px;">
-          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoId"><span class="ms" style="font-size:16px;">description</span></div>ID Transaksi</div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;"><span id="rdTrxId" class="rd-val" style="max-width:none;white-space:nowrap;overflow-x:auto;font-size:12.5px;letter-spacing:.2px;">—</span><button onclick="window.__riwDetailCopyId()" style="background:transparent;border:none;color:#8a97b3;cursor:pointer;padding:2px;flex-shrink:0;" title="Salin ID"><span class="ms" style="font-size:16px;">content_copy</span></button></div>
-        </div>
-        <div id="rdInvoiceRow" class="rd-row" style="flex-direction:column;align-items:flex-start;gap:7px;display:none;">
-          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoInvoice"><span class="ms" style="font-size:16px;">receipt</span></div>Invoice</div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;"><span id="rdInvoice" class="rd-val" style="max-width:none;white-space:nowrap;overflow-x:auto;font-size:12.5px;letter-spacing:.2px;">—</span><button onclick="window.__riwDetailCopyInvoice()" style="background:transparent;border:none;color:#8a97b3;cursor:pointer;padding:2px;flex-shrink:0;" title="Salin Invoice"><span class="ms" style="font-size:16px;">content_copy</span></button></div>
-        </div>
-        <div id="rdNamaRow" class="rd-row" style="display:none;">
-          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoNama"><span class="ms" style="font-size:16px;">person</span></div>Nama</div>
-          <div id="rdNamaVal" class="rd-val">—</div>
-        </div>
-        <div class="rd-row">
-          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoProd"><span class="ms" style="font-size:16px;">shopping_bag</span></div>Produk</div>
-          <div id="rdProdName" class="rd-val">—</div>
-        </div>
-        <div id="rdVarRow" class="rd-row" style="display:none;">
-          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoVar"><span class="ms" style="font-size:16px;">tune</span></div>Varian</div>
-          <div id="rdVarName" class="rd-val">—</div>
-        </div>
-        <div class="rd-row">
-          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoQty"><span class="ms" style="font-size:16px;">inventory_2</span></div>Jumlah</div>
-          <div id="rdQty" class="rd-val">1×</div>
-        </div>
-        <div class="rd-row">
-          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoTime"><span class="ms" style="font-size:16px;">schedule</span></div>Waktu</div>
-          <div id="rdTime" class="rd-val">—</div>
-        </div>
-        <div class="rd-row">
-          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoTotal"><span class="ms" style="font-size:16px;">payments</span></div>Total</div>
-          <div id="rdTotal" class="rd-val" style="font-weight:800;font-size:15px;color:#fff;">Rp 0</div>
-        </div>
-        <div class="rd-row">
-          <div class="rd-lbl"><div class="rd-ico-sq" id="rdIcoStatus"><span class="ms fill" style="font-size:16px;">check_circle</span></div>Status</div>
-          <div id="rdStatusPill" style="padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(16,185,129,.12);color:#10b981;">Berhasil</div>
-        </div>
-      </div>
-
-      <div id="rdKeyCard" style="display:none;margin:0 16px 12px;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.22);border-radius:20px;padding:14px 16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="display:flex;align-items:center;gap:8px;color:#10b981;font-weight:700;font-size:13px;"><span class="ms" style="font-size:16px;">vpn_key</span><span id="rdKeyLabelTxt">Key Kamu</span></div>
-          <button id="rdCopyBtn" onclick="window.__riwDetailCopy()" style="background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.4);color:#10b981;font-weight:700;font-size:12px;padding:5px 12px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;"><span class="ms" style="font-size:14px;">content_copy</span>Salin</button>
-        </div>
-        <div id="rdKeyList" style="font-size:13px;color:#a8f0cf;word-break:break-all;line-height:1.75;">—</div>
-      </div>
-
-      <div style="margin:6px 16px 8px;display:flex;flex-direction:column;gap:10px;">
-        <button id="rdBtnPrimary" class="rd-btn primary" onclick="window.__riwDetailClose()" style="background:#10b981;box-shadow:0 6px 18px rgba(16,185,129,.32);"><span class="ms" style="font-size:18px;">receipt_long</span>Kembali ke Riwayat</button>
-        <button class="rd-btn ghost" onclick="window.print()"><span class="ms" style="font-size:18px;">print</span>Cetak Struk</button>
-      </div>
-
-      <a href="https://wa.me/6285954741269" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;margin:12px 16px 20px;">
-        <div style="background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.22);border-radius:18px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:34px;height:34px;border-radius:50%;background:rgba(37,211,102,.14);display:flex;align-items:center;justify-content:center;color:#25D366;"><span class="ms" style="font-size:18px;">headset_mic</span></div>
-            <div style="display:flex;flex-direction:column;gap:2px;">
-              <span style="font-weight:700;font-size:12.5px;color:#25D366;">Butuh bantuan?</span>
-              <span style="font-size:11.5px;color:#8a97b3;">Hubungi CS jika ada kendala</span>
-            </div>
-          </div>
-          <span class="ms" style="font-size:20px;color:#25D366;">chevron_right</span>
-        </div>
-      </a>
-      <div style="height:16px;"></div>
-    </div>`);
-  }
-
-  function riwStatusMeta(st){
-    if (st === 'sukses') return {
-      icon:'check', title:'Transaksi Berhasil!', desc:'Pembelian Anda telah berhasil diproses.',
-      badge:'Berhasil', pill:'Berhasil', color:'#10b981', colorSoft:'rgba(16,185,129,.12)',
-      glow:'radial-gradient(circle,rgba(16,185,129,.20) 0%,rgba(10,18,38,0) 65%)',
-      shadow:'0 8px 24px rgba(16,185,129,.35)', float:false
-    };
-    if (st === 'menunggu') return {
-      icon:'hourglass_top', title:'Sedang Diproses', desc:'Transaksi Anda sedang kami proses. Mohon tunggu sebentar.',
-      badge:'Diproses', pill:'Diproses', color:'#f59e0b', colorSoft:'rgba(245,158,11,.14)',
-      glow:'radial-gradient(circle,rgba(245,158,11,.20) 0%,rgba(10,18,38,0) 65%)',
-      shadow:'0 8px 24px rgba(245,158,11,.35)', float:true
-    };
-    return {
-      icon:'close', title:'Transaksi Gagal', desc: st==='kadaluwarsa' ? 'Transaksi kadaluwarsa. Silakan coba order ulang.' : 'Transaksi dibatalkan atau gagal diproses.',
-      badge:'Gagal', pill:'Gagal', color:'#ef4444', colorSoft:'rgba(239,68,68,.14)',
-      glow:'radial-gradient(circle,rgba(239,68,68,.20) 0%,rgba(10,18,38,0) 65%)',
-      shadow:'0 8px 24px rgba(239,68,68,.35)', float:false
-    };
-  }
+  // ── Detail transaksi dari Riwayat sekarang pakai halaman "Status Transaksi"
+  // yang sama dengan yang muncul setelah checkout (h2hShowOrderResult) —
+  // biar cuma ada satu desain halaman sukses/diproses, bukan dua.
 
   window.__riwDetail = function(t) {
     if (typeof t === 'string') { try { t = JSON.parse(t); } catch(_){ return; } }
     const st = (t.status||'menunggu').toLowerCase();
-    const m = riwStatusMeta(st);
-    window.__rdLastTrxId = t.id || '';
-    // Hero
-    document.getElementById('rdHeroGlow').style.background = m.glow;
-    const inner = document.getElementById('rdHeroInner');
-    inner.style.background = m.color;
-    inner.style.boxShadow = m.shadow;
-    inner.classList.toggle('rd-float', !!m.float);
-    const ic = document.getElementById('rdHeroIcon');
-    ic.textContent = m.icon;
-    ic.classList.toggle('fill', st==='sukses');
-    const badge = document.getElementById('rdHeroBadge');
-    badge.textContent = m.badge; badge.style.background = m.color;
-    document.getElementById('rdHeroTitle').textContent = m.title;
-    document.getElementById('rdHeroDesc').textContent = m.desc;
-    // Banner pending
-    document.getElementById('rdPendingBanner').style.display = st === 'menunggu' ? 'flex' : 'none';
-    // Detail rows
-    document.getElementById('rdTrxId').textContent = t.id || '—';
-    const invoiceRow = document.getElementById('rdInvoiceRow');
-    if (t.invoice) { invoiceRow.style.display = 'flex'; document.getElementById('rdInvoice').textContent = t.invoice; }
-    else { invoiceRow.style.display = 'none'; }
-    window.__rdLastInvoice = t.invoice || '';
-    document.getElementById('rdTime').textContent = t.time || '—';
-    document.getElementById('rdProdName').textContent = (t.productName || t.prod || 'Produk');
-    const varRow = document.getElementById('rdVarRow');
-    if (t.variantName) { varRow.style.display = 'flex'; document.getElementById('rdVarName').textContent = t.variantName; }
-    else { varRow.style.display = 'none'; }
-    // Nama pemilik akun — khusus PLN & E-Wallet, diambil dari SN provider
-    // (format umum H2H: "NAMA PELANGGAN/nominal/kode_ref").
-    const namaRow = document.getElementById('rdNamaRow');
-    const namaPemilik = h2hExtractNamaFromSn(t.sn || t.token, t.category);
-    if (namaPemilik) { namaRow.style.display = 'flex'; document.getElementById('rdNamaVal').textContent = namaPemilik; }
-    else { namaRow.style.display = 'none'; }
-    document.getElementById('rdQty').textContent = (t.qty||1) + '×';
-    document.getElementById('rdTotal').textContent = 'Rp ' + Number((t.price||0)*(t.qty||1)).toLocaleString('id-ID');
-    // Icon squares tint per status
-    ['rdIcoId','rdIcoInvoice','rdIcoNama','rdIcoProd','rdIcoVar','rdIcoQty','rdIcoTime','rdIcoTotal','rdIcoStatus'].forEach(id => {
-      const el = document.getElementById(id); if (!el) return;
-      el.style.background = m.colorSoft; el.style.color = m.color;
-    });
-    // Status pill
-    const pill = document.getElementById('rdStatusPill');
-    pill.textContent = m.pill;
-    pill.style.background = m.colorSoft;
-    pill.style.color = m.color;
-    // Primary button (color follows status)
-    const pb = document.getElementById('rdBtnPrimary');
-    pb.style.background = m.color;
-    pb.style.boxShadow = '0 6px 18px ' + m.colorSoft.replace('.14',',.32').replace('.12',',.32');
-    // Key card (sukses only) — khusus PLN: judul jadi "Token PLN" & isi nomor token.
+    const status = st === 'sukses' ? 'success' : st === 'menunggu' ? 'processing' : 'failed';
+    // Key/token card (sukses only) — khusus PLN: judul jadi "Token PLN" & isi nomor token.
     // Produk digital biasa (non-PPOB, punya t.key) tetap tampil sebagai "Key Kamu".
-    // Kategori PPOB lain (pulsa/e-wallet/dll) tidak menampilkan kartu ini sama sekali.
-    const keyCard = document.getElementById('rdKeyCard');
-    const keyLabelEl = document.getElementById('rdKeyLabelTxt');
+    let keyLabel = '', keyLines = [];
     if (st === 'sukses' && t.category === 'pln') {
-      keyCard.style.display = 'block';
-      if (keyLabelEl) keyLabelEl.textContent = 'Token PLN';
+      keyLabel = 'Token PLN';
       const plnToken = t.token || t.sn || t.key || '';
-      document.getElementById('rdKeyList').innerHTML = plnToken
-        ? `<div>${String(plnToken)}</div>`
-        : '<div style="color:#6a8cb5;">Token belum tersedia</div>';
+      keyLines = plnToken ? [String(plnToken)] : [];
     } else if (st === 'sukses' && !t.category && t.key) {
-      keyCard.style.display = 'block';
-      if (keyLabelEl) keyLabelEl.textContent = 'Key Kamu';
-      const keys = String(t.key).split('\n').filter(Boolean);
-      document.getElementById('rdKeyList').innerHTML = keys.length
-        ? keys.map((k,i)=>`<div>${i+1}. ${k}</div>`).join('')
-        : '<div style="color:#6a8cb5;">Tidak ada key tersimpan</div>';
-    } else {
-      keyCard.style.display = 'none';
+      keyLabel = 'Key Kamu';
+      keyLines = String(t.key).split('\n').filter(Boolean);
     }
-    document.getElementById('riwDetailModal').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-  };
-  window.__riwDetailClose = function() {
-    document.getElementById('riwDetailModal').style.display = 'none';
-    document.body.style.overflow = '';
-  };
-  window.__riwDetailHome = function() {
-    window.__riwDetailClose();
-    try { if (typeof showBeranda === 'function') showBeranda(); else if (typeof window.__goHome === 'function') window.__goHome(); } catch(_){}
-  };
-  window.__riwDetailCopyId = function() {
-    const id = window.__rdLastTrxId || '';
-    if (!id) return;
-    const done = () => { if (typeof showNotif==='function') showNotif('✅ ID tersalin'); };
-    if (navigator.clipboard) navigator.clipboard.writeText(id).then(done).catch(done);
-    else { const a=document.createElement('textarea');a.value=id;document.body.appendChild(a);a.select();try{document.execCommand('copy');}catch(_){}document.body.removeChild(a);done(); }
-  };
-  window.__riwDetailCopyInvoice = function() {
-    const inv = window.__rdLastInvoice || '';
-    if (!inv || inv === '—') { if (typeof showNotif==='function') showNotif('⚠️ Invoice belum tersedia'); return; }
-    const done = () => { if (typeof showNotif==='function') showNotif('✅ Invoice tersalin'); };
-    if (navigator.clipboard) navigator.clipboard.writeText(inv).then(done).catch(done);
-    else { const a=document.createElement('textarea');a.value=inv;document.body.appendChild(a);a.select();try{document.execCommand('copy');}catch(_){}document.body.removeChild(a);done(); }
+    const message = st === 'kadaluwarsa' ? 'Transaksi kadaluwarsa. Silakan coba order ulang.'
+                  : st === 'batal' ? 'Transaksi dibatalkan atau gagal diproses.' : undefined;
+    if (typeof window.h2hShowOrderResult === 'function') {
+      window.h2hShowOrderResult({
+        status, refId: t.id || '', amount: (t.price||0)*(t.qty||1),
+        title: t.productName || t.prod || 'Produk', sub: t.variantName || '',
+        category: t.category, dest: t.dest, sn: t.sn, token: t.token,
+        keyLabel, keyLines, message
+      });
+    }
   };
   // Ambil nama pemilik akun dari SN provider H2H, khusus kategori PLN & E-Wallet.
   // Format SN yang umum dipakai provider: "NAMA PELANGGAN/nominal/kode_ref".
@@ -8476,7 +8278,6 @@ function doPesan(){
   })();
   window.setRiwFilter = setRiwFilter;
   window.riwOnSearchInput = riwOnSearchInput;
-  window.riwGoPage = riwGoPage;
   // Override existing showRiwayat
   window.showRiwayat = function(){
     const d = document.getElementById('userDropdown');
@@ -14816,13 +14617,15 @@ function h2hOrderResultBodyHtml(state){
       </div>`;
   }
 
+  const namaPemilik = (typeof h2hExtractNamaFromSn === 'function') ? h2hExtractNamaFromSn(state.sn || state.token, state.category) : '';
   const rowsHtml = [
     h2hOrRow('rgba(0,88,188,.1)', '#0058bc', 'description', 'ID Transaksi', h2hEscapeHtml(refId), true),
     h2hOrRow('rgba(188,0,10,.08)', '#bc000a', 'shopping_bag', 'Produk', h2hEscapeHtml(produkPlain)),
     h2hOrRow('rgba(0,88,188,.1)', '#0058bc', 'call', 'Nomor/ID', h2hEscapeHtml(nomorPlain)),
+    namaPemilik ? h2hOrRow('rgba(0,110,42,.1)', '#006e2a', 'person', 'Nama Pelanggan', h2hEscapeHtml(namaPemilik)) : '',
     h2hOrRow('rgba(0,110,42,.1)', '#006e2a', 'payments', 'Total Bayar', h2hEscapeHtml(amountStr)),
     h2hOrRow('rgba(65,71,85,.08)', '#414755', 'schedule', 'Waktu', h2hEscapeHtml(nowStr)),
-  ].join('<hr style="border:none;border-top:1px solid rgba(193,198,215,.35);margin:0;">');
+  ].filter(Boolean).join('<hr style="border:none;border-top:1px solid rgba(193,198,215,.35);margin:0;">');
 
   const statusRow = `
     <div style="display:flex;align-items:center;justify-content:space-between;padding:3px 0;">
@@ -14908,7 +14711,19 @@ function h2hOrderResultBodyHtml(state){
       </div>`;
   }
 
-  return { pageBg: meta.pageBg, html: hero + headingHtml + card + bottom };
+  let keyCardHtml = '';
+  if (meta.key === 'success' && Array.isArray(state.keyLines) && state.keyLines.length){
+    const keyLabel = state.keyLabel || 'Key Kamu';
+    keyCardHtml = `
+    <div style="background:#ffffff;border-radius:20px;box-shadow:0 4px 20px rgba(0,0,0,.05);padding:14px 16px;margin:0 16px 12px;">
+      <div style="font-size:12.5px;font-weight:700;color:#414755;margin-bottom:8px;">${h2hEscapeHtml(keyLabel)}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#1b1b1d;line-height:1.7;word-break:break-all;">
+        ${state.keyLines.map(k => h2hEscapeHtml(k)).join('<br>')}
+      </div>
+    </div>`;
+  }
+
+  return { pageBg: meta.pageBg, html: hero + headingHtml + card + keyCardHtml + bottom };
 }
 
 function h2hFallbackCopyText(text, done){
