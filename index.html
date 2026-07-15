@@ -201,12 +201,6 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 .profit-amt .cur{font-size:14px;color:var(--gold);margin-right:4px;}
 .profit-sub{font-size:10.5px;color:var(--muted);margin-top:4px;position:relative;z-index:1;}
 
-/* TOP LOADING BAR (kayak GoPay) — garis tipis gradient biru-hijau yang
-   "berjalan" pas app baru dibuka / lagi refresh data Beranda. */
-.pc-top-progress{position:fixed;top:0;left:0;right:0;max-width:480px;margin:0 auto;height:3px;z-index:600;opacity:0;pointer-events:none;background:linear-gradient(90deg,#4d5bff,#00d4ff,#00ff88,#4d5bff);background-size:300% 100%;transition:opacity .2s ease;}
-.pc-top-progress.show{opacity:1;animation:pcProgressSlide 1s linear infinite;}
-@keyframes pcProgressSlide{0%{background-position:0% 0%;}100%{background-position:100% 0%;}}
-
 /* LAYANAN PPOB GRID */
 .pc-sec-title{font-size:17px;font-weight:700;color:#fff;margin:22px 0 12px;padding:0 2px;}
 .ppob-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 8px;}
@@ -910,7 +904,6 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 
 <!-- ===== TOP LOADING BAR (kayak GoPay) — muncul otomatis pas app baru
      dibuka / lagi refresh data Beranda ===== -->
-<div id="pcTopProgress" class="pc-top-progress"></div>
 
 <!-- ===== PIN GATE (dipakai tiap mau checkout/transfer) ===== -->
 <div class="pin-overlay" id="pinGateOverlay">
@@ -7713,7 +7706,7 @@ function doPesan(){
 
       <div style="margin:6px 16px 8px;display:flex;flex-direction:column;gap:10px;">
         <button id="rdBtnPrimary" class="rd-btn primary" onclick="window.__riwDetailClose()" style="background:#10b981;box-shadow:0 6px 18px rgba(16,185,129,.32);"><span class="ms" style="font-size:18px;">receipt_long</span>Kembali ke Riwayat</button>
-        <button class="rd-btn ghost" onclick="window.__riwDetailHome()"><span class="ms" style="font-size:18px;">home</span>Kembali ke Beranda</button>
+        <button class="rd-btn ghost" onclick="window.print()"><span class="ms" style="font-size:18px;">print</span>Cetak Struk</button>
       </div>
 
       <a href="https://wa.me/6285954741269" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;margin:12px 16px 20px;">
@@ -9196,6 +9189,14 @@ function doPesan(){
   }
   async function addBalByEmail(email, delta){
     if (!email) throw new Error('Email kosong');
+    // Akun admin/owner TIDAK PERNAH punya saldo internal — saldo dia
+    // murni dari H2H.id. Kalau ini kepanggil buat ADMIN_EMAIL (mis. dari
+    // alur top up QRIS / top up manual admin), jangan nulis apa pun ke
+    // kolom balance di Supabase, biar gak numpuk lagi kayak kejadian
+    // sebelumnya (568 ketutup 26.100).
+    if (typeof ADMIN_EMAIL !== 'undefined' && email.trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase()) {
+      return 0;
+    }
     let cur = _localGetBal(email);
     let dbOk = false;
     if (_balColAvailable !== false && window._sb && _sb.from){
@@ -12272,7 +12273,8 @@ function tuClearActive(){
 #ubahPasswordPage.open ~ .bottom-nav,
 #verifikasiIdentitasPage.open ~ .bottom-nav,
 #strukSettingsPage.open ~ .bottom-nav,
-#resellerMenuPage.open ~ .bottom-nav{
+#resellerMenuPage.open ~ .bottom-nav,
+#agenResellerPage.open ~ .bottom-nav{
   display:none!important;
 }
 </style>
