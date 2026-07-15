@@ -4565,14 +4565,20 @@ function platClass(p) { return p === 'ios' ? 'b-ios' : p === 'android' ? 'b-andr
 function platLabel(p) { return p === 'all' ? 'ALL DEVICE' : (p||'').toUpperCase(); }
 
 function renderProducts() {
+  // Elemen2 ini cuma ada di halaman katalog produk (mis. Pulsa/Paket Data),
+  // bukan di Beranda. initProducts() dipanggil dari initApp() setiap kali
+  // app dibuka/refresh, JAUH sebelum halaman itu dibuka -> tanpa guard ini
+  // fungsi selalu crash duluan dan bikin sisa initApp() (termasuk restore
+  // tab terakhir) gak pernah kejalan.
+  const grid = document.getElementById('productGrid');
+  if (!grid) return;
   const products = getProducts();
-  const search = document.getElementById('searchInput').value.toLowerCase();
+  const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
   const filtered = products.filter(p => {
     const tabOk = currentTab === 'semua' || p.cat.includes(currentTab) || (currentTab === 'apk premium' && p.name.toLowerCase().includes('premium'));
     const srchOk = p.name.toLowerCase().includes(search);
     return tabOk && srchOk;
   });
-  const grid = document.getElementById('productGrid');
   if (!filtered.length) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:30px;font-size:13px">Produk tidak ditemukan</div>`;
     return;
@@ -4980,7 +4986,9 @@ function closeAdmin() { document.getElementById('adminPanel').classList.remove('
 
 function renderApProds() {
   const prods = getProducts();
-  document.getElementById('apProdList').innerHTML = prods.map((p, idx) => `
+  const apProdList = document.getElementById('apProdList');
+  if (!apProdList) return; // elemen ini cuma ada di panel Admin, belum tentu ada di DOM pas initApp() jalan
+  apProdList.innerHTML = prods.map((p, idx) => `
     <div class="ap-product-block">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
         <div class="ap-prod-name" style="margin-bottom:0;">${p.emoji} ${p.name}</div>
@@ -5381,7 +5389,9 @@ function apAddProduct() {
 }
 
 function renderApDelete() {
-  document.getElementById('apDeleteList').innerHTML = getProducts().map(p => `
+  const apDeleteList = document.getElementById('apDeleteList');
+  if (!apDeleteList) return; // elemen ini cuma ada di panel Admin
+  apDeleteList.innerHTML = getProducts().map(p => `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
       <span style="flex:1;font-size:12px;font-weight:600">${p.name}</span>
       <button onclick="apDeleteProd(${p.id})" style="background:var(--danger);color:#fff;border:none;border-radius:7px;padding:5px 12px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">HAPUS</button>
@@ -5402,39 +5412,48 @@ async function initApp() {
   if (typeof pcShowTopProgress === 'function') pcShowTopProgress();
   renderHeader();
 
-  // Wajib login/daftar dulu sebelum bisa lanjut ke beranda
-  if (!currentUser) {
-    authGateActive = true;
-    openAuth('masuk');
-  } else {
-    // Udah login dari sesi sebelumnya (gak perlu login ulang) — tapi kalau
-    // user aktifin "Autentikasi Dua Faktor" di Pengaturan, wajib verifikasi
-    // dulu (sidik jari lalu/atau PIN) sebelum konten Beranda ditampilkan.
-    await appSecurityGateCheck();
-  }
+  try {
+    // Wajib login/daftar dulu sebelum bisa lanjut ke beranda
+    if (!currentUser) {
+      authGateActive = true;
+      openAuth('masuk');
+    } else {
+      // Udah login dari sesi sebelumnya (gak perlu login ulang) — tapi kalau
+      // user aktifin "Autentikasi Dua Faktor" di Pengaturan, wajib verifikasi
+      // dulu (sidik jari lalu/atau PIN) sebelum konten Beranda ditampilkan.
+      await appSecurityGateCheck();
+    }
 
-  // Markup (wa/ticker/markup) sudah mulai di-load dari awal skrip (lihat
-  // loadMarkupSettings() di atas) — di sini tinggal nunggu sampai selesai,
-  // jangan fetch ulang.
-  await window._markupReadyPromise;
-  await vpApplyReferralPricing();
-  if (typeof pgsUpdateResellerMenu === 'function') pgsUpdateResellerMenu();
+    // Markup (wa/ticker/markup) sudah mulai di-load dari awal skrip (lihat
+    // loadMarkupSettings() di atas) — di sini tinggal nunggu sampai selesai,
+    // jangan fetch ulang.
+    await window._markupReadyPromise;
+    await vpApplyReferralPricing();
+    if (typeof pgsUpdateResellerMenu === 'function') pgsUpdateResellerMenu();
 
-  // Load banners (global) — tampilkan dari cache lokal dulu lalu sync dari cloud
-  window._bannerImages = getBanners();
-  if (typeof renderBannerSlider === 'function') renderBannerSlider();
-  loadBannersFromCloud();
+    // Load banners (global) — tampilkan dari cache lokal dulu lalu sync dari cloud
+    window._bannerImages = getBanners();
+    if (typeof renderBannerSlider === 'function') renderBannerSlider();
+    loadBannersFromCloud();
 
-  // Load products (global) — TUNGGU cloud dulu agar render pertama pakai data Supabase
-  // (cegah race condition: setProducts dipanggil sebelum cloud loaded -> overwrite cloud)
-  await loadProductsFromCloud();
-  await initProducts();
+    // Load products (global) — TUNGGU cloud dulu agar render pertama pakai data Supabase
+    // (cegah race condition: setProducts dipanggil sebelum cloud loaded -> overwrite cloud)
+    await loadProductsFromCloud();
+    await initProducts();
 
-  // Sinkron riwayat & refresh kartu Pemasukan/Pengeluaran begitu app dibuka
-  // (kalau user udah login dari sesi sebelumnya) — supaya gak nunjukin Rp 0
-  // dulu sebelum sempet mampir ke halaman Riwayat.
-  if (currentUser && typeof pcRefreshStatsFromServer === 'function') {
-    pcRefreshStatsFromServer();
+    // Sinkron riwayat & refresh kartu Pemasukan/Pengeluaran begitu app dibuka
+    // (kalau user udah login dari sesi sebelumnya) — supaya gak nunjukin Rp 0
+    // dulu sebelum sempet mampir ke halaman Riwayat.
+    if (currentUser && typeof pcRefreshStatsFromServer === 'function') {
+      pcRefreshStatsFromServer();
+    }
+  } catch (e) {
+    // PENTING: kalau salah satu langkah di atas (security gate/banner/produk/
+    // stats) error/gagal, JANGAN biarkan itu bikin seluruh initApp() berhenti
+    // di tengah jalan -> restore tab & hide progress bar di bawah ini tetap
+    // harus jalan apapun yang terjadi, supaya refresh gak selalu ke-lempar
+    // balik ke Beranda gara2 error yang gak ada hubungannya sama navigasi.
+    console.error('[initApp] ada error pas load konten awal:', e);
   }
 
   // Balikin ke tab terakhir (Riwayat/Agen-Reseller/Profil) kalau sebelum
@@ -5791,7 +5810,20 @@ function payQrisDone(){
 })();
 
 
-initApp();
+// initApp() butuh fungsi2 yang didefinisikan di <script> lain, lebih ke
+// bawah di file ini (mis. appSecurityGateCheck()). Kalau dipanggil langsung
+// di sini, appSecurityGateCheck() belum ke-define sama sekali (browser
+// masih di tengah parsing script ini, belum sampai ke script yang
+// mendefinisikannya) -> ReferenceError -> initApp() berhenti di tengah
+// jalan -> pcRestoreLastTab() di baris terakhir initApp() gak pernah
+// kepanggil -> makanya refresh selalu balik ke Beranda walau localStorage
+// vp_last_tab-nya udah bener. Fix: tunda sampai DOMContentLoaded, supaya
+// semua <script> inline di halaman ini udah selesai jalan duluan.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 
 // ====== SYNC STOK DARI SUPABASE (untuk sinkronisasi dgn ambil-key.html) ======
 // Key yang di-claim via ambil-key.html tersimpan di tabel product_keys Supabase.
@@ -8471,7 +8503,7 @@ function doPesan(){
     el.innerHTML = _ytHistory.slice(0,8).map((url,i) =>
       `<div style="display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;">
         <div style="flex:1;font-size:11px;color:var(--accent2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${url}</div>
-        <button onclick="window._playYt('${url.replace(/'/g,''')}')" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;">▶</button>
+        <button onclick="window._playYt('${url.replace(/'/g,"\\'")}')" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;">▶</button>
         <button onclick="window._delYt(${i})" style="background:var(--danger);color:#fff;border:none;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer;">HAPUS</button>
       </div>`
     ).join('');
@@ -8667,6 +8699,7 @@ function doPesan(){
 
   // ── Jalankan refresh saat produk/varian pertama kali dibuka ──
   setTimeout(() => { try { refreshPayMethodAvailability(); } catch(e){} }, 300);
+})();
 </script>
 
 
@@ -9128,6 +9161,16 @@ function doPesan(){
     return s.includes('balance') && (s.includes('does not exist') || s.includes('column') || err.code==='42703' || err.code==='PGRST204');
   }
   let _balColAvailable = null; // null=unknown, true/false
+
+  // Biar "SALDO ANDA" gak kedap-kedip nunjukin angka LAMA dari cache
+  // localStorage sebelum sempat ke-update ke angka ASLI dari Supabase (mis.
+  // kalau saldo baru aja diubah langsung lewat Supabase / device lain).
+  // renderSaldoAmt() nunggu flag ini true sebelum berani nampilin angka.
+  window._vpBalConfirmed = false;
+  setTimeout(function(){ // jaga2 kalau reloadBalFromDB() gak pernah kepanggil / macet
+    if (!window._vpBalConfirmed) { window._vpBalConfirmed = true; if (typeof renderSaldoAmt === 'function') renderSaldoAmt(); }
+  }, 4000);
+
   function getBal(){
     const u = getCU(); if (!u) return 0;
     const v = parseInt(u.balance||0)||0;
@@ -9136,6 +9179,9 @@ function doPesan(){
   }
   async function setBal(n, opts){
     const u = getCU(); if (!u) return;
+    // Jangan biarkan apa pun nulis ke kolom balance internal buat akun
+    // admin/owner — saldo dia HARUS selalu dari H2H (via /my-balance).
+    if (u.isAdminH2H) return;
     u.balance = Math.max(0, parseInt(n)||0);
     saveCU(u);
     _localSetBal(u.email, u.balance);
@@ -9173,13 +9219,25 @@ function doPesan(){
     return nv;
   }
   async function reloadBalFromDB(){
-    const u = getCU(); if (!u) return;
+    const u = getCU();
+    if (!u) { window._vpBalConfirmed = true; if (typeof renderSaldoAmt === 'function') renderSaldoAmt(); return; }
+    // Akun admin/owner (saldo asli dari H2H, sudah dihandle /my-balance
+    // di atas) TIDAK BOLEH pernah kepaint pakai kolom users.balance
+    // internal — itu penyebab saldo H2H ketutup angka saldo internal.
+    if (u.isAdminH2H) { window._vpBalConfirmed = true; if (typeof renderSaldoAmt === 'function') renderSaldoAmt(); return; }
     const loc = _localGetBal(u.email);
     if (loc && !u.balance){ u.balance = loc; saveCU(u); paintBal(); try{ window.dispatchEvent(new Event('vp:balance')); }catch(_){} }
-    if (!window._sb || !_sb.from || _balColAvailable === false) return;
+    if (!window._sb || !_sb.from || _balColAvailable === false) {
+      window._vpBalConfirmed = true; if (typeof renderSaldoAmt === 'function') renderSaldoAmt();
+      return;
+    }
     try {
       const { data, error } = await _sb.from('users').select('balance').eq('email', u.email).maybeSingle();
-      if (error){ if (_isMissingColErr(error)) _balColAvailable = false; return; }
+      if (error){
+        if (_isMissingColErr(error)) _balColAvailable = false;
+        window._vpBalConfirmed = true; if (typeof renderSaldoAmt === 'function') renderSaldoAmt();
+        return;
+      }
       if (data && typeof data.balance !== 'undefined' && data.balance !== null){
         u.balance = parseInt(data.balance||0)||0;
         _localSetBal(u.email, u.balance);
@@ -9187,7 +9245,11 @@ function doPesan(){
         paintBal();
         try{ window.dispatchEvent(new Event('vp:balance')); }catch(_){}
       }
-    } catch(e){}
+      window._vpBalConfirmed = true;
+      if (typeof renderSaldoAmt === 'function') renderSaldoAmt();
+    } catch(e){
+      window._vpBalConfirmed = true; if (typeof renderSaldoAmt === 'function') renderSaldoAmt();
+    }
   }
   window.vpReloadBalance = reloadBalFromDB;
   window.vpAddBalanceByEmail = addBalByEmail;
@@ -11583,7 +11645,7 @@ window.loadYoutube = function(){
     window._ytH=h;
     // Refresh history list
     const el=document.getElementById('ytHistory');
-    if(el) el.innerHTML=h.map((u,i)=>'<div style="display:flex;align-items:center;gap:8px;background:#111;border:1px solid #222;border-radius:6px;padding:6px 10px;"><div style="flex:1;font-size:11px;color:#00aaff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+u+'</div><button onclick="document.getElementById('ytLinkInput').value=window._ytH['+i+'];window.loadYoutube();" style="background:#ff0000;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:10px;cursor:pointer;">Play</button></div>').join('');
+    if(el) el.innerHTML=h.map((u,i)=>'<div style="display:flex;align-items:center;gap:8px;background:#111;border:1px solid #222;border-radius:6px;padding:6px 10px;"><div style="flex:1;font-size:11px;color:#00aaff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+u+'</div><button onclick="document.getElementById(\'ytLinkInput\').value=window._ytH['+i+'];window.loadYoutube();" style="background:#ff0000;color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:10px;cursor:pointer;">Play</button></div>').join('');
   } catch(e){}
 };
 
@@ -12249,6 +12311,14 @@ function renderSaldoAmt(){
   const icon = document.getElementById('saldoEyeIcon');
   if (!amt || !icon) return;
   const real = amt.getAttribute('data-real') || '0';
+  // Selama saldo asli dari Supabase belum sempet dikonfirmasi (baru pertama
+  // kali app dibuka/refresh), jangan nampilin angka cache lokal dulu — itu
+  // yang bikin "kedip" dari angka lama ke angka asli. Tampilin loading dulu.
+  if (!window._vpBalConfirmed){
+    amt.textContent = '···';
+    icon.innerHTML = '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-10-8-10-8a18.36 18.36 0 0 1 4.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    return;
+  }
   if (_pcSaldoVisible){
     amt.textContent = Number(real).toLocaleString('id-ID');
     icon.innerHTML = '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-10-8-10-8a18.36 18.36 0 0 1 4.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
