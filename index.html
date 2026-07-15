@@ -84,6 +84,7 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 .pgs-status-badge.belum{background:rgba(255,68,85,.08);border:1px solid rgba(255,68,85,.35);color:var(--danger);}
 .pgs-status-badge.pending{background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.35);color:var(--gold);}
 .pgs-status-badge.verified{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.35);color:var(--success);}
+.pgs-status-badge.ditolak{background:rgba(255,68,85,.08);border:1px solid rgba(255,68,85,.35);color:var(--danger);}
 .pgs-upload-box{border:1.5px dashed var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;margin-bottom:14px;background:rgba(255,255,255,0.02);}
 .pgs-upload-box img{max-width:100%;max-height:140px;border-radius:8px;display:block;margin:6px auto 0;}
 .pgs-upload-box .puh-txt{font-size:12px;color:var(--muted);}
@@ -2223,6 +2224,17 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       </div>
     </div>
     <div class="ap-card">
+      <h3 onclick="toggleApCard(this)">BANNER PROMO (Halaman Promo)<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Banner ini TERPISAH dari Banner Slideshow di atas — cuma tampil di halaman Promo (bagian "Sedang Berlangsung"), bukan di beranda.</div>
+      <div id="apPromoBannerList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+      <input type="file" id="apPromoBannerFile" accept="image/*" style="display:none;" onchange="apPromoBannerUpload()">
+      <label for="apPromoBannerFile" style="display:block;width:100%;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:10px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:6px;font-family:'Rajdhani',sans-serif;">📁 UPLOAD BANNER PROMO BARU</label>
+      <input type="text" id="apPromoBannerUrl" class="ap-input" placeholder="Atau paste URL gambar banner promo...">
+      <button class="ap-save" onclick="apPromoBannerAddUrl()" style="background:var(--accent2);color:#000;">➕ TAMBAH BANNER PROMO VIA URL</button>
+      </div>
+    </div>
+    <div class="ap-card">
       <h3 onclick="toggleApCard(this)">MARKUP HARGA H2H/PPOB<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Atur markup di atas harga modal H2H, per kategori (persen atau nominal Rp). Berlaku untuk SEMUA produk PPOB/H2H (Pulsa, Paket Data, E-Wallet, Voucher Game, PLN, PascaBayar HP, Paket Telp & SMS, Streaming, SMM) dan tampil ke SEMUA pengunjung.</div>
@@ -2479,13 +2491,6 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
         <div class="puh-txt">Klik untuk unggah foto KTP</div>
       </div>
 
-      <div class="pgs-field-label">Foto Selfie Sambil Pegang KTP</div>
-      <input type="file" id="viSelfieInput" accept="image/*" style="display:none;" onchange="viFileChange('viSelfieInput','viSelfieBox','viSelfieData')">
-      <div class="pgs-upload-box" id="viSelfieBox" onclick="document.getElementById('viSelfieInput').click()">
-        <div class="puh-ico">🤳</div>
-        <div class="puh-txt">Klik untuk unggah foto selfie + KTP</div>
-      </div>
-
       <div id="viErr" class="pgs-err"></div>
       <button id="btnSubmitVerifikasi" class="pgs-btn-primary" onclick="submitVerifikasiIdentitas()">KIRIM UNTUK DIVERIFIKASI</button>
     </div>
@@ -2620,7 +2625,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     </div>
     <button class="pgs-btn-primary" style="margin-bottom:20px;" onclick="refShareCode()">📤 Bagikan ke Teman</button>
 
-    <div style="display:flex;gap:10px;margin-bottom:20px;">
+    <div style="display:flex;gap:10px;margin-bottom:12px;">
       <div style="flex:1;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;">
         <div style="font-size:20px;font-weight:800;color:var(--accent2);" id="refCountInvited">0</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px;">Orang Diundang</div>
@@ -2629,6 +2634,15 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
         <div style="font-size:20px;font-weight:800;color:var(--success,#00ff88);" id="refTotalKomisi">Rp 0</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px;">Total Komisi</div>
       </div>
+    </div>
+
+    <div style="background:var(--card2);border:1px solid var(--accent2);border-radius:12px;padding:14px;margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div style="font-size:12px;color:var(--muted);">💰 Saldo Komisi (belum ditarik)</div>
+        <div style="font-size:16px;font-weight:800;color:var(--accent2);" id="refPendingBalance">Rp 0</div>
+      </div>
+      <div style="font-size:10.5px;color:var(--muted);margin-bottom:10px;" id="refWithdrawHint">Minimal Rp1.000 buat bisa ditarik ke saldo utama.</div>
+      <button id="btnRefWithdraw" class="pgs-btn-primary" style="margin-bottom:0;padding:9px;font-size:12px;" onclick="refWithdraw()" disabled>Tarik ke Saldo Utama</button>
     </div>
 
     <div class="pgs-field-label">Tingkat Komisi</div>
@@ -2708,6 +2722,19 @@ async function refLoadStats(){
     document.getElementById('refTotalKomisi').textContent = 'Rp ' + Number(_refInfo.total_commission || 0).toLocaleString('id-ID');
     document.getElementById('refTierTable').innerHTML = refTierRows();
 
+    const pending = Number(_refInfo.referral_balance || 0);
+    const withdrawMin = Number(_refInfo.withdraw_min || 1000);
+    document.getElementById('refPendingBalance').textContent = 'Rp ' + pending.toLocaleString('id-ID');
+    const btnW = document.getElementById('btnRefWithdraw');
+    const hintW = document.getElementById('refWithdrawHint');
+    if (pending >= withdrawMin) {
+      btnW.disabled = false;
+      hintW.textContent = `Saldo komisi kamu udah cukup buat ditarik ke saldo utama.`;
+    } else {
+      btnW.disabled = true;
+      hintW.textContent = `Minimal Rp${withdrawMin.toLocaleString('id-ID')} buat bisa ditarik ke saldo utama. Kurang Rp${(withdrawMin - pending).toLocaleString('id-ID')} lagi.`;
+    }
+
     const rows = _refInfo.recent_earnings || [];
     const list = document.getElementById('refEarningsList');
     if (!rows.length) {
@@ -2739,13 +2766,47 @@ function refShareCode(){
   const code = (_refInfo && _refInfo.referral_code) || document.getElementById('refCodeInput').value;
   if (!code || code === '-' || code === 'Memuat...') { showNotif('⚠️ Kode belum siap, coba lagi sebentar.'); return; }
   const text = `Yuk daftar di VinzPro Store pakai kode referral aku: ${code} 🎁\nBanyak promo pulsa, paket data, PLN, e-wallet & voucher game harga murah!`;
-  if (navigator.share) {
-    navigator.share({ title: 'VinzPro Store', text }).catch(()=>{});
-  } else {
-    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
-  }
+  // Catatan: navigator.share() DIHINDARI di sini — di dalam app WebView
+  // (bukan browser biasa), navigator.share/OS-share-sheet kadang malah
+  // nyoba buka URL skema "whatsapp://send/?text=..." langsung, yang bikin
+  // WebView error "net::ERR_UNKNOWN_URL_SCHEME" karena WebView gak tau cara
+  // handle skema URL custom kayak gitu. Link https://wa.me/ jauh lebih
+  // aman karena itu URL https biasa yang bisa dibuka WebView manapun.
+  window.location.href = 'https://wa.me/?text=' + encodeURIComponent(text);
 }
 window.refShareCode = refShareCode;
+
+async function refWithdraw(){
+  const btn = document.getElementById('btnRefWithdraw');
+  if (btn.disabled) return;
+  if (!currentUser) { showNotif('⚠️ Silakan login dulu.'); return; }
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = '⏳ Menarik...';
+  try {
+    const token = await h2hGetAccessToken();
+    if (!token) { showNotif('⚠️ Silakan login dulu.'); btn.textContent = originalText; return; }
+    const res = await fetch(`${H2H_WORKER_URL}/referral/withdraw`, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const j = await res.json().catch(() => ({}));
+    if (j.success) {
+      showNotif('✅ ' + (j.message || 'Berhasil menarik saldo komisi!'));
+      if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
+      await refLoadStats();
+    } else {
+      showNotif('❌ ' + (j.message || 'Gagal menarik saldo komisi.'));
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  } catch(e) {
+    showNotif('❌ Terjadi kesalahan jaringan.');
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+window.refWithdraw = refWithdraw;
 </script>
 
 <script>
@@ -2892,6 +2953,16 @@ const EJS_PUBLIC_KEY  = 'BArF6YtuyZwG5auHl';
 const EJS_SERVICE_ID  = 'service_se0ap1m';
 const EJS_TEMPLATE_ID = 'template_eh0gt7b';
 
+// Template KEDUA — buat notifikasi umum ke admin (bukan OTP), dipakai buat
+// kirim data pendaftaran Agen/Reseller & Verifikasi Identitas ke email admin.
+// WAJIB dibuatkan template baru di dashboard EmailJS (emailjs.com) dengan isi:
+//   To Email : {{to_email}}
+//   Subject  : {{subject}}
+//   Content  : {{message}}   (pakai <pre> atau white-space:pre-wrap biar rapi)
+// Lalu ganti nilai di bawah ini dengan Template ID yang baru dibuat.
+const EJS_TEMPLATE_ID_ADMIN = 'template_csk1t5r';
+const ADMIN_NOTIF_EMAIL = 'alpintandjung@gmail.com';
+
 // Inisialisasi EmailJS
 (function() {
   try { emailjs.init({ publicKey: EJS_PUBLIC_KEY }); } catch(e) {}
@@ -2924,6 +2995,30 @@ async function sendOTPEmail(toEmail, toName, code, subject) {
     return true; // return true biar flow tetap lanjut
   }
 }
+
+// Kirim notifikasi umum ke email admin (BUKAN OTP) — dipakai buat kabarin
+// pendaftaran Agen/Reseller & Verifikasi Identitas biar admin bisa cek dulu
+// sebelum di-ACC manual di Admin Panel (bagian "Kelola Role Reseller/Agen").
+// Return true/false (bukan selalu true kayak sendOTPEmail) supaya pemanggil
+// bisa kasih tau user kalau emailnya gagal terkirim.
+async function sendAdminNotifEmail(subject, message) {
+  if (EJS_TEMPLATE_ID_ADMIN === 'GANTI_TEMPLATE_ADMIN_KAMU') {
+    console.warn('[DEV MODE] Template email admin belum dikonfigurasi.\nSubjek: ' + subject + '\n\n' + message);
+    return false;
+  }
+  try {
+    await emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID_ADMIN, {
+      to_email: ADMIN_NOTIF_EMAIL,
+      subject: subject,
+      message: message,
+    });
+    return true;
+  } catch(err) {
+    console.error('sendAdminNotifEmail error:', err);
+    return false;
+  }
+}
+window.sendAdminNotifEmail = sendAdminNotifEmail;
 
 // ══════════════════════════════
 // STATE
@@ -3116,6 +3211,45 @@ async function loadBannersFromCloud(){
       } catch(e){}
     }
   } catch(e){ console.warn('loadBannersFromCloud err:', e); }
+}
+
+// ══════════════════════════════
+// BANNER PROMO — TERPISAH dari Banner Slideshow beranda di atas. Tampil
+// cuma di halaman Promo ("Sedang Berlangsung"), disimpan di Supabase
+// settings.promo_banners (key beda dari settings.banners).
+// ══════════════════════════════
+function getPromoBanners(){
+  try { return JSON.parse(localStorage.getItem('vp_promo_banners') || '[]'); } catch(e){ return []; }
+}
+function setPromoBanners(arr){
+  try { localStorage.setItem('vp_promo_banners', JSON.stringify(arr)); } catch(e){}
+  window._promoBannerImages = arr;
+  if (typeof renderPromoList === 'function') renderPromoList();
+  if (typeof renderApPromoBanners === 'function') renderApPromoBanners();
+  const payload = JSON.stringify(arr);
+  _sb.from('settings').upsert({ key: 'promo_banners', value: payload }).then(({error}) => {
+    if (error) {
+      console.warn('Cloud save promo banners err:', error);
+      showNotif('⚠️ Gagal sync banner promo ke cloud', 'var(--danger)');
+    }
+  });
+}
+async function loadPromoBannersFromCloud(){
+  try {
+    const { data, error } = await _sb.from('settings').select('value').eq('key', 'promo_banners').maybeSingle();
+    if (error) { console.warn('Cloud promo banners err:', error); return; }
+    if (data && data.value){
+      try {
+        const arr = JSON.parse(data.value);
+        if (Array.isArray(arr)){
+          try { localStorage.setItem('vp_promo_banners', data.value); } catch(e){}
+          window._promoBannerImages = arr;
+          if (typeof renderPromoList === 'function') renderPromoList();
+          if (typeof renderApPromoBanners === 'function') renderApPromoBanners();
+        }
+      } catch(e){}
+    }
+  } catch(e){ console.warn('loadPromoBannersFromCloud err:', e); }
 }
 
 function initProducts() {
@@ -3960,18 +4094,24 @@ async function submitUbahPassword(){
 }
 
 // ── Halaman Verifikasi Identitas tersendiri ──
-let viKtpData = null, viSelfieData = null;
+let viKtpData = null;
 function _viStatusKey(){ return currentUser ? ('vp_identity_status_' + currentUser.email) : null; }
+function _viReasonKey(){ return currentUser ? ('vp_identity_reason_' + currentUser.email) : null; }
 function viGetStatus(){
   const key = _viStatusKey();
   if (!key) return 'belum';
   try { return localStorage.getItem(key) || 'belum'; } catch(e) { return 'belum'; }
 }
+function viGetReason(){
+  const key = _viReasonKey();
+  if (!key) return '';
+  try { return localStorage.getItem(key) || ''; } catch(e) { return ''; }
+}
 function viSyncStatusLabel(){
   const sub = document.getElementById('viStatusSub');
   if (!sub) return;
   const st = viGetStatus();
-  sub.textContent = st === 'verified' ? 'Terverifikasi' : st === 'pending' ? 'Menunggu peninjauan' : 'Belum diverifikasi';
+  sub.textContent = st === 'verified' ? 'Terverifikasi' : st === 'pending' ? 'Menunggu peninjauan' : st === 'ditolak' ? 'Ditolak' : 'Belum diverifikasi';
 }
 function openVerifikasiIdentitas(){
   if (!currentUser) return;
@@ -3980,7 +4120,7 @@ function openVerifikasiIdentitas(){
   const formWrap = document.getElementById('viFormWrap');
   const pendingWrap = document.getElementById('viPendingWrap');
   badge.className = 'pgs-status-badge ' + st;
-  badge.textContent = st === 'verified' ? '✅ Terverifikasi' : st === 'pending' ? '⏳ Menunggu Peninjauan' : '⏳ Belum Diverifikasi';
+  badge.textContent = st === 'verified' ? '✅ Terverifikasi' : st === 'pending' ? '⏳ Menunggu Peninjauan' : st === 'ditolak' ? '❌ Ditolak' : '⏳ Belum Diverifikasi';
   if (st === 'pending') {
     formWrap.style.display = 'none';
     pendingWrap.style.display = 'block';
@@ -3989,6 +4129,11 @@ function openVerifikasiIdentitas(){
     formWrap.style.display = 'none';
     pendingWrap.style.display = 'block';
     pendingWrap.innerHTML = '<div class="pgs-hint">🎉 Identitas kamu sudah terverifikasi. Terima kasih!</div>';
+  } else if (st === 'ditolak') {
+    formWrap.style.display = 'none';
+    pendingWrap.style.display = 'block';
+    const reason = viGetReason();
+    pendingWrap.innerHTML = '<div class="pgs-hint">❌ Pengajuan kamu ditolak sistem.' + (reason ? '<br><br><strong>Alasan:</strong> ' + reason : '') + '<br><br>Cek lagi data & foto KTP kamu, terus kirim ulang.</div><button class="pgs-btn-outline" onclick="viResetForm()">Kirim Ulang Data</button>';
   } else {
     formWrap.style.display = 'block';
     pendingWrap.style.display = 'none';
@@ -4008,22 +4153,23 @@ function viFileChange(inputId, boxId, dataVar){
   const r = new FileReader();
   r.onload = e => {
     compressImage(e.target.result, 900, 900, 0.75, dataUrl => {
-      if (dataVar === 'viKtpData') viKtpData = dataUrl; else viSelfieData = dataUrl;
+      viKtpData = dataUrl;
       box.innerHTML = `<img src="${dataUrl}"><div class="puh-txt" style="margin-top:8px;">✅ Foto terpilih, klik untuk ganti</div>`;
     });
   };
   r.readAsDataURL(file);
 }
 function viResetForm(){
-  viKtpData = null; viSelfieData = null;
+  viKtpData = null;
   const key = _viStatusKey();
+  const rKey = _viReasonKey();
   if (key) { try { localStorage.removeItem(key); } catch(e){} }
+  if (rKey) { try { localStorage.removeItem(rKey); } catch(e){} }
   viSyncStatusLabel();
   document.getElementById('viNama').value = '';
   document.getElementById('viNik').value = '';
   document.getElementById('viTgl').value = '';
   document.getElementById('viKtpBox').innerHTML = '<div class="puh-ico">🪪</div><div class="puh-txt">Klik untuk unggah foto KTP</div>';
-  document.getElementById('viSelfieBox').innerHTML = '<div class="puh-ico">🤳</div><div class="puh-txt">Klik untuk unggah foto selfie + KTP</div>';
   document.getElementById('viErr').style.display = 'none';
   document.getElementById('viFormWrap').style.display = 'block';
   document.getElementById('viPendingWrap').style.display = 'none';
@@ -4031,6 +4177,11 @@ function viResetForm(){
   badge.className = 'pgs-status-badge belum';
   badge.textContent = '⏳ Belum Diverifikasi';
 }
+// Saklar: set true kalau Edge Function verify-identity udah di-deploy & siap
+// dipakai. Selama false, semua pengajuan verifikasi langsung masuk antrian
+// manual admin (email notif), gak nyoba manggil AI sama sekali.
+const AI_VERIFICATION_ENABLED = false;
+
 async function submitVerifikasiIdentitas(){
   const errEl = document.getElementById('viErr');
   errEl.style.display = 'none';
@@ -4041,24 +4192,78 @@ async function submitVerifikasiIdentitas(){
   if (!/^\d{16}$/.test(nik)) { errEl.textContent = 'NIK harus 16 digit angka!'; errEl.style.display = 'block'; return; }
   if (!tgl) { errEl.textContent = 'Masukkan tanggal lahir!'; errEl.style.display = 'block'; return; }
   if (!viKtpData) { errEl.textContent = 'Unggah foto KTP terlebih dahulu!'; errEl.style.display = 'block'; return; }
-  if (!viSelfieData) { errEl.textContent = 'Unggah foto selfie + KTP terlebih dahulu!'; errEl.style.display = 'block'; return; }
   const btn = document.getElementById('btnSubmitVerifikasi');
   btn.disabled = true; btn.textContent = '⏳ Mengirim...';
   try {
-    // Best-effort simpan ke Supabase (tabel identity_verifications, buat dulu di SQL Editor kalau perlu)
+    // Simpan ke Supabase (tabel identity_verifications) — nyimpen foto KTP
+    // (base64) buat dicek AI. .select().single() biar dapet id row-nya balik,
+    // soalnya id itu yang dikirim ke edge function verify-identity.
+    let savedRow = null;
     try {
-      await _sb.from('identity_verifications').insert({
-        email: currentUser.email, nama, nik, tanggal_lahir: tgl,
-        foto_ktp: viKtpData, foto_selfie: viSelfieData, status: 'pending'
-      });
-    } catch(e) { /* tabel belum ada di Supabase, lanjut simpan status lokal saja */ }
+      const { data, error } = await _sb.from('identity_verifications')
+        .insert({ email: currentUser.email, nama, nik, tanggal_lahir: tgl, foto_ktp: viKtpData, status: 'pending' })
+        .select().single();
+      if (error) throw error;
+      savedRow = data;
+    } catch(e) { savedRow = null; /* tabel belum ada / gagal simpan, lanjut fallback manual */ }
+
     const key = _viStatusKey();
-    if (key) localStorage.setItem(key, 'pending');
+    const rKey = _viReasonKey();
+
+    if (savedRow && savedRow.id && AI_VERIFICATION_ENABLED) {
+      // Minta AI cek otomatis lewat Supabase Edge Function verify-identity.
+      btn.textContent = '🤖 AI sedang memeriksa...';
+      try {
+        const resp = await fetch(SUPABASE_VERIFY_IDENTITY_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON, 'apikey': SUPABASE_ANON },
+          body: JSON.stringify({ id: savedRow.id })
+        });
+        const result = await resp.json();
+        if (resp.ok && result && result.approved === true) {
+          if (key) localStorage.setItem(key, 'verified');
+          if (rKey) localStorage.removeItem(rKey);
+          if (currentUser) currentUser.verified = true;
+          showNotif('✅ Identitas kamu langsung terverifikasi otomatis!');
+        } else if (resp.ok && result && result.approved === false) {
+          if (key) localStorage.setItem(key, 'ditolak');
+          if (rKey) localStorage.setItem(rKey, result.reason || 'Data/foto KTP tidak sesuai.');
+          showNotif('❌ Pengajuan ditolak sistem, cek alasannya di halaman verifikasi.');
+        } else {
+          // Edge function belum siap / error → fallback ke antrian manual admin.
+          if (key) localStorage.setItem(key, 'pending');
+          await notifyAdminVerifikasiManual(nama, nik, tgl, savedRow.id);
+          showNotif('📨 Pemeriksaan otomatis belum tersedia, data dikirim ke admin.');
+        }
+      } catch(e) {
+        // Edge function gak bisa dihubungi → fallback ke antrian manual admin.
+        if (key) localStorage.setItem(key, 'pending');
+        await notifyAdminVerifikasiManual(nama, nik, tgl, savedRow.id);
+        showNotif('📨 Pemeriksaan otomatis belum tersedia, data dikirim ke admin.');
+      }
+    } else {
+      // Gagal simpan ke Supabase sama sekali → tetep kasih tau admin manual.
+      if (key) localStorage.setItem(key, 'pending');
+      await notifyAdminVerifikasiManual(nama, nik, tgl, null);
+      showNotif('📨 Data verifikasi tersimpan, menunggu peninjauan!');
+    }
+
     viSyncStatusLabel();
-    showNotif('📨 Data verifikasi terkirim, menunggu peninjauan!');
     openVerifikasiIdentitas();
   } catch(e) { errEl.textContent = 'Error: ' + (e.message||e); errEl.style.display = 'block'; }
   finally { btn.disabled = false; btn.textContent = 'KIRIM UNTUK DIVERIFIKASI'; }
+}
+// Fallback: kirim email ke admin buat cek manual, dipakai kalau AI gagal/belum di-deploy.
+async function notifyAdminVerifikasiManual(nama, nik, tgl, rowId){
+  const emailMsg =
+    `Ada pengajuan verifikasi identitas baru (AI GAGAL/BELUM AKTIF — perlu cek manual)!<br><br>` +
+    `Email akun: ${currentUser.email}<br>` +
+    `Nama (KTP): ${nama}<br>` +
+    `NIK: ${nik}<br>` +
+    `Tanggal Lahir: ${tgl}<br>` +
+    (rowId ? `Row ID: ${rowId}<br>` : '') + `<br>` +
+    `Foto KTP tersimpan di Supabase (tabel identity_verifications).`;
+  try { return await sendAdminNotifEmail(`Verifikasi Identitas Baru — ${nama}`, emailMsg); } catch(e) { return false; }
 }
 
 // ══════════════════════════════
@@ -5117,6 +5322,58 @@ function apBannerRemove(i){
   showNotif('🗑️ Banner dihapus');
 }
 
+// ══════════════════════════════
+// BANNER PROMO ADMIN (terpisah dari Banner Slideshow di atas)
+// ══════════════════════════════
+function renderApPromoBanners(){
+  const list = document.getElementById('apPromoBannerList');
+  if (!list) return;
+  const arr = getPromoBanners();
+  if (!arr.length){
+    list.innerHTML = '<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px;background:var(--card2);border:1px dashed var(--border);border-radius:9px;">Belum ada banner promo. Upload dulu di bawah ⬇️</div>';
+    return;
+  }
+  list.innerHTML = arr.map((src, i) => `
+    <div style="display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:6px;">
+      <img src="${src}" style="width:56px;height:40px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.display='none'">
+      <span style="flex:1;font-size:11px;color:var(--muted);word-break:break-all;line-height:1.3;">Banner Promo #${i+1}</span>
+      <button onclick="apPromoBannerRemove(${i})" style="background:var(--danger);color:#fff;border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:13px;flex-shrink:0;">✕</button>
+    </div>
+  `).join('');
+}
+function apPromoBannerUpload(){
+  const file = document.getElementById('apPromoBannerFile').files[0];
+  if (!file) return;
+  showNotif('⏳ Mengkompres banner promo...');
+  const reader = new FileReader();
+  reader.onload = e => {
+    compressImage(e.target.result, 1600, 900, 0.95, dataUrl => {
+      const arr = getPromoBanners();
+      arr.push(dataUrl);
+      setPromoBanners(arr);
+      document.getElementById('apPromoBannerFile').value = '';
+      showNotif('✅ Banner promo diupload & disimpan global!');
+    });
+  };
+  reader.readAsDataURL(file);
+}
+function apPromoBannerAddUrl(){
+  const url = (document.getElementById('apPromoBannerUrl').value || '').trim();
+  if (!url){ showNotif('❌ Masukkan URL banner promo'); return; }
+  const arr = getPromoBanners();
+  arr.push(url);
+  setPromoBanners(arr);
+  document.getElementById('apPromoBannerUrl').value = '';
+  showNotif('✅ Banner promo ditambahkan!');
+}
+function apPromoBannerRemove(i){
+  if (!confirm('Hapus banner promo ini?')) return;
+  const arr = getPromoBanners();
+  arr.splice(i, 1);
+  setPromoBanners(arr);
+  showNotif('🗑️ Banner promo dihapus');
+}
+
 function closeAdmin() { document.getElementById('adminPanel').classList.remove('open'); document.body.style.overflow=''; if (window.__kmPollTimer){ clearInterval(window.__kmPollTimer); window.__kmPollTimer=null; } }
 // Auto-refresh Key Manager tiap 15 detik selagi panel admin terbuka
 (function(){
@@ -5582,6 +5839,11 @@ async function initApp() {
     window._bannerImages = getBanners();
     if (typeof renderBannerSlider === 'function') renderBannerSlider();
     loadBannersFromCloud();
+
+    // Load banner PROMO (terpisah dari banner beranda di atas)
+    window._promoBannerImages = getPromoBanners();
+    if (typeof renderPromoList === 'function') renderPromoList();
+    loadPromoBannersFromCloud();
 
     // Load products (global) — TUNGGU cloud dulu agar render pertama pakai data Supabase
     // (cegah race condition: setProducts dipanggil sebelum cloud loaded -> overwrite cloud)
@@ -7297,19 +7559,48 @@ function doPesan(){
     const u = (function(){ try { return JSON.parse(localStorage.getItem('vp_user')||'null'); } catch(e){ return null; } })();
 
     try {
-      // Best-effort simpan ke Supabase (tabel reseller_applications, buat dulu di SQL Editor kalau perlu)
+      // Simpan ke Supabase (tabel reseller_applications, buat dulu di SQL
+      // Editor kalau perlu) — ini yang jadi sumber data lengkap termasuk
+      // foto KTP (base64), supaya admin bisa lihat di Supabase kalau perlu.
+      let savedToDb = true;
       try {
         await window._sb.from('reseller_applications').insert({
           email: u?.email || null, nama, provinsi, kota, kecamatan, kodepos, alamat,
           ktp_photo: _arKtpData, tier: _arTier, status: 'pending'
         });
-      } catch(e) { /* tabel belum ada, tetap lanjut ke WhatsApp */ }
+      } catch(e) { savedToDb = false; /* tabel belum ada, tetap lanjut kirim email & WA */ }
 
       const tierLabel = _arTier === 'agen' ? 'AGEN' : 'RESELLER';
+
+      // Kirim email ke admin biar bisa dicek dulu sebelum di-ACC manual di
+      // Admin Panel > Kelola Role Reseller/Agen. Foto KTP TIDAK disisipkan
+      // di badan email (base64-nya kegedean buat EmailJS free plan) — sudah
+      // aman tersimpan di Supabase (tabel reseller_applications) kalau mau
+      // dicek langsung, atau menyusul dikirim manual via WhatsApp.
+      // Pakai <br> (bukan \n) karena isi {{message}} ini nanti ditempel
+      // sebagai HTML mentah di template EmailJS, bukan teks polos.
+      const emailMsg =
+        `Pendaftaran ${tierLabel} baru masuk!<br><br>` +
+        `Email akun: ${u?.email || '(belum login)'}<br>` +
+        `Nama (KTP): ${nama}<br>` +
+        `Tier dipilih: ${tierLabel}<br>` +
+        `Provinsi: ${provinsi}<br>` +
+        `Kota/Kabupaten: ${kota}<br>` +
+        `Kecamatan: ${kecamatan}<br>` +
+        `Kode Pos: ${kodepos}<br>` +
+        `Alamat (KTP): ${alamat}<br><br>` +
+        (savedToDb
+          ? `Foto KTP tersimpan di Supabase (tabel reseller_applications, email: ${u?.email || '-'}).`
+          : `Foto KTP BELUM tersimpan otomatis (tabel reseller_applications belum ada di Supabase) — akan menyusul dikirim via WhatsApp.`) +
+        `<br><br>Setelah dicek, ACC lewat Admin Panel &gt; Kelola Role Reseller/Agen (masukkan email di atas, pilih role ${tierLabel.toLowerCase()}).`;
+      const emailSent = await sendAdminNotifEmail(`Pendaftaran ${tierLabel} Baru — ${nama}`, emailMsg);
+
       const pesan = `Halo Admin Paycore, saya mau daftar sebagai *${tierLabel}*.\n\nNama (KTP): ${nama}\nProvinsi: ${provinsi}\nKota/Kabupaten: ${kota}\nKecamatan: ${kecamatan}\nKode Pos: ${kodepos}\nAlamat (KTP): ${alamat}\n\nFoto KTP akan saya kirimkan menyusul di chat ini. Mohon info langkah selanjutnya ya. Terima kasih!`;
       const adminWa = window._apWa ? window._apWa.replace(/\D/g,'') : ((function(){ try { return localStorage.getItem('vp_wa')||'6285954741269'; } catch(e){ return '6285954741269'; } })());
 
-      if (typeof showNotif === 'function') showNotif('✅ Pendaftaran terkirim, diarahkan ke WhatsApp!');
+      if (typeof showNotif === 'function') {
+        showNotif(emailSent ? '✅ Pendaftaran terkirim ke admin, diarahkan ke WhatsApp!' : '✅ Terkirim ke WhatsApp (email admin belum aktif)');
+      }
       window.open('https://wa.me/' + adminWa + '?text=' + encodeURIComponent(pesan), '_blank');
       closeAgenReseller();
     } catch(e) {
@@ -7334,7 +7625,7 @@ function doPesan(){
   function renderPromoList(){
     const wrap = document.getElementById('promoList');
     if (!wrap) return;
-    const imgs = (window._bannerImages && window._bannerImages.length) ? window._bannerImages : [];
+    const imgs = (window._promoBannerImages && window._promoBannerImages.length) ? window._promoBannerImages : [];
     if (!imgs.length){
       wrap.innerHTML = '<div class="promo-empty"><div class="promo-empty-ic">🎁</div>Belum ada promo saat ini<div class="promo-empty-sub">Cek lagi nanti ya, promo baru bakal muncul di sini</div></div>';
       return;
@@ -7347,13 +7638,6 @@ function doPesan(){
     `).join('');
   }
   window.renderPromoList = renderPromoList;
-
-  // Ikut redraw otomatis kalau admin update banner dari panel admin
-  const _origRenderBannerSlider = window.renderBannerSlider;
-  window.renderBannerSlider = function(){
-    if (typeof _origRenderBannerSlider === 'function') _origRenderBannerSlider();
-    try { renderPromoList(); } catch(_){}
-  };
 
   window.openPromo = function(){
     document.getElementById('promoPanel').classList.add('open');
@@ -11619,6 +11903,7 @@ setTimeout(function(){
 <script>
 // ===== XENDIT QRIS via Supabase Edge Function =====
 const SUPABASE_XENDIT_URL = 'https://niqjrwtolqszevopayir.supabase.co/functions/v1/xendit-qris';
+const SUPABASE_VERIFY_IDENTITY_URL = SUPABASE_URL + '/functions/v1/verify-identity';
 
 async function orderQRIS(){
   if (!currentUser){ closeProdModalBtn(); openAuth('masuk'); showNotif('Login dulu!'); return; }
