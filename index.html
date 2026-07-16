@@ -14946,21 +14946,168 @@ async function h2hCetakStrukResult(){
 }
 window.h2hCetakStrukResult = h2hCetakStrukResult;
 
-function h2hBagikanStrukResult(){
+// Gambar rounded-rect manual (ctx.roundRect belum tentu didukung semua WebView)
+function h2hDrawRoundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// Render struk jadi GAMBAR (kartu putih + dashed line + status hijau),
+// gayanya disamain kayak struk H2H.id — dipakai buat "Bagikan Struk".
+function h2hRenderStrukImage(trx, storeName, footer, poweredBy){
+  return new Promise((resolve) => {
+    try {
+      const scale = 2;
+      const canvasW = 720;
+      const padX = 36, padTop = 40, rowH = 40, dashGap = 26;
+      const rows = [
+        ['Invoice', trx.invoice], ['Tanggal', trx.tanggal], ['Produk', trx.produk],
+        ['Tujuan', trx.tujuan], ['SN', trx.sn], ['Harga', trx.harga]
+      ];
+      const cardMargin = 24;
+      const bodyHeight = padTop + 26 /*judul*/ + dashGap + rows.length * rowH + 10 + dashGap
+        + 30 /*status*/ + dashGap + 22 + 22 + padTop;
+      const canvasH = bodyHeight + cardMargin * 2;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasW * scale;
+      canvas.height = canvasH * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);
+
+      ctx.fillStyle = '#eef1f6';
+      ctx.fillRect(0, 0, canvasW, canvasH);
+
+      const cardX = cardMargin, cardY = cardMargin, cardW = canvasW - cardMargin * 2, cardH = canvasH - cardMargin * 2;
+      ctx.save();
+      ctx.shadowColor = 'rgba(20,30,60,0.14)';
+      ctx.shadowBlur = 22;
+      ctx.shadowOffsetY = 6;
+      ctx.fillStyle = '#ffffff';
+      h2hDrawRoundRect(ctx, cardX, cardY, cardW, cardH, 20);
+      ctx.fill();
+      ctx.restore();
+
+      const cx = canvasW / 2;
+      let y = cardY + padTop;
+
+      ctx.fillStyle = '#111827';
+      ctx.font = '700 26px "Plus Jakarta Sans", Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(storeName, cx, y);
+      y += 26;
+
+      function dash(yy){
+        ctx.save();
+        ctx.strokeStyle = '#d5d9e3';
+        ctx.setLineDash([6, 5]);
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(cardX + padX, yy);
+        ctx.lineTo(cardX + cardW - padX, yy);
+        ctx.stroke();
+        ctx.restore();
+      }
+      dash(y);
+      y += dashGap;
+
+      ctx.textBaseline = 'middle';
+      rows.forEach(function(row){
+        const label = row[0], value = String(row[1] == null ? '-' : row[1]);
+        ctx.fillStyle = '#6b7280';
+        ctx.textAlign = 'left';
+        ctx.font = '500 17px "JetBrains Mono", monospace';
+        ctx.fillText(label, cardX + padX, y);
+        ctx.fillStyle = '#111827';
+        ctx.font = '700 17px "JetBrains Mono", monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(value, cardX + cardW - padX, y);
+        y += rowH;
+      });
+
+      y += 10;
+      dash(y);
+      y += dashGap;
+
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '700 17px "JetBrains Mono", monospace';
+      ctx.fillText('Status', cardX + padX, y);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#0a8f3c';
+      ctx.fillText(trx.status || 'Sukses', cardX + cardW - padX, y);
+      y += 30;
+
+      dash(y);
+      y += dashGap;
+
+      ctx.textBaseline = 'alphabetic';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '500 14px "Plus Jakarta Sans", Arial, sans-serif';
+      ctx.fillText(footer, cx, y);
+      y += 22;
+      ctx.fillStyle = '#9aa1b0';
+      ctx.font = '500 12px "Plus Jakarta Sans", Arial, sans-serif';
+      ctx.fillText(poweredBy, cx, y);
+
+      canvas.toBlob(function(blob){ resolve(blob); }, 'image/png', 0.95);
+    } catch (e) {
+      resolve(null);
+    }
+  });
+}
+
+async function h2hBagikanStrukResult(){
   const trx = h2hBuildStrukTrxFromState();
   const s = (typeof ssGetSettings === 'function') ? ssGetSettings() : {};
+  const storeName = s.namaToko || 'Paycore';
+  const footer = s.footer || 'Terima kasih atas transaksi Anda';
+  const poweredBy = s.poweredBy || 'Powered by ' + storeName;
+
   const text = [
-    s.namaToko || 'Struk Transaksi',
+    storeName,
     'Invoice: ' + trx.invoice,
     'Tanggal: ' + trx.tanggal,
     'Produk: ' + trx.produk,
     'Tujuan: ' + trx.tujuan,
     'Harga: ' + trx.harga,
     'Status: ' + trx.status,
-    '', s.footer || 'Terima kasih atas transaksi Anda'
+    '', footer
   ].filter(Boolean).join('\n');
-  // Catatan: navigator.share() dihindari di WebView APK (lihat penjelasan
-  // di refShareCode) — pakai link wa.me yang lebih aman dibuka di WebView manapun.
+
+  // Coba bagikan struk sebagai GAMBAR lewat native OS share sheet — persis
+  // kayak alur di h2h.id (muncul semua pilihan: WhatsApp, Quick Share,
+  // Bluetooth, Drive, dst). Kalau WebView-nya gak dukung share-file/
+  // navigator.share, jatuh balik ke link wa.me kayak sebelumnya biar tetap aman.
+  try {
+    if (navigator.share) {
+      const blob = await h2hRenderStrukImage(trx, storeName, footer, poweredBy);
+      if (blob) {
+        const file = new File([blob], 'struk-' + (trx.invoice || 'transaksi').replace(/[^a-zA-Z0-9-]/g, '') + '.png', { type: 'image/png' });
+        const canShareFile = !navigator.canShare || navigator.canShare({ files: [file] });
+        if (canShareFile) {
+          await navigator.share({ files: [file], title: 'Struk Transaksi', text: storeName + ' — ' + trx.produk });
+          return;
+        }
+      }
+      // File gak didukung tapi navigator.share ada -> coba share teks aja
+      // lewat native share sheet (masih lebih mirip h2h.id daripada wa.me).
+      await navigator.share({ title: 'Struk Transaksi', text });
+      return;
+    }
+  } catch (e) {
+    // AbortError = usernya batal milih target share di sheet -> anggap
+    // selesai, jangan lanjut ke fallback WA.
+    if (e && e.name === 'AbortError') return;
+  }
+
   window.location.href = 'https://wa.me/?text=' + encodeURIComponent(text);
 }
 window.h2hBagikanStrukResult = h2hBagikanStrukResult;
