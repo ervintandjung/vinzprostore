@@ -1695,21 +1695,19 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
   </div>
 </div>
 
-<!-- INPUT NOMINAL BEBAS (E-Wallet / dll — top up dengan nominal custom) -->
-<div class="overlay" id="freeNomOverlay" onclick="if(event.target===this) closeFreeNomModal();">
-  <div class="modal" style="max-width:480px;padding-bottom:26px;">
-    <div class="modal-handle"></div>
-    <div class="modal-top">
-      <div class="modal-title" id="freeNomTitle">Masukkan Nominal Top Up</div>
-      <button class="modal-close" onclick="closeFreeNomModal()">✕</button>
-    </div>
-    <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px;" id="freeNomRange">Masukkan nominal top up (Rp10.000 - Rp10.000.000)</div>
-    <input type="tel" inputmode="numeric" id="freeNomInput" class="ppob-input" placeholder="Rp 0" oninput="freeNomInputChange(this)">
-    <div id="freeNomQuick" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;"></div>
-    <div id="freeNomErr" style="display:none;color:#ff6b6b;font-size:12.5px;margin-bottom:10px;"></div>
-    <button class="ppob-btn" id="freeNomBtn" onclick="confirmFreeNominal()">Lanjutkan →</button>
+<!-- TEMPLATE PANEL NOMINAL BEBAS — disisipkan LANGSUNG di dalam grid nominal
+     (bukan modal/overlay terpisah), persis seperti pola h2h.id, supaya waktu
+     keyboard HP muncul, panelnya ikut kedorong ke atas bareng konten halaman
+     (bukan ketutup/ilang di belakang keyboard kayak modal fixed). -->
+<template id="freeNomPanelTpl">
+  <div class="fn-panel" style="grid-column:1/-1;background:var(--card2);border:1px solid var(--accent);border-radius:14px;padding:16px;margin-bottom:2px;">
+    <div class="fn-panel-range" style="font-size:12.5px;color:var(--muted);margin-bottom:10px;"></div>
+    <input type="tel" inputmode="numeric" class="ppob-input fn-panel-input" placeholder="Rp 0" style="margin-bottom:10px;">
+    <div class="fn-panel-quick" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;"></div>
+    <div class="fn-panel-err" style="display:none;color:#ff6b6b;font-size:12.5px;margin-bottom:10px;"></div>
+    <button class="ppob-btn fn-panel-btn" style="margin-bottom:0;">Lanjutkan →</button>
   </div>
-</div>
+</template>
 <!-- END PPOB SERVICE PAGES -->
 
 <!-- PUSAT INFORMASI / LAYANAN -->
@@ -13046,99 +13044,99 @@ function selectPpobNom(el, type){
   }
 
   // Kartu "Bebas Nominal" -> jangan langsung ke halaman konfirmasi,
-  // minta user ketik nominalnya dulu (kayak alur di h2h.id).
+  // minta user ketik nominalnya dulu (kayak alur di h2h.id). Panelnya
+  // disisipkan LANGSUNG di dalam grid (bukan modal fixed) supaya gak
+  // ketutup/ilang waktu keyboard HP muncul.
   if (el.getAttribute('data-freenom') === '1') {
     wrap.querySelectorAll('.ppob-nom').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
-    openFreeNominalModal(el, type);
+    openFreeNominalPanel(el, type);
     return;
   }
 
+  closeFreeNomPanel();
   wrap.querySelectorAll('.ppob-nom').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
   goPpobConfirm(type);
 }
 
-// ── MODAL NOMINAL BEBAS (top up custom amount) ──
-let _freeNomEl = null, _freeNomType = null;
+// ── PANEL NOMINAL BEBAS (top up custom amount, disisipkan inline di grid) ──
 const FREE_NOM_MIN = 10000, FREE_NOM_MAX = 10000000;
 const FREE_NOM_QUICK = [10000, 20000, 50000, 100000, 200000, 500000];
 
-function openFreeNominalModal(el, type){
-  _freeNomEl = el;
-  _freeNomType = type;
+function closeFreeNomPanel(){
+  document.querySelectorAll('.fn-panel').forEach(p => p.remove());
+}
 
-  const rawLabel = el.getAttribute('data-nom') || 'Top Up';
-  const cleanLabel = rawLabel.replace(/\(?\s*bebas\s*nominal\s*\)?/i, '').trim() || rawLabel;
-  document.getElementById('freeNomTitle').textContent = cleanLabel + ' — Bebas Nominal';
-  document.getElementById('freeNomRange').textContent =
+function openFreeNominalPanel(el, type){
+  closeFreeNomPanel();
+
+  const tpl = document.getElementById('freeNomPanelTpl');
+  if (!tpl) return;
+  const panel = tpl.content.firstElementChild.cloneNode(true);
+
+  panel.querySelector('.fn-panel-range').textContent =
     'Masukkan nominal top up (Rp' + FREE_NOM_MIN.toLocaleString('id-ID') + ' - Rp' + FREE_NOM_MAX.toLocaleString('id-ID') + ')';
 
-  const input = document.getElementById('freeNomInput');
-  input.value = '';
-  document.getElementById('freeNomErr').style.display = 'none';
+  const input = panel.querySelector('.fn-panel-input');
+  const errEl = panel.querySelector('.fn-panel-err');
+  const quickWrap = panel.querySelector('.fn-panel-quick');
+  const confirmBtn = panel.querySelector('.fn-panel-btn');
 
-  const quickWrap = document.getElementById('freeNomQuick');
   quickWrap.innerHTML = FREE_NOM_QUICK.map(function(v){
-    return '<div class="fn-quick" onclick="freeNomPickQuick(' + v + ')">Rp' + v.toLocaleString('id-ID') + '</div>';
+    return '<div class="fn-quick" data-v="' + v + '">Rp' + v.toLocaleString('id-ID') + '</div>';
   }).join('');
 
-  document.getElementById('freeNomOverlay').classList.add('open');
-  setTimeout(() => input.focus(), 200);
-}
+  quickWrap.querySelectorAll('.fn-quick').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      input.value = Number(chip.getAttribute('data-v')).toLocaleString('id-ID');
+      quickWrap.querySelectorAll('.fn-quick').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      errEl.style.display = 'none';
+    });
+  });
 
-function closeFreeNomModal(){
-  document.getElementById('freeNomOverlay').classList.remove('open');
-  // Kalau ditutup tanpa konfirmasi, lepas status active biar gak nyangkut
-  // kepilih tapi nominalnya belum diisi.
-  if (_freeNomEl) _freeNomEl.classList.remove('active');
-  _freeNomEl = null;
-  _freeNomType = null;
-}
+  input.addEventListener('input', function(){
+    const digits = input.value.replace(/\D/g, '');
+    input.value = digits ? Number(digits).toLocaleString('id-ID') : '';
+    quickWrap.querySelectorAll('.fn-quick').forEach(c => c.classList.remove('active'));
+    errEl.style.display = 'none';
+  });
 
-function freeNomPickQuick(v){
-  const input = document.getElementById('freeNomInput');
-  input.value = v.toLocaleString('id-ID');
-  document.querySelectorAll('#freeNomQuick .fn-quick').forEach(c => c.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-  document.getElementById('freeNomErr').style.display = 'none';
-}
+  // Biar tombol "Enter"/"Go" di keyboard HP juga langsung submit,
+  // gak cuma tombol Lanjutkan yang di bawah.
+  input.addEventListener('keydown', function(ev){
+    if (ev.key === 'Enter') { ev.preventDefault(); confirmBtn.click(); }
+  });
 
-function freeNomInputChange(input){
-  const digits = input.value.replace(/\D/g, '');
-  input.value = digits ? Number(digits).toLocaleString('id-ID') : '';
-  document.querySelectorAll('#freeNomQuick .fn-quick').forEach(c => c.classList.remove('active'));
-  document.getElementById('freeNomErr').style.display = 'none';
-}
+  confirmBtn.addEventListener('click', function(){
+    const amount = parseInt(input.value.replace(/\D/g, ''), 10) || 0;
 
-function confirmFreeNominal(){
-  if (!_freeNomEl || !_freeNomType) return;
-  const input = document.getElementById('freeNomInput');
-  const amount = parseInt(input.value.replace(/\D/g, ''), 10) || 0;
-  const errEl = document.getElementById('freeNomErr');
+    if (amount < FREE_NOM_MIN || amount > FREE_NOM_MAX) {
+      errEl.textContent = '⚠️ Nominal harus antara Rp' + FREE_NOM_MIN.toLocaleString('id-ID') + ' - Rp' + FREE_NOM_MAX.toLocaleString('id-ID') + '.';
+      errEl.style.display = 'block';
+      return;
+    }
 
-  if (amount < FREE_NOM_MIN || amount > FREE_NOM_MAX) {
-    errEl.textContent = '⚠️ Nominal harus antara Rp' + FREE_NOM_MIN.toLocaleString('id-ID') + ' - Rp' + FREE_NOM_MAX.toLocaleString('id-ID') + '.';
-    errEl.style.display = 'block';
-    return;
-  }
+    const rawLabel = el.getAttribute('data-nom') || 'Top Up';
+    const cleanLabel = rawLabel.replace(/\(?\s*bebas\s*nominal\s*\)?/i, '').trim() || rawLabel;
+    const fee = Number(el.getAttribute('data-base-price')) || 0;
+    const total = amount + fee;
 
-  const rawLabel = _freeNomEl.getAttribute('data-nom') || 'Top Up';
-  const cleanLabel = rawLabel.replace(/\(?\s*bebas\s*nominal\s*\)?/i, '').trim() || rawLabel;
-  const fee = Number(_freeNomEl.getAttribute('data-base-price')) || 0;
-  const total = amount + fee;
+    el.setAttribute('data-nom', cleanLabel + ' Rp' + amount.toLocaleString('id-ID'));
+    el.setAttribute('data-price', total);
+    const nomEl = el.querySelector('.pn-nominal');
+    const hargaEl = el.querySelector('.pn-harga');
+    if (nomEl) nomEl.textContent = cleanLabel + ' Rp' + amount.toLocaleString('id-ID');
+    if (hargaEl) hargaEl.textContent = 'Rp ' + total.toLocaleString('id-ID');
 
-  _freeNomEl.setAttribute('data-nom', cleanLabel + ' Rp' + amount.toLocaleString('id-ID'));
-  _freeNomEl.setAttribute('data-price', total);
-  _freeNomEl.querySelector('.pn-nominal').textContent = cleanLabel + ' Rp' + amount.toLocaleString('id-ID');
-  _freeNomEl.querySelector('.pn-harga').textContent = 'Rp ' + total.toLocaleString('id-ID');
+    panel.remove();
+    goPpobConfirm(type);
+  });
 
-  const type = _freeNomType;
-  document.getElementById('freeNomOverlay').classList.remove('open');
-  const doneEl = _freeNomEl;
-  _freeNomEl = null;
-  _freeNomType = null;
-  goPpobConfirm(type);
+  el.insertAdjacentElement('afterend', panel);
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  setTimeout(() => input.focus(), 250);
 }
 
 function getPpobData(type){
