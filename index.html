@@ -9338,95 +9338,41 @@ function doPesan(){
 })();
 </script>
 
-<!-- ═══ BACK BUTTON / GESTURE HISTORY HANDLER ═══ -->
+<!-- ═══ BACK BUTTON / GESTURE HISTORY HANDLER (JS BRIDGE) ═══ -->
 <script>
-(function(){
-  // Daftar overlay/panel yang bisa ditutup pakai tombol Back / gesture geser
-  // Urutan = prioritas tertinggi (modal terdalam ditutup duluan).
-  const PANELS = [
-    { id: 'qrOverlay',       close: () => window.closeQrPayment && window.closeQrPayment() },
-    { id: 'successOverlay',  close: () => window.closeSuccess   && window.closeSuccess() },
-    { id: 'authOverlay',     close: () => { if (typeof authGateActive!=='undefined' && authGateActive && !currentUser) return; const el=document.getElementById('authOverlay'); if(el) el.classList.remove('open'); } },
-    { id: 'editProfilPage',  close: () => window.closeEditProfil && window.closeEditProfil() },
-    { id: 'ubahPasswordPage', close: () => window.closeUbahPassword && window.closeUbahPassword() },
-    { id: 'verifikasiIdentitasPage', close: () => window.closeVerifikasiIdentitas && window.closeVerifikasiIdentitas() },
-    { id: 'strukSettingsPage', close: () => window.closeStrukSettings && window.closeStrukSettings() },
-    { id: 'agenResellerPage', close: () => window.closeAgenReseller && window.closeAgenReseller() },
-    { id: 'resellerMenuPage', close: () => window.closeResellerMenu && window.closeResellerMenu() },
-    { id: 'referralPage', close: () => window.closeReferralPage && window.closeReferralPage() },
-    { id: 'settingsPanel',   close: () => window.closePengaturan&& window.closePengaturan() },
-    { id: 'adminPanel',      close: () => window.closeAdmin     && window.closeAdmin() },
-    { id: 'riwayatPanel',    close: () => window.closeRiwayat   && window.closeRiwayat() },
-    { id: 'promoPanel',      close: () => window.closePromo     && window.closePromo() },
-    { id: 'prodFullscreen',  close: () => window.closeProdFullscreen && window.closeProdFullscreen() }
+window.__handleAndroidBack = function() {
+  var PANELS = [
+    ['qrOverlay',               function(){ return window.closeQrPayment && window.closeQrPayment(); }],
+    ['successOverlay',          function(){ return window.closeSuccess && window.closeSuccess(); }],
+    ['qrisModal',               function(){ var e=document.getElementById('qrisModal'); if(e) e.classList.remove('open'); }],
+    ['authOverlay',             function(){ if (window.authGateActive && !window.currentUser) return false;
+                                            var e=document.getElementById('authOverlay'); if(e) e.classList.remove('open'); }],
+    ['editProfilPage',          function(){ return window.closeEditProfil && window.closeEditProfil(); }],
+    ['ubahPasswordPage',        function(){ return window.closeUbahPassword && window.closeUbahPassword(); }],
+    ['verifikasiIdentitasPage', function(){ return window.closeVerifikasiIdentitas && window.closeVerifikasiIdentitas(); }],
+    ['strukSettingsPage',       function(){ return window.closeStrukSettings && window.closeStrukSettings(); }],
+    ['agenResellerPage',        function(){ return window.closeAgenReseller && window.closeAgenReseller(); }],
+    ['resellerMenuPage',        function(){ return window.closeResellerMenu && window.closeResellerMenu(); }],
+    ['referralPage',            function(){ return window.closeReferralPage && window.closeReferralPage(); }],
+    ['nontonPanel',             function(){ if (window.closeNonton) return window.closeNonton();
+                                            var e=document.getElementById('nontonPanel'); if(e) e.classList.remove('open'); }],
+    ['adminRiwayatPanel',       function(){ var e=document.getElementById('adminRiwayatPanel'); if(e) e.classList.remove('open'); }],
+    ['riwayatPanel',            function(){ return window.closeRiwayat && window.closeRiwayat(); }],
+    ['promoPanel',              function(){ return window.closePromo && window.closePromo(); }],
+    ['prodFullscreen',          function(){ return window.closeProdFullscreen && window.closeProdFullscreen(); }],
+    ['settingsPanel',           function(){ return window.closePengaturan && window.closePengaturan(); }],
+    ['adminPanel',              function(){ return window.closeAdmin && window.closeAdmin(); }]
   ];
-
-  let stack = [];          // stack of panel ids yg sedang open (urutan dibuka)
-  let suppress = false;    // true saat kita yg manipulasi history sendiri
-
-  function isOpen(id){
-    const el = document.getElementById(id);
-    return !!(el && el.classList.contains('open'));
-  }
-
-  function pushHist(id){
-    if (suppress) return;
-    stack.push(id);
-    try { history.pushState({ lovNav: true, id }, ''); } catch(e){}
-  }
-
-  function popHist(id){
-    if (suppress) return;
-    const idx = stack.lastIndexOf(id);
-    if (idx === -1) return;
-    stack.splice(idx, 1);
-    // Konsumsi 1 entry history yg kita push dulu agar sinkron
-    suppress = true;
-    try { history.back(); } catch(e){}
-    // suppress akan di-reset di popstate handler
-    setTimeout(()=>{ suppress = false; }, 50);
-  }
-
-  // Pasang observer ke setiap panel utk deteksi open/close otomatis,
-  // tanpa harus ubah semua fungsi open/close yg sudah ada.
-  function attach(){
-    PANELS.forEach(p => {
-      const el = document.getElementById(p.id);
-      if (!el) return;
-      let last = el.classList.contains('open');
-      new MutationObserver(() => {
-        const now = el.classList.contains('open');
-        if (now === last) return;
-        last = now;
-        if (now) pushHist(p.id);
-        else     popHist(p.id);
-      }).observe(el, { attributes: true, attributeFilter: ['class'] });
-    });
-  }
-
-  // Saat user tekan tombol Back perangkat / gesture geser dari tepi:
-  // tutup panel paling atas (kalau ada), dan cegah Chrome keluar.
-  window.addEventListener('popstate', function(e){
-    if (suppress){ suppress = false; return; }
-    if (stack.length === 0) return; // biar default browser jalan (keluar)
-    const id = stack.pop();
-    const panel = PANELS.find(x => x.id === id);
-    suppress = true;
-    try { panel && panel.close(); } catch(err){}
-    setTimeout(()=>{ suppress = false; }, 50);
-    // Tambah 1 entry "guard" supaya gesture/back berikutnya tetap kita tangkap
-    // hanya jika masih ada panel terbuka.
-    if (stack.length > 0){
-      try { history.pushState({ lovNav:true, id: stack[stack.length-1] }, ''); } catch(e){}
+  for (var i=0;i<PANELS.length;i++){
+    var id = PANELS[i][0], fn = PANELS[i][1];
+    var el = document.getElementById(id);
+    if (el && el.classList.contains('open')){
+      try { var r = fn(); if (r === false) return true; } catch(e){}
+      return true;
     }
-  });
-
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', attach);
-  } else {
-    attach();
   }
-})();
+  return false;
+};
 </script>
 
 <script>
@@ -15495,6 +15441,88 @@ document.addEventListener('DOMContentLoaded', () => {
   const styleTag = document.createElement('style');
   styleTag.textContent = '@keyframes ptrSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}';
   document.head.appendChild(styleTag);
+})();
+</script>
+<!-- ═══ RESTORE PANEL ON REFRESH ═══ -->
+<script>
+(function(){
+  var KEY = 'vp_openPanels';
+  // Map panel id -> nama fungsi open (dipanggil setelah refresh untuk buka lagi)
+  var OPENERS = {
+    settingsPanel:           function(){ return window.openPengaturan && window.openPengaturan(); },
+    editProfilPage:          function(){ return window.openEditProfil && window.openEditProfil(); },
+    ubahPasswordPage:        function(){ return window.openUbahPassword && window.openUbahPassword(); },
+    verifikasiIdentitasPage: function(){ return window.openVerifikasiIdentitas && window.openVerifikasiIdentitas(); },
+    strukSettingsPage:       function(){ return window.openStrukSettings && window.openStrukSettings(); },
+    referralPage:            function(){ return window.openReferralPage && window.openReferralPage(); },
+    resellerMenuPage:        function(){ return window.openResellerMenu && window.openResellerMenu(); },
+    agenResellerPage:        function(){ return window.openAgenReseller && window.openAgenReseller(); },
+    promoPanel:              function(){ return window.openPromo && window.openPromo(); },
+    riwayatPanel:            function(){ return window.openRiwayat && window.openRiwayat(); },
+    nontonPanel:             function(){ return (window.openNonton && window.openNonton()) || (window.__openNonton && window.__openNonton()); },
+    adminPanel:              function(){ return window.openAdmin && window.openAdmin(); },
+    adminRiwayatPanel:       function(){ return window.openAdminRiwayat && window.openAdminRiwayat(); }
+  };
+  var IDS = Object.keys(OPENERS);
+  var restoring = false;
+
+  function readStack(){
+    try { return JSON.parse(sessionStorage.getItem(KEY) || '[]'); } catch(e){ return []; }
+  }
+  function writeStack(arr){
+    try { sessionStorage.setItem(KEY, JSON.stringify(arr)); } catch(e){}
+  }
+  function currentlyOpen(){
+    var out = [];
+    for (var i=0;i<IDS.length;i++){
+      var el = document.getElementById(IDS[i]);
+      if (el && el.classList.contains('open')) out.push(IDS[i]);
+    }
+    return out;
+  }
+  function saveNow(){
+    if (restoring) return;
+    writeStack(currentlyOpen());
+  }
+
+  function attachObservers(){
+    IDS.forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el) return;
+      new MutationObserver(saveNow).observe(el, { attributes:true, attributeFilter:['class'] });
+    });
+  }
+
+  function restore(){
+    var stack = readStack();
+    if (!stack.length) return;
+    restoring = true;
+    // Buka berurutan (parent dulu, lalu child). Delay kecil biar animasi/DOM siap.
+    var i = 0;
+    function next(){
+      if (i >= stack.length){ restoring = false; return; }
+      var id = stack[i++];
+      var fn = OPENERS[id];
+      try { fn && fn(); } catch(e){}
+      setTimeout(next, 60);
+    }
+    next();
+  }
+
+  function boot(){
+    attachObservers();
+    // Tunggu sedikit supaya auth/session/user data siap sebelum buka panel yg butuh login
+    setTimeout(restore, 400);
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+
+  // Bersihkan saat user benar-benar keluar tab (bukan refresh)
+  // sessionStorage otomatis hilang saat tab ditutup; tidak perlu handler tambahan.
 })();
 </script>
 </body>
