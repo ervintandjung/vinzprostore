@@ -13036,21 +13036,23 @@ function selectPpobNom(el, type){
   const wrap = el.closest('.ppob-nom-grid');
   if (!wrap) return;
 
-  const cfgLabelMap = {pulsa:'nomor', data:'nomor', ewallet:'nomor e-wallet', voucher:'ID game', pln:'ID meter', pdam:'ID pelanggan', pascabayarhp:'nomor', streaming:'ID/email akun', telpsms:'nomor'};
-  const d = getPpobData(type);
-  if (d && !d.number) {
-    showNotif('⚠️ Silakan isi ' + (cfgLabelMap[type] || 'nomor/ID') + ' terlebih dahulu.');
-    return;
-  }
-
   // Kartu "Bebas Nominal" -> jangan langsung ke halaman konfirmasi,
   // minta user ketik nominalnya dulu (kayak alur di h2h.id). Panelnya
   // disisipkan LANGSUNG di dalam grid (bukan modal fixed) supaya gak
-  // ketutup/ilang waktu keyboard HP muncul.
+  // ketutup/ilang waktu keyboard HP muncul. Boleh dibuka ulang kapan
+  // aja tanpa harus isi nomor dulu — validasi nomor tetap jalan pas
+  // user pencet "Lanjutkan" (lewat goPpobConfirm).
   if (el.getAttribute('data-freenom') === '1') {
     wrap.querySelectorAll('.ppob-nom').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     openFreeNominalPanel(el, type);
+    return;
+  }
+
+  const cfgLabelMap = {pulsa:'nomor', data:'nomor', ewallet:'nomor e-wallet', voucher:'ID game', pln:'ID meter', pdam:'ID pelanggan', pascabayarhp:'nomor', streaming:'ID/email akun', telpsms:'nomor'};
+  const d = getPpobData(type);
+  if (d && !d.number) {
+    showNotif('⚠️ Silakan isi ' + (cfgLabelMap[type] || 'nomor/ID') + ' terlebih dahulu.');
     return;
   }
 
@@ -13457,8 +13459,15 @@ function h2hLooksLikeStrayNonPulsa(row){
 // yang paling murah, tapi produk termurah itu sering gagal pas dibeli,
 // jadi sekarang diarahkan ke harga tengah biar lebih stabil.
 function h2hDedupeByNominal(rows){
+  // SKU "Bebas Nominal" dipisah dulu dan digabung jadi SATU kartu aja
+  // (sebelumnya bisa dobel kalau ada beberapa SKU "Bebas Nominal" dari
+  // supplier H2H berbeda) — dan yang dipakai harga yang PALING MAHAL,
+  // bukan median, karena SKU termahal biasanya paling stabil/jarang gagal.
+  const freeRows = rows.filter(r => /bebas\s*nominal/i.test(r.name || ''));
+  const normalRows = rows.filter(r => !/bebas\s*nominal/i.test(r.name || ''));
+
   const groups = new Map();
-  for (const r of rows) {
+  for (const r of normalRows) {
     const nominal = h2hParseNominal(r.name);
     const key = nominal != null ? ('n:' + nominal) : ('raw:' + r.product_code);
     if (!groups.has(key)) groups.set(key, []);
@@ -13474,7 +13483,14 @@ function h2hDedupeByNominal(rows){
     result.push(list[midIdx]);
   }
 
+  if (freeRows.length) {
+    const best = freeRows.reduce((max, r) => Number(r.price) > Number(max.price) ? r : max, freeRows[0]);
+    result.unshift({ ...best, _nominal: null, _isFreeNom: true });
+  }
+
   return result.sort((a, b) => {
+    if (a._isFreeNom) return -1;
+    if (b._isFreeNom) return 1;
     if (a._nominal != null && b._nominal != null) return a._nominal - b._nominal;
     return Number(a.price) - Number(b.price);
   });
@@ -13553,6 +13569,15 @@ function h2hRenderNomGrid(containerId, ppobType, rows){
       '" data-product-code="' + h2hEscapeHtml(r.product_code) + '" onclick="selectPpobNom(this,\'' + ppobType + '\')">' +
       check + '<div class="pn-nominal">' + h2hEscapeHtml(label) + '</div><div class="pn-harga">' + harga + '</div></div>';
   }).join('');
+
+  // Kartu "Bebas Nominal" langsung dibuka inputnya begitu grid selesai
+  // di-render, gak perlu ditap dulu — biar user langsung bisa ketik nominal
+  // (samain kayak alur di h2h.id yang inputnya selalu kelihatan).
+  const freeCard = wrap.querySelector('.ppob-nom[data-freenom="1"]');
+  if (freeCard) {
+    freeCard.classList.add('active');
+    openFreeNominalPanel(freeCard, ppobType);
+  }
 }
 
 async function h2hLoadPln(){
