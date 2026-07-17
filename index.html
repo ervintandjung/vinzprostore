@@ -98,6 +98,24 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 
 #topUpPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:360;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:40px;}
 #topUpPage.open{display:block;animation:fsSlideIn .3s ease;}
+
+/* DETAIL DEPOSIT PAGE (top up payment detail, ala H2H.id) */
+#topupDetailPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:365;overflow-y:auto;max-width:480px;margin:0 auto;padding-bottom:40px;}
+#topupDetailPage.open{display:block;animation:fsSlideIn .3s ease;}
+.tdp-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.tdp-row:last-child{border-bottom:none;}
+.tdp-row .lbl{color:var(--muted);font-size:12.5px;}
+.tdp-row .val{color:#fff;font-weight:700;font-size:13.5px;text-align:right;word-break:break-all;}
+.tdp-collapse-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.tdp-collapse-body{display:none;padding-top:10px;font-size:12px;color:var(--muted);line-height:1.8;}
+.tdp-collapse-body.open{display:block;}
+.tdp-upload-box{border:1.5px dashed var(--border);border-radius:12px;padding:18px;text-align:center;cursor:pointer;background:rgba(255,255,255,.02);}
+.tdp-cancel-btn{width:100%;background:rgba(255,68,85,.08);border:1px solid rgba(255,68,85,.35);color:var(--danger);border-radius:14px;padding:14px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer;margin-top:6px;}
+.tdp-cancel-btn:active{opacity:.8;}
+.tdp-status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.tdp-status-badge.pending{background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.35);color:var(--gold);}
+.tdp-status-badge.success{background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.35);color:var(--success);}
+.tdp-status-badge.failed{background:rgba(255,68,85,.1);border:1px solid rgba(255,68,85,.35);color:var(--danger);}
 .ap-topbar{position:sticky;top:0;background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px solid var(--accent);height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;z-index:10;box-shadow:0 4px 24px rgba(26,111,255,0.25);}
 .ap-back{width:38px;height:38px;border-radius:10px;background:rgba(26,111,255,0.15);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--accent2);font-size:20px;cursor:pointer;flex-shrink:0;}
 .ap-back:active{transform:scale(.92);}
@@ -1208,6 +1226,66 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 </section>
 <!-- END TOP UP PAGE -->
 
+<!-- DETAIL DEPOSIT - HIDDEN FULLSCREEN PAGE (payment detail, ala H2H.id) -->
+<section id="topupDetailPage">
+  <div class="ap-topbar">
+    <div class="ap-back" onclick="closeTopupDetail()">←</div>
+    <div class="tt">DETAIL DEPOSIT</div>
+    <div class="ap-back" style="margin-left:auto;" onclick="tdpRefreshStatus()">⟳</div>
+  </div>
+  <div class="pusat-wrap" style="padding-top:18px;">
+
+    <div class="pi-card" style="text-align:center;">
+      <div id="tdpStatusBadge" class="tdp-status-badge pending" style="margin-bottom:16px;">⏳ MENUNGGU PEMBAYARAN</div>
+      <div id="tdpQrWrap"></div>
+      <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:26px;color:#fff;margin:14px 0 4px;">Rp <span id="tdpAmount">0</span></div>
+      <button id="tdpDownloadBtn" class="btn-tu-alt" style="margin-top:10px;display:none;" onclick="tdpDownloadQr()">⬇ Unduh QR Code</button>
+      <div id="tdpCountdown" style="font-size:12.5px;color:var(--muted);margin-top:10px;">Menunggu pembayaran...</div>
+    </div>
+
+    <div class="pi-card">
+      <div class="tdp-row"><span class="lbl">Invoice</span><span class="val" id="tdpInvoice">-</span></div>
+      <div class="tdp-row"><span class="lbl">Jumlah Deposit</span><span class="val" id="tdpJumlah">Rp 0</span></div>
+      <div class="tdp-row"><span class="lbl">Biaya</span><span class="val" id="tdpBiaya">Rp 0</span></div>
+      <div class="tdp-row"><span class="lbl" style="color:#fff;font-weight:700;">Total Bayar</span><span class="val" id="tdpTotal" style="color:var(--accent2);font-size:16px;">Rp 0</span></div>
+    </div>
+
+    <div class="pi-card">
+      <div class="tdp-row"><span class="lbl">Dibuat</span><span class="val" id="tdpDibuat">-</span></div>
+      <div class="tdp-row"><span class="lbl">⏱ Kedaluwarsa</span><span class="val" id="tdpKedaluwarsa" style="color:#ffb347;">-</span></div>
+    </div>
+
+    <div class="pi-card">
+      <div class="tdp-collapse-head" onclick="tdpToggleTataCara()">
+        <div class="pi-h" style="font-size:13px;">ⓘ Tata Cara Pembayaran</div>
+        <span id="tdpTataCaraChevron">⌄</span>
+      </div>
+      <div id="tdpTataCaraBody" class="tdp-collapse-body">
+        1. Buka aplikasi e-wallet / mobile banking Anda.<br>
+        2. Pilih menu Scan QR / Bayar dengan QRIS (atau salin nomor VA jika metode VA).<br>
+        3. Arahkan kamera ke QR Code di atas, atau unduh QR-nya lalu unggah dari galeri.<br>
+        4. Periksa nominal pembayaran sudah sesuai lalu selesaikan transaksi.<br>
+        5. Saldo akan otomatis masuk begitu pembayaran terkonfirmasi.
+      </div>
+    </div>
+
+    <div class="pi-card">
+      <div class="pi-h" style="font-size:13px;margin-bottom:10px;">⬆ Upload Bukti Transfer</div>
+      <div class="pi-sub" style="text-align:left;margin-bottom:12px;letter-spacing:.3px;text-transform:none;font-size:11.5px;">Jika Anda sudah melakukan pembayaran manual (bank transfer), upload bukti transfer untuk mempercepat konfirmasi.</div>
+      <input type="file" id="tdpBuktiInput" accept="image/*" style="display:none;" onchange="tdpBuktiChange(event)">
+      <div id="tdpUploadBox" class="tdp-upload-box" onclick="document.getElementById('tdpBuktiInput').click()">
+        <div style="font-size:22px;margin-bottom:4px;">🖼️</div>
+        <div style="font-size:13px;color:var(--accent2);font-weight:700;">Pilih Foto Bukti Transfer</div>
+        <div id="tdpUploadPreviewWrap"></div>
+      </div>
+    </div>
+
+    <button class="tdp-cancel-btn" onclick="tdpCancelDeposit()">✕ Batalkan Deposit</button>
+
+  </div>
+</section>
+<!-- END DETAIL DEPOSIT PAGE -->
+
 
 <!-- LAINNYA MENU PAGE (menu tambahan dinamis, dikelola admin) -->
 <section id="lainnyaMenuPage" class="ppob-page">
@@ -1241,7 +1319,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
         <div class="ppob-contact-main">
           <div class="ppob-contact-text">
             <div class="lbl">Nomor Handphone</div>
-            <input type="tel" id="pulsaInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" oninput="detectProvider('pulsa')">
+            <input type="tel" id="pulsaInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" autocomplete="off" oninput="detectProvider('pulsa')">
           </div>
           <div class="ppob-prov-logo" id="pulsaProvBadge"></div>
         </div>
@@ -1282,7 +1360,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
         <div class="ppob-contact-main">
           <div class="ppob-contact-text">
             <div class="lbl">Nomor Handphone</div>
-            <input type="tel" id="dataInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" oninput="detectProvider('data')">
+            <input type="tel" id="dataInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" autocomplete="off" oninput="detectProvider('data')">
           </div>
           <div class="ppob-prov-logo" id="dataProvBadge"></div>
         </div>
@@ -1332,7 +1410,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 
     <div class="ppob-card">
       <div class="ppob-label">NOMOR / ID E-WALLET</div>
-      <input type="tel" id="ewalletInput" class="ppob-input" placeholder="Contoh: 08123456789" maxlength="15">
+      <input type="tel" id="ewalletInput" class="ppob-input" placeholder="Contoh: 08123456789" maxlength="15" autocomplete="off">
     </div>
 
     <div class="ppob-card">
@@ -1371,10 +1449,10 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 
     <div class="ppob-card">
       <div class="ppob-label">ID / USER ID GAME</div>
-      <input type="text" id="voucherInput" class="ppob-input" placeholder="Contoh: 123456789 (ID) atau nickname" oninput="h2hClearGameCheck()">
+      <input type="text" id="voucherInput" class="ppob-input" placeholder="Contoh: 123456789 (ID) atau nickname" autocomplete="off" oninput="h2hClearGameCheck()">
       <div id="voucherZoneWrap" style="display:none;margin-top:10px;">
         <div class="ppob-label">ZONE ID</div>
-        <input type="text" id="voucherZoneInput" class="ppob-input" placeholder="Contoh: 1234" oninput="h2hClearGameCheck()">
+        <input type="text" id="voucherZoneInput" class="ppob-input" placeholder="Contoh: 1234" autocomplete="off" oninput="h2hClearGameCheck()">
       </div>
       <button type="button" onclick="h2hCheckGameAccount()" style="margin-top:10px;width:100%;background:#1a2440;color:#00d4ff;border:1px solid #00d4ff;border-radius:10px;padding:10px;font-weight:700;font-size:13px;">🔍 Cek Akun</button>
       <div id="voucherGameCheckResult" style="margin-top:8px;font-size:13px;"></div>
@@ -1417,7 +1495,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 
     <div class="ppob-card">
       <div class="ppob-label">ID METER / NOMOR PELANGGAN</div>
-      <input type="tel" id="plnInput" class="ppob-input" placeholder="Contoh: 12345678901" maxlength="12">
+      <input type="tel" id="plnInput" class="ppob-input" placeholder="Contoh: 12345678901" maxlength="12" autocomplete="off">
       <button class="btn-tu-alt" style="margin-top:10px;" onclick="h2hCheckPlnCustomer()">🔍 Cek Nama Pelanggan</button>
       <div id="plnCheckResult" style="margin-top:8px;font-size:13px;"></div>
     </div>
@@ -1450,7 +1528,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 
     <div class="ppob-card">
       <div class="ppob-label">NOMOR PELANGGAN PDAM</div>
-      <input type="tel" id="pdamInput" class="ppob-input" placeholder="Contoh: 1234567890" maxlength="20">
+      <input type="tel" id="pdamInput" class="ppob-input" placeholder="Contoh: 1234567890" maxlength="20" autocomplete="off">
       <div class="ppob-label" style="margin-top:8px;">WILAYAH</div>
       <div class="ppob-chips" id="pdamProvider">
         <div class="ppob-chip active" data-provider="Jakarta" onclick="selectPpobProvider(this,'pdam')">Jakarta</div>
@@ -1491,7 +1569,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
         <div class="ppob-contact-main">
           <div class="ppob-contact-text">
             <div class="lbl">Nomor HP Pascabayar</div>
-            <input type="tel" id="pascabayarhpInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" oninput="detectProvider('pascabayarhp')" onkeydown="if(event.key==='Enter'){h2hCekTagihanPascabayarhp();}">
+            <input type="tel" id="pascabayarhpInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" autocomplete="off" oninput="detectProvider('pascabayarhp')" onkeydown="if(event.key==='Enter'){h2hCekTagihanPascabayarhp();}">
           </div>
           <div class="ppob-prov-logo" id="pascabayarhpProvBadge"></div>
         </div>
@@ -1526,7 +1604,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 
     <div class="ppob-card">
       <div class="ppob-label">ID / EMAIL AKUN TUJUAN</div>
-      <input type="text" id="streamingInput" class="ppob-input" placeholder="Contoh: email@gmail.com" maxlength="60">
+      <input type="text" id="streamingInput" class="ppob-input" placeholder="Contoh: email@gmail.com" maxlength="60" autocomplete="off">
     </div>
 
     <div class="ppob-card">
@@ -1551,7 +1629,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 
     <div class="ppob-card">
       <div class="ppob-label">NOMOR HANDPHONE</div>
-      <input type="tel" id="telpsmsInput" class="ppob-input" placeholder="Contoh: 08123456789" maxlength="15">
+      <input type="tel" id="telpsmsInput" class="ppob-input" placeholder="Contoh: 08123456789" maxlength="15" autocomplete="off">
       <div class="ppob-label" style="margin-top:8px;">PROVIDER</div>
       <div class="ppob-chips" id="telpsmsProvider">
         <div class="ppob-chip active" data-provider="Telkomsel" onclick="selectPpobProvider(this,'telpsms')">Telkomsel</div>
@@ -1598,7 +1676,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 
     <div class="ppob-card">
       <div class="ppob-label">TARGET (LINK / USERNAME)</div>
-      <input type="text" id="smmTargetInput" class="ppob-input" placeholder="Contoh: https://instagram.com/username" maxlength="200">
+      <input type="text" id="smmTargetInput" class="ppob-input" placeholder="Contoh: https://instagram.com/username" maxlength="200" autocomplete="off">
     </div>
 
     <div class="ppob-card">
@@ -3534,6 +3612,12 @@ async function doLogin() {
     // Langsung sinkron riwayat & refresh Pemasukan/Pengeluaran begitu login
     // berhasil, biar gak nunjukin Rp 0 dulu sebelum ke Riwayat.
     if (typeof pcRefreshStatsFromServer === 'function') pcRefreshStatsFromServer();
+    // PENTING: kartu "Saldo Profit" (khusus admin) dan saldo H2H cuma
+    // ke-refresh lewat vpReloadBalance() -> /my-balance. Kalau ini gak
+    // dipanggil di sini, kartu profit akun SEBELUMNYA bakal masih nyangkut
+    // (atau kebalik, gak muncul buat admin) sampai user pindah tab ke
+    // Beranda atau refresh manual. Panggil sekarang biar langsung akurat.
+    if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
   } catch(e) {
     showAuthErr('Error: ' + e.message);
   } finally {
@@ -3921,6 +4005,7 @@ async function doVerifyOTP() {
     if (typeof vpApplyReferralPricing === 'function') await vpApplyReferralPricing();
     showNotif('✅ Email terverifikasi! Selamat datang, ' + currentUser.name + '!');
     if (typeof pcRefreshStatsFromServer === 'function') pcRefreshStatsFromServer();
+    if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
   } else {
     if (currentUser) currentUser.verified = true;
     localStorage.setItem('vp_user', JSON.stringify(currentUser));
@@ -3945,8 +4030,29 @@ function doLogout() {
   localStorage.removeItem('vp_user');
   // Logout dari Supabase Auth juga (hapus session JWT)
   try { _sb.auth.signOut(); } catch(e) {}
+  // Bersihkan field nomor/ID PPOB yang mungkin masih keisi di DOM dari akun
+  // sebelumnya (misal user isi nomor pulsa lalu logout tanpa pindah halaman
+  // dulu) — sekalian refresh daftar "nomor yang sering dipakai" balik ke
+  // scope 'guest' (lihat ppobFreqKey), biar gak nyampur sama punya akun lain.
+  ['pulsaInput','dataInput','ewalletInput','plnInput','pdamInput','pascabayarhpInput','streamingInput','telpsmsInput','voucherInput','voucherZoneInput','smmTargetInput'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  if (typeof renderPpobFreqList === 'function') {
+    renderPpobFreqList('pulsa');
+    renderPpobFreqList('data');
+  }
   // Balikin harga produk ke markup admin polos (tanpa referral akun tadi)
   if (window._adminMarkupConfig) markupConfig = { ...window._adminMarkupConfig };
+  // Sembunyiin & reset kartu "Saldo Profit" (khusus admin) sekarang juga —
+  // sebelumnya kartu ini cuma di-toggle di dalam vpReloadBalance(), yang
+  // gak dipanggil pas logout, jadi angka akun lama masih nampil sampai
+  // user pindah tab / refresh manual.
+  window._profitBalance = 0;
+  const _pCardOnLogout = document.getElementById('profitSaldoCard');
+  if (_pCardOnLogout) _pCardOnLogout.classList.remove('show');
+  const _pAmtOnLogout = document.getElementById('profitSaldoAmt');
+  if (_pAmtOnLogout) { _pAmtOnLogout.setAttribute('data-real', '0'); _pAmtOnLogout.textContent = '0'; }
   renderHeader();
   showNotif('👋 Berhasil logout!');
   // Tutup panel Pengaturan lalu arahkan otomatis ke halaman login
@@ -5602,16 +5708,24 @@ async function apSetUserRole() {
   const email = emailEl.value.trim().toLowerCase();
   const role = roleEl.value;
   if (!email) { resultEl.textContent = '⚠️ Masukkan email dulu.'; return; }
+  if (!currentUser || !currentUser.email) { resultEl.textContent = '⚠️ Sesi admin tidak ditemukan, silakan login ulang.'; return; }
 
   resultEl.textContent = '⏳ Menyimpan...';
   try {
-    const { data: existing, error: findErr } = await _sb.from('users').select('email,name,role').eq('email', email).single();
-    if (findErr || !existing) { resultEl.textContent = '❌ User dengan email itu tidak ditemukan.'; return; }
+    // PENTING: update role tabel `users` gak bisa langsung dari browser
+    // (_sb.from('users').update(...)) — RLS bakal nolak dengan error
+    // "permission denied for table users" karena browser cuma pakai
+    // anon/authenticated key. Harus lewat worker (/admin/set-role) yang
+    // pakai SUPABASE_SERVICE_ROLE_KEY di sisi server.
+    const res = await fetch(`${H2H_WORKER_URL}/admin/set-role`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ admin_email: currentUser.email, target_email: email, role }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok || !j.success) { resultEl.textContent = '❌ Gagal: ' + (j.message || res.statusText); return; }
 
-    const { error } = await _sb.from('users').update({ role }).eq('email', email);
-    if (error) { resultEl.textContent = '❌ Gagal: ' + error.message; return; }
-
-    resultEl.textContent = `✅ ${existing.name || email} sekarang berrole "${role}".`;
+    resultEl.textContent = `✅ ${j.name || email} sekarang berrole "${role}".`;
     showNotif(`✅ Role ${email} diubah jadi ${role}`);
     emailEl.value = '';
   } catch (e) {
@@ -9374,7 +9488,8 @@ function doPesan(){
     { id: 'telpsmsPage',      close: () => window.closePpobPage && window.closePpobPage('telpsmsPage') },
     { id: 'smmOrderPage',     close: () => window.closePpobPage && window.closePpobPage('smmOrderPage') },
     { id: 'lainnyaMenuPage',  close: () => window.closePpobPage && window.closePpobPage('lainnyaMenuPage') },
-    { id: 'topUpPage',        close: () => window.closeTopUp && window.closeTopUp() }
+    { id: 'topUpPage',        close: () => window.closeTopUp && window.closeTopUp() },
+    { id: 'topupDetailPage',  close: () => window.closeTopupDetail && window.closeTopupDetail() }
   ];
 
   let stack = [];          // stack of panel ids yg sedang open (urutan dibuka)
@@ -9807,7 +9922,7 @@ function doPesan(){
     const t = d.data; // { invoice, amount, method, status, va_number, bank_name, account_number, account_name, qr_url, qr_string, expired_at }
     try { _topupToRiwayat({ id: t.invoice, email: u.email, amount: t.amount, method: 'H2H-' + (t.method||''), status:'menunggu', ts: Date.now() }); } catch(_){}
 
-    vpShowTopupModal(t);
+    openTopupDetail(t);
     vpPollTopupStatus(t.invoice);
   };
 
@@ -9903,16 +10018,19 @@ function doPesan(){
 
         clearInterval(_vpTopupPollTimer);
         clearInterval(_vpTopupCountdownTimer);
-        h2hCloseModalById('vpTopupModal');
 
         const u = getCU();
         if (t.status === 'success') {
           try { if (u) _topupToRiwayat({ id: invoice, email: u.email, amount: t.amount, method: 'H2H-' + (t.method||''), status:'sukses', ts: Date.now() }); } catch(_){}
+          try { if (typeof tdpMarkSuccess === 'function') tdpMarkSuccess(); } catch(_){}
           try{ showNotif('✅ Top up berhasil! Saldo sudah masuk.'); }catch(e){}
           if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
+          setTimeout(() => { try { closeTopupDetail(); } catch(_){} }, 1400);
         } else {
           try { if (u) _topupToRiwayat({ id: invoice, email: u.email, amount: t.amount, method: 'H2H-' + (t.method||''), status: t.status === 'expired' ? 'kadaluwarsa' : 'batal', ts: Date.now() }); } catch(_){}
+          try { if (typeof tdpMarkFailed === 'function') tdpMarkFailed(t.status); } catch(_){}
           try{ showNotif('❌ Top up ' + (t.status === 'expired' ? 'kadaluwarsa' : 'gagal') + '.'); }catch(e){}
+          setTimeout(() => { try { closeTopupDetail(); } catch(_){} }, 1400);
         }
       } catch {
         // gangguan jaringan sesaat, biarkan polling coba lagi
@@ -12036,6 +12154,256 @@ function tuSetAmt(v,el){
 function tuClearActive(){
   document.querySelectorAll('.tu-nom').forEach(n=>n.classList.remove('active'));
 }
+
+// ============================================================
+// DETAIL DEPOSIT — halaman penuh (bukan modal QR doang) ala H2H.id
+// ============================================================
+let _tdpCurrentTrx = null;
+
+function openTopupDetail(t){
+  _tdpCurrentTrx = t;
+
+  const qrWrap = document.getElementById('tdpQrWrap');
+  const dlBtn = document.getElementById('tdpDownloadBtn');
+  if (dlBtn) dlBtn.style.display = 'none';
+  if (qrWrap) qrWrap.innerHTML = '';
+
+  if (t.qr_string) {
+    // qr_string = payload EMV QRIS mentah, digambar via generator gambar publik
+    const qrImgSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(t.qr_string);
+    qrWrap.innerHTML =
+      '<img id="tdpQrImg" src="' + qrImgSrc + '" style="width:220px;height:220px;background:#fff;border-radius:12px;padding:8px;">' +
+      (t.payment_url ? '<div style="margin-top:12px;"><a href="' + t.payment_url + '" target="_blank" style="color:var(--accent2);font-size:12px;">Atau buka halaman pembayaran →</a></div>' : '');
+    if (dlBtn) dlBtn.style.display = 'flex';
+  } else if (t.qr_url) {
+    qrWrap.innerHTML = '<img id="tdpQrImg" src="' + t.qr_url + '" style="width:220px;height:220px;background:#fff;border-radius:12px;padding:8px;">';
+    if (dlBtn) dlBtn.style.display = 'flex';
+  } else if (t.va_number) {
+    qrWrap.innerHTML =
+      '<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:left;">' +
+      (t.bank_name ? '<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">' + h2hEscapeHtml(t.bank_name) + '</div>' : '') +
+      '<div style="font-size:20px;font-weight:700;letter-spacing:1px;color:#fff;">' + h2hEscapeHtml(t.va_number) + '</div>' +
+      '<button class="btn-tu-alt" style="margin-top:10px;padding:9px;font-size:13px;" onclick="navigator.clipboard&&navigator.clipboard.writeText(\'' + t.va_number + '\');this.textContent=\'✓ Tersalin!\'">📋 Salin Nomor VA</button>' +
+      '</div>';
+  } else if (t.account_number) {
+    qrWrap.innerHTML =
+      '<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:left;">' +
+      '<div style="font-size:12px;color:var(--muted);">' + h2hEscapeHtml(t.bank_name||'') + '</div>' +
+      '<div style="font-size:18px;font-weight:700;color:#fff;">' + h2hEscapeHtml(t.account_number) + '</div>' +
+      '<div style="font-size:12px;color:var(--muted);">a.n. ' + h2hEscapeHtml(t.account_name||'') + '</div>' +
+      '</div>';
+  } else if (t.raw) {
+    qrWrap.innerHTML =
+      '<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:left;font-size:11px;color:#ffb347;overflow:auto;max-height:180px;">' +
+      '<div style="margin-bottom:6px;color:var(--danger);">⚠️ Data pembayaran belum bisa ditampilkan otomatis.</div>' +
+      '<pre style="white-space:pre-wrap;word-break:break-all;margin:0;">' + h2hEscapeHtml(JSON.stringify(t.raw, null, 2)) + '</pre>' +
+      '</div>';
+  } else {
+    qrWrap.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:20px 0;">Menyiapkan detail pembayaran...</div>';
+  }
+
+  const total = t.total_charged || (t.amount + (t.fee_charged||0));
+  const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  setTxt('tdpAmount', Number(total).toLocaleString('id-ID'));
+  setTxt('tdpInvoice', t.invoice || '-');
+  setTxt('tdpJumlah', h2hFormatRupiah(t.amount));
+  setTxt('tdpBiaya', h2hFormatRupiah(t.fee_charged || 0));
+  setTxt('tdpTotal', h2hFormatRupiah(total));
+
+  const fmtDt = d => d.toLocaleString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }).replace('.', ':');
+  const createdDt = t.created_at ? new Date(t.created_at) : new Date();
+  const expiresAt = t.expired_at ? new Date(t.expired_at).getTime() : Date.now() + 600000;
+  setTxt('tdpDibuat', fmtDt(createdDt));
+  setTxt('tdpKedaluwarsa', fmtDt(new Date(expiresAt)));
+
+  const badge = document.getElementById('tdpStatusBadge');
+  if (badge) { badge.className = 'tdp-status-badge pending'; badge.textContent = '⏳ MENUNGGU PEMBAYARAN'; }
+
+  // reset upload bukti transfer
+  const uploadPreview = document.getElementById('tdpUploadPreviewWrap');
+  if (uploadPreview) uploadPreview.innerHTML = '';
+  const buktiInput = document.getElementById('tdpBuktiInput');
+  if (buktiInput) buktiInput.value = '';
+
+  // tutup collapse tata cara tiap kali dibuka ulang
+  const tcBody = document.getElementById('tdpTataCaraBody');
+  const tcChev = document.getElementById('tdpTataCaraChevron');
+  if (tcBody) tcBody.classList.remove('open');
+  if (tcChev) tcChev.textContent = '⌄';
+
+  // countdown kedaluwarsa
+  clearInterval(_vpTopupCountdownTimer);
+  _vpTopupCountdownTimer = setInterval(() => {
+    const diff = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+    const m = String(Math.floor(diff / 60)).padStart(2, '0');
+    const s = String(diff % 60).padStart(2, '0');
+    const cd = document.getElementById('tdpCountdown');
+    if (cd) cd.textContent = diff > 0 ? `Sisa waktu: ${m}:${s}` : 'Waktu habis';
+    if (diff <= 0) clearInterval(_vpTopupCountdownTimer);
+  }, 1000);
+
+  const el = document.getElementById('topupDetailPage');
+  el.classList.add('open');
+  document.body.classList.add('panel-lock');
+  el.scrollTop = 0;
+  if (typeof pcSaveExtraPage === 'function') pcSaveExtraPage('topupDetailPage');
+}
+window.openTopupDetail = openTopupDetail;
+
+function closeTopupDetail(){
+  const el = document.getElementById('topupDetailPage');
+  if (!el) return;
+  el.classList.remove('open');
+  document.body.classList.remove('panel-lock');
+  clearInterval(_vpTopupCountdownTimer);
+  if (typeof pcClearExtraPage === 'function') pcClearExtraPage('topupDetailPage');
+}
+window.closeTopupDetail = closeTopupDetail;
+
+function tdpMarkSuccess(){
+  const badge = document.getElementById('tdpStatusBadge');
+  if (badge) { badge.className = 'tdp-status-badge success'; badge.textContent = '✅ PEMBAYARAN BERHASIL'; }
+  const cd = document.getElementById('tdpCountdown');
+  if (cd) cd.textContent = 'Saldo sudah ditambahkan ke akun Anda.';
+}
+window.tdpMarkSuccess = tdpMarkSuccess;
+
+function tdpMarkFailed(status){
+  const badge = document.getElementById('tdpStatusBadge');
+  if (badge) { badge.className = 'tdp-status-badge failed'; badge.textContent = status === 'expired' ? '⏰ KADALUWARSA' : '❌ GAGAL / DIBATALKAN'; }
+  const cd = document.getElementById('tdpCountdown');
+  if (cd) cd.textContent = status === 'expired' ? 'Waktu pembayaran telah habis.' : 'Deposit tidak berhasil diproses.';
+}
+window.tdpMarkFailed = tdpMarkFailed;
+
+function tdpToggleTataCara(){
+  const body = document.getElementById('tdpTataCaraBody');
+  const chev = document.getElementById('tdpTataCaraChevron');
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  if (chev) chev.textContent = open ? '⌃' : '⌄';
+}
+window.tdpToggleTataCara = tdpToggleTataCara;
+
+// Unduh QR Code (ala tombol "Unduh QR Code" di H2H.id).
+// CATATAN: img.src QR itu ngambil dari domain LUAR (api.qrserver.com), jadi
+// <a download> doang (versi lama) gak reliable — banyak browser/WebView
+// nolak "download" attribute untuk resource cross-origin, dan APK WebView
+// polos gak akan ngapa-ngapain sama sekali kalau gak ada DownloadListener/
+// JS-bridge di sisi native. Urutan fallback di bawah ini dari yang PALING
+// reliable di APK sampai yang paling reliable di browser biasa:
+//   1) AndroidBridge.saveImage(base64, filename)  -> lewat native Kotlin,
+//      paling pasti berhasil tersimpan ke Galeri di APK (lihat instruksi
+//      Android Studio yang saya kasih di chat).
+//   2) blob: URL + <a download>                    -> jalan di Chrome/Safari
+//      dan WebView yang sudah diberi DownloadListener untuk blob:.
+//   3) window.open(img.src)                         -> fallback paling akhir,
+//      user tinggal tekan-lama gambarnya lalu "Simpan Gambar" manual.
+async function tdpDownloadQr(){
+  const img = document.getElementById('tdpQrImg');
+  if (!img) return;
+  const filename = 'QR-' + (_tdpCurrentTrx && _tdpCurrentTrx.invoice ? _tdpCurrentTrx.invoice : 'deposit') + '.png';
+
+  let blob = null;
+  try {
+    const res = await fetch(img.src, { mode: 'cors' });
+    blob = await res.blob();
+  } catch (e) {
+    blob = null; // kena CORS / offline — nanti fallback ke window.open
+  }
+
+  // 1) Jembatan native Android (paling reliable buat APK)
+  if (window.AndroidBridge && typeof window.AndroidBridge.saveImage === 'function') {
+    try {
+      if (blob) {
+        const base64 = await h2hBlobToBase64(blob);
+        window.AndroidBridge.saveImage(base64, filename);
+        if (typeof showNotif === 'function') showNotif('📥 QR Code disimpan ke Galeri');
+        return;
+      }
+    } catch (e) { /* lanjut ke fallback di bawah */ }
+  }
+
+  // 2) blob: URL + <a download> (browser biasa / WebView dgn DownloadListener)
+  if (blob) {
+    const saved = h2hDownloadStrukImage(blob, filename);
+    if (saved) {
+      if (typeof showNotif === 'function') showNotif('📥 QR Code tersimpan');
+      return;
+    }
+  }
+
+  // 3) Fallback terakhir: buka di tab baru, user simpan manual
+  window.open(img.src, '_blank');
+  if (typeof showNotif === 'function') showNotif('🖼️ QR dibuka di tab baru — tekan lama gambar lalu "Simpan Gambar"');
+}
+window.tdpDownloadQr = tdpDownloadQr;
+
+function tdpBuktiChange(evt){
+  const file = evt.target.files && evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(){
+    const wrap = document.getElementById('tdpUploadPreviewWrap');
+    if (!wrap) return;
+    wrap.innerHTML =
+      '<img src="' + reader.result + '" style="max-width:100%;max-height:150px;border-radius:8px;margin-top:10px;display:block;">' +
+      '<div style="font-size:11px;color:var(--muted);margin-top:6px;">Bukti transfer terpilih. Kirim ke admin agar deposit segera diverifikasi.</div>' +
+      '<button class="btn-tu-alt" style="margin-top:8px;padding:9px;font-size:12.5px;" onclick="event.stopPropagation();tdpSendBuktiToAdmin()">💬 Kirim Bukti ke Admin (WhatsApp)</button>';
+  };
+  reader.readAsDataURL(file);
+}
+window.tdpBuktiChange = tdpBuktiChange;
+
+function tdpSendBuktiToAdmin(){
+  const t = _tdpCurrentTrx;
+  const invoice = t && t.invoice ? t.invoice : '-';
+  const total = t ? h2hFormatRupiah(t.total_charged || (t.amount + (t.fee_charged||0))) : '';
+  const adminWa = (function(){ try { return localStorage.getItem('vp_wa')||'6285954741269'; } catch(e){ return '6285954741269'; } })();
+  const pesan = 'Halo Admin, saya sudah melakukan pembayaran untuk Top Up Saldo.\n\nInvoice: ' + invoice + '\nTotal Bayar: ' + total + '\n\nBukti transfer akan saya kirimkan menyusul di chat ini. Mohon dicek ya, terima kasih!';
+  window.open('https://wa.me/' + adminWa + '?text=' + encodeURIComponent(pesan), '_blank');
+}
+window.tdpSendBuktiToAdmin = tdpSendBuktiToAdmin;
+
+function tdpCancelDeposit(){
+  if (!confirm('Batalkan deposit ini? Tindakan ini tidak dapat diurungkan.')) return;
+  const t = _tdpCurrentTrx;
+  clearInterval(_vpTopupPollTimer);
+  clearInterval(_vpTopupCountdownTimer);
+  const u = getCU();
+  if (t && u) {
+    try { _topupToRiwayat({ id: t.invoice, email: u.email, amount: t.amount, method: 'H2H-' + (t.method||''), status:'batal', ts: Date.now() }); } catch(_){}
+  }
+  try{ showNotif('Deposit dibatalkan.'); }catch(e){}
+  closeTopupDetail();
+}
+window.tdpCancelDeposit = tdpCancelDeposit;
+
+function tdpRefreshStatus(){
+  const t = _tdpCurrentTrx;
+  if (!t || !t.invoice) { try{ showNotif('Tidak ada deposit aktif.'); }catch(e){} return; }
+  fetch(`${H2H_WORKER_URL}/topup/status?invoice=${encodeURIComponent(t.invoice)}`)
+    .then(r => r.json()).then(j => {
+      const d = j && j.data;
+      if (!d) { try{ showNotif('Belum ada perubahan status.'); }catch(e){} return; }
+      if (d.status === 'success') {
+        tdpMarkSuccess();
+        const u = getCU();
+        try { if (u) _topupToRiwayat({ id: t.invoice, email: u.email, amount: d.amount || t.amount, method: 'H2H-' + (d.method||t.method||''), status:'sukses', ts: Date.now() }); } catch(_){}
+        try{ showNotif('✅ Top up berhasil! Saldo sudah masuk.'); }catch(e){}
+        if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
+        clearInterval(_vpTopupPollTimer);
+        clearInterval(_vpTopupCountdownTimer);
+        setTimeout(() => { try { closeTopupDetail(); } catch(_){} }, 1400);
+      } else if (d.status === 'pending') {
+        try{ showNotif('Masih menunggu pembayaran...'); }catch(e){}
+      } else {
+        tdpMarkFailed(d.status);
+        try{ showNotif('Status: ' + d.status); }catch(e){}
+      }
+    }).catch(()=>{ try{ showNotif('Gagal memeriksa status.'); }catch(e){} });
+}
+window.tdpRefreshStatus = tdpRefreshStatus;
 </script>
 
 <!-- ===== Modal QRIS (Fullscreen Beautiful) ===== -->
@@ -12901,8 +13269,8 @@ function closePpobPage(id){
   document.body.classList.remove('panel-lock');
   if (typeof pcClearExtraPage === 'function') pcClearExtraPage(id);
 }
-function openPulsaPage(){ openPpobPage('pulsaPage'); }
-function openDataPage(){ openPpobPage('dataPage'); }
+function openPulsaPage(){ openPpobPage('pulsaPage'); if (typeof renderPpobFreqList === 'function') renderPpobFreqList('pulsa'); }
+function openDataPage(){ openPpobPage('dataPage'); if (typeof renderPpobFreqList === 'function') renderPpobFreqList('data'); }
 function openEwalletPage(){ openPpobPage('ewalletPage'); }
 function openVoucherGamePage(){ openPpobPage('voucherGamePage'); }
 function openPlnPage(){ openPpobPage('plnPage'); }
@@ -12989,7 +13357,16 @@ function detectProvider(type){
 }
 
 // ===== Kontak & nomor yang sering dipakai =====
-function ppobFreqKey(type){ return 'ppob_freq_' + type; }
+// PENTING: key-nya HARUS ikut di-scope per akun (pakai email user yang lagi
+// login). Sebelumnya key ini global per-device ('ppob_freq_pulsa' dst),
+// jadi kalau logout lalu login pakai akun lain, nomor yang diketik di akun
+// SEBELUMNYA masih nongol — bocor antar akun. Kalau belum login (harusnya
+// gak kejadian karena halaman ini butuh login), dikasih scope 'guest' biar
+// tetap konsisten & gak numpuk di key lama.
+function ppobFreqKey(type){
+  const scope = (typeof currentUser !== 'undefined' && currentUser && currentUser.email) ? currentUser.email : 'guest';
+  return 'ppob_freq_' + type + '_' + scope;
+}
 function ppobLoadFreq(type){
   try { return JSON.parse(localStorage.getItem(ppobFreqKey(type)) || '[]'); } catch(e){ return []; }
 }
@@ -15182,23 +15559,37 @@ async function h2hBagikanStrukResult(){
   }
 
   // 2) Coba Web Share API standar kalau kebetulan didukung WebView-nya.
-  try {
-    if (navigator.share) {
-      if (blob) {
-        const file = new File([blob], filename, { type: 'image/png' });
-        const canShareFile = !navigator.canShare || navigator.canShare({ files: [file] });
-        if (canShareFile) {
-          await navigator.share({ files: [file], title: 'Struk Transaksi', text: storeName + ' — ' + trx.produk });
-          return;
-        }
+  //    PENTING: sebelumnya, kalau WebView-nya gak dukung share FILE (cuma
+  //    dukung share teks), kode ini jatuh ke navigator.share({text}) doang
+  //    — sheet "Berbagi" OS tetap muncul, TAPI gambar struknya ilang sama
+  //    sekali (ini penyebab keluhan "kurang struk"-nya, dibanding H2H.id
+  //    yang strukny selalu ikut). Sekarang: file-share cuma dicoba kalau
+  //    device-nya BENERAN bisa (canShareFile true) dan gambar berhasil
+  //    dirender (blob ada). Kalau gagal/gak didukung, LANGSUNG lanjut ke
+  //    step 3 di bawah (simpan gambar + salin teks) — jangan diganti share
+  //    teks polos yang bikin struknya hilang.
+  if (blob && navigator.share) {
+    try {
+      const file = new File([blob], filename, { type: 'image/png' });
+      const canShareFile = !!(navigator.canShare && navigator.canShare({ files: [file] }));
+      if (canShareFile) {
+        await navigator.share({ files: [file], title: 'Struk Transaksi', text: storeName + ' — ' + trx.produk });
+        return;
       }
+    } catch (e) {
+      // AbortError = usernya batal milih target share di sheet -> anggap
+      // selesai. Selain itu, lanjut ke fallback step 3 (JANGAN return).
+      if (e && e.name === 'AbortError') return;
+    }
+  } else if (!blob && navigator.share) {
+    // Gambar struk emang gagal dirender (bukan soal dukungan WebView) —
+    // minimal share teksnya lewat Web Share API, daripada gak ada apa-apa.
+    try {
       await navigator.share({ title: 'Struk Transaksi', text });
       return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
     }
-  } catch (e) {
-    // AbortError = usernya batal milih target share di sheet -> anggap
-    // selesai.
-    if (e && e.name === 'AbortError') return;
   }
 
   // 3) Fallback paling aman untuk WebView yang gak dukung share sama
