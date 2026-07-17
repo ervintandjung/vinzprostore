@@ -943,7 +943,25 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 .ssbt-item{display:flex;align-items:center;gap:10px;padding:12px 10px;border-radius:10px;background:var(--card2);border:1px solid var(--border);margin-bottom:8px;cursor:pointer;}
 .ssbt-item:active{background:rgba(77,91,255,.15);}
 
+/* ===== APP LOCK (gaya LazimPay) — muncul saat 2FA ON, sebelum Beranda ===== */
+#appLockOverlay{position:fixed;inset:0;background:#ffffff;z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:0 24px;overflow:hidden;}
+#appLockOverlay.open{display:flex;}
+.applock-spacer{flex:1 1 auto;min-height:80px;}
+.applock-brand{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:38px;letter-spacing:-0.5px;color:#0f2c5c;margin-bottom:34px;}
+.applock-brand .applock-brand-accent{color:#3ea6ff;font-weight:800;}
+.applock-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:16px;color:#111;margin-bottom:18px;text-align:center;}
+.applock-dots{display:flex;gap:10px;margin-bottom:14px;}
+.applock-dot{width:38px;height:38px;border-radius:10px;background:#eef1f5;transition:background .15s ease, transform .15s ease;}
+.applock-dot.filled{background:#0f2c5c;}
+.applock-error{min-height:18px;font-size:12.5px;color:#e53935;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:8px;text-align:center;}
+.applock-hidden-input{position:absolute;opacity:0;pointer-events:none;height:0;width:0;border:0;}
+.applock-tap-hint{font-size:12px;color:#8a8fa3;font-family:'Plus Jakarta Sans',sans-serif;margin-top:6px;}
+.applock-bottom{flex:2 1 auto;}
+@keyframes applockShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+.applock-dots.shake{animation:applockShake .35s ease;}
+
 </style>
+
 </head>
 <body class="has-bottom-nav">
 
@@ -994,7 +1012,23 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
   </div>
 </div>
 
+<!-- ===== APP LOCK OVERLAY (gaya LazimPay) — muncul saat 2FA ON, sebelum Beranda ===== -->
+<div id="appLockOverlay" onclick="appLockFocus()">
+  <div class="applock-spacer"></div>
+  <div class="applock-brand">Pay<span class="applock-brand-accent">core</span></div>
+  <div class="applock-title">Masukkan PIN Anda</div>
+  <div class="applock-dots" id="appLockDots">
+    <span class="applock-dot"></span><span class="applock-dot"></span><span class="applock-dot"></span>
+    <span class="applock-dot"></span><span class="applock-dot"></span><span class="applock-dot"></span>
+  </div>
+  <div class="applock-error" id="appLockError"></div>
+  <input class="applock-hidden-input" id="appLockInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" oninput="appLockOnInput(this.value)">
+  <div class="applock-tap-hint" id="appLockHint">Ketuk layar jika keyboard tidak muncul</div>
+  <div class="applock-bottom"></div>
+</div>
+
 <!-- ===== SETUP / GANTI PIN (dibuka dari Pengaturan) ===== -->
+
 <div class="pin-overlay" id="pinSetupOverlay">
   <div class="pin-close" onclick="pinSetupClose()">✕</div>
   <div class="pin-icon">🔢</div>
@@ -14775,44 +14809,108 @@ async function appSecurityGateCheck(){
     _pinGateEnrollMode = false;
     _pinGateBuffer = '';
     // Pakai slot resolve yang sama dengan pinGateRequire supaya submit PIN
-    // (manual maupun hasil sidik jari) otomatis nutup gate ini juga.
-    _pinGateResolve = () => { _appGateActive = false; resolve(); };
+    // (manual maupun hasil sidik jari lewat _pinGateSubmit) otomatis nutup
+    // gate ini juga.
+    _pinGateResolve = () => {
+      _appGateActive = false;
+      appLockHide();
+      resolve();
+    };
 
-    const overlay = document.getElementById('pinGateOverlay');
-    document.getElementById('pinGateError').textContent = '';
-    document.getElementById('pinGateSub').textContent = 'Verifikasi keamanan sebelum masuk aplikasi';
-    _pinDotsRender('pinGateDots', 0);
+    appLockShow();
 
-    // App-lock selalu pakai layar keypad (bio key di dalam keypad ikut
-    // muncul/kepencet otomatis di bawah kalau biometrik aktif) — beda dari
-    // pinGateRequire() yang punya layar sidik jari terpisah buat checkout.
-    document.getElementById('pinGateBioWrap').style.display = 'none';
-    document.getElementById('pinGateKeypadWrap').style.display = 'flex';
-
-    // Selama app-lock, tombol ✕ disembunyikan — verifikasi wajib, gak boleh
-    // dilewatin biar bisa lanjut ke Beranda.
-    const closeBtn = overlay.querySelector('.pin-close');
-    if (closeBtn) closeBtn.style.display = 'none';
-
-    const bioKey = document.getElementById('pinGateBioKey');
+    // Kalau biometrik aktif, trigger native prompt otomatis di background.
+    // Sukses -> onBiometricSuccess -> _pinGateSubmit(pin) -> _pinGateResolve
+    // yang di atas -> overlay ditutup. Kalau gagal / dibatalin, user tetap
+    // bisa ketik PIN manual pakai keyboard OS.
     const bioAktif = localStorage.getItem('pin_biometric_enabled') === '1';
     const bioBisa = bioAktif && window.AndroidBridge && typeof window.AndroidBridge.authenticateBiometric === 'function';
-    bioKey.style.visibility = bioBisa ? 'visible' : 'hidden';
-
-    overlay.classList.add('open');
-
     if (bioBisa) {
-      // Sidik jari duluan yang muncul otomatis begitu overlay kebuka.
       setTimeout(() => window.AndroidBridge.authenticateBiometric(), 300);
     }
   });
-
-  // Balikin tombol ✕ seperti semula buat dipakai pinGateRequire() versi
-  // transaksi (checkout/transfer) yang memang boleh dibatalkan.
-  const overlayAfter = document.getElementById('pinGateOverlay');
-  const closeBtnAfter = overlayAfter.querySelector('.pin-close');
-  if (closeBtnAfter) closeBtnAfter.style.display = 'flex';
 }
+
+// ============================================================
+// APP LOCK OVERLAY (gaya LazimPay) — layar putih, logo, "Masukkan PIN
+// Anda", 6 titik, keyboard OS. Verifikasi PIN pakai jalur yang sama
+// (_pinGateSubmit -> /pin/verify) — cuma UI-nya yang beda.
+// ============================================================
+function appLockShow(){
+  const overlay = document.getElementById('appLockOverlay');
+  const input = document.getElementById('appLockInput');
+  document.getElementById('appLockError').textContent = '';
+  input.value = '';
+  appLockRenderDots(0);
+  overlay.classList.add('open');
+  // Focus harus dipicu dari user-gesture di beberapa browser mobile;
+  // kita coba dulu, kalau gagal user tap layar (hint di bawah).
+  setTimeout(() => {
+    try { input.focus({ preventScroll: true }); input.click(); } catch(e){}
+  }, 100);
+  // Block back button Android biar gak bisa lolos ke Beranda tanpa verif.
+  if (!window._appLockPopHandler) {
+    window._appLockPopHandler = function(){
+      if (document.getElementById('appLockOverlay').classList.contains('open')) {
+        history.pushState(null, '', location.href);
+      }
+    };
+    window.addEventListener('popstate', window._appLockPopHandler);
+  }
+  try { history.pushState(null, '', location.href); } catch(e){}
+}
+
+function appLockHide(){
+  document.getElementById('appLockOverlay').classList.remove('open');
+  const input = document.getElementById('appLockInput');
+  if (input) { input.blur(); input.value = ''; }
+  appLockRenderDots(0);
+}
+
+function appLockFocus(){
+  const input = document.getElementById('appLockInput');
+  if (input) { try { input.focus({ preventScroll: true }); input.click(); } catch(e){} }
+}
+
+function appLockRenderDots(n){
+  const dots = document.querySelectorAll('#appLockDots .applock-dot');
+  dots.forEach((d, i) => d.classList.toggle('filled', i < n));
+}
+
+function appLockOnInput(val){
+  // Hanya digit, max 6.
+  const clean = (val || '').replace(/\D/g, '').slice(0, 6);
+  const input = document.getElementById('appLockInput');
+  if (input && input.value !== clean) input.value = clean;
+  document.getElementById('appLockError').textContent = '';
+  appLockRenderDots(clean.length);
+  if (clean.length === 6) {
+    // Sinkron ke buffer pinGate agar _pinGateSubmit() ambil PIN yang benar
+    // (fallback kalau tidak ada pinOverride yang dilewatin).
+    _pinGateBuffer = clean;
+    _pinGateSubmit(clean);
+  }
+}
+
+// Dipanggil dari _pinGateSubmit() saat server balikin PIN salah, supaya
+// UI app-lock ikut kasih feedback goyang + reset — tanpa perlu ngubah
+// logic _pinGateSubmit() yang juga dipakai overlay pinGate transaksi.
+function appLockShowError(msg){
+  const overlay = document.getElementById('appLockOverlay');
+  if (!overlay || !overlay.classList.contains('open')) return;
+  document.getElementById('appLockError').textContent = msg || 'PIN salah';
+  const dotsEl = document.getElementById('appLockDots');
+  dotsEl.classList.remove('shake');
+  // reflow untuk restart animasi
+  void dotsEl.offsetWidth;
+  dotsEl.classList.add('shake');
+  const input = document.getElementById('appLockInput');
+  if (input) input.value = '';
+  appLockRenderDots(0);
+  setTimeout(() => appLockFocus(), 50);
+}
+
+
 
 async function pinGateRequire(subtitleText){
   const sudahAdaPin = await pinHasPin();
@@ -14943,12 +15041,15 @@ async function _pinGateSubmit(pinOverride){
       document.getElementById('pinGateError').textContent = j.message || 'PIN salah';
       _pinDotsShake('pinGateDots');
       _pinDotsRender('pinGateDots', 0);
+      if (typeof appLockShowError === 'function') appLockShowError(j.message || 'PIN salah');
     }
   } catch {
     document.getElementById('pinGateError').textContent = 'Gagal terhubung ke server';
     _pinDotsRender('pinGateDots', 0);
+    if (typeof appLockShowError === 'function') appLockShowError('Gagal terhubung ke server');
   }
 }
+
 
 function pinGateForgot(){
   document.getElementById('pinGateOverlay').classList.remove('open');
