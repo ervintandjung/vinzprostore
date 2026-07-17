@@ -65,8 +65,9 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 #settingsQuickMenu .dd-item:first-child{border-top:none;}
 
 /* HALAMAN TERSENDIRI: EDIT PROFIL / UBAH PASSWORD / VERIFIKASI IDENTITAS */
-#editProfilPage,#ubahPasswordPage,#verifikasiIdentitasPage,#strukSettingsPage,#resellerMenuPage,#referralPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:390;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;max-width:480px;margin:0 auto;}
+#editProfilPage,#ubahPasswordPage,#verifikasiIdentitasPage,#strukSettingsPage,#resellerMenuPage,#referralPage,#apiKeyPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:390;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;max-width:480px;margin:0 auto;}
 #resellerMenuPage.open{display:block;animation:fsSlideIn .3s ease;}
+#apiKeyPage.open{display:block;animation:fsSlideIn .3s ease;}
 #referralPage.open{display:block;animation:fsSlideIn .3s ease;}
 #editProfilPage.open,#ubahPasswordPage.open,#verifikasiIdentitasPage.open,#strukSettingsPage.open{display:block;animation:fsSlideIn .3s ease;}
 .pgs-subpage-content{max-width:480px;margin:0 auto;padding:18px 14px 60px;}
@@ -2420,6 +2421,10 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
           <div class="pgs-item-left"><span class="pgs-ico">🎁</span><span class="pgs-label">Kode Referral & Komisi<span class="pgs-sub">Undang teman, dapat saldo tiap dia belanja</span></span></div>
           <span class="pgs-chevron">›</span>
         </div>
+        <div class="pgs-item" onclick="openApiKeyMenu()">
+          <div class="pgs-item-left"><span class="pgs-ico">🔌</span><span class="pgs-label">API Key<span class="pgs-sub">Akses API PayCore buat integrasi sendiri</span></span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
       </div>
     </div>
 
@@ -2721,6 +2726,170 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
   </div>
 </div>
 
+<!-- ═══ HALAMAN API KEY (akses API PayCore, mirip Digiflazz) ═══ -->
+<div id="apiKeyPage">
+  <div class="pgs-topbar">
+    <button class="pgs-back" onclick="closeApiKeyMenu()">&#8592;</button>
+    <div class="pgs-title">API KEY</div>
+    <div style="width:34px;flex-shrink:0;"></div>
+  </div>
+  <div class="pgs-subpage-content">
+
+    <div id="akLoading" style="padding:16px;text-align:center;opacity:.6;font-size:13px;">Memuat...</div>
+
+    <!-- FORM PENGAJUAN (tampil kalau belum pernah ngajuin) -->
+    <div id="akApplyForm" style="display:none;">
+      <div class="pgs-hint" style="margin-bottom:16px;">
+        Isi data diri kamu buat ngajuin akses API PayCore. Sandbox key langsung aktif begitu kamu submit (buat coba-coba integrasi). Production key baru aktif setelah diapprove admin.
+      </div>
+      <div class="pgs-field-label">Nama Lengkap</div>
+      <input id="akFullName" class="pgs-input" placeholder="Nama lengkap kamu">
+      <div class="pgs-field-label">Nama Bisnis/Toko (opsional)</div>
+      <input id="akBusinessName" class="pgs-input" placeholder="Contoh: Toko Pulsa Jaya">
+      <div class="pgs-field-label">No HP/WhatsApp</div>
+      <input id="akPhone" class="pgs-input" placeholder="08xxxxxxxxxx">
+      <div class="pgs-field-label">Alamat</div>
+      <input id="akAddress" class="pgs-input" placeholder="Alamat lengkap kamu">
+      <div class="pgs-field-label">Keperluan Pakai API (opsional)</div>
+      <input id="akPurpose" class="pgs-input" placeholder="Contoh: integrasi ke bot Telegram jualan pulsa">
+      <button class="pgs-btn-primary" onclick="akApply()">📨 AJUKAN AKSES API</button>
+    </div>
+
+    <!-- STATUS + KREDENSIAL (tampil kalau udah pernah ngajuin) -->
+    <div id="akStatusSection" style="display:none;">
+      <div id="akStatusBadge" style="padding:10px 14px;border-radius:10px;margin-bottom:16px;font-size:13px;font-weight:700;"></div>
+
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button id="akTabSandboxBtn" class="pgs-btn-primary" style="margin-bottom:0;" onclick="akSwitchTab('sandbox')">Sandbox</button>
+        <button id="akTabProdBtn" class="pgs-btn-outline" style="margin-bottom:0;" onclick="akSwitchTab('production')">Production</button>
+      </div>
+
+      <!-- SANDBOX -->
+      <div id="akPanelSandbox">
+        <div class="pgs-hint" style="margin-bottom:12px;">Sandbox cuma buat simulasi/testing — saldo dummy, order otomatis "berhasil", gak ada uang beneran bergerak. Bisa dipakai kapan aja walau masih nunggu approval.</div>
+        <div class="pgs-field-label">API Key (Sandbox)</div>
+        <div style="display:flex;gap:8px;"><input id="akSbKey" class="pgs-input" style="flex:1;" readonly><button class="pgs-btn-outline" style="width:auto;padding:0 14px;" onclick="akCopy('akSbKey')">📋</button></div>
+        <div class="pgs-field-label">API Secret (Sandbox)</div>
+        <div style="display:flex;gap:8px;"><input id="akSbSecret" class="pgs-input" style="flex:1;" readonly><button class="pgs-btn-outline" style="width:auto;padding:0 14px;" onclick="akCopy('akSbSecret')">📋</button></div>
+        <button class="pgs-btn-outline" style="margin-top:8px;" onclick="akRegenerate('sandbox')">🔄 Ganti Secret Sandbox</button>
+      </div>
+
+      <!-- PRODUCTION -->
+      <div id="akPanelProd" style="display:none;">
+        <div id="akProdPending" class="pgs-hint" style="display:none;margin-bottom:12px;">Masih nunggu di-approve admin. Kredensial production baru muncul di sini setelah disetujui — pakai sandbox dulu buat testing.</div>
+        <div id="akProdRejected" class="pgs-hint" style="display:none;margin-bottom:12px;color:#f87171;"></div>
+        <div id="akProdFields" style="display:none;">
+          <div class="pgs-field-label">Member ID</div>
+          <div style="display:flex;gap:8px;"><input id="akMemberId" class="pgs-input" style="flex:1;" readonly><button class="pgs-btn-outline" style="width:auto;padding:0 14px;" onclick="akCopy('akMemberId')">📋</button></div>
+          <div class="pgs-field-label">API Key (Production)</div>
+          <div style="display:flex;gap:8px;"><input id="akProdKey" class="pgs-input" style="flex:1;" readonly><button class="pgs-btn-outline" style="width:auto;padding:0 14px;" onclick="akCopy('akProdKey')">📋</button></div>
+          <div class="pgs-field-label">API Secret (Production)</div>
+          <div style="display:flex;gap:8px;"><input id="akProdSecret" class="pgs-input" style="flex:1;" readonly><button class="pgs-btn-outline" style="width:auto;padding:0 14px;" onclick="akCopy('akProdSecret')">📋</button></div>
+          <div class="pgs-field-label">PIN</div>
+          <div style="display:flex;gap:8px;"><input id="akPin" class="pgs-input" style="flex:1;" readonly><button class="pgs-btn-outline" style="width:auto;padding:0 14px;" onclick="akCopy('akPin')">📋</button></div>
+          <div class="pgs-field-label">Password API</div>
+          <div style="display:flex;gap:8px;"><input id="akPassword" class="pgs-input" style="flex:1;" readonly><button class="pgs-btn-outline" style="width:auto;padding:0 14px;" onclick="akCopy('akPassword')">📋</button></div>
+          <div class="pgs-hint" style="margin-top:6px;margin-bottom:12px;">Password API ini BEDA sama password login akun PayCore kamu — cuma dipakai buat dokumentasi/integrasi API.</div>
+          <button class="pgs-btn-outline" style="margin-bottom:16px;" onclick="akRegenerate('production')">🔄 Ganti Secret + PIN + Password Production</button>
+
+          <div class="pgs-field-label">Webhook Callback URL (opsional)</div>
+          <div class="pgs-hint" style="margin-bottom:8px;">Kita POST ke URL ini tiap status order (sandbox & production) berubah jadi berhasil/gagal, ditandatangani header X-Signature biar kamu bisa verifikasi.</div>
+          <input id="akWebhookUrl" class="pgs-input" placeholder="https://domainkamu.com/webhook/paycore">
+          <button class="pgs-btn-outline" style="margin-bottom:16px;" onclick="akSaveWebhook()">💾 Simpan Webhook</button>
+
+          <div class="pgs-field-label">IP Whitelist Production (opsional)</div>
+          <div class="pgs-hint" style="margin-bottom:8px;">Pisahin pakai koma kalau lebih dari satu IP. Kosongin buat matiin pembatasan (production bisa diakses dari IP manapun). Sandbox gak kena pembatasan ini.</div>
+          <input id="akIpWhitelist" class="pgs-input" placeholder="Contoh: 103.10.10.1, 103.10.10.2">
+          <button class="pgs-btn-outline" onclick="akSaveIpWhitelist()">💾 Simpan IP Whitelist</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOKUMENTASI API -->
+    <div style="margin-top:28px;border-top:1px solid var(--border);padding-top:20px;">
+      <div class="pgs-field-label" style="font-size:15px;">📄 Dokumentasi API</div>
+      <div class="pgs-hint" style="margin-bottom:12px;">
+        Ganti <code>{api_key}</code>/<code>{api_secret}</code> di bawah pakai punya kamu sendiri (sandbox buat testing, production buat transaksi asli).
+      </div>
+
+      <div class="pgs-field-label">Endpoint</div>
+      <pre style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:11.5px;overflow-x:auto;white-space:pre-wrap;word-break:break-word;">Base URL: https://api.paycore.id (ganti sesuai domain worker kamu)
+
+GET  /api/v1/price-list?category=pulsa   -> daftar harga produk
+GET  /api/v1/balance                     -> cek saldo
+POST /api/v1/order                       -> bikin order baru
+GET  /api/v1/status?ref_id=xxx           -> cek status order
+
+Header WAJIB di setiap request:
+  X-Api-Key:    api_key kamu
+  X-Timestamp:  unix timestamp sekarang (detik), toleransi 5 menit
+  X-Signature:  HMAC_SHA256(api_secret, METHOD + "\n" + PATH + "\n" + X-Timestamp + "\n" + RAW_BODY)
+                (RAW_BODY kosong "" kalau method GET)</pre>
+
+      <div class="pgs-field-label">Contoh kode (Node.js)</div>
+      <pre style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:11px;overflow-x:auto;white-space:pre-wrap;word-break:break-word;">const crypto = require('crypto');
+
+const API_KEY    = '{api_key}';
+const API_SECRET = '{api_secret}';
+const BASE_URL    = 'https://api.paycore.id';
+
+function sign(method, path, timestamp, rawBody) {
+  const payload = `${method}\n${path}\n${timestamp}\n${rawBody}`;
+  return crypto.createHmac('sha256', API_SECRET).update(payload).digest('hex');
+}
+
+async function order(category, productCode, dest, quantity) {
+  const path = '/api/v1/order';
+  const body = JSON.stringify({ category, product_code: productCode, dest, quantity, ref_id: 'INV-' + Date.now() });
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+
+  const res = await fetch(BASE_URL + path, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Api-Key': API_KEY,
+      'X-Timestamp': timestamp,
+      'X-Signature': sign('POST', path, timestamp, body),
+    },
+    body,
+  });
+  return res.json();
+}
+
+order('pulsa', 'TSEL2', '081234567890').then(console.log);</pre>
+
+      <div class="pgs-field-label">Contoh kode (PHP)</div>
+      <pre style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:11px;overflow-x:auto;white-space:pre-wrap;word-break:break-word;">&lt;?php
+$apiKey    = '{api_key}';
+$apiSecret = '{api_secret}';
+$baseUrl   = 'https://api.paycore.id';
+
+function pcSign($secret, $method, $path, $timestamp, $rawBody) {
+  $payload = $method . "\n" . $path . "\n" . $timestamp . "\n" . $rawBody;
+  return hash_hmac('sha256', $payload, $secret);
+}
+
+$path = '/api/v1/order';
+$body = json_encode(['category' => 'pulsa', 'product_code' => 'TSEL2', 'dest' => '081234567890', 'ref_id' => 'INV-' . time()]);
+$timestamp = (string) time();
+
+$ch = curl_init($baseUrl . $path);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+  'Content-Type: application/json',
+  'X-Api-Key: ' . $apiKey,
+  'X-Timestamp: ' . $timestamp,
+  'X-Signature: ' . pcSign($apiSecret, 'POST', $path, $timestamp, $body),
+]);
+echo curl_exec($ch);</pre>
+    </div>
+  </div>
+</div>
+
+
+
 <!-- ═══ HALAMAN KODE REFERRAL & KOMISI (semua role: member/reseller/agen) ═══ -->
 <div id="referralPage">
   <div class="pgs-topbar">
@@ -2972,6 +3141,209 @@ function closeResellerMenu(){
   if (typeof pcClearExtraPage === 'function') pcClearExtraPage('resellerMenuPage');
 }
 window.closeResellerMenu = closeResellerMenu;
+
+// ══════════════════════════════
+// HALAMAN "API KEY" — pengajuan akses API PayCore (sandbox otomatis aktif,
+// production nunggu di-approve admin), + dokumentasi cara pakainya.
+// ══════════════════════════════
+let _akData = null; // cache hasil GET /api-access/my-status
+let _akTab = 'sandbox';
+
+async function openApiKeyMenu(){
+  document.body.classList.add('panel-lock');
+  document.getElementById('apiKeyPage').classList.add('open');
+  if (typeof pcSaveExtraPage === 'function') pcSaveExtraPage('apiKeyPage');
+
+  document.getElementById('akLoading').style.display = 'block';
+  document.getElementById('akApplyForm').style.display = 'none';
+  document.getElementById('akStatusSection').style.display = 'none';
+
+  const token = await h2hGetAccessToken();
+  if (!token) { showNotif('⚠️ Silakan login dulu.'); return; }
+
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/api-access/my-status`, { headers: { 'Authorization': 'Bearer ' + token } });
+    const j = await res.json().catch(() => ({}));
+    document.getElementById('akLoading').style.display = 'none';
+    if (!j.success) { showNotif('❌ ' + (j.message || 'Gagal memuat data API key')); return; }
+
+    _akData = j.data;
+    if (!_akData) {
+      document.getElementById('akApplyForm').style.display = 'block';
+    } else {
+      document.getElementById('akStatusSection').style.display = 'block';
+      renderApiKeyStatus();
+    }
+  } catch (e) {
+    document.getElementById('akLoading').style.display = 'none';
+    showNotif('❌ Terjadi kesalahan jaringan.');
+  }
+}
+window.openApiKeyMenu = openApiKeyMenu;
+
+function closeApiKeyMenu(){
+  document.body.classList.remove('panel-lock');
+  document.getElementById('apiKeyPage').classList.remove('open');
+  if (typeof pcClearExtraPage === 'function') pcClearExtraPage('apiKeyPage');
+}
+window.closeApiKeyMenu = closeApiKeyMenu;
+
+async function akApply(){
+  const full_name = document.getElementById('akFullName').value.trim();
+  const business_name = document.getElementById('akBusinessName').value.trim();
+  const phone = document.getElementById('akPhone').value.trim();
+  const address = document.getElementById('akAddress').value.trim();
+  const purpose = document.getElementById('akPurpose').value.trim();
+
+  if (!full_name || !phone || !address) {
+    showNotif('⚠️ Nama lengkap, No HP, dan Alamat wajib diisi.');
+    return;
+  }
+
+  const token = await h2hGetAccessToken();
+  if (!token) { showNotif('⚠️ Silakan login dulu.'); return; }
+
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/api-access/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ full_name, business_name, phone, address, purpose }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!j.success) { showNotif('❌ ' + (j.message || 'Gagal mengajukan akses API')); return; }
+
+    showNotif('✅ ' + (j.message || 'Pengajuan berhasil dikirim'));
+    _akData = j.data;
+    document.getElementById('akApplyForm').style.display = 'none';
+    document.getElementById('akStatusSection').style.display = 'block';
+    renderApiKeyStatus();
+  } catch (e) {
+    showNotif('❌ Terjadi kesalahan jaringan.');
+  }
+}
+window.akApply = akApply;
+
+function akSwitchTab(tab){
+  _akTab = tab;
+  const sbBtn = document.getElementById('akTabSandboxBtn');
+  const prodBtn = document.getElementById('akTabProdBtn');
+  document.getElementById('akPanelSandbox').style.display = tab === 'sandbox' ? 'block' : 'none';
+  document.getElementById('akPanelProd').style.display = tab === 'production' ? 'block' : 'none';
+  sbBtn.className = tab === 'sandbox' ? 'pgs-btn-primary' : 'pgs-btn-outline';
+  prodBtn.className = tab === 'production' ? 'pgs-btn-primary' : 'pgs-btn-outline';
+}
+window.akSwitchTab = akSwitchTab;
+
+function akCopy(inputId){
+  const el = document.getElementById(inputId);
+  if (!el || !el.value) return;
+  navigator.clipboard.writeText(el.value).then(() => showNotif('📋 Disalin ke clipboard')).catch(() => {});
+}
+window.akCopy = akCopy;
+
+async function akRegenerate(mode){
+  if (!confirm(`Yakin mau ganti kredensial ${mode}? Yang lama langsung gak berlaku lagi, integrasi kamu harus di-update.`)) return;
+  const token = await h2hGetAccessToken();
+  if (!token) { showNotif('⚠️ Silakan login dulu.'); return; }
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/api-access/regenerate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ mode }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!j.success) { showNotif('❌ ' + (j.message || 'Gagal regenerate kredensial')); return; }
+    showNotif('✅ ' + (j.message || 'Kredensial berhasil diganti'));
+    _akData = j.data;
+    renderApiKeyStatus();
+  } catch (e) {
+    showNotif('❌ Terjadi kesalahan jaringan.');
+  }
+}
+window.akRegenerate = akRegenerate;
+
+async function akSaveWebhook(){
+  const callback_url = document.getElementById('akWebhookUrl').value.trim();
+  const token = await h2hGetAccessToken();
+  if (!token) { showNotif('⚠️ Silakan login dulu.'); return; }
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/api-access/set-webhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ callback_url }),
+    });
+    const j = await res.json().catch(() => ({}));
+    showNotif((j.success ? '✅ ' : '❌ ') + (j.message || ''));
+  } catch (e) {
+    showNotif('❌ Terjadi kesalahan jaringan.');
+  }
+}
+window.akSaveWebhook = akSaveWebhook;
+
+async function akSaveIpWhitelist(){
+  const raw = document.getElementById('akIpWhitelist').value.trim();
+  const ips = raw ? raw.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const token = await h2hGetAccessToken();
+  if (!token) { showNotif('⚠️ Silakan login dulu.'); return; }
+  try {
+    const res = await fetch(`${H2H_WORKER_URL}/api-access/set-ip-whitelist`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ ips }),
+    });
+    const j = await res.json().catch(() => ({}));
+    showNotif((j.success ? '✅ ' : '❌ ') + (j.message || ''));
+  } catch (e) {
+    showNotif('❌ Terjadi kesalahan jaringan.');
+  }
+}
+window.akSaveIpWhitelist = akSaveIpWhitelist;
+
+function renderApiKeyStatus(){
+  const d = _akData;
+  if (!d) return;
+
+  const badge = document.getElementById('akStatusBadge');
+  if (d.status === 'approved') {
+    badge.textContent = '✅ Pengajuan disetujui — production key aktif';
+    badge.style.background = 'rgba(34,197,94,.15)'; badge.style.color = '#4ade80';
+  } else if (d.status === 'rejected') {
+    badge.textContent = '❌ Pengajuan ditolak' + (d.rejected_reason ? (': ' + d.rejected_reason) : '');
+    badge.style.background = 'rgba(239,68,68,.15)'; badge.style.color = '#f87171';
+  } else {
+    badge.textContent = '⏳ Menunggu di-approve admin — sandbox udah bisa dipakai duluan';
+    badge.style.background = 'rgba(234,179,8,.15)'; badge.style.color = '#facc15';
+  }
+
+  if (d.sandbox) {
+    document.getElementById('akSbKey').value = d.sandbox.api_key || '';
+    document.getElementById('akSbSecret').value = d.sandbox.api_secret || '';
+  }
+
+  const pending = document.getElementById('akProdPending');
+  const rejected = document.getElementById('akProdRejected');
+  const fields = document.getElementById('akProdFields');
+  pending.style.display = 'none'; rejected.style.display = 'none'; fields.style.display = 'none';
+
+  if (d.status === 'approved' && d.production) {
+    fields.style.display = 'block';
+    document.getElementById('akMemberId').value = d.production.member_id || '';
+    document.getElementById('akProdKey').value = d.production.api_key || '';
+    document.getElementById('akProdSecret').value = d.production.api_secret || '';
+    document.getElementById('akPin').value = d.production.pin || '';
+    document.getElementById('akPassword').value = d.production.api_password || '';
+    document.getElementById('akWebhookUrl').value = d.callback_url || '';
+    document.getElementById('akIpWhitelist').value = (d.allowed_ips || []).join(', ');
+  } else if (d.status === 'rejected') {
+    rejected.style.display = 'block';
+    rejected.textContent = 'Pengajuan ditolak' + (d.rejected_reason ? (': ' + d.rejected_reason) : '.');
+  } else {
+    pending.style.display = 'block';
+  }
+
+  akSwitchTab(_akTab);
+}
+
 
 function renderResellerMenu(){
   const info = _rmInfo;
@@ -3448,13 +3820,14 @@ function vpApplyMarkup(category, price) {
 }
 
 // ══════════════════════════════
-// MARKUP AGEN/RESELLER — kalau akun yang login didaftarkan pakai kode
-// referral seorang agen/reseller, harga produk yang ditampilkan/dipakai
-// checkout HARUS ikut markup agen/reseller itu (markup yang mereka atur
-// SENDIRI, bebas berapapun, gak lagi diturunkan dari markup admin) —
-// bukan markup admin biasa. Kalau daftar tanpa referral (atau pakai kode
-// promo umum yang gak nyantol ke akun manapun), tetap pakai markupConfig
-// admin standar seperti biasa.
+// MARKUP AGEN/RESELLER — dua kasus:
+// 1) Akun yang login ITU SENDIRI reseller/agen -> harga yang dia lihat &
+//    bayar ikut tier/markup dia SENDIRI (custom_markup, atau default
+//    diskon tier kalau belum diset).
+// 2) Akun yang login member biasa yang didaftarkan pakai kode referral
+//    seorang reseller/agen AKTIF -> ikut markup reseller/agen itu.
+// Selain dua kasus itu (member biasa, gak ada hubungan reseller/agen sama
+// sekali), tetap pakai markupConfig admin standar seperti biasa.
 // ══════════════════════════════
 const VP_TIER_RATIO = { reseller: 0.75, agen: 0.5 }; // dipakai cuma buat cek role eligible (reseller/agen), bukan buat skala markup lagi
 
@@ -3477,20 +3850,42 @@ async function vpApplyReferralPricing() {
     // markupConfig yang mungkin masih sisa override akun sebelumnya —
     // ini yang bikin harga "nyangkut" ke markup lama pas ganti akun.
     const baseline = window._adminMarkupConfig || markupConfig;
-    if (!currentUser || !currentUser.referred_by) {
-      markupConfig = { ...baseline }; // bukan hasil referral -> pakai markup admin biasa
+    if (!currentUser) {
+      markupConfig = { ...baseline };
       return;
     }
-    const { data: referrer } = await _sb.from('users')
-      .select('role,custom_markup')
-      .eq('email', currentUser.referred_by)
-      .single();
-    if (!referrer || !VP_TIER_RATIO[referrer.role]) {
-      markupConfig = { ...baseline }; // referrer bukan agen/reseller aktif
+
+    let ratio = VP_TIER_RATIO[currentUser.role];
+    let custom = {};
+
+    if (ratio) {
+      // Case 1: akun yang login ITU SENDIRI reseller/agen -> pakai tier &
+      // markup custom dia sendiri buat harga yang dia bayar SENDIRI, gak
+      // perlu nunggu direferensiin orang lain.
+      const { data: self } = await _sb.from('users')
+        .select('custom_markup')
+        .eq('email', currentUser.email)
+        .single();
+      custom = vpParseJsonSetting(self && self.custom_markup) || {};
+    } else if (currentUser.referred_by) {
+      // Case 2: member biasa yang didaftarkan pakai kode referral seorang
+      // reseller/agen AKTIF -> pakai markup reseller/agen yang mengundangnya.
+      const { data: referrer } = await _sb.from('users')
+        .select('role,custom_markup')
+        .eq('email', currentUser.referred_by)
+        .single();
+      const refRatio = referrer && VP_TIER_RATIO[referrer.role];
+      if (refRatio) {
+        ratio = refRatio;
+        custom = vpParseJsonSetting(referrer.custom_markup) || {};
+      }
+    }
+
+    if (!ratio) {
+      markupConfig = { ...baseline }; // member biasa, gak ada hubungan reseller/agen -> markup admin polos
       return;
     }
-    const ratio = VP_TIER_RATIO[referrer.role];
-    const custom = vpParseJsonSetting(referrer.custom_markup) || {};
+
     const merged = {};
     MARKUP_CATEGORIES.forEach(c => {
       const adminCfg = baseline[c.key] || { type: 'percent', value: 0 };
@@ -9497,6 +9892,7 @@ function doPesan(){
     { id: 'strukSettingsPage', close: () => window.closeStrukSettings && window.closeStrukSettings() },
     { id: 'agenResellerPage', close: () => window.closeAgenReseller && window.closeAgenReseller() },
     { id: 'resellerMenuPage', close: () => window.closeResellerMenu && window.closeResellerMenu() },
+    { id: 'apiKeyPage', close: () => window.closeApiKeyMenu && window.closeApiKeyMenu() },
     { id: 'referralPage', close: () => window.closeReferralPage && window.closeReferralPage() },
     { id: 'settingsPanel',   close: () => window.closePengaturan&& window.closePengaturan() },
     { id: 'adminPanel',      close: () => window.closeAdmin     && window.closeAdmin() },
@@ -13005,6 +13401,7 @@ window.tdpRefreshStatus = tdpRefreshStatus;
 #strukSettingsPage.open ~ .bottom-nav,
 #resellerMenuPage.open ~ .bottom-nav,
 #referralPage.open ~ .bottom-nav,
+#apiKeyPage.open ~ .bottom-nav,
 #agenResellerPage.open ~ .bottom-nav{
   display:none!important;
 }
@@ -13277,6 +13674,7 @@ function pcRestoreExtraPage(){
   if (id === 'verifikasiIdentitasPage' && typeof openVerifikasiIdentitas === 'function') { openVerifikasiIdentitas(); return; }
   if (id === 'strukSettingsPage' && typeof openStrukSettings === 'function') { openStrukSettings(); return; }
   if (id === 'resellerMenuPage' && typeof window.openResellerMenu === 'function') { window.openResellerMenu(); return; }
+  if (id === 'apiKeyPage' && typeof window.openApiKeyMenu === 'function') { window.openApiKeyMenu(); return; }
   if (id === 'referralPage' && typeof window.openReferralPage === 'function') { window.openReferralPage(); return; }
 
   // ID gak dikenal (versi lama dsb) — buang aja biar gak nyangkut selamanya.
