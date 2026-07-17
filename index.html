@@ -2702,7 +2702,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
   <div class="pgs-subpage-content">
 
     <div class="pgs-hint" id="rmIntro" style="margin-bottom:16px;">
-      Markup harga kamu dibatasi maksimal <b id="rmRatioTxt">75%</b> dari markup admin di tiap kategori.
+      Secara default kamu otomatis dapat diskon dari markup admin sesuai tier kamu, tapi kamu tetap bebas ganti sendiri jadi angka berapapun di tiap kategori.
       User yang daftar pakai kode referral kamu akan otomatis kena harga versi kamu ini.
     </div>
 
@@ -2978,7 +2978,6 @@ function renderResellerMenu(){
   if (!info) return;
   const isAgen = info.role === 'agen';
   document.getElementById('rmTitle').textContent = isAgen ? 'MENU AGEN' : 'MENU RESELLER';
-  document.getElementById('rmRatioTxt').textContent = Math.round((info.ratio || 0) * 100) + '%';
   document.getElementById('rmReferralCode').value = info.referral_code || '-';
 
   const wrap = document.getElementById('rmMarkupList');
@@ -2986,18 +2985,25 @@ function renderResellerMenu(){
   const customM = info.custom_markup || {};
   wrap.innerHTML = MARKUP_CATEGORIES.map(c => {
     const adminCfg = adminM[c.key] || { type: 'percent', value: 0 };
-    const cap = Math.round((Number(adminCfg.value) || 0) * (info.ratio || 0) * 100) / 100;
     const cur = customM[c.key];
-    const curVal = (cur && cur.value != null) ? cur.value : cap;
+    // Kalau belum pernah diisi sendiri, tampilkan default otomatis (hasil
+    // diskon tier dari markup admin) — itu yang beneran dipakai sampai
+    // reseller/agen ganti sendiri jadi angka bebas.
+    const autoVal = Math.round((Number(adminCfg.value) || 0) * (info.ratio || 0) * 100) / 100;
+    const curType = (cur && cur.type) || adminCfg.type || 'percent';
+    const curVal = (cur && cur.value != null) ? cur.value : autoVal;
     return `
       <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 13px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
           <div style="font-size:13px;font-weight:700;color:var(--text);">${c.label}</div>
-          <div style="font-size:10.5px;color:var(--muted);">Maks ${cap}${adminCfg.type === 'nominal' ? '' : '%'}</div>
+          <div style="font-size:10.5px;color:var(--muted);">Markup admin: ${adminCfg.value || 0}${adminCfg.type === 'nominal' ? '' : '%'}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <input type="number" class="pgs-input" id="rmVal_${c.key}" style="margin-bottom:0;flex:1;" min="0" max="${cap}" value="${curVal}">
-          <span style="font-size:12px;color:var(--muted);flex-shrink:0;">${adminCfg.type === 'nominal' ? 'Rp' : '%'}</span>
+          <select class="pgs-input" id="rmType_${c.key}" style="margin-bottom:0;width:84px;flex-shrink:0;">
+            <option value="percent" ${curType === 'percent' ? 'selected' : ''}>%</option>
+            <option value="nominal" ${curType === 'nominal' ? 'selected' : ''}>Rp</option>
+          </select>
+          <input type="number" class="pgs-input" id="rmVal_${c.key}" style="margin-bottom:0;flex:1;" min="0" value="${curVal}">
         </div>
       </div>`;
   }).join('');
@@ -3018,13 +3024,13 @@ async function rmSaveMarkup(){
   const btn = document.getElementById('btnSaveResellerMarkup');
   btn.disabled = true; btn.textContent = '⏳ Menyimpan...';
 
-  const adminM = _rmInfo.admin_markup || {};
   let anyFail = false;
   for (const c of MARKUP_CATEGORIES) {
     const input = document.getElementById('rmVal_' + c.key);
+    const typeSel = document.getElementById('rmType_' + c.key);
     if (!input) continue;
     const value = Number(input.value) || 0;
-    const type = (adminM[c.key] && adminM[c.key].type) || 'percent';
+    const type = (typeSel && typeSel.value === 'nominal') ? 'nominal' : 'percent';
     try {
       const res = await fetch(`${H2H_WORKER_URL}/reseller/markup`, {
         method: 'POST',
@@ -3444,12 +3450,13 @@ function vpApplyMarkup(category, price) {
 // ══════════════════════════════
 // MARKUP AGEN/RESELLER — kalau akun yang login didaftarkan pakai kode
 // referral seorang agen/reseller, harga produk yang ditampilkan/dipakai
-// checkout HARUS ikut markup agen/reseller itu (dibatasi 3/4 utk reseller,
-// 1/2 utk agen dari markup admin) — bukan markup admin biasa. Kalau daftar
-// tanpa referral (atau pakai kode promo umum yang gak nyantol ke akun
-// manapun), tetap pakai markupConfig admin standar seperti biasa.
+// checkout HARUS ikut markup agen/reseller itu (markup yang mereka atur
+// SENDIRI, bebas berapapun, gak lagi diturunkan dari markup admin) —
+// bukan markup admin biasa. Kalau daftar tanpa referral (atau pakai kode
+// promo umum yang gak nyantol ke akun manapun), tetap pakai markupConfig
+// admin standar seperti biasa.
 // ══════════════════════════════
-const VP_TIER_RATIO = { reseller: 0.75, agen: 0.5 };
+const VP_TIER_RATIO = { reseller: 0.75, agen: 0.5 }; // dipakai cuma buat cek role eligible (reseller/agen), bukan buat skala markup lagi
 
 // Loading bar tipis di atas (kayak GoPay) — dipanggil pas app mulai
 // nge-load data (initApp) dan pas Beranda di-refresh.
@@ -3488,6 +3495,10 @@ async function vpApplyReferralPricing() {
     MARKUP_CATEGORIES.forEach(c => {
       const adminCfg = baseline[c.key] || { type: 'percent', value: 0 };
       const own = custom[c.key];
+      // Kalau reseller/agen udah set markup sendiri, pakai itu apa adanya
+      // (BEBAS berapapun). Kalau belum, defaultnya otomatis diskon dari
+      // markup admin sesuai tier (reseller bayar 75%, agen bayar 50% dari
+      // markup admin) biar langsung dapat harga lebih murah dari member.
       merged[c.key] = (own && own.value != null)
         ? own
         : { type: adminCfg.type, value: Math.round((Number(adminCfg.value) || 0) * ratio * 100) / 100 };
@@ -3605,8 +3616,13 @@ async function doLogin() {
       }
     }
     localStorage.setItem('vp_user', JSON.stringify(currentUser));
+    try {
+      localStorage.setItem('vp_last_tab', 'beranda');
+      localStorage.removeItem('vp_last_extra_page');
+    } catch(e) {}
     authGateActive = false;
     document.getElementById('authOverlay').classList.remove('open');
+    setTimeout(() => { if (typeof pcGoBeranda === 'function') pcGoBeranda(); }, 0);
     renderHeader();
     if (typeof pgsUpdateResellerMenu === 'function') pgsUpdateResellerMenu();
     // PENTING: harga produk (markup) tergantung siapa yang login (referral
@@ -4006,6 +4022,11 @@ async function doVerifyOTP() {
   if (otpPendingUser) {
     currentUser = { email: otpPendingUser.email, name: otpPendingUser.name, verified: true, role: 'member', referred_by: otpPendingUser.referredBy || null };
     localStorage.setItem('vp_user', JSON.stringify(currentUser));
+    try {
+      localStorage.setItem('vp_last_tab', 'beranda');
+      localStorage.removeItem('vp_last_extra_page');
+    } catch(e) {}
+    setTimeout(() => { if (typeof pcGoBeranda === 'function') pcGoBeranda(); }, 0);
     renderHeader();
     if (typeof vpApplyReferralPricing === 'function') await vpApplyReferralPricing();
     showNotif('✅ Email terverifikasi! Selamat datang, ' + currentUser.name + '!');
@@ -4033,6 +4054,10 @@ function backToAuth() {
 function doLogout() {
   currentUser = null;
   localStorage.removeItem('vp_user');
+  try {
+    localStorage.setItem('vp_last_tab', 'beranda');
+    localStorage.removeItem('vp_last_extra_page');
+  } catch(e) {}
   // Logout dari Supabase Auth juga (hapus session JWT)
   try { _sb.auth.signOut(); } catch(e) {}
   // Bersihkan field nomor/ID PPOB yang mungkin masih keisi di DOM dari akun
@@ -13182,11 +13207,23 @@ function pcGoProfil(){
 function pcRestoreLastTab(){
   let tab = null;
   try { tab = localStorage.getItem('vp_last_tab'); } catch(e){}
+
+  // Profil jangan dipulihkan otomatis dari cache lama/localStorage. Di APK,
+  // hapus history belum tentu menghapus localStorage, jadi nilai lama
+  // `vp_last_tab=profil` bisa bikin app selalu masuk ke Profil.
+  if (tab === 'profil') {
+    try {
+      localStorage.setItem('vp_last_tab', 'beranda');
+      localStorage.removeItem('vp_last_extra_page');
+    } catch(e) {}
+    if (typeof pcGoBeranda === 'function') pcGoBeranda();
+    return;
+  }
+
   if (tab && tab !== 'beranda' && (typeof currentUser !== 'undefined' && currentUser)) {
-    // sudah login, boleh balik ke tab terakhir
+    // sudah login, boleh balik ke tab terakhir selain Profil
     if (tab === 'riwayat' && typeof pcGoRiwayat === 'function') pcGoRiwayat();
     else if (tab === 'promo' && typeof pcGoPromo === 'function') pcGoPromo();
-    else if (tab === 'profil' && typeof pcGoProfil === 'function') pcGoProfil();
   }
   // Selain 4 tab utama, coba juga balikin ke halaman "kedua" yang lagi
   // dibuka (Top Up, Pulsa, PLN, Edit Profil, Agen/Reseller, dll) biar
@@ -13852,10 +13889,8 @@ function h2hLooksLikeStrayNonPulsa(row){
 }
 
 // Gabungin baris yang nominalnya sama (banyak SKU beda buat nominal
-// identik) -> sisain satu kartu per nominal, dengan harga MENENGAH
-// (median) dari semua SKU yang ada di nominal itu. Sebelumnya dipilih
-// yang paling murah, tapi produk termurah itu sering gagal pas dibeli,
-// jadi sekarang diarahkan ke harga tengah biar lebih stabil.
+// identik) -> sisain satu kartu per nominal, dengan harga PALING MURAH
+// dari semua SKU yang ada di nominal itu.
 function h2hDedupeByNominal(rows){
   // SKU "Bebas Nominal" dipisah dulu dan digabung jadi SATU kartu aja
   // (sebelumnya bisa dobel kalau ada beberapa SKU "Bebas Nominal" dari
@@ -13875,10 +13910,8 @@ function h2hDedupeByNominal(rows){
   const result = [];
   for (const list of groups.values()) {
     list.sort((a, b) => Number(a.price) - Number(b.price));
-    // Harga menengah: kalau jumlahnya ganjil ambil pas di tengah,
-    // kalau genap ambil salah satu dari dua yang di tengah (index bawah).
-    const midIdx = Math.floor((list.length - 1) / 2);
-    result.push(list[midIdx]);
+    // Harga termurah: SKU pertama setelah di-sort ascending.
+    result.push(list[0]);
   }
 
   if (freeRows.length) {
