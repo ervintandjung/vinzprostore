@@ -3429,6 +3429,11 @@ function vpParseJsonSetting(v) {
 
 function vpApplyMarkup(category, price) {
   const base = Number(price) || 0;
+  // Akun OWNER/ADMIN toko sendiri TIDAK ikut kena markup yang dia set
+  // sendiri — markup itu buat profit dari transaksi member/reseller/agen,
+  // bukan buat dibebankan ke diri sendiri. Owner selalu lihat & bayar
+  // harga modal H2H asli (base), berapapun markup yang lagi aktif.
+  if (currentUser && (currentUser.role === 'owner' || currentUser.role === 'admin')) return base;
   const m = markupConfig[category];
   if (!m || !m.value) return base;
   const val = Number(m.value) || 0;
