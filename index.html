@@ -1267,8 +1267,8 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
   </script>
 
   <!-- ===== PROMO & PENAWARAN — mini carousel gaya LazimPay. Sumber datanya
-       sama dengan halaman Promo lengkap (getPromoBanners(), dikelola dari
-       Admin), cuma tampilannya digeser horizontal dengan efek "mengintip". ===== -->
+       SEKARANG TERPISAH dari halaman Promo lengkap — dikelola sendiri lewat
+       card "BANNER BERANDA" di Admin. ===== -->
   <div class="promo-teaser" id="promoTeaserWrap">
     <div class="promo-teaser-head">
       <div>
@@ -1280,10 +1280,11 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     <div class="promo-teaser-scroll" id="promoTeaserScroll"></div>
   </div>
   <script>
+  window._homePromoBannerImages = [];
   function renderPromoTeaser(){
     const wrap = document.getElementById('promoTeaserScroll');
     if (!wrap) return;
-    const imgs = (window._promoBannerImages && window._promoBannerImages.length) ? window._promoBannerImages : [];
+    const imgs = (window._homePromoBannerImages && window._homePromoBannerImages.length) ? window._homePromoBannerImages : [];
     if (!imgs.length){
       wrap.innerHTML = '<div class="promo-teaser-empty">Belum ada promo saat ini</div>';
       return;
@@ -2463,14 +2464,25 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       </div>
     </div>
     <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">BANNER PROMO (Halaman Promo &amp; Beranda)<span class="ac-arrow">▼</span></h3>
+      <h3 onclick="toggleApCard(this)">BANNER PROMO (Halaman Promo)<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Banner ini TERPISAH dari Banner Slideshow di atas. Tampil di dua tempat: halaman Promo (bagian "Sedang Berlangsung") DAN di beranda pada bagian "Promo & Penawaran".</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Banner ini TERPISAH dari Banner Slideshow di atas — cuma tampil di halaman Promo (bagian "Sedang Berlangsung").</div>
       <div id="apPromoBannerList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
       <input type="file" id="apPromoBannerFile" accept="image/*" style="display:none;" onchange="apPromoBannerUpload()">
       <label for="apPromoBannerFile" style="display:block;width:100%;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:10px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:6px;font-family:'Rajdhani',sans-serif;">📁 UPLOAD BANNER PROMO BARU</label>
       <input type="text" id="apPromoBannerUrl" class="ap-input" placeholder="Atau paste URL gambar banner promo...">
       <button class="ap-save" onclick="apPromoBannerAddUrl()" style="background:var(--accent2);color:#000;">➕ TAMBAH BANNER PROMO VIA URL</button>
+      </div>
+    </div>
+    <div class="ap-card">
+      <h3 onclick="toggleApCard(this)">BANNER BERANDA (Promo &amp; Penawaran)<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Banner ini TERPISAH dari dua card di atas — cuma tampil di Beranda pada bagian "Promo & Penawaran".</div>
+      <div id="apHomePromoBannerList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+      <input type="file" id="apHomePromoBannerFile" accept="image/*" style="display:none;" onchange="apHomePromoBannerUpload()">
+      <label for="apHomePromoBannerFile" style="display:block;width:100%;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:10px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:6px;font-family:'Rajdhani',sans-serif;">📁 UPLOAD BANNER BERANDA BARU</label>
+      <input type="text" id="apHomePromoBannerUrl" class="ap-input" placeholder="Atau paste URL gambar banner beranda...">
+      <button class="ap-save" onclick="apHomePromoBannerAddUrl()" style="background:var(--accent2);color:#000;">➕ TAMBAH BANNER BERANDA VIA URL</button>
       </div>
     </div>
     <div class="ap-card">
@@ -3842,7 +3854,6 @@ function setPromoBanners(arr){
   window._promoBannerImages = arr;
   if (typeof renderPromoList === 'function') renderPromoList();
   if (typeof renderApPromoBanners === 'function') renderApPromoBanners();
-  if (typeof renderPromoTeaser === 'function') renderPromoTeaser();
   const payload = JSON.stringify(arr);
   _sb.from('settings').upsert({ key: 'promo_banners', value: payload }).then(({error}) => {
     if (error) {
@@ -3863,11 +3874,49 @@ async function loadPromoBannersFromCloud(){
           window._promoBannerImages = arr;
           if (typeof renderPromoList === 'function') renderPromoList();
           if (typeof renderApPromoBanners === 'function') renderApPromoBanners();
-          if (typeof renderPromoTeaser === 'function') renderPromoTeaser();
         }
       } catch(e){}
     }
   } catch(e){ console.warn('loadPromoBannersFromCloud err:', e); }
+}
+
+// ══════════════════════════════
+// BANNER BERANDA ("Promo & Penawaran" di Beranda) — TERPISAH TOTAL dari
+// Banner Promo di halaman Promo (di atas). Masing-masing punya storage &
+// admin card sendiri, gak lagi saling nyambung.
+// ══════════════════════════════
+function getHomePromoBanners(){
+  try { return JSON.parse(localStorage.getItem('vp_home_promo_banners') || '[]'); } catch(e){ return []; }
+}
+function setHomePromoBanners(arr){
+  try { localStorage.setItem('vp_home_promo_banners', JSON.stringify(arr)); } catch(e){}
+  window._homePromoBannerImages = arr;
+  if (typeof renderApHomePromoBanners === 'function') renderApHomePromoBanners();
+  if (typeof renderPromoTeaser === 'function') renderPromoTeaser();
+  const payload = JSON.stringify(arr);
+  _sb.from('settings').upsert({ key: 'home_promo_banners', value: payload }).then(({error}) => {
+    if (error) {
+      console.warn('Cloud save home promo banners err:', error);
+      showNotif('⚠️ Gagal sync banner beranda ke cloud', 'var(--danger)');
+    }
+  });
+}
+async function loadHomePromoBannersFromCloud(){
+  try {
+    const { data, error } = await _sb.from('settings').select('value').eq('key', 'home_promo_banners').maybeSingle();
+    if (error) { console.warn('Cloud home promo banners err:', error); return; }
+    if (data && data.value){
+      try {
+        const arr = JSON.parse(data.value);
+        if (Array.isArray(arr)){
+          try { localStorage.setItem('vp_home_promo_banners', data.value); } catch(e){}
+          window._homePromoBannerImages = arr;
+          if (typeof renderApHomePromoBanners === 'function') renderApHomePromoBanners();
+          if (typeof renderPromoTeaser === 'function') renderPromoTeaser();
+        }
+      } catch(e){}
+    }
+  } catch(e){ console.warn('loadHomePromoBannersFromCloud err:', e); }
 }
 
 function initProducts() {
@@ -6084,6 +6133,59 @@ function apPromoBannerRemove(i){
   showNotif('🗑️ Banner promo dihapus');
 }
 
+// ══════════════════════════════
+// BANNER BERANDA ADMIN ("Promo & Penawaran" — TERPISAH dari Banner Promo di
+// halaman Promo di atas)
+// ══════════════════════════════
+function renderApHomePromoBanners(){
+  const list = document.getElementById('apHomePromoBannerList');
+  if (!list) return;
+  const arr = getHomePromoBanners();
+  if (!arr.length){
+    list.innerHTML = '<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px;background:var(--card2);border:1px dashed var(--border);border-radius:9px;">Belum ada banner beranda. Upload dulu di bawah ⬇️</div>';
+    return;
+  }
+  list.innerHTML = arr.map((src, i) => `
+    <div style="display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:6px;">
+      <img src="${src}" style="width:56px;height:40px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.display='none'">
+      <span style="flex:1;font-size:11px;color:var(--muted);word-break:break-all;line-height:1.3;">Banner Beranda #${i+1}</span>
+      <button onclick="apHomePromoBannerRemove(${i})" style="background:var(--danger);color:#fff;border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:13px;flex-shrink:0;">✕</button>
+    </div>
+  `).join('');
+}
+function apHomePromoBannerUpload(){
+  const file = document.getElementById('apHomePromoBannerFile').files[0];
+  if (!file) return;
+  showNotif('⏳ Mengkompres banner beranda...');
+  const reader = new FileReader();
+  reader.onload = e => {
+    compressImage(e.target.result, 1600, 900, 0.95, dataUrl => {
+      const arr = getHomePromoBanners();
+      arr.push(dataUrl);
+      setHomePromoBanners(arr);
+      document.getElementById('apHomePromoBannerFile').value = '';
+      showNotif('✅ Banner beranda diupload & disimpan global!');
+    });
+  };
+  reader.readAsDataURL(file);
+}
+function apHomePromoBannerAddUrl(){
+  const url = (document.getElementById('apHomePromoBannerUrl').value || '').trim();
+  if (!url){ showNotif('❌ Masukkan URL banner beranda'); return; }
+  const arr = getHomePromoBanners();
+  arr.push(url);
+  setHomePromoBanners(arr);
+  document.getElementById('apHomePromoBannerUrl').value = '';
+  showNotif('✅ Banner beranda ditambahkan!');
+}
+function apHomePromoBannerRemove(i){
+  if (!confirm('Hapus banner beranda ini?')) return;
+  const arr = getHomePromoBanners();
+  arr.splice(i, 1);
+  setHomePromoBanners(arr);
+  showNotif('🗑️ Banner beranda dihapus');
+}
+
 function closeAdmin() { document.getElementById('adminPanel').classList.remove('open'); document.body.style.overflow=''; if (window.__kmPollTimer){ clearInterval(window.__kmPollTimer); window.__kmPollTimer=null; } }
 // Auto-refresh Key Manager tiap 15 detik selagi panel admin terbuka
 (function(){
@@ -6558,11 +6660,15 @@ async function initApp() {
     if (typeof renderBannerSlider === 'function') renderBannerSlider();
     loadBannersFromCloud();
 
-    // Load banner PROMO (terpisah dari banner beranda di atas)
+    // Load banner PROMO (halaman Promo — terpisah dari banner beranda di atas)
     window._promoBannerImages = getPromoBanners();
     if (typeof renderPromoList === 'function') renderPromoList();
-    if (typeof renderPromoTeaser === 'function') renderPromoTeaser();
     loadPromoBannersFromCloud();
+
+    // Load banner BERANDA ("Promo & Penawaran" — terpisah total dari banner Promo)
+    window._homePromoBannerImages = getHomePromoBanners();
+    if (typeof renderPromoTeaser === 'function') renderPromoTeaser();
+    loadHomePromoBannersFromCloud();
 
     // Load products (global) — TUNGGU cloud dulu agar render pertama pakai data Supabase
     // (cegah race condition: setProducts dipanggil sebelum cloud loaded -> overwrite cloud)
@@ -11689,14 +11795,10 @@ window.vinzBulkAction = function(isAvail){
 };
 
 /* ── polling inject ── */
+/* DIMATIKAN atas permintaan: card "BULK UPDATE PAYMENT" gak lagi ditampilkan di admin panel. */
 let _injected = false;
 function tryInject(){
-  if(_injected) return;
-  const ap = document.getElementById('adminPanel');
-  if(ap && ap.querySelector('.ap-body')){
-    injectBulkCard();
-    _injected = true;
-  }
+  return; // no-op — bulk update card dinonaktifkan
 }
 setInterval(()=>{
   tryInject();
