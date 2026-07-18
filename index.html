@@ -4448,8 +4448,10 @@ function backToAuth() {
 }
 
 function doLogout() {
+  const _loggingOutEmail = currentUser && currentUser.email;
   currentUser = null;
   localStorage.removeItem('vp_user');
+  try { if (_loggingOutEmail) sessionStorage.removeItem('appgate_ok_' + _loggingOutEmail); } catch(e) {}
   try {
     localStorage.setItem('vp_last_tab', 'beranda');
     localStorage.removeItem('vp_last_extra_page');
@@ -14782,6 +14784,15 @@ async function appSecurityGateCheck(){
   const twoFAOn = localStorage.getItem('vp_2fa_' + currentUser.email) === '1';
   if (!twoFAOn) return; // 2FA mati -> langsung ke Beranda seperti biasa
 
+  // Udah pernah verifikasi di sesi app yang sama (belum bener-bener ditutup)
+  // -> jangan minta verifikasi lagi. sessionStorage ini ke-reset otomatis
+  // kalau app beneran ditutup & dibuka ulang (WebView/tab baru), tapi TETAP
+  // kebawa kalau cuma refresh/reload di dalam app -> jadi gate gak lagi
+  // muncul berulang cuma gara-gara refresh.
+  try {
+    if (sessionStorage.getItem('appgate_ok_' + currentUser.email) === '1') return;
+  } catch(e) {}
+
   const sudahAdaPin = await pinHasPin();
   if (!sudahAdaPin) return; // gak ada PIN buat diverifikasi, gak mungkin nge-lock
 
@@ -14796,6 +14807,7 @@ async function appSecurityGateCheck(){
     _pinGateResolve = () => {
       _appGateActive = false;
       appLockHide();
+      try { sessionStorage.setItem('appgate_ok_' + currentUser.email, '1'); } catch(e) {}
       resolve();
     };
 
