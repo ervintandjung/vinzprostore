@@ -928,11 +928,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 .pin-key{width:64px;height:64px;border-radius:50%;background:var(--card2);border:1px solid var(--border);color:var(--text);font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;}
 .pin-key:active{background:rgba(77,91,255,0.25);border-color:var(--accent);}
 .pin-key.pin-key-ghost{background:transparent;border:none;cursor:default;}
-.pin-key.pin-key-bio{background:transparent;border:none;color:var(--accent2);font-size:24px;}
 .pin-forgot{margin-top:22px;font-size:12.5px;color:var(--accent2);font-weight:700;cursor:pointer;text-decoration:underline;}
-.pin-bio-icon-big{width:92px;height:92px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:42px;margin-bottom:16px;cursor:pointer;box-shadow:0 0 0 0 rgba(0,212,255,.45);animation:pinBioPulse 1.8s infinite;}
-.pin-bio-icon-big:active{transform:scale(.94);}
-@keyframes pinBioPulse{0%{box-shadow:0 0 0 0 rgba(0,212,255,.45);}70%{box-shadow:0 0 0 16px rgba(0,212,255,0);}100%{box-shadow:0 0 0 0 rgba(0,212,255,0);}}
 .pin-setup-steps{font-size:11.5px;color:var(--muted);text-align:center;letter-spacing:.5px;margin-bottom:4px;}
 
 /* PICKER PRINTER BLUETOOTH (native) */
@@ -951,13 +947,16 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 .applock-spacer{flex:1 1 auto;min-height:80px;}
 .applock-brand{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:38px;letter-spacing:-0.5px;color:#0f2c5c;margin-bottom:34px;}
 .applock-brand .applock-brand-accent{color:#3ea6ff;font-weight:800;}
-.applock-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:16px;color:#111;margin-bottom:18px;text-align:center;}
+.applock-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:16px;color:#111;margin-bottom:6px;text-align:center;}
+.applock-subtitle{font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;font-size:12.5px;color:#6b7280;margin-bottom:18px;text-align:center;max-width:280px;}
 .applock-dots{display:flex;gap:10px;margin-bottom:14px;}
 .applock-dot{width:38px;height:38px;border-radius:10px;background:#eef1f5;transition:background .15s ease, transform .15s ease;}
 .applock-dot.filled{background:#0f2c5c;}
 .applock-error{min-height:18px;font-size:12.5px;color:#e53935;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:8px;text-align:center;}
 .applock-hidden-input{position:absolute;opacity:0;pointer-events:none;height:0;width:0;border:0;}
 .applock-tap-hint{font-size:12px;color:#8a8fa3;font-family:'Plus Jakarta Sans',sans-serif;margin-top:6px;}
+.applock-forgot{margin-top:16px;font-size:12.5px;color:#3ea6ff;font-weight:700;cursor:pointer;text-decoration:underline;font-family:'Plus Jakarta Sans',sans-serif;}
+.applock-close{position:absolute;top:18px;right:18px;width:36px;height:36px;border-radius:50%;background:#f1f3f8;border:1px solid #e2e5ec;color:#333;font-size:16px;align-items:center;justify-content:center;cursor:pointer;z-index:2;}
 .applock-bottom{flex:2 1 auto;}
 @keyframes applockShake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
 .applock-dots.shake{animation:applockShake .35s ease;}
@@ -970,55 +969,20 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 <!-- ===== TOP LOADING BAR (kayak GoPay) — muncul otomatis pas app baru
      dibuka / lagi refresh data Beranda ===== -->
 
-<!-- ===== PIN GATE (dipakai tiap mau checkout/transfer) ===== -->
-<div class="pin-overlay" id="pinGateOverlay">
-  <div class="pin-close" onclick="pinGateCancel()">✕</div>
-
-  <!-- Layar sidik jari — ini yang muncul PERTAMA kalau biometrik aktif,
-       karena lebih simpel buat user. Sidik jari native langsung ke-trigger
-       otomatis begitu layar ini tampil. -->
-  <div id="pinGateBioWrap" style="display:none;flex-direction:column;align-items:center;">
-    <div class="pin-bio-icon-big" id="pinGateBioIconBig" onclick="pinGateBiometric()"><i data-lucide="fingerprint-pattern" style="width:46px;height:46px;color:#fff;"></i></div>
-    <div class="pin-title">SIDIK JARI</div>
-    <div class="pin-sub" id="pinGateBioSub">Tempelkan jari kamu untuk konfirmasi transaksi</div>
-    <div class="pin-error-msg" id="pinGateBioError"></div>
-    <div class="pin-forgot" onclick="pinGateShowKeypad()">Gunakan PIN</div>
-  </div>
-
-  <!-- Layar keypad PIN manual — fallback, atau default kalau biometrik
-       gak aktif/gak tersedia. -->
-  <div id="pinGateKeypadWrap" style="display:flex;flex-direction:column;align-items:center;">
-    <div class="pin-icon">🔒</div>
-    <div class="pin-title">MASUKKAN PIN</div>
-    <div class="pin-sub" id="pinGateSub">Konfirmasi transaksi kamu</div>
-    <div class="pin-dots" id="pinGateDots">
-      <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
-      <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
-    </div>
-    <div class="pin-error-msg" id="pinGateError"></div>
-    <div class="pin-keypad" id="pinGateKeypad">
-      <div class="pin-key" onclick="pinGateInput('1')">1</div>
-      <div class="pin-key" onclick="pinGateInput('2')">2</div>
-      <div class="pin-key" onclick="pinGateInput('3')">3</div>
-      <div class="pin-key" onclick="pinGateInput('4')">4</div>
-      <div class="pin-key" onclick="pinGateInput('5')">5</div>
-      <div class="pin-key" onclick="pinGateInput('6')">6</div>
-      <div class="pin-key" onclick="pinGateInput('7')">7</div>
-      <div class="pin-key" onclick="pinGateInput('8')">8</div>
-      <div class="pin-key" onclick="pinGateInput('9')">9</div>
-      <div class="pin-key pin-key-bio" id="pinGateBioKey" onclick="pinGateBiometric()" style="visibility:hidden;"><i data-lucide="fingerprint-pattern" style="width:24px;height:24px;"></i></div>
-      <div class="pin-key" onclick="pinGateInput('0')">0</div>
-      <div class="pin-key" onclick="pinGateBackspace()">⌫</div>
-    </div>
-    <div class="pin-forgot" onclick="pinGateForgot()">Lupa PIN?</div>
-  </div>
-</div>
-
-<!-- ===== APP LOCK OVERLAY (gaya LazimPay) — muncul saat 2FA ON, sebelum Beranda ===== -->
+<!-- ===== APP LOCK OVERLAY (gaya LazimPay) — layar PIN/sidik jari TERPADU,
+     dipakai buat 3 skenario:
+     1) verifikasi wajib pas app dibuka & 2FA ON (appSecurityGateCheck)
+     2) konfirmasi PIN transaksi checkout/transfer (pinGateRequire)
+     3) capture PIN sekali pas aktifin toggle biometrik (pinEnrollBiometricCapturePin)
+     Sidik jari native dicoba otomatis di background kalau biometrik aktif
+     (lihat appLockShow()); kalau gagal/gak ada, user tetap bisa ketik PIN
+     pakai keyboard bawaan HP (bukan keypad custom lagi). ===== -->
 <div id="appLockOverlay" onclick="appLockFocus()">
+  <div class="applock-close" id="appLockCloseBtn" onclick="event.stopPropagation();appLockCancel()" style="display:none;">✕</div>
   <div class="applock-spacer"></div>
   <div class="applock-brand">Pay<span class="applock-brand-accent">core</span></div>
-  <div class="applock-title">Masukkan PIN Anda</div>
+  <div class="applock-title" id="appLockTitle">Masukkan PIN Anda</div>
+  <div class="applock-subtitle" id="appLockSub" style="display:none;"></div>
   <div class="applock-dots" id="appLockDots">
     <span class="applock-dot"></span><span class="applock-dot"></span><span class="applock-dot"></span>
     <span class="applock-dot"></span><span class="applock-dot"></span><span class="applock-dot"></span>
@@ -1026,6 +990,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
   <div class="applock-error" id="appLockError"></div>
   <input class="applock-hidden-input" id="appLockInput" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" oninput="appLockOnInput(this.value)">
   <div class="applock-tap-hint" id="appLockHint">Ketuk layar jika keyboard tidak muncul</div>
+  <div class="applock-forgot" id="appLockForgot" onclick="event.stopPropagation();pinGateForgot()" style="display:none;">Lupa PIN?</div>
   <div class="applock-bottom"></div>
 </div>
 
@@ -14834,14 +14799,15 @@ async function appSecurityGateCheck(){
       resolve();
     };
 
-    appLockShow();
-
     // Kalau biometrik aktif, trigger native prompt otomatis di background.
     // Sukses -> onBiometricSuccess -> _pinGateSubmit(pin) -> _pinGateResolve
     // yang di atas -> overlay ditutup. Kalau gagal / dibatalin, user tetap
     // bisa ketik PIN manual pakai keyboard OS.
     const bioAktif = localStorage.getItem('pin_biometric_enabled') === '1';
     const bioBisa = bioAktif && window.AndroidBridge && typeof window.AndroidBridge.authenticateBiometric === 'function';
+
+    appLockShow({ closable: false, bioAvailable: bioBisa });
+
     if (bioBisa) {
       setTimeout(() => window.AndroidBridge.authenticateBiometric(), 300);
     }
@@ -14849,13 +14815,33 @@ async function appSecurityGateCheck(){
 }
 
 // ============================================================
-// APP LOCK OVERLAY (gaya LazimPay) — layar putih, logo, "Masukkan PIN
-// Anda", 6 titik, keyboard OS. Verifikasi PIN pakai jalur yang sama
-// (_pinGateSubmit -> /pin/verify) — cuma UI-nya yang beda.
+// APP LOCK OVERLAY (gaya LazimPay) — layar putih, logo, judul, 6 titik,
+// keyboard OS. SATU overlay ini dipakai buat 3 konteks (app-gate,
+// konfirmasi transaksi, enroll biometrik) — dibedain lewat opts:
+//   title      : judul (default "Masukkan PIN Anda")
+//   subtitle   : baris kecil di bawah judul, buat kasih konteks
+//                (mis. "Konfirmasi pembelian Pulsa"). Kosong = disembunyikan.
+//   closable   : true -> tombol ✕ & "Lupa PIN?" ditampilkan (transaksi/
+//                enroll, boleh dibatalkan). false -> disembunyikan (app-gate,
+//                verifikasi wajib, gak boleh ada jalan buat nge-skip).
+//   bioAvailable: true -> hint di bawah nyebut sidik jari juga bisa dipakai.
+// Verifikasi PIN pakai jalur yang sama persis (_pinGateSubmit -> /pin/verify)
+// buat ketiga konteks — cuma opsi tampilannya yang beda.
 // ============================================================
-function appLockShow(){
+function appLockShow(opts){
+  opts = opts || {};
   const overlay = document.getElementById('appLockOverlay');
   const input = document.getElementById('appLockInput');
+  const subEl = document.getElementById('appLockSub');
+
+  document.getElementById('appLockTitle').textContent = opts.title || 'Masukkan PIN Anda';
+  if (opts.subtitle) { subEl.textContent = opts.subtitle; subEl.style.display = 'block'; }
+  else { subEl.textContent = ''; subEl.style.display = 'none'; }
+  document.getElementById('appLockCloseBtn').style.display = opts.closable ? 'flex' : 'none';
+  document.getElementById('appLockForgot').style.display = opts.closable ? 'block' : 'none';
+  document.getElementById('appLockHint').textContent = opts.bioAvailable
+    ? 'Gunakan sidik jari, atau ketik PIN'
+    : 'Ketuk layar jika keyboard tidak muncul';
   document.getElementById('appLockError').textContent = '';
   input.value = '';
   appLockRenderDots(0);
@@ -14882,6 +14868,19 @@ function appLockHide(){
   const input = document.getElementById('appLockInput');
   if (input) { input.blur(); input.value = ''; }
   appLockRenderDots(0);
+}
+
+// Dipanggil dari tombol ✕ — cuma ada efeknya kalau overlay lagi closable
+// (konfirmasi transaksi / enroll biometrik). Selama app-gate wajib
+// (_appGateActive), tombol ✕ disembunyikan di UI, tapi dijaga lagi di sini
+// biar gak ada jalan buat nge-skip verifikasi.
+function appLockCancel(){
+  if (_appGateActive) return;
+  document.getElementById('appLockOverlay').classList.remove('open');
+  _pinGateBuffer = '';
+  _pinGateEnrollMode = false;
+  if (_pinGateResolve) { _pinGateResolve(null); _pinGateResolve = null; }
+  if (_pinEnrollBiometricResolve) { _pinEnrollBiometricResolve(false); _pinEnrollBiometricResolve = null; }
 }
 
 function appLockFocus(){
@@ -14941,31 +14940,23 @@ async function pinGateRequire(subtitleText){
     _pinGateEnrollMode = false;
     _pinGateResolve = resolve;
     _pinGateBuffer = '';
-    document.getElementById('pinGateError').textContent = '';
-    document.getElementById('pinGateBioError').textContent = '';
-    document.getElementById('pinGateSub').textContent = subtitleText || 'Konfirmasi transaksi kamu';
-    document.getElementById('pinGateBioSub').textContent = subtitleText || 'Tempelkan jari kamu untuk konfirmasi transaksi';
-    _pinDotsRender('pinGateDots', 0);
-    document.getElementById('pinGateOverlay').classList.add('open');
 
-    // Tombol biometrik cuma muncul kalau bridge native ada DAN user sudah
-    // aktifkan biometrik. PIN-nya sendiri gak pernah disimpan di web (gak
-    // ada localStorage lagi) — native yang nyimpen terenkripsi via Keystore.
-    const bioKey = document.getElementById('pinGateBioKey');
+    // PIN-nya sendiri gak pernah disimpan di web (gak ada localStorage lagi)
+    // — native yang nyimpen terenkripsi via Keystore. Kalau biometrik aktif
+    // & bridge native ada, coba trigger prompt native-nya otomatis di
+    // background begitu layar ini tampil (sama kayak app-gate 2FA).
     const bioAktif = localStorage.getItem('pin_biometric_enabled') === '1';
     const bioBisa = bioAktif && window.AndroidBridge && typeof window.AndroidBridge.authenticateBiometric === 'function';
-    bioKey.style.visibility = bioBisa ? 'visible' : 'hidden';
+
+    appLockShow({
+      title: 'Konfirmasi PIN',
+      subtitle: subtitleText || 'Konfirmasi transaksi kamu',
+      closable: true,
+      bioAvailable: bioBisa
+    });
 
     if (bioBisa) {
-      // Biometrik direkomendasikan karena lebih simpel: langsung tampilkan
-      // layar sidik jari & trigger prompt native-nya otomatis. User tetap
-      // bisa pilih "Gunakan PIN" buat pindah ke keypad manual kapan saja.
-      document.getElementById('pinGateKeypadWrap').style.display = 'none';
-      document.getElementById('pinGateBioWrap').style.display = 'flex';
       setTimeout(() => window.AndroidBridge.authenticateBiometric(), 300);
-    } else {
-      document.getElementById('pinGateBioWrap').style.display = 'none';
-      document.getElementById('pinGateKeypadWrap').style.display = 'flex';
     }
   });
 }
@@ -14981,45 +14972,13 @@ function pinEnrollBiometricCapturePin(){
     _pinEnrollBiometricResolve = resolve;
     _pinGateResolve = null;
     _pinGateBuffer = '';
-    document.getElementById('pinGateError').textContent = '';
-    document.getElementById('pinGateSub').textContent = 'Masukkan PIN kamu untuk aktifkan biometrik';
-    _pinDotsRender('pinGateDots', 0);
-    document.getElementById('pinGateBioKey').style.visibility = 'hidden';
-    document.getElementById('pinGateBioWrap').style.display = 'none';
-    document.getElementById('pinGateKeypadWrap').style.display = 'flex';
-    document.getElementById('pinGateOverlay').classList.add('open');
+    appLockShow({
+      title: 'Masukkan PIN kamu',
+      subtitle: 'Untuk mengaktifkan biometrik',
+      closable: true,
+      bioAvailable: false
+    });
   });
-}
-
-// Dipanggil kalau user di layar sidik jari milih "Gunakan PIN" — pindah ke
-// keypad manual tanpa nutup overlay (transaksi yang lagi jalan tetap sama).
-function pinGateShowKeypad(){
-  document.getElementById('pinGateBioWrap').style.display = 'none';
-  document.getElementById('pinGateKeypadWrap').style.display = 'flex';
-  document.getElementById('pinGateError').textContent = '';
-}
-
-function pinGateCancel(){
-  // Pas lagi app-lock (verifikasi wajib begitu app dibuka), tombol ✕ ini
-  // memang disembunyikan (lihat appSecurityGateCheck), tapi jaga-jaga saja
-  // biar gak ada jalan buat nge-skip verifikasi.
-  if (_appGateActive) return;
-  document.getElementById('pinGateOverlay').classList.remove('open');
-  _pinGateBuffer = '';
-  _pinGateEnrollMode = false;
-  if (_pinGateResolve) { _pinGateResolve(null); _pinGateResolve = null; }
-  if (_pinEnrollBiometricResolve) { _pinEnrollBiometricResolve(false); _pinEnrollBiometricResolve = null; }
-}
-
-function pinGateInput(digit){
-  if (_pinGateBuffer.length >= 6) return;
-  _pinGateBuffer += digit;
-  _pinDotsRender('pinGateDots', _pinGateBuffer.length);
-  if (_pinGateBuffer.length === 6) _pinGateSubmit();
-}
-function pinGateBackspace(){
-  _pinGateBuffer = _pinGateBuffer.slice(0, -1);
-  _pinDotsRender('pinGateDots', _pinGateBuffer.length);
 }
 
 // pinOverride dipakai pas biometrik sukses & native ngasih balik PIN hasil
@@ -15044,32 +15003,28 @@ async function _pinGateSubmit(pinOverride){
         // sidik jari native yang bakal muncul di atasnya.
         _pinGateEnrollMode = false;
         if (window.AndroidBridge && typeof window.AndroidBridge.enrollBiometric === 'function') {
-          document.getElementById('pinGateSub').textContent = 'Konfirmasi sidik jari untuk menyimpan...';
+          document.getElementById('appLockSub').textContent = 'Konfirmasi sidik jari untuk menyimpan...';
+          document.getElementById('appLockSub').style.display = 'block';
           window.AndroidBridge.enrollBiometric(pinToUse); // native akan panggil onBiometricSuccess()/onBiometricFailed()
         } else {
-          document.getElementById('pinGateOverlay').classList.remove('open');
+          document.getElementById('appLockOverlay').classList.remove('open');
           if (_pinEnrollBiometricResolve) { _pinEnrollBiometricResolve(false); _pinEnrollBiometricResolve = null; }
         }
       } else {
-        document.getElementById('pinGateOverlay').classList.remove('open');
+        document.getElementById('appLockOverlay').classList.remove('open');
         if (_pinGateResolve) { _pinGateResolve(j.pin_token); _pinGateResolve = null; }
       }
     } else {
-      document.getElementById('pinGateError').textContent = j.message || 'PIN salah';
-      _pinDotsShake('pinGateDots');
-      _pinDotsRender('pinGateDots', 0);
-      if (typeof appLockShowError === 'function') appLockShowError(j.message || 'PIN salah');
+      appLockShowError(j.message || 'PIN salah');
     }
   } catch {
-    document.getElementById('pinGateError').textContent = 'Gagal terhubung ke server';
-    _pinDotsRender('pinGateDots', 0);
-    if (typeof appLockShowError === 'function') appLockShowError('Gagal terhubung ke server');
+    appLockShowError('Gagal terhubung ke server');
   }
 }
 
 
 function pinGateForgot(){
-  document.getElementById('pinGateOverlay').classList.remove('open');
+  document.getElementById('appLockOverlay').classList.remove('open');
   _pinGateEnrollMode = false;
   if (_pinGateResolve) { _pinGateResolve(null); _pinGateResolve = null; }
   if (_pinEnrollBiometricResolve) { _pinEnrollBiometricResolve(false); _pinEnrollBiometricResolve = null; }
@@ -15079,38 +15034,36 @@ function pinGateForgot(){
   if (typeof openPengaturan === 'function') openPengaturan();
 }
 
-// ---- Integrasi bridge sidik jari ----
-function pinGateBiometric(){
-  if (!window.AndroidBridge || typeof window.AndroidBridge.authenticateBiometric !== 'function') return;
-  window.AndroidBridge.authenticateBiometric();
-}
-
 // Dipanggil NATIVE lewat evaluateJavascript. Ada 2 skenario, dibedain dari
 // ada/tidaknya parameter `pin`:
 //   1) Dipanggil TANPA parameter -> ini hasil dari enrollBiometric() waktu
 //      user AKTIFKAN toggle biometrik (native berhasil nyimpen PIN
 //      terenkripsi). Web cuma perlu tau "berhasil", gak butuh PIN-nya.
 //   2) Dipanggil DENGAN parameter `pin` (string) -> ini hasil dari
-//      authenticateBiometric() pas user mau TRANSAKSI (native berhasil
-//      decrypt PIN dari Keystore). PIN ini dikirim ke server buat verifikasi
-//      NORMAL lewat /pin/verify, sama kayak kalau diketik manual.
+//      authenticateBiometric() pas user mau TRANSAKSI atau pas app-gate 2FA
+//      (native berhasil decrypt PIN dari Keystore). PIN ini dikirim ke
+//      server buat verifikasi NORMAL lewat /pin/verify, sama kayak kalau
+//      diketik manual.
 window.onBiometricSuccess = function(pin){
   if (typeof pin === 'string' && pin.length > 0) {
-    // Skenario 2: transaksi — submit PIN hasil decrypt ke server
-    _pinDotsRender('pinGateDots', Math.min(6, pin.length));
+    // Skenario 2: transaksi/app-gate — submit PIN hasil decrypt ke server
+    appLockRenderDots(Math.min(6, pin.length));
     _pinGateSubmit(pin);
   } else {
     // Skenario 1: enroll — native selesai nyimpen, tutup overlay & sukses-kan toggle
-    document.getElementById('pinGateOverlay').classList.remove('open');
+    document.getElementById('appLockOverlay').classList.remove('open');
     if (_pinEnrollBiometricResolve) { _pinEnrollBiometricResolve(true); _pinEnrollBiometricResolve = null; }
   }
 };
 
-// Dipanggil native pas sidik jari GAGAL/dibatalkan (enroll ATAU authenticate)
+// Dipanggil native pas sidik jari GAGAL/dibatalkan (enroll ATAU authenticate).
+// Ketiga konteks (enroll, app-gate, transaksi) sekarang sama-sama pakai
+// appLockOverlay, jadi cukup satu appLockShowError() buat kasih feedback —
+// gak perlu lagi bedain elemen keypad/bio-screen mana yang lagi kelihatan.
 window.onBiometricFailed = function(){
   if (_pinEnrollBiometricResolve) {
     // Lagi proses aktifin toggle -> gagal, toggle balik OFF, kasih tau di overlay
-    document.getElementById('pinGateError').textContent = 'Verifikasi biometrik gagal, coba lagi';
+    appLockShowError('Verifikasi biometrik gagal, coba lagi');
     _pinEnrollBiometricResolve(false);
     _pinEnrollBiometricResolve = null;
     return;
@@ -15118,29 +15071,20 @@ window.onBiometricFailed = function(){
 
   if (_appGateActive) {
     // Ini gagal sidik jari pas verifikasi WAJIB begitu app dibuka (bukan pas
-    // checkout). Kasih kesempatan 3x, lewat itu tombol sidik jari
-    // disembunyikan & user wajib lanjut pakai PIN manual.
+    // checkout). Kasih kesempatan 3x, lewat itu user wajib lanjut pakai PIN
+    // manual (hint di bawah tetap ada, keyboard OS selalu bisa dipakai).
     _appGateBioFails++;
     if (_appGateBioFails >= 3) {
-      const bioKey = document.getElementById('pinGateBioKey');
-      if (bioKey) bioKey.style.visibility = 'hidden';
-      document.getElementById('pinGateError').textContent = 'Sidik jari gagal 3x, masukkan PIN kamu';
+      appLockShowError('Sidik jari gagal 3x, masukkan PIN kamu');
     } else {
-      document.getElementById('pinGateError').textContent =
-        `Sidik jari gagal (${_appGateBioFails}/3), coba lagi atau masukkan PIN`;
+      appLockShowError(`Sidik jari gagal (${_appGateBioFails}/3), coba lagi atau masukkan PIN`);
     }
     return;
   }
 
-  // Konteks pinGateRequire() (checkout): kalau masih di layar sidik jari,
-  // tampilkan error di situ aja (biar user bisa coba lagi atau pindah ke
-  // PIN); kalau user sudah pindah ke keypad manual, tampilkan di sana.
-  const bioWrapVisible = document.getElementById('pinGateBioWrap').style.display !== 'none';
-  if (bioWrapVisible) {
-    document.getElementById('pinGateBioError').textContent = 'Sidik jari gagal, coba lagi atau gunakan PIN';
-  } else {
-    document.getElementById('pinGateError').textContent = 'Verifikasi biometrik gagal, masukkan PIN manual';
-  }
+  // Konteks pinGateRequire() (checkout/transfer) — sidik jari gagal, user
+  // tetap bisa lanjut ketik PIN manual lewat keyboard OS yang sama.
+  appLockShowError('Verifikasi biometrik gagal, masukkan PIN manual');
 };
 
 
