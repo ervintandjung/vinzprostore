@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>document.addEventListener('DOMContentLoaded', function(){ if (window.lucide) lucide.createIcons(); });</script>
 <style>
 :root {
   --primary:#0a0a0f;--secondary:#17171d;--card:#18181f;--card2:#131318;
@@ -976,7 +978,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
        karena lebih simpel buat user. Sidik jari native langsung ke-trigger
        otomatis begitu layar ini tampil. -->
   <div id="pinGateBioWrap" style="display:none;flex-direction:column;align-items:center;">
-    <div class="pin-bio-icon-big" id="pinGateBioIconBig" onclick="pinGateBiometric()">👆</div>
+    <div class="pin-bio-icon-big" id="pinGateBioIconBig" onclick="pinGateBiometric()"><i data-lucide="fingerprint-pattern" style="width:46px;height:46px;color:#fff;"></i></div>
     <div class="pin-title">SIDIK JARI</div>
     <div class="pin-sub" id="pinGateBioSub">Tempelkan jari kamu untuk konfirmasi transaksi</div>
     <div class="pin-error-msg" id="pinGateBioError"></div>
@@ -1004,7 +1006,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       <div class="pin-key" onclick="pinGateInput('7')">7</div>
       <div class="pin-key" onclick="pinGateInput('8')">8</div>
       <div class="pin-key" onclick="pinGateInput('9')">9</div>
-      <div class="pin-key pin-key-bio" id="pinGateBioKey" onclick="pinGateBiometric()" style="visibility:hidden;">👆</div>
+      <div class="pin-key pin-key-bio" id="pinGateBioKey" onclick="pinGateBiometric()" style="visibility:hidden;"><i data-lucide="fingerprint-pattern" style="width:24px;height:24px;"></i></div>
       <div class="pin-key" onclick="pinGateInput('0')">0</div>
       <div class="pin-key" onclick="pinGateBackspace()">⌫</div>
     </div>
@@ -2475,7 +2477,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
           <span class="pgs-chevron">›</span>
         </div>
         <div class="pgs-item" onclick="pgsToggleBiometric()">
-          <div class="pgs-item-left"><span class="pgs-ico">👆</span><span>Biometrik untuk PIN</span></div>
+          <div class="pgs-item-left"><span class="pgs-ico" data-lucide="fingerprint-pattern" style="width:19px;height:19px;"></span><span>Biometrik untuk PIN</span></div>
           <button type="button" class="pgs-toggle" id="pgsBiometricToggle" onclick="event.stopPropagation();pgsToggleBiometric()"><span class="pgs-toggle-knob"></span></button>
         </div>
       </div>
@@ -5290,12 +5292,27 @@ async function ssTestPrint(){
   }
 }
 
-function pgsToggle2FA(){
+async function pgsToggle2FA(){
   const btn = document.getElementById('pgs2FAToggle');
   if (!btn) return;
+  const sedangAktif = btn.classList.contains('on');
+
+  if (!sedangAktif) {
+    // Mau diaktifkan -> wajib udah punya PIN Transaksi, karena appSecurityGateCheck()
+    // butuh PIN buat diverifikasi pas app dibuka. Tanpa PIN, gate itu auto-skip
+    // (lihat initApp() -> appSecurityGateCheck()) jadi toggle ini kelihatan
+    // "gak ngefek". Arahkan bikin PIN dulu, sama kayak toggle biometrik.
+    const sudahAdaPin = await pinHasPin();
+    if (!sudahAdaPin) {
+      showNotif('🔢 Set PIN Transaksi dulu sebelum aktifkan Autentikasi Dua Faktor');
+      pinSetupOpen();
+      return;
+    }
+  }
+
   const on = btn.classList.toggle('on');
   try { if (currentUser) localStorage.setItem('vp_2fa_' + currentUser.email, on ? '1' : '0'); } catch(e){}
-  showNotif(on ? '🛡️ Autentikasi dua faktor diaktifkan' : '⛔ Autentikasi dua faktor dimatikan');
+  showNotif(on ? '🛡️ Autentikasi dua faktor diaktifkan — PIN/sidik jari wajib tiap buka app' : '⛔ Autentikasi dua faktor dimatikan');
 }
 function pgsSyncTheme(){
   const sub = document.getElementById('pgsThemeSub');
@@ -5333,7 +5350,7 @@ async function pgsToggleBiometric(){
 
     btn.classList.add('on');
     localStorage.setItem('pin_biometric_enabled', '1');
-    showNotif('👆 Biometrik untuk PIN diaktifkan');
+    showNotif('Biometrik untuk PIN diaktifkan');
   } else {
     btn.classList.remove('on');
     localStorage.setItem('pin_biometric_enabled', '0');
