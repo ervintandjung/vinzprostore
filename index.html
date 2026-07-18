@@ -313,6 +313,20 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 .banner-badge{background:var(--gold);color:#000;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:8px;letter-spacing:1px;}
 .banner h2{font-family:'Orbitron',sans-serif;font-size:17px;font-weight:900;color:#fff;line-height:1.3;margin-bottom:4px;}
 .banner h2 span{color:var(--gold);}
+
+/* PROMO & PENAWARAN — mini carousel gaya LazimPay di Beranda, banner
+   berikutnya "mengintip" di tepi kanan supaya kelihatan bisa digeser. */
+.promo-teaser{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:18px 0 18px 16px;margin:16px 14px 0;}
+.promo-teaser-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding-right:16px;margin-bottom:14px;}
+.promo-teaser-title{font-family:'Rajdhani',sans-serif;font-weight:800;font-size:17px;color:var(--text);}
+.promo-teaser-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+.promo-teaser-more{font-size:12.5px;font-weight:700;color:var(--accent2);white-space:nowrap;cursor:pointer;flex-shrink:0;}
+.promo-teaser-scroll{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-right:16px;scrollbar-width:none;}
+.promo-teaser-scroll::-webkit-scrollbar{display:none;}
+.promo-teaser-card{flex:0 0 88%;scroll-snap-align:start;border-radius:16px;overflow:hidden;cursor:pointer;background:var(--card);border:1px solid var(--border);}
+.promo-teaser-card:active{transform:scale(.98);}
+.promo-teaser-card img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover;}
+.promo-teaser-empty{flex:0 0 88%;display:flex;align-items:center;justify-content:center;min-height:110px;border-radius:16px;border:1px dashed var(--border);color:var(--muted);font-size:12px;text-align:center;padding:16px;}
 .banner p{font-size:11px;color:var(--accent2);margin-bottom:10px;}
 .banner-feats{display:flex;gap:6px;flex-wrap:wrap;}
 .bf{background:rgba(255,255,255,0.07);border-radius:6px;padding:3px 8px;font-size:10px;color:var(--text);}
@@ -653,6 +667,45 @@ body.light-mode{
 }
 body.light-mode header{background:linear-gradient(135deg,#ffffff,#eef3fb);box-shadow:0 2px 14px rgba(13,31,60,0.08);}
 body.light-mode .logo-text{background:linear-gradient(90deg,#0d1f3c,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+
+/* ===== LIGHT MODE: hero beranda dikasih gradasi warna (ala DANA) =====
+   Sebelumnya beranda cuma background pucat rata (var(--primary)) tanpa
+   pembeda, jadi kesannya kosong & silau. Sekarang bagian atas (brand +
+   saldo) dikasih banner gradien penuh warna, kartu saldo "mengambang"
+   nutupin batasnya, dan kartu-kartu di bawahnya dikasih permukaan putih
+   + shadow yang jelas biar gak nge-blend ke background. */
+body.light-mode .pc-hero-top{
+  background:linear-gradient(135deg,#1c2e8f 0%,#3f4fe0 45%,#17aee6 100%);
+  margin:-8px -10px 0;
+  padding:20px 16px 54px;
+  border-radius:0 0 26px 26px;
+  box-shadow:0 10px 26px rgba(30,50,150,0.22);
+  position:relative;
+  z-index:1;
+}
+body.light-mode .pc-brand-title{color:#ffffff;text-shadow:0 1px 4px rgba(0,0,0,0.15);}
+body.light-mode .pc-brand-sub{color:rgba(255,255,255,0.82);}
+body.light-mode #witaClock{color:rgba(255,255,255,0.72) !important;}
+body.light-mode .pc-bell{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.4);color:#ffffff;}
+body.light-mode .pc-avatar{box-shadow:0 0 0 2px rgba(255,255,255,0.55);}
+
+body.light-mode .saldo-card{
+  background:#ffffff;
+  border:1px solid rgba(13,31,60,0.06);
+  box-shadow:0 16px 34px rgba(20,40,120,0.18),0 4px 10px rgba(20,40,120,0.06);
+  margin-top:-38px;
+  position:relative;
+  z-index:2;
+}
+body.light-mode .saldo-eye:active{background:rgba(13,31,60,0.06);}
+
+/* Kartu Pemasukan/Pengeluaran & Transaksi Terakhir sebelumnya transparan
+   nyaris tak kelihatan di atas background terang — dikasih permukaan
+   putih + border + shadow biar jelas kebaca, senada sama .ppob-item. */
+body.light-mode .pc-stat-card{background:#ffffff;border:1px solid rgba(13,31,60,0.08);box-shadow:0 2px 10px rgba(13,31,60,0.06);}
+body.light-mode .pc-tx-item{background:#ffffff;border:1px solid rgba(13,31,60,0.08);box-shadow:0 2px 10px rgba(13,31,60,0.06);}
+body.light-mode .pc-tx-item:active{background:#eef3fb;border-color:rgba(26,111,255,0.25);}
+body.light-mode #profitSaldoCard{background:#fffdf5;border-color:rgba(200,160,0,0.3);box-shadow:0 2px 14px rgba(200,160,0,0.12);}
 /* Auto-flip white text to dark in light mode */
 body.light-mode [style*="color:#fff"],
 body.light-mode [style*="color:#ffffff"],
@@ -678,6 +731,11 @@ body.light-mode .auth-field input,
 body.light-mode .ap-input,
 body.light-mode .ap-price-input,
 body.light-mode .otp-input{color:#0d1f3c !important;}
+body.light-mode .auth-modal .auth-field input,
+body.light-mode .auth-field input{background:#ffffff !important;border-color:rgba(13,31,60,0.18) !important;}
+body.light-mode .auth-field input::placeholder{color:#8a97a0 !important;}
+body.light-mode .auth-modal .afi-wrap .pw-eye{color:#5a6a70 !important;}
+body.light-mode .auth-modal .afi-wrap .pw-eye:hover{color:#0d1f3c !important;}
 body.light-mode .ppob-item{background:#ffffff;border:1px solid rgba(26,111,255,0.15);box-shadow:0 2px 10px rgba(13,31,60,0.06);}
 body.light-mode .ppob-item:active{background:#eef3fb;border-color:rgba(26,111,255,0.3);}
 
@@ -1129,29 +1187,60 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     <div class="ppob-item" onclick="openSmmPlatform('Shopee')"><div class="ppob-ic" style="background:transparent;padding:0;overflow:hidden;"><img src="data:image/png;base64,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" alt="shopee" style="width:100%;height:100%;object-fit:contain;display:block;"></div><div class="ppob-name">Shopee</div></div>
   </div>
 
-  <!-- BANNER SLIDESHOW -->
-  <div class="banner-wrap" style="padding:14px 14px 0;">
-    <div style="border-radius:16px;overflow:hidden;position:relative;border:1px solid rgba(0,212,255,0.3);box-shadow:0 8px 28px rgba(0,80,255,0.2);min-height:120px;background:linear-gradient(135deg,#0c1f56,#1040a0);">
+  <!-- BANNER SLIDESHOW — POPUP MENGAMBANG (ala GoPay: kartu promo yang muncul
+       melayang di atas konten, bisa ditutup manual pakai tombol X yang
+       nongol di pojok kanan-atas kartu). Munculnya lagi tiap sesi/app
+       dibuka baru — bukan ditutup permanen. -->
+  <div id="bannerPopup" style="position:fixed;right:12px;bottom:82px;width:34%;max-width:135px;z-index:200;transform:translateY(14px) scale(.94);opacity:0;pointer-events:none;transition:opacity .3s ease, transform .3s ease;">
+    <div style="position:relative;border-radius:10px;overflow:hidden;box-shadow:0 10px 26px rgba(0,0,0,0.4);border:1px solid rgba(0,212,255,0.3);min-height:45px;background:linear-gradient(135deg,#0c1f56,#1040a0);">
       <div id="bannerSlider" style="display:flex;transition:transform .4s ease;will-change:transform;"></div>
-      <div id="bannerDots" style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:5;"></div>
+      <div id="bannerDots" style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);display:flex;gap:3px;z-index:5;"></div>
     </div>
+    <button id="bannerCloseBtn" onclick="closeBannerSlider()" aria-label="Tutup banner" style="position:absolute;top:-7px;right:-5px;z-index:6;width:19px;height:19px;border-radius:50%;background:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,0.4);padding:0;">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
   <script>
   window._bannerImages = [];
   window._bannerCur = 0;
   window._bannerTimer = null;
+  function showBannerPopup(){
+    const pop = document.getElementById('bannerPopup');
+    if (!pop) return;
+    pop.style.display = 'block';
+    requestAnimationFrame(()=>{
+      pop.style.opacity = '1';
+      pop.style.transform = 'translateY(0) scale(1)';
+      pop.style.pointerEvents = 'auto';
+    });
+  }
+  function closeBannerSlider(){
+    const pop = document.getElementById('bannerPopup');
+    if (pop){
+      pop.style.opacity = '0';
+      pop.style.transform = 'translateY(14px) scale(.94)';
+      pop.style.pointerEvents = 'none';
+      setTimeout(()=>{ pop.style.display = 'none'; }, 300);
+    }
+    if (window._bannerTimer){ clearInterval(window._bannerTimer); window._bannerTimer = null; }
+    try { sessionStorage.setItem('vp_banner_closed', '1'); } catch(e){}
+  }
   function renderBannerSlider(){
     const slider = document.getElementById('bannerSlider');
     const dotsEl = document.getElementById('bannerDots');
     if (!slider || !dotsEl) return;
+    let closed = false;
+    try { closed = sessionStorage.getItem('vp_banner_closed') === '1'; } catch(e){}
+    if (closed) return;
     const imgs = (window._bannerImages && window._bannerImages.length) ? window._bannerImages : [];
     if (!imgs.length){
       slider.innerHTML = '<div style="min-width:100%;padding:24px 16px;color:#fff;font-family:Orbitron,sans-serif;"><div style="font-size:11px;color:#ffd700;margin-bottom:6px;">⭐ VINZ STORE</div><div style="font-size:16px;font-weight:900;">VIP MODS & KEY PREMIUM</div><div style="font-size:11px;color:#00d4ff;margin-top:4px;">Proses instan 24 jam</div></div>';
       dotsEl.innerHTML = '';
       if (window._bannerTimer){ clearInterval(window._bannerTimer); window._bannerTimer = null; }
+      showBannerPopup();
       return;
     }
-    slider.innerHTML = imgs.map(src => `<img src="${src}" style="min-width:100%;width:100%;display:block;object-fit:cover;max-height:200px;" alt="">`).join('');
+    slider.innerHTML = imgs.map(src => `<img src="${src}" style="min-width:100%;width:100%;display:block;object-fit:cover;height:60px;" alt="">`).join('');
     dotsEl.innerHTML = imgs.map((_,j)=>`<div data-i="${j}" style="width:${j===0?'20px':'8px'};height:8px;border-radius:4px;background:${j===0?'#fff':'rgba(255,255,255,0.4)'};transition:.25s;cursor:pointer;"></div>`).join('');
     Array.from(dotsEl.children).forEach((d,j)=>d.onclick=()=>bannerGoTo(j));
     window._bannerCur = 0;
@@ -1160,6 +1249,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     if (imgs.length > 1){
       window._bannerTimer = setInterval(()=>bannerGoTo((window._bannerCur+1)%imgs.length), 3800);
     }
+    showBannerPopup();
   }
   function bannerGoTo(i){
     window._bannerCur = i;
@@ -1174,6 +1264,37 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     }
   }
   renderBannerSlider();
+  </script>
+
+  <!-- ===== PROMO & PENAWARAN — mini carousel gaya LazimPay. Sumber datanya
+       sama dengan halaman Promo lengkap (getPromoBanners(), dikelola dari
+       Admin), cuma tampilannya digeser horizontal dengan efek "mengintip". ===== -->
+  <div class="promo-teaser" id="promoTeaserWrap">
+    <div class="promo-teaser-head">
+      <div>
+        <div class="promo-teaser-title">Promo &amp; Penawaran</div>
+        <div class="promo-teaser-sub">Info promo terbaru dan penawaran menarik</div>
+      </div>
+      <div class="promo-teaser-more" onclick="openPromo()">Lihat semua</div>
+    </div>
+    <div class="promo-teaser-scroll" id="promoTeaserScroll"></div>
+  </div>
+  <script>
+  function renderPromoTeaser(){
+    const wrap = document.getElementById('promoTeaserScroll');
+    if (!wrap) return;
+    const imgs = (window._promoBannerImages && window._promoBannerImages.length) ? window._promoBannerImages : [];
+    if (!imgs.length){
+      wrap.innerHTML = '<div class="promo-teaser-empty">Belum ada promo saat ini</div>';
+      return;
+    }
+    wrap.innerHTML = imgs.map(src => `
+      <div class="promo-teaser-card" onclick="openPromo()">
+        <img src="${src}" alt="Promo" loading="lazy" onerror="this.closest('.promo-teaser-card').style.display='none'">
+      </div>
+    `).join('');
+  }
+  renderPromoTeaser();
   </script>
 </div>
 
@@ -2342,9 +2463,9 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       </div>
     </div>
     <div class="ap-card">
-      <h3 onclick="toggleApCard(this)">BANNER PROMO (Halaman Promo)<span class="ac-arrow">▼</span></h3>
+      <h3 onclick="toggleApCard(this)">BANNER PROMO (Halaman Promo &amp; Beranda)<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Banner ini TERPISAH dari Banner Slideshow di atas — cuma tampil di halaman Promo (bagian "Sedang Berlangsung"), bukan di beranda.</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Banner ini TERPISAH dari Banner Slideshow di atas. Tampil di dua tempat: halaman Promo (bagian "Sedang Berlangsung") DAN di beranda pada bagian "Promo & Penawaran".</div>
       <div id="apPromoBannerList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
       <input type="file" id="apPromoBannerFile" accept="image/*" style="display:none;" onchange="apPromoBannerUpload()">
       <label for="apPromoBannerFile" style="display:block;width:100%;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:10px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:6px;font-family:'Rajdhani',sans-serif;">📁 UPLOAD BANNER PROMO BARU</label>
@@ -3721,6 +3842,7 @@ function setPromoBanners(arr){
   window._promoBannerImages = arr;
   if (typeof renderPromoList === 'function') renderPromoList();
   if (typeof renderApPromoBanners === 'function') renderApPromoBanners();
+  if (typeof renderPromoTeaser === 'function') renderPromoTeaser();
   const payload = JSON.stringify(arr);
   _sb.from('settings').upsert({ key: 'promo_banners', value: payload }).then(({error}) => {
     if (error) {
@@ -3741,6 +3863,7 @@ async function loadPromoBannersFromCloud(){
           window._promoBannerImages = arr;
           if (typeof renderPromoList === 'function') renderPromoList();
           if (typeof renderApPromoBanners === 'function') renderApPromoBanners();
+          if (typeof renderPromoTeaser === 'function') renderPromoTeaser();
         }
       } catch(e){}
     }
@@ -6438,6 +6561,7 @@ async function initApp() {
     // Load banner PROMO (terpisah dari banner beranda di atas)
     window._promoBannerImages = getPromoBanners();
     if (typeof renderPromoList === 'function') renderPromoList();
+    if (typeof renderPromoTeaser === 'function') renderPromoTeaser();
     loadPromoBannersFromCloud();
 
     // Load products (global) — TUNGGU cloud dulu agar render pertama pakai data Supabase
