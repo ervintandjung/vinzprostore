@@ -4037,7 +4037,8 @@ window._markupReadyPromise = loadMarkupSettings();
 // masalah nyambung ke server.
 // ══════════════════════════════
 async function vpShowMarkupDebug(){
-  await window._markupReadyPromise;
+  if (window._pricingReadyPromise) { try { await window._pricingReadyPromise; } catch(e){} }
+  else { await window._markupReadyPromise; }
   const diag = window._markupLoadDiag || { ok: false, reason: 'belum sempat dicoba' };
   const role = currentUser ? (currentUser.role || 'member') : '(belum login)';
   const email = currentUser ? currentUser.email : '-';
@@ -4197,6 +4198,27 @@ async function vpApplyReferralPricing() {
   } catch (e) { console.warn('vpApplyReferralPricing error:', e); }
 }
 window.vpApplyReferralPricing = vpApplyReferralPricing;
+
+// ══════════════════════════════
+// FIX RACE CONDITION #2: window._markupReadyPromise CUMA nutupin baseline
+// (settings.markup), TAPI markupConfig yang BENERAN dipakai buat hitung
+// harga (termasuk diskon tier agen/reseller) baru final SETELAH
+// vpApplyReferralPricing() juga kelar — ini butuh 1 round-trip lagi ke
+// tabel `users` (custom_markup). Kalau halaman harga cuma nunggu
+// _markupReadyPromise doang (kayak sebelumnya), ada celah waktu dimana
+// markupConfig masih baseline polos / bahkan kosong pas h2hFetchProducts
+// jalan duluan. window._pricingReadyPromise ini nutupin DUA-DUANYA;
+// h2hFetchProducts & vpShowMarkupDebug sekarang nunggu ini, bukan cuma
+// _markupReadyPromise.
+// ══════════════════════════════
+window._pricingReadyPromise = (async () => {
+  await window._markupReadyPromise;
+  await vpApplyReferralPricing();
+})();
+window.vpRefreshPricingReady = function(){
+  window._pricingReadyPromise = vpApplyReferralPricing();
+  return window._pricingReadyPromise;
+};
 
 // ══════════════════════════════
 // UTILS
@@ -4387,7 +4409,7 @@ async function doLogin() {
     // PENTING: harga produk (markup) tergantung siapa yang login (referral
     // agen/reseller atau bukan) — kalau gak di-refresh di sini, harga bakal
     // "nyangkut" ke markup akun sebelumnya sampai halaman di-reload manual.
-    if (typeof vpApplyReferralPricing === 'function') await vpApplyReferralPricing();
+    if (typeof vpApplyReferralPricing === 'function') { window._pricingReadyPromise = vpApplyReferralPricing(); await window._pricingReadyPromise; }
     showNotif('✅ Selamat datang, ' + currentUser.name + '!');
     // Langsung sinkron riwayat & refresh Pemasukan/Pengeluaran begitu login
     // berhasil, biar gak nunjukin Rp 0 dulu sebelum ke Riwayat.
@@ -4787,7 +4809,7 @@ async function doVerifyOTP() {
     } catch(e) {}
     setTimeout(() => { if (typeof pcGoBeranda === 'function') pcGoBeranda(); }, 0);
     renderHeader();
-    if (typeof vpApplyReferralPricing === 'function') await vpApplyReferralPricing();
+    if (typeof vpApplyReferralPricing === 'function') { window._pricingReadyPromise = vpApplyReferralPricing(); await window._pricingReadyPromise; }
     showNotif('✅ Email terverifikasi! Selamat datang, ' + currentUser.name + '!');
     if (typeof pcRefreshStatsFromServer === 'function') pcRefreshStatsFromServer();
     if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
@@ -4835,6 +4857,7 @@ function doLogout() {
   }
   // Balikin harga produk ke markup admin polos (tanpa referral akun tadi)
   if (window._adminMarkupConfig) markupConfig = { ...window._adminMarkupConfig };
+  window._pricingReadyPromise = Promise.resolve();
   // Sembunyiin & reset kartu "Saldo Profit" (khusus admin) sekarang juga —
   // sebelumnya kartu ini cuma di-toggle di dalam vpReloadBalance(), yang
   // gak dipanggil pas logout, jadi angka akun lama masih nampil sampai
@@ -6842,8 +6865,8 @@ async function initApp() {
     // Markup (wa/ticker/markup) sudah mulai di-load dari awal skrip (lihat
     // loadMarkupSettings() di atas) — di sini tinggal nunggu sampai selesai,
     // jangan fetch ulang.
-    await window._markupReadyPromise;
-    await vpApplyReferralPricing();
+    window._pricingReadyPromise = (async () => { await window._markupReadyPromise; await vpApplyReferralPricing(); })();
+    await window._pricingReadyPromise;
     if (typeof pgsUpdateResellerMenu === 'function') pgsUpdateResellerMenu();
 
     // Load banners (global) — tampilkan dari cache lokal dulu lalu sync dari cloud
@@ -14867,6 +14890,11 @@ function h2hDedupeByNominal(rows){
 
 async function h2hFetchProducts(category, operatorFilter){
   try {
+    // Tunggu markup admin + markup tier agen/reseller BENAR-BENAR kelar
+    // dihitung dulu sebelum ambil & tampilin harga — tanpa ini ada celah
+    // waktu dimana harga sempat tampil TANPA markup sama sekali.
+    if (window._pricingReadyPromise) { try { await window._pricingReadyPromise; } catch(e){} }
+
     let query = _sb.from('h2h_products')
       .select('product_code,name,description,price,operator,is_active')
       .eq('category', category)
@@ -15023,6 +15051,7 @@ let _smmSelectedIdx = -1;
 
 async function h2hFetchSmmServices(platformKeyword){
   try {
+    if (window._pricingReadyPromise) { try { await window._pricingReadyPromise; } catch(e){} }
     const { data, error } = await _sb.from('h2h_products')
       .select('product_code,name,description,platform,price_per_1k,min_qty,max_qty,is_active')
       .eq('category', 'smm')
@@ -15180,7 +15209,7 @@ window.smmOrder = smmOrder;
     // WAJIB tunggu markup selesai di-load dulu, biar harga yang muncul
     // di grid nominal SELALU sudah termasuk markup admin, gak pernah
     // kepotong duluan oleh race condition (lihat loadMarkupSettings()).
-    await window._markupReadyPromise;
+    if (window._pricingReadyPromise) { try { await window._pricingReadyPromise; } catch(e){} } else { await window._markupReadyPromise; }
     if (type === 'pulsa') h2hLoadPulsa(prov);
     if (type === 'data') h2hLoadData(prov);
   };
@@ -15829,7 +15858,7 @@ async function h2hRunCekTagihanPascabayarhp(){
     if (typeof showNotif === 'function') showNotif('⚠️ Provider tidak terdeteksi, periksa kembali nomor HP-nya.');
     return;
   }
-  if (window._markupReadyPromise) await window._markupReadyPromise;
+  if (window._pricingReadyPromise) { try { await window._pricingReadyPromise; } catch(e){} } else if (window._markupReadyPromise) { await window._markupReadyPromise; }
 
   window._pascabayarhpBill = null;
   if (card) card.style.display = 'block';
