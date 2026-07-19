@@ -2494,6 +2494,8 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Atur markup di atas harga modal H2H, per kategori (persen atau nominal Rp). Berlaku untuk SEMUA produk PPOB/H2H (Pulsa, Paket Data, E-Wallet, Voucher Game, PLN, PascaBayar HP, Paket Telp & SMS, Streaming, SMM) dan tampil ke SEMUA pengunjung.</div>
       <div id="apMarkupList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;"></div>
       <button class="ap-save" onclick="apSaveMarkup()" style="background:var(--success);color:#000;">💾 SIMPAN MARKUP</button>
+      <button class="ap-save" onclick="apCheckMarkupRls()" style="background:var(--card2);color:var(--accent2);border:1px solid var(--border);margin-top:8px;">🩺 CEK KENAPA MARKUP GAK KE-APPLY</button>
+      <div id="apMarkupRlsResult" style="font-size:11.5px;margin-top:10px;white-space:pre-line;line-height:1.5;"></div>
       </div>
     </div>
     <div class="ap-card">
@@ -2631,6 +2633,10 @@ window.apTestAdminEmail = apTestAdminEmail;
         </div>
         <div class="pgs-item" onclick="showNotif('🔔 Pengaturan notifikasi segera hadir')">
           <div class="pgs-item-left"><span class="pgs-ico">🔔</span><span>Notifikasi</span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
+        <div class="pgs-item" onclick="vpShowMarkupDebug()">
+          <div class="pgs-item-left"><span class="pgs-ico">🩺</span><span>Info Debug Markup Harga</span></div>
           <span class="pgs-chevron">›</span>
         </div>
       </div>
@@ -3996,17 +4002,93 @@ let markupConfig = {}; // { [kategori]: { type: 'percent'|'nominal', value: numb
 // ══════════════════════════════
 async function loadMarkupSettings() {
   try {
-    const { data: settings } = await _sb.from('settings').select('key,value');
-    if (settings) {
+    const { data: settings, error } = await _sb.from('settings').select('key,value');
+    if (error) {
+      console.warn('[markup] Gagal load settings:', error.message);
+      window._markupLoadDiag = { ok: false, reason: error.message };
+      return;
+    }
+    if (settings && settings.length) {
+      let gotMarkup = false;
       for (const s of settings) {
         if (s.key === 'wa' && s.value) waNum = s.value;
         if (s.key === 'ticker' && s.value) { const t = document.getElementById('tickerTxt'); if (t) t.textContent = s.value; }
-        if (s.key === 'markup' && s.value) { markupConfig = vpParseJsonSetting(s.value) || {}; window._adminMarkupConfig = { ...markupConfig }; }
+        if (s.key === 'markup' && s.value) { markupConfig = vpParseJsonSetting(s.value) || {}; window._adminMarkupConfig = { ...markupConfig }; gotMarkup = true; }
       }
+      window._markupLoadDiag = { ok: true, rowCount: settings.length, gotMarkup };
+      if (!gotMarkup) console.warn('[markup] Tabel settings kebaca (' + settings.length + ' baris) tapi gak ada row key="markup". Cek udah pernah disimpan admin belum.');
+    } else {
+      // Query sukses TAPI baliknya kosong (0 baris) — ini BUKAN error, jadi
+      // gak pernah kelihatan lewat catch(). Ini ciri khas RLS (Row Level
+      // Security) di tabel `settings` yang cuma ngizinin akun admin baca,
+      // padahal markup/wa/ticker/banner itu harusnya PUBLIC READ (dibutuhin
+      // semua akun buat hitung harga), cuma WRITE-nya yang perlu dibatasi admin.
+      console.warn('[markup] Query settings balik 0 baris (bukan error) — kemungkinan besar RLS Supabase nge-block SELECT untuk akun non-admin. Cek Policy SELECT tabel "settings" di dashboard Supabase.');
+      window._markupLoadDiag = { ok: true, rowCount: 0, gotMarkup: false, likelyRLS: true };
     }
-  } catch (e) { console.warn('Settings load error:', e); }
+  } catch (e) { console.warn('Settings load error:', e); window._markupLoadDiag = { ok: false, reason: String(e) }; }
 }
 window._markupReadyPromise = loadMarkupSettings();
+
+// ══════════════════════════════
+// DEBUG MARKUP — bisa dibuka dari Pengaturan > Info Debug Markup Harga,
+// akun apapun (admin/agen/member), gak butuh buka DevTools/Inspect sama
+// sekali. Nunjukin persis kenapa markup gak ke-apply, kalau memang ada
+// masalah nyambung ke server.
+// ══════════════════════════════
+async function vpShowMarkupDebug(){
+  await window._markupReadyPromise;
+  const diag = window._markupLoadDiag || { ok: false, reason: 'belum sempat dicoba' };
+  const role = currentUser ? (currentUser.role || 'member') : '(belum login)';
+  const email = currentUser ? currentUser.email : '-';
+
+  let lines = [];
+  lines.push('Akun: ' + email);
+  lines.push('Role: ' + role);
+  lines.push('');
+
+  if (!diag.ok) {
+    lines.push('❌ GAGAL konek ke server settings.');
+    lines.push('Alasan: ' + diag.reason);
+  } else if (diag.rowCount === 0) {
+    lines.push('⚠️ Server BISA diakses, tapi baliknya 0 baris data.');
+    lines.push('Ini kemungkinan besar karena RLS (Row Level Security) di Supabase nge-block baca tabel "settings" buat akun ini.');
+  } else if (!diag.gotMarkup) {
+    lines.push('⚠️ Server kebaca (' + diag.rowCount + ' baris), tapi gak ada data markup yang tersimpan.');
+    lines.push('Coba buka Admin Panel > Markup Harga, isi angkanya, lalu SIMPAN MARKUP dulu.');
+  } else {
+    lines.push('✅ Data markup berhasil kebaca dari server (' + diag.rowCount + ' baris).');
+  }
+
+  lines.push('');
+  lines.push('— Markup admin yang tersimpan (baseline) —');
+  const baseline = window._adminMarkupConfig || {};
+  if (!Object.keys(baseline).length) {
+    lines.push('(kosong / belum ada sama sekali)');
+  } else {
+    MARKUP_CATEGORIES.forEach(c => {
+      const m = baseline[c.key];
+      if (m && m.value) lines.push(c.label + ': +' + m.value + (m.type === 'percent' ? '%' : ' (Rp)'));
+    });
+    if (!MARKUP_CATEGORIES.some(c => baseline[c.key] && baseline[c.key].value)) lines.push('(semua kategori masih 0 / belum diisi)');
+  }
+
+  lines.push('');
+  lines.push('— Markup yang AKTIF buat akun ini sekarang —');
+  if (role === 'owner' || role === 'admin') {
+    lines.push('(dikosongkan otomatis — akun admin/owner memang selalu lihat harga modal asli, bukan harga bermarkup)');
+  } else {
+    let any = false;
+    MARKUP_CATEGORIES.forEach(c => {
+      const m = markupConfig[c.key];
+      if (m && m.value) { lines.push(c.label + ': +' + m.value + (m.type === 'percent' ? '%' : ' (Rp)') + ' → contoh harga Rp10.000 jadi ' + rp(vpApplyMarkup(c.key, 10000))); any = true; }
+    });
+    if (!any) lines.push('(TIDAK ADA markup aktif — harga yang tampil = harga modal asli, tanpa tambahan sama sekali)');
+  }
+
+  showInfoModal('🩺 Debug Markup Harga', lines.join('\n'));
+}
+window.vpShowMarkupDebug = vpShowMarkupDebug;
 
 // Kolom settings.value di Supabase tipe text, jadi objek (kayak markupConfig)
 // bisa balik sebagai string JSON mentah, bukan objek. Helper ini parse aman
