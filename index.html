@@ -617,7 +617,7 @@ input[type=file]{display:none;}
 .verify-box.verified .verify-text{color:#fff;}
 
 /* NOTIF */
-.notif{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;z-index:500;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.5);white-space:nowrap;align-items:center;gap:8px;}
+.notif{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 20px;font-size:13px;z-index:500;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.5);white-space:pre-line;max-width:min(92vw,420px);text-align:center;align-items:center;gap:8px;}
 .notif.show{display:flex;animation:fadeUp .3s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 
@@ -2011,7 +2011,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
   <!-- Hero Image -->
   <div class="fs-img-wrap" id="fsImgWrap">
     <img id="fsImg" src="" alt="" onerror="this.style.display='none';document.getElementById('fsImgFallback').style.display='flex';">
-    <div id="fsImgFallback" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:64px;background:linear-gradient(135deg,#0c1f56,#1040a0);" id="fsImgFallback"></div>
+    <div id="fsImgFallback" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:64px;background:linear-gradient(135deg,#0c1f56,#1040a0);"></div>
     <div class="fs-img-gradient"></div>
     <span class="fs-plat-badge b-ios" id="fsPlatBadge"></span>
   </div>
@@ -2510,8 +2510,41 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       <div id="apRoleResult" style="font-size:11.5px;color:var(--muted);margin-top:8px;"></div>
       </div>
     </div>
+    <div class="ap-card">
+      <h3 onclick="toggleApCard(this)">TEST EMAIL ADMIN<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Kirim email percobaan ke admin (<b id="apTestEmailTarget"></b>) pakai konfigurasi EmailJS yang sekarang. Kalau gagal, alasannya bakal keliatan detail di sini — biasanya karena Template ID di EmailJS belum dibuat, atau field "To Email" di template belum diisi <code>{{to_email}}</code>.</div>
+      <button class="ap-save" onclick="apTestAdminEmail(this)" style="background:var(--accent2);color:#000;">📧 KIRIM EMAIL TEST</button>
+      <div id="apTestEmailResult" style="font-size:11.5px;margin-top:10px;white-space:pre-line;line-height:1.5;"></div>
+      </div>
+    </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const el = document.getElementById('apTestEmailTarget');
+  if (el && typeof ADMIN_NOTIF_EMAIL !== 'undefined') el.textContent = ADMIN_NOTIF_EMAIL;
+});
+async function apTestAdminEmail(btn){
+  const resEl = document.getElementById('apTestEmailResult');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Mengirim...'; }
+  resEl.style.color = 'var(--muted)';
+  resEl.textContent = 'Mengirim email test, tunggu sebentar...';
+  const now = new Date().toLocaleString('id-ID');
+  const ok = await sendAdminNotifEmail('🧪 Test Email Admin — ' + now, 'Ini email percobaan dari Admin Panel VinzPro.\nKalau kamu terima email ini, konfigurasi EmailJS-nya sudah beres.\n\nWaktu kirim: ' + now);
+  if (ok) {
+    resEl.style.color = 'var(--success)';
+    resEl.textContent = '✅ Berhasil terkirim! Cek inbox (atau folder Spam) di email admin.';
+    showNotif('✅ Email test berhasil dikirim!');
+  } else {
+    resEl.style.color = 'var(--danger)';
+    resEl.textContent = '❌ Gagal kirim.\nAlasan: ' + (window._lastAdminEmailError || 'tidak diketahui') + '\n\nCek lagi di dashboard EmailJS: apakah Template ID sudah dibuat, dan field "To Email" di template diisi {{to_email}}?';
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '📧 KIRIM EMAIL TEST'; }
+}
+window.apTestAdminEmail = apTestAdminEmail;
+</script>
 
 <!-- PENGATURAN AKUN PANEL -->
 <div id="settingsPanel">
@@ -3379,7 +3412,7 @@ function akCopy(inputId){
 window.akCopy = akCopy;
 
 async function akRegenerate(mode){
-  if (!confirm(`Yakin mau ganti kredensial ${mode}? Yang lama langsung gak berlaku lagi, integrasi kamu harus di-update.`)) return;
+  if (!(await confirmAsync(`Yakin mau ganti kredensial ${mode}? Yang lama langsung gak berlaku lagi, integrasi kamu harus di-update.`))) return;
   const token = await h2hGetAccessToken();
   if (!token) { showNotif('⚠️ Silakan login dulu.'); return; }
   try {
@@ -3603,7 +3636,7 @@ const ADMIN_NOTIF_EMAIL = 'alpintandjung@gmail.com';
 async function sendOTPEmail(toEmail, toName, code, subject) {
   // Kalau belum dikonfigurasi, fallback ke alert (mode dev)
   if (EJS_PUBLIC_KEY === 'GANTI_PUBLIC_KEY_KAMU') {
-    alert('📧 [DEV MODE] Kode OTP ke ' + toEmail + ':\n\n' + code + '\n\n(Konfigurasi EmailJS untuk kirim email beneran)');
+    showInfoModal('📧 Kode OTP (Dev Mode)', 'Kode OTP ke ' + toEmail + ':\n\n' + code + '\n\n(Konfigurasi EmailJS untuk kirim email beneran)');
     return true;
   }
   try {
@@ -3621,7 +3654,7 @@ async function sendOTPEmail(toEmail, toName, code, subject) {
     showNotif('❌ EmailJS: ' + detail, 'var(--danger)');
     // Fallback: tampilkan OTP via alert supaya tetap bisa dipakai
     setTimeout(() => {
-      alert('⚠️ Email gagal terkirim!\nError: ' + detail + '\n\n📋 Kode OTP kamu (darurat):\n' + code + '\n\nSilakan hubungi admin jika masalah berlanjut.');
+      showInfoModal('⚠️ Email Gagal Terkirim', 'Error: ' + detail + '\n\n📋 Kode OTP kamu (darurat):\n' + code + '\n\nSilakan hubungi admin jika masalah berlanjut.');
     }, 500);
     return true; // return true biar flow tetap lanjut
   }
@@ -4090,8 +4123,77 @@ function rp(n) { return 'Rp ' + Number(n).toLocaleString('id-ID'); }
 function showNotif(msg, color) {
   const el = document.getElementById('notif');
   el.textContent = msg; el.style.borderColor = color || 'var(--border)';
-  el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2600);
+  el.classList.add('show');
+  const ms = Math.min(6000, Math.max(2600, msg.length * 55));
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), ms);
 }
+
+// ══════════════════════════════
+// CONFIRM MODAL CUSTOM — gantiin window.confirm() bawaan browser (putih polos,
+// keluar dari tema gelap-neon app) dengan modal sendiri yang matching desain.
+// Dipakai via: if (!(await confirmAsync('Yakin?'))) return;
+// ══════════════════════════════
+function confirmAsync(message) {
+  return new Promise((resolve) => {
+    let overlay = document.getElementById('vpConfirmOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'vpConfirmOverlay';
+      overlay.style.cssText = 'display:none;position:fixed;inset:0;z-index:99999;background:rgba(6,8,20,0.72);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px;';
+      overlay.innerHTML = `
+        <div id="vpConfirmBox" style="width:100%;max-width:340px;background:linear-gradient(155deg,#12142b,#0b0d1f);border:1px solid var(--border, rgba(77,91,255,0.3));border-radius:16px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+          <div id="vpConfirmMsg" style="color:var(--text,#e8ebf5);font-family:'Rajdhani',sans-serif;font-size:15px;line-height:1.5;white-space:pre-line;margin-bottom:18px;"></div>
+          <div style="display:flex;gap:10px;">
+            <button id="vpConfirmNo" style="flex:1;background:var(--card2,#1a1c33);color:var(--muted,#8a8fa3);border:1px solid var(--border,rgba(77,91,255,0.3));border-radius:9px;padding:11px 0;font-weight:700;font-family:'Rajdhani',sans-serif;font-size:14px;cursor:pointer;">Batal</button>
+            <button id="vpConfirmYes" style="flex:1;background:linear-gradient(135deg,#4d5bff,#00d4ff);color:#000;border:none;border-radius:9px;padding:11px 0;font-weight:800;font-family:'Rajdhani',sans-serif;font-size:14px;cursor:pointer;">Ya, Lanjutkan</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+    }
+    document.getElementById('vpConfirmMsg').textContent = message;
+    overlay.style.display = 'flex';
+    const yesBtn = document.getElementById('vpConfirmYes');
+    const noBtn = document.getElementById('vpConfirmNo');
+    const cleanup = (result) => {
+      overlay.style.display = 'none';
+      yesBtn.onclick = null; noBtn.onclick = null;
+      resolve(result);
+    };
+    yesBtn.onclick = () => cleanup(true);
+    noBtn.onclick = () => cleanup(false);
+    overlay.onclick = (e) => { if (e.target === overlay) cleanup(false); };
+  });
+}
+window.confirmAsync = confirmAsync;
+
+// ══════════════════════════════
+// INFO MODAL CUSTOM — buat pesan penting yang harus dibaca/disalin user
+// (kode OTP darurat, key hasil pembelian, dll), gak auto-ilang kayak toast.
+// Dipakai via: showInfoModal('Judul', 'Isi pesan...');
+// ══════════════════════════════
+function showInfoModal(title, message) {
+  let overlay = document.getElementById('vpInfoOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'vpInfoOverlay';
+    overlay.style.cssText = 'display:none;position:fixed;inset:0;z-index:99999;background:rgba(6,8,20,0.72);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px;';
+    overlay.innerHTML = `
+      <div style="width:100%;max-width:360px;background:linear-gradient(155deg,#12142b,#0b0d1f);border:1px solid var(--border, rgba(77,91,255,0.3));border-radius:16px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+        <div id="vpInfoTitle" style="color:var(--accent2,#00d4ff);font-family:'Orbitron',sans-serif;font-weight:800;font-size:14px;letter-spacing:.5px;margin-bottom:10px;"></div>
+        <div id="vpInfoMsg" style="color:var(--text,#e8ebf5);font-family:'Rajdhani',sans-serif;font-size:15px;line-height:1.6;white-space:pre-line;word-break:break-word;margin-bottom:18px;max-height:50vh;overflow-y:auto;"></div>
+        <button id="vpInfoOk" style="width:100%;background:linear-gradient(135deg,#4d5bff,#00d4ff);color:#000;border:none;border-radius:9px;padding:12px 0;font-weight:800;font-family:'Rajdhani',sans-serif;font-size:14px;cursor:pointer;">Oke, Mengerti</button>
+      </div>`;
+    document.body.appendChild(overlay);
+  }
+  document.getElementById('vpInfoTitle').textContent = title || '';
+  document.getElementById('vpInfoMsg').textContent = message;
+  overlay.style.display = 'flex';
+  const okBtn = document.getElementById('vpInfoOk');
+  const close = () => { overlay.style.display = 'none'; };
+  okBtn.onclick = close;
+  overlay.onclick = (e) => { if (e.target === overlay) close(); };
+}
+window.showInfoModal = showInfoModal;
 
 // ══════════════════════════════
 // HEADER
@@ -5565,7 +5667,7 @@ async function saveAvatar() {
 
 async function deleteAvatar(){
   if (!currentUser) { showNotif('⚠️ Login dulu'); return; }
-  if (!confirm('Hapus foto profil?')) return;
+  if (!(await confirmAsync('Hapus foto profil?'))) return;
   try {
     try { await _sb.from('users').update({ avatar: null }).eq('email', currentUser.email); } catch(e) {}
     currentUser.avatarData = null;
@@ -5925,7 +6027,7 @@ function openOtpVerifyModal() {
   otpEmail = currentUser.email;
   otpPendingUser = null; // tidak perlu, sudah punya akun
   setTimeout(() => {
-    alert('📧 VERIFIKASI EMAIL VINZPRO\n\nKode OTP: ' + otpCode + '\n\nMasukkan kode ini untuk melanjutkan order.\n(Simulasi — di aplikasi nyata dikirim ke email)');
+    showInfoModal('📧 Verifikasi Email', 'Kode OTP: ' + otpCode + '\n\nMasukkan kode ini untuk melanjutkan order.\n(Simulasi — di aplikasi nyata dikirim ke email)');
   }, 100);
   // Tampilkan step 2 (OTP) via authOverlay
   document.getElementById('authOverlay').classList.add('open');
@@ -6080,8 +6182,8 @@ function apBannerAddUrl(){
   document.getElementById('apBannerUrl').value = '';
   showNotif('✅ Banner ditambahkan!');
 }
-function apBannerRemove(i){
-  if (!confirm('Hapus banner ini?')) return;
+async function apBannerRemove(i){
+  if (!(await confirmAsync('Hapus banner ini?'))) return;
   const arr = getBanners();
   arr.splice(i, 1);
   setBanners(arr);
@@ -6132,8 +6234,8 @@ function apPromoBannerAddUrl(){
   document.getElementById('apPromoBannerUrl').value = '';
   showNotif('✅ Banner promo ditambahkan!');
 }
-function apPromoBannerRemove(i){
-  if (!confirm('Hapus banner promo ini?')) return;
+async function apPromoBannerRemove(i){
+  if (!(await confirmAsync('Hapus banner promo ini?'))) return;
   const arr = getPromoBanners();
   arr.splice(i, 1);
   setPromoBanners(arr);
@@ -6185,8 +6287,8 @@ function apHomePromoBannerAddUrl(){
   document.getElementById('apHomePromoBannerUrl').value = '';
   showNotif('✅ Banner beranda ditambahkan!');
 }
-function apHomePromoBannerRemove(i){
-  if (!confirm('Hapus banner beranda ini?')) return;
+async function apHomePromoBannerRemove(i){
+  if (!(await confirmAsync('Hapus banner beranda ini?'))) return;
   const arr = getHomePromoBanners();
   arr.splice(i, 1);
   setHomePromoBanners(arr);
@@ -6629,8 +6731,8 @@ function renderApDelete() {
     </div>
   `).join('');
 }
-function apDeleteProd(id) {
-  if (!confirm('Yakin hapus produk ini?')) return;
+async function apDeleteProd(id) {
+  if (!(await confirmAsync('Yakin hapus produk ini?'))) return;
   setProducts(getProducts().filter(x => x.id !== id));
   renderProducts(); renderApProds(); renderApDelete();
   showNotif('🗑️ Produk dihapus!');
@@ -6894,7 +6996,7 @@ async function kmAddKeys(){
   renderKeyManager();
 }
 async function kmDeleteOne(keyVal){
-  if (!confirm('Hapus key ini?')) return;
+  if (!(await confirmAsync('Hapus key ini?'))) return;
   const pid = parseInt(document.getElementById('kmProd').value);
   const vn  = document.getElementById('kmVar').value;
   try {
@@ -6910,7 +7012,7 @@ async function kmDeleteSold(){
   const pid = parseInt(document.getElementById('kmProd').value);
   const vn  = document.getElementById('kmVar').value;
   if (!pid || !vn) return;
-  if (!confirm('Hapus semua key SOLD?')) return;
+  if (!(await confirmAsync('Hapus semua key SOLD?'))) return;
   try {
     const pw = sessionStorage.getItem('vp_admin_pw') || localStorage.getItem('vp_admin_pw') || '';
     if (!pw) { showNotif('❌ Password admin kosong'); return; }
@@ -6930,7 +7032,7 @@ function orderQRIS(){
   if (!currentUser.verified){ closeProdModalBtn(); openOtpVerifyModal(); return; }
   // GATE: kalau simulasi OFF, tampilkan alert maintenance & stop
   if (!getQrSim()){
-    alert('🛠️ QRIS sedang maintenance.\n\nSilakan gunakan metode pembayaran WhatsApp untuk sementara.');
+    showNotif('🛠️ QRIS sedang maintenance. Gunakan WhatsApp untuk sementara.');
     return;
   }
   const p = getProducts().find(x => x.id === selProdId);
@@ -7937,7 +8039,7 @@ function doPesan(){
       return;
     }
     if (typeof getQrSim==='function' && !getQrSim()){
-      alert('🛠️ QRIS sedang maintenance.\n\nSilakan gunakan metode pembayaran WhatsApp untuk sementara.');
+      showNotif('🛠️ QRIS sedang maintenance. Gunakan WhatsApp untuk sementara.');
       return;
     }
     const p = getProducts().find(x => x.id === selProdId);
@@ -9430,8 +9532,8 @@ function doPesan(){
     if (typeof showNotif==='function') showNotif('🔑 Key terkirim ke '+email);
     window.__renderAdminTrx();
   };
-  window.__trxDel = function(id, email){
-    if (!confirm('Hapus transaksi '+id+' ?')) return;
+  window.__trxDel = async function(id, email){
+    if (!(await confirmAsync('Hapus transaksi '+id+' ?'))) return;
     const all = getAllTrx().filter(x=>!(x.id===id && (x.email||'')===email));
     setAllTrx(all);
     if (email){
@@ -10125,56 +10227,14 @@ function doPesan(){
     };
   }
 
-  // --- Inject toggle WA di panel key admin ---
-  const _origRKM = window.renderKeyManager;
-  if (typeof _origRKM === 'function'){
-    window.renderKeyManager = function(){
-      const r = _origRKM.apply(this, arguments);
-      try {
-        const pidEl = document.getElementById('kmProd');
-        const vnEl  = document.getElementById('kmVar');
-        const stats = document.getElementById('kmStats');
-        if (!pidEl || !vnEl || !stats) return r;
-        const pid = parseInt(pidEl.value); const vn = vnEl.value;
-        if (!pid || !vn) return r;
-        const waOk = window._waAvail(pid, vn);
-        let row = document.getElementById('kmWaToggle');
-        if (!row){
-          row = document.createElement('div');
-          row.id = 'kmWaToggle';
-          row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;margin:8px 0;background:var(--card2);border:1px solid var(--border);border-radius:8px;';
-          stats.parentNode.insertBefore(row, stats.nextSibling);
-        }
-        row.innerHTML =
-          '<span style="font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;color:var(--accent2);">STOK WA (manual):</span>'+
-          '<span id="kmWaBadge" style="font-size:10px;font-weight:900;padding:4px 10px;border-radius:6px;font-family:Orbitron,sans-serif;'+
-            (waOk?'background:var(--success);color:#000;':'background:var(--danger);color:#fff;')+'">'+
-            (waOk?'TERSEDIA':'HABIS')+
-          '</span>'+
-          '<button onclick="kmToggleWa()" style="margin-left:auto;background:'+(waOk?'#ff4757':'#00ff88')+';color:'+(waOk?'#fff':'#000')+';border:none;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:900;font-family:Orbitron,sans-serif;cursor:pointer;">'+
-            (waOk?'TANDAI WA HABIS':'TANDAI WA READY')+
-          '</button>';
-      } catch(e){}
-      return r;
-    };
-  }
-  window.kmToggleWa = function(){
-    const pid = parseInt(document.getElementById('kmProd').value);
-    const vn  = document.getElementById('kmVar').value;
-    if (!pid || !vn) return;
-    const cur = window._waAvail(pid, vn);
-    window._waSetAvail(pid, vn, !cur);
-    try { showNotif(!cur ? '✅ WA ditandai TERSEDIA' : '⚠️ WA ditandai HABIS'); } catch(e){}
-    try { renderKeyManager(); } catch(e){}
-    try { refreshPayMethodAvailability(); } catch(e){}
-    // Refresh tampilan varian kalau fullscreen produk lagi terbuka
-    try {
-      const p = getProducts().find(x=>x.id===selProdId);
-      if (p) renderFsVars(p);
-    } catch(e){}
-  };
+  // Catatan: injeksi baris toggle "STOK WA" & window.kmToggleWa dulunya ada
+  // di sini juga (versi lama), tapi udah TUMPANG TINDIH sama implementasi
+  // yang lebih lengkap di "VINZ PATCH 3: WA toggle robust" di bawah —
+  // dobel render tiap kali panel Key Manager dibuka. Dihapus dari sini,
+  // dipakai punya Patch 3 aja.
 })();
 </script>
+
 
 
 <script>
@@ -10586,7 +10646,7 @@ function doPesan(){
     if (_vpTopupQrisLock) return;
 
     const amt = parseInt(document.getElementById('topupAmt').value||0)||0;
-    if (amt < 10000){ alert('Minimal top up Rp 10.000'); return; }
+    if (amt < 10000){ showNotif('⚠️ Minimal top up Rp 10.000'); return; }
     _vpTopupQrisLock = true;
     setTimeout(()=>{ _vpTopupQrisLock = false; }, 3000);
 
@@ -11052,11 +11112,11 @@ function doPesan(){
   };
 
   async function payWithSaldo(){
-    const c = curVar(); if (!c){ alert('Produk tidak valid'); return; }
+    const c = curVar(); if (!c){ showNotif('❌ Produk tidak valid'); return; }
     const need = (typeof qty==='number'&&qty>0)?qty:1;
     const total = totalNeeded();
     if (getBal() < total){ try{ showNotif('❌ Saldo kurang'); }catch(e){} return; }
-    if (!confirm('Bayar '+rp(total)+' pakai saldo?\nSaldo: '+rp(getBal()))) return;
+    if (!(await confirmAsync('Bayar '+rp(total)+' pakai saldo?\nSaldo: '+rp(getBal())))) return;
 
     // Ambil key dari stok
     let keys = [];
@@ -11318,8 +11378,8 @@ function doPesan(){
     try{ showNotif('✅ Menu "'+label+'" ditambahkan'); }catch(e){}
   };
 
-  window.apDeleteMenuBeranda = function(id){
-    if (!confirm('Hapus menu ini?')) return;
+  window.apDeleteMenuBeranda = async function(id){
+    if (!(await confirmAsync('Hapus menu ini?'))) return;
     deleteCustomMenuDB(id);
   };
 
@@ -11400,23 +11460,23 @@ function doPesan(){
   window.renderAdminTopups = renderAdminTopups;
   window.apTopupApprove = async function(id){
     const t = _topupCache.find(x=>x.id===id); if (!t) return;
-    if (!confirm('Setujui top up '+rp(t.amount)+' untuk '+t.email+'?')) return;
+    if (!(await confirmAsync('Setujui top up '+rp(t.amount)+' untuk '+t.email+'?'))) return;
     try {
       await addBalByEmail(t.email, t.amount);
       await updateTopupStatus(id, 'sukses');
       try { _topupToRiwayat({ ...t, status:'sukses' }); } catch(_){}
-      alert('✅ Saldo ditambahkan');
+      showNotif('✅ Saldo ditambahkan');
     } catch(e){ alert('❌ '+e.message); }
   };
   window.apTopupReject = async function(id){
     const t = _topupCache.find(x=>x.id===id); if (!t) return;
-    if (!confirm('Tolak permintaan #'+t.id+'?')) return;
+    if (!(await confirmAsync('Tolak permintaan #'+t.id+'?'))) return;
     await updateTopupStatus(id, 'ditolak');
     try { _topupToRiwayat({ ...t, status:'ditolak' }); } catch(_){}
   };
   window.apTopupDelete = async function(id){
     const t = _topupCache.find(x=>x.id===id);
-    if (!confirm('Hapus permintaan?')) return;
+    if (!(await confirmAsync('Hapus permintaan?'))) return;
     await deleteTopupDB(id);
     if (t){
       try {
@@ -11654,7 +11714,7 @@ function doPesan(){
             try {
               showNotif('❌ Saldo tidak cukup! Saldo kamu '+rp(bal)+', butuh '+rp(total)+' (kurang '+rp(kurang)+'). Top up dulu di Pengaturan.');
             } catch(e){
-              alert('Saldo tidak cukup!\nSaldo: '+rp(bal)+'\nButuh: '+rp(total)+'\nKurang: '+rp(kurang)+'\n\nSilakan top up di menu Pengaturan.');
+              showInfoModal('❌ Saldo Tidak Cukup', 'Saldo: '+rp(bal)+'\nButuh: '+rp(total)+'\nKurang: '+rp(kurang)+'\n\nSilakan top up di menu Pengaturan.');
             }
             try { setTimeout(()=>{ if (typeof showPengaturan==='function') showPengaturan(); }, 600); } catch(e){}
             return;
@@ -11923,7 +11983,7 @@ function updateBulkInfo(){
   }catch(e){}
 }
 
-window.vinzBulkAction = function(isAvail){
+window.vinzBulkAction = async function(isAvail){
   if(!_bulkProd){
     try{ showNotif('❌ Pilih produk dulu!'); }catch(e){ alert('Pilih produk dulu!'); }
     return;
@@ -11941,7 +12001,7 @@ window.vinzBulkAction = function(isAvail){
   const varLabel = _bulkVar === '__ALL__' ? 'SEMUA VARIAN' : _bulkVar;
   const payLabel = Array.from(_bulkPay).join('+').toUpperCase();
   const statusLabel = isAvail ? 'READY ✅' : 'HABIS 🚫';
-  const confirm_ = confirm(`Tandai ${statusLabel} untuk:\nProduk: ${prodLabel}\nVarian: ${varLabel}\nPayment: ${payLabel}\n\nLanjutkan?`);
+  const confirm_ = await confirmAsync(`Tandai ${statusLabel} untuk:\nProduk: ${prodLabel}\nVarian: ${varLabel}\nPayment: ${payLabel}\n\nLanjutkan?`);
   if(!confirm_) return;
   const n = window.vinzBulkSet(_bulkProd, _bulkVar, Array.from(_bulkPay), isAvail);
   try{ showNotif(`${isAvail?'✅':'🚫'} ${prodLabel} · ${varLabel} · ${payLabel} → ${isAvail?'READY':'HABIS'}`); }catch(e){}
@@ -12078,7 +12138,7 @@ setTimeout(tryInject, 1500);
         try { setTimeout(function(){ if (typeof showPengaturan==='function') showPengaturan(); }, 700); } catch(e){}
         return;
       }
-      if (!confirm('Bayar '+rp(total)+' pakai saldo?\nSaldo: '+rp(bal)+'\nSisa: '+rp(bal-total))) return;
+      if (!(await confirmAsync('Bayar '+rp(total)+' pakai saldo?\nSaldo: '+rp(bal)+'\nSisa: '+rp(bal-total)))) return;
 
       // ── LOADING OVERLAY (animasi memproses pembayaran) ──
       var _ov = document.getElementById('saldoLoadOv');
@@ -12360,7 +12420,7 @@ async function setDeviceLimit(deviceId){
 async function deleteDevice(id, name){
   const pw = sessionStorage.getItem('vp_admin_pw');
   if(!pw){ showNotif('❌ Login admin dulu'); return; }
-  if(!confirm('Hapus device "'+name+'" dari daftar?\nTidak bisa dibatalkan!')) return;
+  if(!(await confirmAsync('Hapus device "'+name+'" dari daftar?\nTidak bisa dibatalkan!'))) return;
   try {
     const { error } = await _sb.rpc('admin_delete_device', { p_pass: pw, p_device_id: id });
     if(error) throw error;
@@ -12786,7 +12846,7 @@ function payXenditDone(){
   } catch(e){}
   closeQrPayment(); qrPending=null;
   showNotif('Pembayaran sukses!');
-  setTimeout(()=>alert('PEMBAYARAN SUKSES\n\nKey:\n'+keys.join('\n')+'\n\nSimpan baik-baik!'),300);
+  setTimeout(()=>showInfoModal('✅ Pembayaran Sukses', 'Key:\n'+keys.join('\n')+'\n\nSimpan baik-baik!'),300);
 }
 
 // ===== PAYMENT CONFIRM MODAL =====
@@ -13189,8 +13249,8 @@ function tdpSendBuktiToAdmin(){
 }
 window.tdpSendBuktiToAdmin = tdpSendBuktiToAdmin;
 
-function tdpCancelDeposit(){
-  if (!confirm('Batalkan deposit ini? Tindakan ini tidak dapat diurungkan.')) return;
+async function tdpCancelDeposit(){
+  if (!(await confirmAsync('Batalkan deposit ini? Tindakan ini tidak dapat diurungkan.'))) return;
   const t = _tdpCurrentTrx;
   clearInterval(_vpTopupPollTimer);
   clearInterval(_vpTopupCountdownTimer);
@@ -15323,7 +15383,7 @@ function appLockShowError(msg){
 async function pinGateRequire(subtitleText){
   const sudahAdaPin = await pinHasPin();
   if (!sudahAdaPin) {
-    const mauSet = confirm('Kamu belum set PIN Transaksi. Set sekarang demi keamanan akun?');
+    const mauSet = await confirmAsync('Kamu belum set PIN Transaksi. Set sekarang demi keamanan akun?');
     if (mauSet) { pinSetupOpen(); }
     return null;
   }
@@ -15572,13 +15632,13 @@ async function h2hCheckout(opts){
   const { category, product_code, dest, payment_method, quantity, customer_name, display_label, display_nominal, display_provider } = opts;
 
   if (!category || !product_code || !dest || !payment_method) {
-    alert('Data pembelian belum lengkap.');
+    showNotif('⚠️ Data pembelian belum lengkap.');
     return;
   }
 
   const token = await h2hGetAccessToken();
   if (!token) {
-    alert('Silakan login dulu untuk melakukan pembelian.');
+    showNotif('⚠️ Silakan login dulu untuk melakukan pembelian.');
     return;
   }
 
