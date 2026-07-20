@@ -4037,8 +4037,8 @@ window._markupReadyPromise = loadMarkupSettings();
 // masalah nyambung ke server.
 // ══════════════════════════════
 async function vpShowMarkupDebug(){
-  if (window._pricingReadyPromise) { try { await window._pricingReadyPromise; } catch(e){} }
-  else { await window._markupReadyPromise; }
+  await window._markupReadyPromise;
+  await vpApplyReferralPricing(); // jalanin ULANG dari nol khusus buat debug ini, biar jejaknya pasti yang terbaru
   const diag = window._markupLoadDiag || { ok: false, reason: 'belum sempat dicoba' };
   const role = currentUser ? (currentUser.role || 'member') : '(belum login)';
   const email = currentUser ? currentUser.email : '-';
@@ -4086,6 +4086,16 @@ async function vpShowMarkupDebug(){
     });
     if (!any) lines.push('(TIDAK ADA markup aktif — harga yang tampil = harga modal asli, tanpa tambahan sama sekali)');
   }
+
+  lines.push('');
+  lines.push('— Jejak proses hitung tier (teknis) —');
+  const pdi = window._pricingDebugInfo || {};
+  lines.push('Step terakhir: ' + (pdi.step || '(gak sempat jalan sama sekali)'));
+  if (pdi.step === 'EXCEPTION') lines.push('❌ ERROR: ' + pdi.error);
+  if (pdi.selfErr) lines.push('❌ Error ambil custom_markup: ' + pdi.selfErr);
+  if (pdi.refErr) lines.push('❌ Error ambil data referrer: ' + pdi.refErr);
+  if (pdi.step === 'fetched_self') lines.push('Data custom_markup ketemu: ' + (pdi.hasData ? 'ya' : 'tidak (kosong/null)'));
+  if (pdi.step === 'ratio_check') lines.push('⚠️ Berhenti di sini — ratio: ' + pdi.ratio + ' (kalau ini kosong/undefined, role "' + pdi.role + '" gak dikenali sebagai reseller/agen)');
 
   showInfoModal('🩺 Debug Markup Harga', lines.join('\n'));
 }
@@ -4141,35 +4151,41 @@ window.pcShowTopProgress = pcShowTopProgress;
 window.pcHideTopProgress = pcHideTopProgress;
 
 async function vpApplyReferralPricing() {
+  window._pricingDebugInfo = { step: 'start' };
   try {
     // SELALU mulai dari markup admin asli (baseline), bukan dari
     // markupConfig yang mungkin masih sisa override akun sebelumnya —
     // ini yang bikin harga "nyangkut" ke markup lama pas ganti akun.
     const baseline = window._adminMarkupConfig || markupConfig;
+    window._pricingDebugInfo = { step: 'baseline_ok', baselineKeys: Object.keys(baseline).length };
     if (!currentUser) {
       markupConfig = { ...baseline };
+      window._pricingDebugInfo = { step: 'no_user_use_baseline' };
       return;
     }
 
     let ratio = VP_TIER_RATIO[currentUser.role];
     let custom = {};
+    window._pricingDebugInfo = { step: 'ratio_check', role: currentUser.role, ratio: ratio };
 
     if (ratio) {
       // Case 1: akun yang login ITU SENDIRI reseller/agen -> pakai tier &
       // markup custom dia sendiri buat harga yang dia bayar SENDIRI, gak
       // perlu nunggu direferensiin orang lain.
-      const { data: self } = await _sb.from('users')
+      const { data: self, error: selfErr } = await _sb.from('users')
         .select('custom_markup')
         .eq('email', currentUser.email)
         .single();
+      window._pricingDebugInfo = { step: 'fetched_self', selfErr: selfErr ? selfErr.message : null, hasData: !!self };
       custom = vpParseJsonSetting(self && self.custom_markup) || {};
     } else if (currentUser.referred_by) {
       // Case 2: member biasa yang didaftarkan pakai kode referral seorang
       // reseller/agen AKTIF -> pakai markup reseller/agen yang mengundangnya.
-      const { data: referrer } = await _sb.from('users')
+      const { data: referrer, error: refErr } = await _sb.from('users')
         .select('role,custom_markup')
         .eq('email', currentUser.referred_by)
         .single();
+      window._pricingDebugInfo = { step: 'fetched_referrer', refErr: refErr ? refErr.message : null };
       const refRatio = referrer && VP_TIER_RATIO[referrer.role];
       if (refRatio) {
         ratio = refRatio;
@@ -4179,6 +4195,7 @@ async function vpApplyReferralPricing() {
 
     if (!ratio) {
       markupConfig = { ...baseline }; // member biasa, gak ada hubungan reseller/agen -> markup admin polos
+      window._pricingDebugInfo = { step: 'no_ratio_use_baseline' };
       return;
     }
 
@@ -4195,7 +4212,11 @@ async function vpApplyReferralPricing() {
         : { type: adminCfg.type, value: Math.round((Number(adminCfg.value) || 0) * ratio * 100) / 100 };
     });
     markupConfig = merged; // dipakai otomatis oleh semua pemanggil vpApplyMarkup
-  } catch (e) { console.warn('vpApplyReferralPricing error:', e); }
+    window._pricingDebugInfo = { step: 'done_ok', ratio, mergedSample: merged['pulsa'] };
+  } catch (e) {
+    console.warn('vpApplyReferralPricing error:', e);
+    window._pricingDebugInfo = { step: 'EXCEPTION', error: (e && (e.message || e.toString())) || 'unknown' };
+  }
 }
 window.vpApplyReferralPricing = vpApplyReferralPricing;
 
@@ -15291,8 +15312,8 @@ function _pinSleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 // h2hGetAccessToken() bisa balikin null sesaat. Makanya di sini kita retry
 // beberapa kali dulu (bukan langsung nyerah/return false) sebelum
 // disimpulkan "belum ada token" beneran.
-async function pinHasPin(){
-  if (_pinHasPinCache !== null) return _pinHasPinCache;
+async function pinCheckStatus(){
+  if (_pinHasPinCache !== null) return { ok: true, hasPin: _pinHasPinCache };
 
   let token = null;
   const maxRetry = 6;        // total ~ (300+400+500+600+700+800) = 3.3 detik
@@ -15301,17 +15322,31 @@ async function pinHasPin(){
     if (token) break;
     await _pinSleep(300 + i * 100);
   }
-  if (!token) return false; // gak dicache -> kalau dipanggil lagi nanti, dicoba ulang dari awal
+  // PENTING: kalau token gak kedapetan (misal koneksi lagi lemot pas app
+  // baru dibuka) ATAU request ke server gagal/timeout, JANGAN di-cache
+  // sebagai "false" (belum ada PIN) — itu bikin app nganggep PIN gak
+  // pernah ada selama-lamanya walau sebenernya PIN-nya beneran ada di
+  // server, dan user jadi disuruh bikin PIN baru mulu padahal udah pernah
+  // bikin. Cuma hasil PASTI dari server ("has_pin": true/false) yang
+  // boleh di-cache; kegagalan verifikasi TIDAK PERNAH permanen.
+  if (!token) return { ok: false, hasPin: false, reason: 'no_session' };
 
   try {
     const res = await fetch(`${H2H_WORKER_URL}/pin/has-pin`, {
       headers: { Authorization: 'Bearer ' + token }
     });
-    const j = await res.json().catch(() => ({}));
-    _pinHasPinCache = !!j.has_pin;
-    return _pinHasPinCache;
-  } catch { return false; }
+    if (!res.ok) return { ok: false, hasPin: false, reason: 'server_error_' + res.status };
+    const j = await res.json().catch(() => null);
+    if (!j || typeof j.has_pin === 'undefined') return { ok: false, hasPin: false, reason: 'bad_response' };
+    _pinHasPinCache = !!j.has_pin; // INI aja yang boleh permanen, karena beneran jawaban server
+    return { ok: true, hasPin: _pinHasPinCache };
+  } catch { return { ok: false, hasPin: false, reason: 'network_error' }; }
 }
+async function pinHasPin(){
+  const st = await pinCheckStatus();
+  return st.hasPin; // dipertahankan buat kompatibilitas kode lama yang masih manggil ini
+}
+window.pinResetHasPinCache = function(){ _pinHasPinCache = null; };
 
 // --- Dipanggil dari h2hCheckout() sebelum kirim transaksi.
 //     Balikin pin_token kalau PIN benar, atau null kalau user batal/belum set PIN. ---
@@ -15492,8 +15527,15 @@ function appLockShowError(msg){
 
 
 async function pinGateRequire(subtitleText){
-  const sudahAdaPin = await pinHasPin();
-  if (!sudahAdaPin) {
+  const status = await pinCheckStatus();
+  if (!status.ok) {
+    // Gagal VERIFIKASI (bukan konfirmasi beneran gak ada PIN) — jangan
+    // asumsikan user belum pernah bikin PIN, kasih tau apa adanya & minta
+    // coba lagi, biar gak nyuruh bikin PIN baru padahal udah pernah bikin.
+    showNotif('⚠️ Gagal cek status PIN (koneksi lambat/terputus). Coba lagi sebentar.', 'var(--danger)');
+    return null;
+  }
+  if (!status.hasPin) {
     const mauSet = await confirmAsync('Kamu belum set PIN Transaksi. Set sekarang demi keamanan akun?');
     if (mauSet) { pinSetupOpen(); }
     return null;
