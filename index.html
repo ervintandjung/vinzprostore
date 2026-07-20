@@ -1503,13 +1503,22 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     </div>
 
     <div class="ppob-card">
-      <div class="ppob-label">FILTER</div>
+      <div class="ppob-label">FILTER DURASI</div>
       <div class="ppob-chips" id="dataFilterRow">
-        <div class="ppob-chip active" data-cat="all" onclick="filterDataNominal(this,'all')">Semua</div>
-        <div class="ppob-chip" data-cat="7hari" onclick="filterDataNominal(this,'7hari')">7 Hari</div>
-        <div class="ppob-chip" data-cat="30hari" onclick="filterDataNominal(this,'30hari')">30 Hari</div>
-        <div class="ppob-chip" data-cat="unlimited" onclick="filterDataNominal(this,'unlimited')">Unlimited</div>
-        <div class="ppob-chip" data-cat="murah" onclick="filterDataNominal(this,'murah')">&lt; Rp20.000</div>
+        <div class="ppob-chip active" data-cat="all" onclick="filterDataNominal(this,'days','all')">Semua</div>
+        <div class="ppob-chip" data-cat="1hari" onclick="filterDataNominal(this,'days','1hari')">1 Hari</div>
+        <div class="ppob-chip" data-cat="2-7hari" onclick="filterDataNominal(this,'days','2-7hari')">2-7 Hari</div>
+        <div class="ppob-chip" data-cat="14-28hari" onclick="filterDataNominal(this,'days','14-28hari')">14-28 Hari</div>
+        <div class="ppob-chip" data-cat="30hari" onclick="filterDataNominal(this,'days','30hari')">30 Hari</div>
+        <div class="ppob-chip" data-cat="unlimited" onclick="filterDataNominal(this,'days','unlimited')">Unlimited</div>
+      </div>
+      <div class="ppob-label" style="margin-top:14px;">FILTER HARGA</div>
+      <div class="ppob-chips" id="dataFilterPriceRow">
+        <div class="ppob-chip active" data-cat="all" onclick="filterDataNominal(this,'price','all')">Semua</div>
+        <div class="ppob-chip" data-cat="0-10rb" onclick="filterDataNominal(this,'price','0-10rb')">Rp0 - 10rb</div>
+        <div class="ppob-chip" data-cat="10-50rb" onclick="filterDataNominal(this,'price','10-50rb')">Rp10rb - 50rb</div>
+        <div class="ppob-chip" data-cat="50-100rb" onclick="filterDataNominal(this,'price','50-100rb')">Rp50rb - 100rb</div>
+        <div class="ppob-chip" data-cat="100rb+" onclick="filterDataNominal(this,'price','100rb+')">&gt; Rp100rb</div>
       </div>
     </div>
 
@@ -14883,15 +14892,54 @@ function confirmPpobBayar(){
 }
 
 // ── FILTER PAKET DATA ──
-function filterDataNominal(el, cat){
-  const row = document.getElementById('dataFilterRow');
+// Ekstrak jumlah hari dari nama paket (mis. "5GB 7 Hari", "Unlimited 30
+// Hari", "3GB/Sebulan") pakai regex, karena data H2H gak nyimpen field
+// "durasi" terpisah — cuma ada di teks nama produknya.
+function h2hExtractDays(label){
+  const s = (label || '').toLowerCase();
+  if (/unlimited|unlim\b|tanpa\s*batas/.test(s)) return 'unlimited';
+  let m = s.match(/(\d+)\s*(hari|hr\b|day)/);
+  if (m) return parseInt(m[1], 10);
+  if (/sebulan|1\s*bulan|30\s*hr\b/.test(s)) return 30;
+  if (/seminggu|1\s*minggu/.test(s)) return 7;
+  return null; // durasi gak kedeteksi dari nama produk
+}
+function h2hDaysBucket(days){
+  if (days === 'unlimited') return 'unlimited';
+  if (days == null) return null;
+  if (days <= 1) return '1hari';
+  if (days >= 2 && days <= 7) return '2-7hari';
+  if (days >= 14 && days <= 28) return '14-28hari';
+  if (days >= 29) return '30hari';
+  return null; // 8-13 hari: kasus jarang, gak masuk salah satu bucket spesifik
+}
+function h2hPriceBucket(price){
+  const p = Number(price) || 0;
+  if (p <= 10000) return '0-10rb';
+  if (p <= 50000) return '10-50rb';
+  if (p <= 100000) return '50-100rb';
+  return '100rb+';
+}
+window._dataFilterState = { days: 'all', price: 'all' };
+function filterDataNominal(el, dimension, cat){
+  const rowId = dimension === 'price' ? 'dataFilterPriceRow' : 'dataFilterRow';
+  const row = document.getElementById(rowId);
   if (row) row.querySelectorAll('.ppob-chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
+  window._dataFilterState[dimension] = cat;
 
+  const st = window._dataFilterState;
   let visibleCount = 0;
   document.querySelectorAll('#dataNominal .ppob-nom').forEach(item => {
-    const cats = (item.getAttribute('data-cat') || '').split(' ');
-    const match = cat === 'all' || cats.includes(cat);
+    const label = item.getAttribute('data-nom') || '';
+    const price = item.getAttribute('data-price') || 0;
+    const daysBucket = h2hDaysBucket(h2hExtractDays(label));
+    const priceBucket = h2hPriceBucket(price);
+
+    const matchDays = st.days === 'all' || daysBucket === st.days;
+    const matchPrice = st.price === 'all' || priceBucket === st.price;
+    const match = matchDays && matchPrice;
+
     item.style.display = match ? '' : 'none';
     if (match) visibleCount++;
   });
@@ -15081,6 +15129,26 @@ function h2hRenderNomGrid(containerId, ppobType, rows){
   if (freeCard) {
     freeCard.classList.add('active');
     openFreeNominalPanel(freeCard, ppobType);
+  }
+
+  // Grid Paket Data reload (ganti nomor/provider) -> filter durasi/harga
+  // yang lagi aktif dipertahankan, bukan ke-reset nampilin semua lagi.
+  if (ppobType === 'data' && window._dataFilterState && typeof h2hDaysBucket === 'function') {
+    const st = window._dataFilterState;
+    if (st.days !== 'all' || st.price !== 'all') {
+      let visibleCount = 0;
+      wrap.querySelectorAll('.ppob-nom').forEach(item => {
+        const label = item.getAttribute('data-nom') || '';
+        const price = item.getAttribute('data-price') || 0;
+        const daysBucket = h2hDaysBucket(h2hExtractDays(label));
+        const priceBucket = h2hPriceBucket(price);
+        const match = (st.days === 'all' || daysBucket === st.days) && (st.price === 'all' || priceBucket === st.price);
+        item.style.display = match ? '' : 'none';
+        if (match) visibleCount++;
+      });
+      const noRes = document.getElementById('dataNoResult');
+      if (noRes) noRes.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
   }
 }
 
