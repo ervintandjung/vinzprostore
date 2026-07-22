@@ -4105,13 +4105,18 @@ async function vpShowMarkupDebug(){
   lines.push('— Jejak proses hitung tier (teknis) —');
   const pdi = window._pricingDebugInfo || {};
   lines.push('Step terakhir: ' + (pdi.step || '(gak sempat jalan sama sekali)'));
-  if (pdi.step === 'EXCEPTION') lines.push('❌ ERROR: ' + pdi.error);
-  if (pdi.step === 'fetch_self_failed_fallback_ratio') lines.push('⚠️ Gagal ambil custom_markup (' + pdi.error + '), TAPI tetap lanjut pakai markup rasio tier polos (bukan kosong lagi).');
+  if (pdi.step === 'EXCEPTION') {
+    lines.push('❌ ERROR: ' + pdi.error);
+    lines.push(pdi.recoveredByFallback ? '✅ TAPI jaring pengaman aktif — markup rasio tier tetap dipaksa terpasang.' : '❌ Jaring pengaman JUGA gagal — markup kemungkinan kosong.');
+  }
+  if (pdi.step === 'ratio_applied_first') lines.push('✅ Markup rasio tier udah kepasang duluan (aman), lagi nyoba upgrade ke custom_markup...');
+  if (pdi.step === 'done_ok_with_custom') lines.push('✅ Upgrade ke custom_markup pribadi berhasil.');
+  if (pdi.step === 'done_ok_no_custom') lines.push('✅ Belum ada custom_markup pribadi — pakai rasio tier default.');
+  if (pdi.step === 'fetch_self_failed_fallback_ratio') lines.push('⚠️ Gagal ambil custom_markup (' + pdi.error + '), TAPI tetap pakai markup rasio tier polos yang udah kepasang duluan (bukan kosong).');
   if (pdi.step === 'fetch_referrer_failed') lines.push('⚠️ Gagal ambil data referrer: ' + pdi.error);
   if (pdi.selfErr) lines.push('❌ Error ambil custom_markup: ' + pdi.selfErr);
   if (pdi.refErr) lines.push('❌ Error ambil data referrer: ' + pdi.refErr);
   if (pdi.step === 'fetched_self') lines.push('Data custom_markup ketemu: ' + (pdi.hasData ? 'ya' : 'tidak (kosong/null)'));
-  if (pdi.step === 'ratio_check') lines.push('⚠️ Berhenti di sini — ratio: ' + pdi.ratio + ' (kalau ini kosong/undefined, role "' + pdi.role + '" gak dikenali sebagai reseller/agen)');
 
   showInfoModal('🩺 Debug Markup Harga', lines.join('\n'));
 }
@@ -4226,33 +4231,11 @@ async function vpApplyReferralPricing() {
     }
 
     let ratio = VP_TIER_RATIO[currentUser.role];
-    let custom = {};
-    window._pricingDebugInfo = { step: 'ratio_check', role: currentUser.role, ratio: ratio };
-
-    if (ratio) {
-      // Case 1: akun yang login ITU SENDIRI reseller/agen -> pakai tier &
-      // markup custom dia sendiri buat harga yang dia bayar SENDIRI, gak
-      // perlu nunggu direferensiin orang lain.
-      // Query ini DIISOLASI dalam try/catch SENDIRI — kalau gagal (RLS,
-      // network, kolom belum ada, dsb), reseller/agen TETAP dapat markup
-      // dari rasio tier (bukan kosong total kayak sebelumnya, dimana 1
-      // error di sini bikin SELURUH fungsi batal & markup jadi 0).
-      try {
-        const { data: self, error: selfErr } = await _sb.from('users')
-          .select('custom_markup')
-          .eq('email', currentUser.email)
-          .single();
-        window._pricingDebugInfo = { step: 'fetched_self', selfErr: selfErr ? selfErr.message : null, hasData: !!self };
-        if (selfErr) throw selfErr;
-        custom = vpParseJsonSetting(self && self.custom_markup) || {};
-      } catch (fetchErr) {
-        console.warn('[markup] Gagal ambil custom_markup, fallback ke rasio tier polos:', fetchErr);
-        window._pricingDebugInfo = { step: 'fetch_self_failed_fallback_ratio', error: (fetchErr && (fetchErr.message || fetchErr.toString())) || 'unknown' };
-        custom = {}; // tetap lanjut ke bawah pakai markup rasio tier, JANGAN return/throw di sini
-      }
-    } else if (currentUser.referred_by) {
-      // Case 2: member biasa yang didaftarkan pakai kode referral seorang
-      // reseller/agen AKTIF -> pakai markup reseller/agen yang mengundangnya.
+    // Kalau bukan reseller/agen, cek juga apakah dia member yang
+    // direferensiin reseller/agen aktif (Case 2) — tapi ini juga PERLU
+    // network call, jadi tetap boleh gagal aman ke baseline polos di bawah.
+    let referrerRatio = null, referrerCustom = null;
+    if (!ratio && currentUser.referred_by) {
       try {
         const { data: referrer, error: refErr } = await _sb.from('users')
           .select('role,custom_markup')
@@ -4261,15 +4244,13 @@ async function vpApplyReferralPricing() {
         window._pricingDebugInfo = { step: 'fetched_referrer', refErr: refErr ? refErr.message : null };
         if (refErr) throw refErr;
         const refRatio = referrer && VP_TIER_RATIO[referrer.role];
-        if (refRatio) {
-          ratio = refRatio;
-          custom = vpParseJsonSetting(referrer.custom_markup) || {};
-        }
+        if (refRatio) { referrerRatio = refRatio; referrerCustom = vpParseJsonSetting(referrer.custom_markup) || {}; }
       } catch (fetchErr) {
         console.warn('[markup] Gagal ambil data referrer:', fetchErr);
         window._pricingDebugInfo = { step: 'fetch_referrer_failed', error: (fetchErr && (fetchErr.message || fetchErr.toString())) || 'unknown' };
       }
     }
+    if (referrerRatio) { ratio = referrerRatio; }
 
     if (!ratio) {
       markupConfig = { ...baseline }; // member biasa, gak ada hubungan reseller/agen -> markup admin polos
@@ -4277,23 +4258,69 @@ async function vpApplyReferralPricing() {
       return;
     }
 
-    const merged = {};
-    MARKUP_CATEGORIES.forEach(c => {
-      const adminCfg = baseline[c.key] || { type: 'percent', value: 0 };
-      const own = custom[c.key];
-      // Kalau reseller/agen udah set markup sendiri, pakai itu apa adanya
-      // (BEBAS berapapun). Kalau belum, defaultnya otomatis diskon dari
-      // markup admin sesuai tier (reseller bayar 75%, agen bayar 50% dari
-      // markup admin) biar langsung dapat harga lebih murah dari member.
-      merged[c.key] = (own && own.value != null)
-        ? own
-        : { type: adminCfg.type, value: Math.round((Number(adminCfg.value) || 0) * ratio * 100) / 100 };
-    });
-    markupConfig = merged; // dipakai otomatis oleh semua pemanggil vpApplyMarkup
-    window._pricingDebugInfo = { step: 'done_ok', ratio, mergedSample: merged['pulsa'] };
+    // ── LANGSUNG terapkan markup rasio-tier DULUAN, secara SYNCHRONOUS,
+    // sebelum nyoba network call apapun. Ini jaminan paling akhir: apapun
+    // yang terjadi di bawah (network lambat/gagal/error gak terduga),
+    // reseller/agen MINIMAL selalu dapat markup dari rasio tier, TIDAK
+    // PERNAH jatuh ke harga mentah h2h.id kayak akun admin. ──
+    function buildMerged(customOverride){
+      const merged = {};
+      MARKUP_CATEGORIES.forEach(c => {
+        const adminCfg = baseline[c.key] || { type: 'percent', value: 0 };
+        const own = customOverride && customOverride[c.key];
+        merged[c.key] = (own && own.value != null)
+          ? own
+          : { type: adminCfg.type, value: Math.round((Number(adminCfg.value) || 0) * ratio * 100) / 100 };
+      });
+      return merged;
+    }
+    markupConfig = buildMerged(referrerCustom);
+    window._pricingDebugInfo = { step: 'ratio_applied_first', ratio, mergedSample: markupConfig['pulsa'] };
+
+    // Kalau akun ini SENDIRI reseller/agen (bukan Case 2/referred_by), coba
+    // "upgrade" ke custom_markup pribadinya kalau ada. Query ini DIISOLASI
+    // dalam try/catch SENDIRI dan HANYA meng-upgrade markupConfig yang
+    // SUDAH benar di atas — kalau gagal, markupConfig TETAP yang rasio
+    // tier (bukan ke-reset kosong).
+    if (VP_TIER_RATIO[currentUser.role]) {
+      try {
+        const { data: self, error: selfErr } = await _sb.from('users')
+          .select('custom_markup')
+          .eq('email', currentUser.email)
+          .single();
+        window._pricingDebugInfo = { step: 'fetched_self', selfErr: selfErr ? selfErr.message : null, hasData: !!self };
+        if (selfErr) throw selfErr;
+        const custom = vpParseJsonSetting(self && self.custom_markup) || {};
+        if (Object.keys(custom).length) {
+          markupConfig = buildMerged(custom);
+          window._pricingDebugInfo = { step: 'done_ok_with_custom', ratio, mergedSample: markupConfig['pulsa'] };
+        } else {
+          window._pricingDebugInfo = { step: 'done_ok_no_custom', ratio, mergedSample: markupConfig['pulsa'] };
+        }
+      } catch (fetchErr) {
+        console.warn('[markup] Gagal ambil custom_markup, tetap pakai rasio tier polos (bukan kosong):', fetchErr);
+        window._pricingDebugInfo = { step: 'fetch_self_failed_fallback_ratio', error: (fetchErr && (fetchErr.message || fetchErr.toString())) || 'unknown' };
+      }
+    }
   } catch (e) {
     console.warn('vpApplyReferralPricing error:', e);
     window._pricingDebugInfo = { step: 'EXCEPTION', error: (e && (e.message || e.toString())) || 'unknown' };
+    // JARING PENGAMAN TERAKHIR: walau ada exception gak terduga di atas,
+    // kalau role-nya reseller/agen, tetap paksa markup rasio tier polos —
+    // JANGAN biarkan markupConfig nyangkut kosong/raw h2h.id.
+    try {
+      const ratio2 = currentUser && VP_TIER_RATIO[currentUser.role];
+      if (ratio2) {
+        const baseline2 = window._adminMarkupConfig || markupConfig || {};
+        const merged2 = {};
+        MARKUP_CATEGORIES.forEach(c => {
+          const adminCfg = baseline2[c.key] || { type: 'percent', value: 0 };
+          merged2[c.key] = { type: adminCfg.type, value: Math.round((Number(adminCfg.value) || 0) * ratio2 * 100) / 100 };
+        });
+        markupConfig = merged2;
+        window._pricingDebugInfo.recoveredByFallback = true;
+      }
+    } catch (e2) { console.warn('[markup] Jaring pengaman terakhir juga gagal:', e2); }
   }
 }
 window.vpApplyReferralPricing = vpApplyReferralPricing;
@@ -9362,7 +9389,7 @@ function doPesan(){
                   : st === 'batal' ? 'Transaksi dibatalkan atau gagal diproses.' : undefined;
     if (typeof window.h2hShowOrderResult === 'function') {
       window.h2hShowOrderResult({
-        status, refId: t.id || '', amount: (t.price||0)*(t.qty||1),
+        status, refId: t.id || '', invoice: t.invoice || '', amount: (t.price||0)*(t.qty||1),
         title: t.productName || t.prod || 'Produk', sub: t.variantName || '',
         category: t.category, dest: t.dest, sn: t.sn, token: t.token,
         keyLabel, keyLines, message
@@ -12270,7 +12297,7 @@ setTimeout(tryInject, 1500);
 
   // Final doPesan wrapper — handle SALDO path end-to-end
   var _odp = window.doPesan;
-  window.doPesan = function(){
+  window.doPesan = async function(){
     var method = window.selectedPayMethod;
     // fallback: detect from DOM if window var not set
     if (!method){
@@ -16002,7 +16029,7 @@ async function h2hCheckout(opts){
     h2hShowOrderResult({
       status: rawStatus === 'success' ? 'success' : rawStatus === 'failed' ? 'failed' : 'processing',
       message: json.message,
-      refId, amount, title: titleTxt, sub: subTxt, category, dest,
+      refId, invoice: h2hExtractInvoiceFromMessage(json.data?.provider_message), sn: json.data?.serial_number, amount, title: titleTxt, sub: subTxt, category, dest,
     });
 
   } catch (e) {
@@ -16166,13 +16193,15 @@ async function h2hBayarTagihanPascabayarhp(){
     const refId = j.data?.ref_id;
     const rawStatus = (j.data?.status || 'processing').toLowerCase();
     const riwStatus = rawStatus === 'success' ? 'sukses' : rawStatus === 'failed' ? 'batal' : 'menunggu';
-    if (u) _h2hOrderToRiwayat({ email: u.email, id: refId, title: titleTxt, sub: subTxt, category: 'pascabayar', dest: bill.customer_no, amount: j.data?.amount || totalBayar, status: riwStatus, invoice: h2hExtractInvoiceFromMessage(j.data?.provider_message) });
+    const pascaInvoice = h2hExtractInvoiceFromMessage(j.data?.provider_message);
+    const pascaSn = j.data?.serial_number || '';
+    if (u) _h2hOrderToRiwayat({ email: u.email, id: refId, title: titleTxt, sub: subTxt, category: 'pascabayar', dest: bill.customer_no, amount: j.data?.amount || totalBayar, status: riwStatus, invoice: pascaInvoice, sn: pascaSn });
     if (typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
 
     h2hShowOrderResult({
       status: rawStatus === 'success' ? 'success' : rawStatus === 'failed' ? 'failed' : 'processing',
       message: j.message,
-      refId, amount: j.data?.amount || totalBayar, title: titleTxt, sub: subTxt, category: 'pascabayar', dest: bill.customer_no,
+      refId, invoice: pascaInvoice, sn: pascaSn, amount: j.data?.amount || totalBayar, title: titleTxt, sub: subTxt, category: 'pascabayar', dest: bill.customer_no,
     });
     window._pascabayarhpBill = null;
   } catch (e) {
@@ -16381,6 +16410,8 @@ function h2hOrderResultBodyHtml(state){
   const meta = h2hStatusMeta(state.status);
   const nowStr = new Date().toLocaleString('id-ID', { day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
   const refId = state.refId || '—';
+  const invoiceVal = state.invoice || refId; // fallback ke refId kalau invoice provider gak kedapetan
+  const snVal = state.sn || state.token || '';
   const subLine = (state.sub && state.sub !== state.dest) ? state.sub : '';
   const produkPlain = (state.title || 'Transaksi') + (subLine ? ' — ' + subLine : '');
   const nomorPlain = state.dest || '—';
@@ -16440,6 +16471,7 @@ function h2hOrderResultBodyHtml(state){
   const namaPemilik = (typeof h2hExtractNamaFromSn === 'function') ? h2hExtractNamaFromSn(state.sn || state.token, state.category) : '';
   const rowsHtml = [
     h2hOrRow('rgba(0,88,188,.1)', '#0058bc', 'description', 'ID Transaksi', h2hEscapeHtml(refId), true),
+    h2hOrRow('rgba(0,88,188,.1)', '#0058bc', 'receipt_long', 'Invoice', h2hEscapeHtml(invoiceVal), true),
     h2hOrRow('rgba(188,0,10,.08)', '#bc000a', 'shopping_bag', 'Produk', h2hEscapeHtml(produkPlain)),
     h2hOrRow('rgba(0,88,188,.1)', '#0058bc', 'call', 'Nomor/ID', h2hEscapeHtml(nomorPlain)),
     namaPemilik ? h2hOrRow('rgba(0,110,42,.1)', '#006e2a', 'person', 'Nama Pelanggan', h2hEscapeHtml(namaPemilik)) : '',
@@ -16457,6 +16489,20 @@ function h2hOrderResultBodyHtml(state){
       </div>
       <div style="background:${meta.chipBg};color:${meta.chipColor};padding:3px 12px;border-radius:999px;font-size:11px;font-weight:800;">${meta.chipLabel}</div>
     </div>`;
+
+  let snCardHtml = '';
+  if (meta.key === 'success' && snVal) {
+    snCardHtml = `
+    <div style="background:#ffffff;border-radius:20px;box-shadow:0 4px 20px rgba(0,0,0,.05);padding:14px 16px;margin:10px 16px 0;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div style="min-width:0;">
+        <div style="font-size:11px;font-weight:700;color:#8a8fa3;letter-spacing:.4px;margin-bottom:4px;">SERIAL NUMBER</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:800;color:#1b1b1d;word-break:break-all;">${h2hEscapeHtml(snVal)}</div>
+      </div>
+      <button onclick="h2hCopySerialNumber('${h2hJsEscape(snVal)}')" style="flex-shrink:0;display:flex;align-items:center;gap:5px;background:rgba(0,88,188,.08);color:#0058bc;border:none;border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;">
+        <span class="material-symbols-outlined" style="font-size:16px;">content_copy</span> Salin
+      </button>
+    </div>`;
+  }
 
   const card = `
     <div style="background:#ffffff;border-radius:20px;box-shadow:0 4px 20px rgba(0,0,0,.05);padding:14px;display:flex;flex-direction:column;gap:6px;margin:10px 16px 12px;">
@@ -16486,10 +16532,10 @@ function h2hOrderResultBodyHtml(state){
   } else if (meta.key === 'success') {
     bottom = `
       <div style="margin:0 16px 10px;display:flex;flex-direction:column;gap:8px;">
-        <button onclick="h2hCetakStrukResult()" style="width:100%;padding:12px;border-radius:999px;border:none;background:#006e2a;color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,110,42,.2);cursor:pointer;">
+        <button onclick="h2hCetakStrukResult(this)" style="width:100%;padding:12px;border-radius:999px;border:none;background:#006e2a;color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(0,110,42,.2);cursor:pointer;">
           <span class="material-symbols-outlined" style="font-size:18px;">print</span> Cetak Struk
         </button>
-        <button onclick="h2hBagikanStrukResult()" style="width:100%;padding:12px;border-radius:999px;border:1px solid rgba(193,198,215,.7);background:#fff;color:#1b1b1d;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;">
+        <button onclick="h2hBagikanStrukResult(this)" style="width:100%;padding:12px;border-radius:999px;border:1px solid rgba(193,198,215,.7);background:#fff;color:#1b1b1d;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;">
           <span class="material-symbols-outlined" style="font-size:18px;">share</span> Bagikan Struk
         </button>
       </div>
@@ -16543,7 +16589,7 @@ function h2hOrderResultBodyHtml(state){
     </div>`;
   }
 
-  return { pageBg: meta.pageBg, html: hero + headingHtml + card + keyCardHtml + bottom };
+  return { pageBg: meta.pageBg, html: hero + headingHtml + snCardHtml + card + keyCardHtml + bottom };
 }
 
 function h2hFallbackCopyText(text, done){
@@ -16559,7 +16605,7 @@ function h2hFallbackCopyText(text, done){
 
 function h2hCopyRefId(text){
   if (!text || text === '—') return;
-  const done = () => { if (typeof showNotif === 'function') showNotif('📋 ID Transaksi disalin!'); };
+  const done = () => { if (typeof showNotif === 'function') showNotif('📋 Disalin!'); };
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(done).catch(() => h2hFallbackCopyText(text, done));
   } else {
@@ -16567,6 +16613,17 @@ function h2hCopyRefId(text){
   }
 }
 window.h2hCopyRefId = h2hCopyRefId;
+
+function h2hCopySerialNumber(text){
+  if (!text) return;
+  const done = () => { if (typeof showNotif === 'function') showNotif('📋 Serial number disalin!'); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => h2hFallbackCopyText(text, done));
+  } else {
+    h2hFallbackCopyText(text, done);
+  }
+}
+window.h2hCopySerialNumber = h2hCopySerialNumber;
 
 function h2hOpenCS(refId, produk, statusLabel){
   const wa = window._apWa ? window._apWa.replace(/\D/g,'') : ((function(){ try { return localStorage.getItem('vp_wa')||'6285954741269'; } catch(e){ return '6285954741269'; } })());
@@ -16584,7 +16641,7 @@ function h2hBuildStrukTrxFromState(){
   const nowStr = new Date().toLocaleString('id-ID', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
   const subLine = (st.sub && st.sub !== st.dest) ? ' — ' + st.sub : '';
   return {
-    invoice: st.refId || '-',
+    invoice: st.invoice || st.refId || '-',
     tanggal: nowStr,
     produk: (st.title || 'Transaksi') + subLine,
     tujuan: st.dest || '-',
@@ -16594,27 +16651,54 @@ function h2hBuildStrukTrxFromState(){
   };
 }
 
-async function h2hCetakStrukResult(){
-  const trx = h2hBuildStrukTrxFromState();
-  if (typeof ssPrintToBluetooth !== 'function') { if (typeof showNotif==='function') showNotif('⚠️ Fitur cetak belum siap.'); return; }
-  const ok = await ssPrintToBluetooth(trx);
-  if (ok) { if (typeof showNotif==='function') showNotif('✅ Struk terkirim ke printer!'); return; }
-  if (!ssNativeAvailable() && !navigator.bluetooth) {
-    const s = (typeof ssGetSettings === 'function') ? ssGetSettings() : {};
-    const txt = [
-      s.namaToko || 'Nama Toko Anda', s.alamat || '', s.telepon || '',
-      ssDashLine(),
-      ssPadRow('Invoice', trx.invoice), ssPadRow('Tanggal', trx.tanggal),
-      ssPadRow('Produk', trx.produk), ssPadRow('Tujuan', trx.tujuan),
-      ssPadRow('SN', trx.sn), ssPadRow('Harga', trx.harga), ssPadRow('Status', trx.status),
-      ssDashLine(), s.footer || 'Terima kasih atas transaksi Anda', s.poweredBy || 'Powered by Vinzprostore'
-    ].filter(Boolean).join('\n');
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(txt);
-        if (typeof showNotif==='function') showNotif('📋 Printer tidak tersedia — teks struk disalin.');
-      }
-    } catch(e){}
+// Helper loading-state buat tombol Cetak/Bagikan Struk — biar user gak
+// nge-tap berkali-kali gara-gara gak ada tanda kalau lagi diproses (kayak
+// yang keliatan di h2h.id: tombol dikasih spinner + nonaktif sementara).
+function h2hSetBtnLoading(btn, loadingText){
+  if (!btn || btn._h2hLoading) return false; // udah lagi loading -> blokir tap dobel
+  btn._h2hLoading = true;
+  btn._h2hOrigHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.style.opacity = '0.65';
+  btn.style.pointerEvents = 'none';
+  btn.innerHTML = '<span class="h2h-btn-spinner"></span> ' + (loadingText || 'Memproses...');
+  return true;
+}
+function h2hClearBtnLoading(btn){
+  if (!btn) return;
+  btn._h2hLoading = false;
+  btn.disabled = false;
+  btn.style.opacity = '';
+  btn.style.pointerEvents = '';
+  if (btn._h2hOrigHtml != null) btn.innerHTML = btn._h2hOrigHtml;
+}
+
+async function h2hCetakStrukResult(btnEl){
+  if (btnEl && !h2hSetBtnLoading(btnEl, 'Mencetak...')) return; // lagi diproses, abaikan tap kedua
+  try {
+    const trx = h2hBuildStrukTrxFromState();
+    if (typeof ssPrintToBluetooth !== 'function') { if (typeof showNotif==='function') showNotif('⚠️ Fitur cetak belum siap.'); return; }
+    const ok = await ssPrintToBluetooth(trx);
+    if (ok) { if (typeof showNotif==='function') showNotif('✅ Struk terkirim ke printer!'); return; }
+    if (!ssNativeAvailable() && !navigator.bluetooth) {
+      const s = (typeof ssGetSettings === 'function') ? ssGetSettings() : {};
+      const txt = [
+        s.namaToko || 'Nama Toko Anda', s.alamat || '', s.telepon || '',
+        ssDashLine(),
+        ssPadRow('Invoice', trx.invoice), ssPadRow('Tanggal', trx.tanggal),
+        ssPadRow('Produk', trx.produk), ssPadRow('Tujuan', trx.tujuan),
+        ssPadRow('SN', trx.sn), ssPadRow('Harga', trx.harga), ssPadRow('Status', trx.status),
+        ssDashLine(), s.footer || 'Terima kasih atas transaksi Anda', s.poweredBy || 'Powered by Vinzprostore'
+      ].filter(Boolean).join('\n');
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(txt);
+          if (typeof showNotif==='function') showNotif('📋 Printer tidak tersedia — teks struk disalin.');
+        }
+      } catch(e){}
+    }
+  } finally {
+    if (btnEl) h2hClearBtnLoading(btnEl);
   }
 }
 window.h2hCetakStrukResult = h2hCetakStrukResult;
@@ -16773,7 +16857,9 @@ function h2hDownloadStrukImage(blob, filename){
   }
 }
 
-async function h2hBagikanStrukResult(){
+async function h2hBagikanStrukResult(btnEl){
+  if (btnEl && !h2hSetBtnLoading(btnEl, 'Menyiapkan...')) return; // lagi diproses, abaikan tap kedua
+  try {
   const trx = h2hBuildStrukTrxFromState();
   const s = (typeof ssGetSettings === 'function') ? ssGetSettings() : {};
   const storeName = s.namaToko || 'Paycore';
@@ -16869,6 +16955,9 @@ async function h2hBagikanStrukResult(){
       ? '📥 Gambar struk tersimpan & teksnya disalin — silakan bagikan manual dari Galeri/aplikasi lain.'
       : '📋 Teks struk disalin — silakan paste manual ke aplikasi yang kamu mau.');
   }
+  } finally {
+    if (btnEl) h2hClearBtnLoading(btnEl);
+  }
 }
 window.h2hBagikanStrukResult = h2hBagikanStrukResult;
 
@@ -16893,6 +16982,8 @@ function h2hShowOrderResult(opts){
       @keyframes h2hBlob{0%,100%{transform:scale(1);opacity:.09;}50%{transform:scale(1.1);opacity:.16;}}
       @keyframes h2hHourglass{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
       @keyframes h2hRingSpin{0%{stroke-dashoffset:264;}50%{stroke-dashoffset:40;}100%{stroke-dashoffset:264;}}
+      @keyframes h2hBtnSpin{to{transform:rotate(360deg);}}
+      .h2h-btn-spinner{display:inline-block;width:15px;height:15px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;opacity:.85;animation:h2hBtnSpin .7s linear infinite;vertical-align:middle;}
       #h2hOrderResultPage .material-symbols-outlined{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;vertical-align:middle;line-height:1;}
       #h2hOrderResultPage button{font-family:'Plus Jakarta Sans',sans-serif;}
     </style>
@@ -16945,11 +17036,13 @@ async function h2hPollOrderResult(refId, ctx){
     clearInterval(h2hOrderResultPollTimer);
     const page = document.getElementById('h2hOrderResultPage');
     const body = document.getElementById('h2hOrBody');
+    const polledInvoice = h2hExtractInvoiceFromMessage(j?.data?.provider_message || j?.message);
+    const polledSn = j?.data?.serial_number || j?.data?.token || '';
     if (page && body) {
       const newState = {
         status: mapped,
         message: j?.data?.reason || j?.message || '',
-        refId, amount: ctx.amount, title: ctx.title, sub: ctx.sub, category: ctx.category, dest: ctx.dest,
+        refId, invoice: polledInvoice, sn: polledSn, amount: ctx.amount, title: ctx.title, sub: ctx.sub, category: ctx.category, dest: ctx.dest,
       };
       window.__h2hOrderResultState = newState;
       const built = h2hOrderResultBodyHtml(newState);
@@ -16961,7 +17054,7 @@ async function h2hPollOrderResult(refId, ctx){
     if (u) {
       const riwStatus = mapped === 'success' ? 'sukses' : 'batal';
       const plnToken = j?.data?.serial_number || j?.data?.token || '';
-      _h2hOrderToRiwayat({ email: u.email, id: refId, title: ctx.title, sub: ctx.sub, category: ctx.category, dest: ctx.dest, amount: ctx.amount, status: riwStatus, ts: Date.now(), token: plnToken, invoice: h2hExtractInvoiceFromMessage(j?.message || j?.data?.reason), sn: j?.data?.serial_number });
+      _h2hOrderToRiwayat({ email: u.email, id: refId, title: ctx.title, sub: ctx.sub, category: ctx.category, dest: ctx.dest, amount: ctx.amount, status: riwStatus, ts: Date.now(), token: plnToken, invoice: polledInvoice, sn: polledSn });
     }
     if (mapped === 'success' && typeof window.vpReloadBalance === 'function') window.vpReloadBalance();
   } catch (_) {
