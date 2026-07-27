@@ -553,8 +553,8 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 .afi-icon{position:absolute;left:14px;color:#8a97a0;pointer-events:none;display:flex;align-items:center;}
 .afi-phone-wrap{display:flex;align-items:center;gap:10px;height:50px;background:rgba(14,14,14,.55);border:1px solid #3b494c;border-radius:12px;padding:0 14px;}
 .afi-phone-cc{color:#e5e2e1;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;flex-shrink:0;padding-right:10px;border-right:1px solid #3b494c;}
-.afi-phone-wrap input{flex:1;min-width:0;background:transparent;border:none;color:#e5e2e1;font-family:'Rajdhani',sans-serif;font-size:15px;height:100%;padding:0;}
-.afi-phone-wrap input:focus{outline:none;}
+.auth-modal .auth-field .afi-phone-wrap input{flex:1;min-width:0;background:transparent;border:none;color:#e5e2e1;font-family:'Rajdhani',sans-serif;font-size:15px;height:100%;padding:0;}
+.auth-modal .auth-field .afi-phone-wrap input:focus{outline:none;border:none;box-shadow:none;}
 .afi-phone-wrap:focus-within{border-color:#00daf3;box-shadow:0 0 0 3px rgba(0,218,243,.15);}
 .auth-modal .auth-field input{width:100%;height:50px;background:rgba(14,14,14,.55);border:1px solid #3b494c;border-radius:12px;padding:0 14px;color:#e5e2e1;font-family:'Rajdhani',sans-serif;font-size:15px;transition:.2s;}
 .afi-wrap input{padding-left:42px !important;}
@@ -608,7 +608,7 @@ body.light-mode .auth-modal .auth-field label{color:#5a6a70;}
 body.light-mode .afi-icon{color:#8a97a0;}
 body.light-mode .afi-phone-wrap{background:#ffffff;border-color:rgba(13,31,60,0.18);}
 body.light-mode .afi-phone-cc{color:#0d1f3c;border-right-color:rgba(13,31,60,0.18);}
-body.light-mode .afi-phone-wrap input{color:#0d1f3c;}
+body.light-mode .auth-modal .auth-field .afi-phone-wrap input{color:#0d1f3c;background:transparent;border:none;}
 body.light-mode .afi-phone-wrap:focus-within{border-color:#0058bc;box-shadow:0 0 0 3px rgba(0,88,188,.12);}
 body.light-mode .auth-modal .auth-field input{background:#ffffff;border-color:rgba(13,31,60,0.18);color:#0d1f3c;}
 body.light-mode .auth-modal .auth-field input::placeholder{color:#8a97a0;}
@@ -763,6 +763,14 @@ body.light-mode .bottom-nav{
    putih + border + shadow biar jelas kebaca, senada sama .ppob-item. */
 body.light-mode .pc-stat-card{background:#ffffff;border:1px solid rgba(13,31,60,0.08);box-shadow:0 2px 10px rgba(13,31,60,0.06);}
 body.light-mode .pc-tx-item{background:#ffffff;border:1px solid rgba(13,31,60,0.08);box-shadow:0 2px 10px rgba(13,31,60,0.06);}
+/* Kartu nominal (dipakai di semua halaman produk: Pulsa, PLN, Voucher Game,
+   E-Wallet, dst) sebelumnya gradasinya selalu memudar ke warna GELAP di
+   salah satu sudut (rgba(19,19,24,.6)) walau lagi tema terang — bikin
+   teksnya (yang sekarang ikut var(--text) = gelap di tema terang) jadi
+   nyaris gak kelihatan pas nempel di sudut gelap itu. Kasih gradasi yang
+   sepenuhnya terang buat tema terang. */
+body.light-mode .ppob-nom,
+body.light-mode .ppob-nom.active{background:linear-gradient(160deg,#ffffff,#eef3fb);border-color:rgba(13,31,60,0.14);box-shadow:0 2px 8px rgba(13,31,60,0.05);}
 /* Garis pemisah antar item di halaman Pengaturan (.pgs-item) sebelumnya
    pakai rgba(255,255,255,...) yang didesain buat background gelap -> di
    tema terang jadi nyaris gak kelihatan (putih di atas putih). Kasih versi
@@ -982,7 +990,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 .ppob-nom{position:relative;background:linear-gradient(160deg,var(--card2),rgba(19,19,24,.6));border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;cursor:pointer;text-align:left;transition:.15s;overflow:hidden;}
 .ppob-nom::before{content:"";position:absolute;inset:0;background:radial-gradient(120px 60px at 100% 0%,rgba(0,212,255,0.08),transparent 70%);opacity:0;transition:.15s;}
 .ppob-nom:active{transform:scale(.96);}
-.ppob-nom .pn-nominal{font-weight:800;font-size:15px;letter-spacing:.3px;color:#fff;}
+.ppob-nom .pn-nominal{font-weight:800;font-size:15px;letter-spacing:.3px;color:var(--text);}
 .ppob-nom .pn-harga{font-size:13px;color:var(--accent2);font-weight:700;margin-top:6px;letter-spacing:.3px;}
 .ppob-nom .pn-check{position:absolute;top:9px;right:9px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;transition:.15s;}
 .ppob-nom .pn-check svg{width:10px;height:10px;opacity:0;transform:scale(.5);transition:.15s;}
@@ -1704,8 +1712,8 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     </div>
 
     <div class="ppob-card">
-      <div class="ppob-label">E-WALLET DIPILIH · <span style="cursor:pointer;color:var(--accent2);text-decoration:underline;" onclick="closePpobPage('ewalletPage'); openPpobPage('ewalletListPage')">Ganti E-Wallet</span></div>
-      <div class="ppob-chips" id="ewalletProvider">
+      <div class="ppob-label">E-WALLET DIPILIH: <strong id="ewalletSelectedName" style="color:var(--accent2);">Dana</strong> · <span style="cursor:pointer;color:var(--accent2);text-decoration:underline;" onclick="closePpobPage('ewalletPage'); openPpobPage('ewalletListPage')">Ganti E-Wallet</span></div>
+      <div class="ppob-chips" id="ewalletProvider" style="display:none;">
         <div class="ppob-chip active" data-provider="Dana" onclick="selectPpobProvider(this,'ewallet')">Dana</div>
         <div class="ppob-chip" data-provider="OVO" onclick="selectPpobProvider(this,'ewallet')">OVO</div>
         <div class="ppob-chip" data-provider="GoPay" onclick="selectPpobProvider(this,'ewallet')">GoPay</div>
@@ -1825,8 +1833,8 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     </div>
 
     <div class="ppob-card">
-      <div class="ppob-label">GAME DIPILIH · <span style="cursor:pointer;color:var(--accent2);text-decoration:underline;" onclick="closePpobPage('voucherGamePage'); openPpobPage('voucherGameListPage')">Ganti Game</span></div>
-      <div class="ppob-chips" id="voucherProvider">
+      <div class="ppob-label">GAME DIPILIH: <strong id="voucherSelectedName" style="color:var(--accent2);">Free Fire</strong> · <span style="cursor:pointer;color:var(--accent2);text-decoration:underline;" onclick="closePpobPage('voucherGamePage'); openPpobPage('voucherGameListPage')">Ganti Game</span></div>
+      <div class="ppob-chips" id="voucherProvider" style="display:none;">
         <div class="ppob-chip active" data-provider="Free Fire" data-h2hgame="free-fire" onclick="selectPpobProvider(this,'voucher')">Free Fire</div>
         <div class="ppob-chip" data-provider="Free Fire Max" data-h2hgame="free-fire-max" onclick="selectPpobProvider(this,'voucher')">Free Fire Max</div>
         <div class="ppob-chip" data-provider="Mobile Legends" data-h2hgame="mobile-legends" onclick="selectPpobProvider(this,'voucher')">Mobile Legends</div>
@@ -3000,6 +3008,43 @@ window.apTestAdminEmail = apTestAdminEmail;
         Tidak dapat kode? <span id="setResendArea"></span>
       </div>
       <button id="btnVerifyEmail" onclick="verifyEmailChange()" style="width:100%;background:var(--success);color:#000;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;">VERIFIKASI &amp; UBAH EMAIL</button>
+    </div>
+
+    <!-- TAMBAH / GANTI NOMOR HP -->
+    <div class="pgs-field-label" style="margin-top:22px;" id="setPhoneSectionLabel">Ganti Nomor HP</div>
+    <div id="setPhoneCurrentWrap" style="margin-bottom:12px;">
+      <div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;">Nomor HP Saat Ini</div>
+      <input id="setPhoneCurrent" class="pgs-input" type="text" disabled>
+    </div>
+    <div style="font-size:10.5px;color:var(--muted);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px;" id="setPhoneNewLabel">Nomor HP Baru</div>
+    <div class="afi-phone-wrap" style="margin-bottom:4px;height:46px;">
+      <span class="afi-phone-cc">🇮🇩 +62</span>
+      <input type="tel" inputmode="numeric" id="setNewPhone" placeholder="81234567890" maxlength="14">
+    </div>
+    <div id="setPhoneErr" class="pgs-err"></div>
+    <button id="btnRequestPhone" class="pgs-btn-outline" onclick="requestPhoneChange()">KIRIM KODE OTP KE WHATSAPP</button>
+
+    <!-- OTP Section (Nomor HP) -->
+    <div id="setPhoneOtpSection" style="display:none;background:var(--card2);border-radius:12px;padding:14px;border:1px solid var(--border);margin-top:12px;">
+      <div style="text-align:center;margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--muted);">Kode OTP dikirim via WhatsApp ke</div>
+        <div id="setPhoneOtpTarget" style="font-size:13px;font-weight:700;color:var(--accent2);"></div>
+      </div>
+      <div style="position:relative;display:flex;gap:6px;justify-content:center;margin-bottom:10px;" onclick="document.getElementById('setphoneotpHidden').focus()">
+        <input id="setphoneotpHidden" type="tel" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+          style="position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;z-index:10;font-size:16px;border:none;background:transparent;cursor:pointer;"
+          oninput="otpHiddenInput('setphoneotp')" onkeydown="otpHiddenBack(event,'setphoneotp')">
+        <div class="otp-input" id="setphoneotp0" style="width:38px;height:46px;font-size:20px;"></div>
+        <div class="otp-input" id="setphoneotp1" style="width:38px;height:46px;font-size:20px;"></div>
+        <div class="otp-input" id="setphoneotp2" style="width:38px;height:46px;font-size:20px;"></div>
+        <div class="otp-input" id="setphoneotp3" style="width:38px;height:46px;font-size:20px;"></div>
+        <div class="otp-input" id="setphoneotp4" style="width:38px;height:46px;font-size:20px;"></div>
+        <div class="otp-input" id="setphoneotp5" style="width:38px;height:46px;font-size:20px;"></div>
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:10px;">
+        Tidak dapat kode? <span id="setPhoneResendArea"></span>
+      </div>
+      <button id="btnVerifyPhone" onclick="verifyPhoneChange()" style="width:100%;background:var(--success);color:#000;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;">VERIFIKASI &amp; SIMPAN NOMOR</button>
     </div>
   </div>
 </div>
@@ -5490,6 +5535,8 @@ let settingsAvatarData = ''; // base64 foto baru
 let settingsOtpCode = '';
 let settingsOtpEmail = '';
 let settingsOtpTimer = null;
+let settingsPhoneOtpTimer = null;
+let settingsPhoneOtpTarget = ''; // nomor HP yang lagi diverifikasi (tambah/ganti)
 
 function showPengaturan() {
   if (!currentUser) return;
@@ -5604,12 +5651,27 @@ function openEditProfil(){
   } else {
     av.innerHTML = `<span style="font-size:26px;font-weight:900;">${(currentUser.name||'U')[0].toUpperCase()}</span>`;
   }
+  // Bagian Nomor HP — beda label & field tergantung akun ini udah punya
+  // nomor HP atau belum (mis. akun lama yang daftar sebelum nomor HP wajib).
+  const hasPhone = !!currentUser.phone;
+  document.getElementById('setPhoneSectionLabel').textContent = hasPhone ? 'Ganti Nomor HP' : 'Tambah Nomor HP';
+  document.getElementById('setPhoneCurrentWrap').style.display = hasPhone ? 'block' : 'none';
+  document.getElementById('setPhoneNewLabel').textContent = hasPhone ? 'Nomor HP Baru' : 'Nomor HP';
+  document.getElementById('btnRequestPhone').textContent = 'KIRIM KODE OTP KE WHATSAPP';
+  if (hasPhone) {
+    const digits = String(currentUser.phone).replace(/^62/, '');
+    document.getElementById('setPhoneCurrent').value = '+62 ' + digits;
+  }
+  document.getElementById('setNewPhone').value = '';
+  document.getElementById('setPhoneErr').style.display = 'none';
+  document.getElementById('setPhoneOtpSection').style.display = 'none';
   document.getElementById('editProfilPage').classList.add('open');
   if (typeof pcSaveExtraPage === 'function') pcSaveExtraPage('editProfilPage');
 }
 function closeEditProfil(){
   document.getElementById('editProfilPage').classList.remove('open');
   if (settingsOtpTimer) clearInterval(settingsOtpTimer);
+  if (settingsPhoneOtpTimer) clearInterval(settingsPhoneOtpTimer);
   if (typeof pcClearExtraPage === 'function') pcClearExtraPage('editProfilPage');
 }
 
@@ -6479,6 +6541,117 @@ async function verifyEmailChange() {
     if (settingsOtpTimer) clearInterval(settingsOtpTimer);
   } catch(e) { errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block'; }
   finally { btn.disabled = false; btn.textContent = '✅ VERIFIKASI & UBAH'; }
+}
+
+// ── TAMBAH / GANTI NOMOR HP (OTP via WhatsApp, lihat worker
+// /profile-send-phone-otp & /profile-verify-phone-otp) ──
+async function requestPhoneChange() {
+  const raw = document.getElementById('setNewPhone').value;
+  const errEl = document.getElementById('setPhoneErr');
+  errEl.style.display = 'none';
+  const digits = String(raw || '').replace(/\D/g, '');
+  if (digits.replace(/^0+/, '').length < 8) {
+    errEl.textContent = 'Masukkan nomor HP yang valid!'; errEl.style.display = 'block'; return;
+  }
+  const phone = authNormalizePhone(raw);
+  if (currentUser.phone && phone === currentUser.phone) {
+    errEl.textContent = 'Nomor sama dengan yang sekarang!'; errEl.style.display = 'block'; return;
+  }
+
+  const btn = document.getElementById('btnRequestPhone');
+  btn.disabled = true; btn.textContent = '⏳ Mengirim OTP...';
+  try {
+    const res = await fetch(H2H_WORKER_URL + '/profile-send-phone-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, current_email: currentUser.email }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok || !j.success) {
+      errEl.textContent = j.message || 'Gagal mengirim OTP, coba lagi.'; errEl.style.display = 'block'; return;
+    }
+    settingsPhoneOtpTarget = phone;
+    document.getElementById('setPhoneOtpSection').style.display = 'block';
+    document.getElementById('setPhoneOtpTarget').textContent = '+62 ' + phone.replace(/^62/, '');
+    otpClearBoxes('setphoneotp');
+    startPhoneOtpCountdown();
+    showNotif('📲 Kode OTP dikirim ke WhatsApp!');
+  } catch(e) {
+    errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'KIRIM KODE OTP KE WHATSAPP';
+  }
+}
+
+function startPhoneOtpCountdown() {
+  let secs = 60;
+  const area = document.getElementById('setPhoneResendArea');
+  if (settingsPhoneOtpTimer) clearInterval(settingsPhoneOtpTimer);
+  area.innerHTML = '<span style="color:var(--accent2);font-weight:700">Kirim ulang dalam ' + secs + 's</span>';
+  settingsPhoneOtpTimer = setInterval(() => {
+    secs--;
+    const el = area.querySelector('span');
+    if (secs > 0) { if(el) el.textContent = 'Kirim ulang dalam ' + secs + 's'; }
+    else {
+      clearInterval(settingsPhoneOtpTimer);
+      area.innerHTML = '<button onclick="resendPhoneOTP()" style="background:transparent;border:none;color:var(--accent);font-family:Rajdhani,sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-decoration:underline;">Kirim Ulang Kode</button>';
+    }
+  }, 1000);
+}
+
+async function resendPhoneOTP() {
+  if (!settingsPhoneOtpTarget) return;
+  try {
+    const res = await fetch(H2H_WORKER_URL + '/profile-send-phone-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: settingsPhoneOtpTarget, current_email: currentUser.email }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok || !j.success) { showNotif('❌ ' + (j.message || 'Gagal kirim ulang kode.')); return; }
+    startPhoneOtpCountdown();
+    showNotif('✅ Kode OTP baru dikirim ke WhatsApp!');
+  } catch(e) { showNotif('❌ Error: ' + e.message); }
+}
+
+async function verifyPhoneChange() {
+  const entered = otpGetValue('setphoneotp');
+  const errEl = document.getElementById('setPhoneErr');
+  errEl.style.display = 'none';
+  if (entered.length < 6) { errEl.textContent = 'Masukkan 6 digit kode OTP!'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('btnVerifyPhone');
+  btn.disabled = true; btn.textContent = '⏳ Memeriksa...';
+  try {
+    const res = await fetch(H2H_WORKER_URL + '/profile-verify-phone-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: settingsPhoneOtpTarget, code: entered }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok || !j.success) {
+      errEl.textContent = j.message || 'Kode OTP salah!'; errEl.style.display = 'block'; return;
+    }
+
+    const { error } = await _sb.from('users').update({ phone: settingsPhoneOtpTarget }).eq('email', currentUser.email);
+    if (error) { errEl.textContent = 'Gagal menyimpan: ' + error.message; errEl.style.display = 'block'; return; }
+
+    currentUser.phone = settingsPhoneOtpTarget;
+    localStorage.setItem('vp_user', JSON.stringify(currentUser));
+    document.getElementById('setPhoneCurrentWrap').style.display = 'block';
+    document.getElementById('setPhoneCurrent').value = '+62 ' + settingsPhoneOtpTarget.replace(/^62/, '');
+    document.getElementById('setPhoneSectionLabel').textContent = 'Ganti Nomor HP';
+    document.getElementById('setPhoneNewLabel').textContent = 'Nomor HP Baru';
+    document.getElementById('setNewPhone').value = '';
+    document.getElementById('setPhoneOtpSection').style.display = 'none';
+    showNotif('✅ Nomor HP berhasil disimpan!');
+    if (settingsPhoneOtpTimer) clearInterval(settingsPhoneOtpTimer);
+    settingsPhoneOtpTarget = '';
+  } catch(e) {
+    errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'VERIFIKASI & SIMPAN NOMOR';
+  }
 }
 
 // ══════════════════════════════
@@ -14990,6 +15163,11 @@ function selectPpobProvider(el, type){
   if (!wrap) return;
   wrap.querySelectorAll('.ppob-chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
+  // E-Wallet & Voucher Game gak lagi nampilin grid pilihan yang dobel di
+  // halaman ini (udah ada halaman "Ganti E-Wallet/Game" terpisah) — cukup
+  // update teks nama yang lagi dipilih.
+  const nameEl = document.getElementById(type + 'SelectedName');
+  if (nameEl) nameEl.textContent = el.dataset.provider || el.textContent;
 }
 
 // Auto-detect provider dari prefix nomor HP
