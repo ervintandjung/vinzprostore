@@ -1863,11 +1863,12 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 
     <div class="ppob-card">
       <div class="ppob-label">ID / USER ID GAME</div>
-      <input type="tel" inputmode="numeric" id="voucherInput" class="ppob-input" placeholder="Contoh: 123456789" autocomplete="off" oninput="h2hAutoCheckGameAccount()">
+      <input type="tel" inputmode="numeric" id="voucherInput" class="ppob-input" placeholder="Contoh: 123456789" autocomplete="off" oninput="h2hSanitizeGameIdInput(this);h2hClearGameCheck();">
       <div id="voucherZoneWrap" style="display:none;margin-top:10px;">
         <div class="ppob-label">ZONE ID</div>
-        <input type="tel" inputmode="numeric" id="voucherZoneInput" class="ppob-input" placeholder="Contoh: 1234" autocomplete="off" oninput="h2hAutoCheckGameAccount()">
+        <input type="tel" inputmode="numeric" id="voucherZoneInput" class="ppob-input" placeholder="Contoh: 1234" autocomplete="off" oninput="h2hSanitizeGameIdInput(this);h2hClearGameCheck();">
       </div>
+      <button type="button" class="pgs-btn-outline" style="margin:12px 0 0;" onclick="h2hCheckGameAccount()">🔍 CEK AKUN</button>
       <div id="voucherGameCheckResult" style="margin-top:8px;font-size:13px;"></div>
     </div>
 
@@ -16539,10 +16540,9 @@ window.smmOrder = smmOrder;
       h2hLoadVoucher(provider);
       const zoneWrap = document.getElementById('voucherZoneWrap');
       if (zoneWrap) zoneWrap.style.display = (provider === 'Mobile Legends') ? 'block' : 'none';
+      // Ganti game -> hasil cek akun sebelumnya (kalau ada) udah gak valid
+      // lagi buat game baru ini, reset & minta user pencet "Cek Akun" ulang.
       if (typeof h2hClearGameCheck === 'function') h2hClearGameCheck();
-      // Ganti game -> kalau ID/Zone ID udah keisi duluan, langsung cek ulang
-      // otomatis (gak perlu user pencet apa-apa lagi).
-      if (typeof h2hAutoCheckGameAccount === 'function') h2hAutoCheckGameAccount();
     }
     if (type === 'telpsms') h2hLoadTelpsms(provider);
   };
@@ -18227,55 +18227,30 @@ async function h2hPollOrderResult(refId, ctx){
 
 // ---------- Cek Akun Game OTOMATIS (validasi username sebelum bayar) ----------
 // User cukup ngetik ID/Zone ID, TANPA perlu pencet tombol "Cek" manual lagi.
-// Begitu user berhenti ngetik ID beneran (bukan cuma jeda sebentar pas
-// mikir/baca), otomatis dicek ke server & hasilnya muncul di POPUP (gaya
-// TokoGame), bukan teks kecil di bawah input lagi.
-//
-// PERBAIKAN PENTING: sebelumnya pengecekan langsung jalan begitu user
-// jeda ngetik >800ms DAN ID udah >=3 digit — itu kepancing banget, orang
-// yang baca dulu / mikir sebentar di tengah ngetik ID 8-10 digit gampang
-// ke-trigger padahal ID-nya baru setengah jalan (mis. baru 4 digit),
-// hasilnya ketauan "gagal" padahal emang belum selesai ngetik. Sekarang:
-// jeda dinaikkan jadi 1100ms (jeda mikir sebentar biasanya <1 detik,
-// beda sama jeda "udah selesai & taruh jari") DAN minimal 6 digit dulu
-// baru boleh mulai dicek (ID game hampir gak ada yang di bawah 6 digit).
+// Cek akun game SEKARANG murni dipicu tombol "🔍 CEK AKUN" (bukan lagi
+// otomatis pas jeda ngetik). Alasan diganti: pendekatan "auto-cek pas jeda
+// ngetik" walau udah dinaikin jadi jeda 1100ms + minimal 6 digit, TETAP
+// rawan nyangkut — kalau koneksi ke supplier lagi lambat, popup hasilnya
+// baru muncul BELAKANGAN, bahkan bisa muncul "nyasar" pas user udah
+// pindah ke halaman lain (mis. udah balik ke Beranda) karena timer/fetch-
+// nya tetap jalan di background biarpun halamannya udah ditinggal. Dengan
+// tombol eksplisit: gak ada timer tersembunyi, user yang nentuin kapan
+// pengecekan dimulai, dan popup-nya (lihat h2hCheckGameAccount di bawah)
+// dijaga supaya CUMA muncul kalau halaman Voucher Game-nya masih aktif.
 window._voucherGameChecked = false;
-let _voucherAutoCheckTimer = null;
 
 function h2hClearGameCheck(){
   window._voucherGameChecked = false;
-  clearTimeout(_voucherAutoCheckTimer);
 }
 window.h2hClearGameCheck = h2hClearGameCheck;
 
-// Input ID game sekarang ANGKA SAJA (bukan lagi ID-atau-nickname) — rapikan
-// setiap kali user ngetik, baru jalanin auto-check-nya.
+// Input ID game ANGKA SAJA (bukan lagi ID-atau-nickname) — rapikan setiap
+// kali user ngetik.
 function h2hSanitizeGameIdInput(el){
   const cleaned = el.value.replace(/\D/g, '');
   if (cleaned !== el.value) el.value = cleaned;
 }
-
-function h2hAutoCheckGameAccount(){
-  window._voucherGameChecked = false;
-  clearTimeout(_voucherAutoCheckTimer);
-  const idEl = document.getElementById('voucherInput');
-  const zoneEl = document.getElementById('voucherZoneInput');
-  if (idEl) h2hSanitizeGameIdInput(idEl);
-  if (zoneEl) h2hSanitizeGameIdInput(zoneEl);
-
-  const activeChip = document.querySelector('#voucherProvider .ppob-chip.active');
-  const isML = activeChip && activeChip.getAttribute('data-provider') === 'Mobile Legends';
-  const userId = (idEl?.value || '').trim();
-  const zoneId = (zoneEl?.value || '').trim();
-
-  // Belum cukup digit -> jangan cek dulu.
-  if (!userId || userId.length < 6 || (isML && zoneId.length < 3)) return;
-
-  _voucherAutoCheckTimer = setTimeout(() => {
-    h2hCheckGameAccount();
-  }, 1100);
-}
-window.h2hAutoCheckGameAccount = h2hAutoCheckGameAccount;
+window.h2hSanitizeGameIdInput = h2hSanitizeGameIdInput;
 
 function h2hOpenGameCheckModal(){
   document.getElementById('gameCheckLoading').style.display = 'block';
@@ -18292,15 +18267,27 @@ async function h2hCheckGameAccount(){
   const activeChip = document.querySelector('#voucherProvider .ppob-chip.active');
   const gameCode = activeChip ? activeChip.getAttribute('data-h2hgame') : null;
   const isML = activeChip && activeChip.getAttribute('data-provider') === 'Mobile Legends';
-  const userId = (document.getElementById('voucherInput')?.value || '').trim();
-  const zoneId = (document.getElementById('voucherZoneInput')?.value || '').trim();
+  const idEl = document.getElementById('voucherInput');
+  const zoneEl = document.getElementById('voucherZoneInput');
+  if (idEl) h2hSanitizeGameIdInput(idEl);
+  if (zoneEl) h2hSanitizeGameIdInput(zoneEl);
+  const userId = (idEl?.value || '').trim();
+  const zoneId = (zoneEl?.value || '').trim();
 
   if (!gameCode) return;
-  if (!userId) { showNotif('⚠️ Isi User ID dulu.'); return; }
+  if (!userId || userId.length < 6) { showNotif('⚠️ Isi User ID minimal 6 digit dulu.'); return; }
   if (isML && !zoneId) { showNotif('⚠️ Isi Zone ID dulu (wajib untuk Mobile Legends).'); return; }
 
   window._voucherGameChecked = false;
   h2hOpenGameCheckModal();
+
+  // Pengaman: kalau pas fetch-nya lagi jalan user udah pindah dari halaman
+  // Voucher Game (mis. balik ke Beranda), popup hasilnya JANGAN ditampilin
+  // lagi -- biar gak "nyasar" nongol di halaman lain.
+  const stillOnThisPage = () => {
+    const pg = document.getElementById('voucherGamePage');
+    return pg && pg.classList.contains('open');
+  };
 
   try {
     const res = await fetch(`${H2H_WORKER_URL}/game/check`, {
@@ -18309,6 +18296,7 @@ async function h2hCheckGameAccount(){
       body: JSON.stringify({ game: gameCode, user_id: userId, zone_id: zoneId || undefined }),
     });
     const j = await res.json().catch(() => ({}));
+    if (!stillOnThisPage()) { h2hCloseGameCheckModal(); return; }
     document.getElementById('gameCheckLoading').style.display = 'none';
     if (j.success && j.data && j.data.username) {
       window._voucherGameChecked = true;
@@ -18319,6 +18307,7 @@ async function h2hCheckGameAccount(){
       document.getElementById('gameCheckFail').style.display = 'block';
     }
   } catch (e) {
+    if (!stillOnThisPage()) { h2hCloseGameCheckModal(); return; }
     document.getElementById('gameCheckLoading').style.display = 'none';
     document.getElementById('gameCheckFailMsg').textContent = 'Gagal cek akun, coba lagi.';
     document.getElementById('gameCheckFail').style.display = 'block';
