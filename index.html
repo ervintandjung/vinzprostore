@@ -17,7 +17,17 @@
   --accent:#4d5bff;--accent2:#00d4ff;--gold:#ffd700;--text:#e8ebf5;
   --muted:#8a8fa3;--success:#00ff88;--danger:#ff4455;--border:rgba(77,91,255,0.22);
   --wa:#25D366;--radius:14px;
+  --card-radius:16px;--btn-radius:10px;
 }
+/* Saklar "Animasi" di halaman Tema — kalau dimatikan, kelas ini nempel di
+   body dan mematikan semua transition/animation CSS di seluruh app. */
+body.vp-no-anim, body.vp-no-anim *{
+  transition-duration:0s !important;
+  animation-duration:0s !important;
+  animation-delay:0s !important;
+  scroll-behavior:auto !important;
+}
+
 *{margin:0;padding:0;box-sizing:border-box;}
 html{overflow-x:hidden;overflow-x:clip;}
 html,body{overscroll-behavior:none;scrollbar-gutter:stable both-edges;}
@@ -43,7 +53,7 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 .pgs-badge{flex-shrink:0;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,.4);padding:4px 11px;border-radius:20px;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--accent2);text-transform:uppercase;}
 .pgs-section{margin-bottom:20px;}
 .pgs-section-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(0,212,255,.7);margin:0 0 8px 6px;text-transform:uppercase;}
-.pgs-card{background:rgba(255,255,255,0.03);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden;}
+.pgs-card{background:rgba(255,255,255,0.03);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.07);border-radius:var(--card-radius,16px);overflow:hidden;}
 .pgs-item{display:flex;align-items:center;justify-content:space-between;padding:14px 15px;cursor:pointer;transition:background .15s ease;border-top:1px solid rgba(255,255,255,0.05);}
 .pgs-card>.pgs-item:first-child{border-top:none;}
 .pgs-item:active{background:rgba(255,255,255,0.05);}
@@ -67,21 +77,44 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 #settingsQuickMenu .dd-item:first-child{border-top:none;}
 
 /* HALAMAN TERSENDIRI: EDIT PROFIL / UBAH PASSWORD / VERIFIKASI IDENTITAS */
-#editProfilPage,#ubahPasswordPage,#verifikasiIdentitasPage,#strukSettingsPage,#resellerMenuPage,#referralPage,#apiKeyPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:390;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;max-width:480px;margin:0 auto;}
+#editProfilPage,#ubahPasswordPage,#verifikasiIdentitasPage,#strukSettingsPage,#resellerMenuPage,#referralPage,#apiKeyPage,#temaPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:390;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;max-width:480px;margin:0 auto;}
 #resellerMenuPage.open{display:block;animation:fsSlideIn .3s ease;}
 #apiKeyPage.open{display:block;animation:fsSlideIn .3s ease;}
 #referralPage.open{display:block;animation:fsSlideIn .3s ease;}
-#editProfilPage.open,#ubahPasswordPage.open,#verifikasiIdentitasPage.open,#strukSettingsPage.open{display:block;animation:fsSlideIn .3s ease;}
+#editProfilPage.open,#ubahPasswordPage.open,#verifikasiIdentitasPage.open,#strukSettingsPage.open,#temaPage.open{display:block;animation:fsSlideIn .3s ease;}
 .pgs-subpage-content{max-width:480px;margin:0 auto;padding:18px 14px 60px;}
+
+/* ===== Halaman Tema & Tampilan ===== */
+.vp-theme-mode-list{display:flex;flex-direction:column;gap:8px;}
+.vp-theme-mode-item{display:flex;align-items:center;gap:12px;background:var(--card2);border:1.5px solid var(--border);border-radius:var(--card-radius,16px);padding:12px 14px;cursor:pointer;transition:.15s;}
+.vp-theme-mode-item.active{border-color:var(--accent2);background:rgba(0,212,255,0.08);}
+.vp-tm-ico{font-size:20px;flex-shrink:0;}
+.vp-tm-txt{flex:1;min-width:0;}
+.vp-tm-title{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14.5px;color:var(--text);}
+.vp-tm-sub{font-size:11.5px;color:var(--muted);margin-top:1px;}
+.vp-tm-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:.15s;}
+.vp-theme-mode-item.active .vp-tm-check{background:var(--accent2);border-color:var(--accent2);color:#001318;}
+
+.vp-cust-row-label{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13.5px;color:var(--text);margin-bottom:10px;}
+.vp-swatch-row{display:flex;gap:10px;flex-wrap:wrap;}
+.vp-swatch{position:relative;width:36px;height:36px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0;transition:.15s;}
+.vp-swatch.active{border-color:var(--text);box-shadow:0 0 0 2px var(--card2), 0 0 0 4px var(--accent2);}
+.vp-swatch-custom{background:var(--card);border:1.5px dashed var(--border);overflow:hidden;}
+
+.vp-seg-row{display:flex;gap:8px;}
+.vp-seg-opt{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;padding:12px 6px;cursor:pointer;font-size:11px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;transition:.15s;}
+.vp-seg-opt.active{border-color:var(--accent2);color:var(--accent2);background:rgba(0,212,255,0.08);}
+.vp-seg-preview{width:26px;height:26px;background:var(--accent);flex-shrink:0;}
+
 .pgs-field-label{font-size:11px;font-weight:700;color:var(--accent2);margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;}
 .pgs-input{width:100%;background:var(--secondary);border:1.5px solid var(--border);border-radius:9px;padding:12px 13px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14.5px;margin-bottom:8px;outline:none;}
 .pgs-input:disabled{background:rgba(255,255,255,0.04);color:var(--muted);border-color:rgba(106,140,181,0.3);}
 .pgs-input::placeholder{color:var(--muted);}
 .pgs-err{display:none;font-size:12px;color:var(--danger);margin-bottom:8px;}
-.pgs-btn-primary{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:13px;font-family:'Orbitron',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:14px;}
+.pgs-btn-primary{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--btn-radius,10px);padding:13px;font-family:'Orbitron',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:14px;}
 .pgs-btn-primary:active{transform:scale(.98);}
 .pgs-btn-primary:disabled{opacity:.6;}
-.pgs-btn-outline{width:100%;background:var(--secondary);color:var(--accent2);border:1.5px solid var(--accent);border-radius:10px;padding:13px;font-family:'Orbitron',sans-serif;font-size:11.5px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:14px;}
+.pgs-btn-outline{width:100%;background:var(--secondary);color:var(--accent2);border:1.5px solid var(--accent);border-radius:var(--btn-radius,10px);padding:13px;font-family:'Orbitron',sans-serif;font-size:11.5px;font-weight:700;cursor:pointer;letter-spacing:.8px;margin-bottom:14px;}
 .pgs-hint{font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:16px;}
 .pgs-status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;}
 .pgs-status-badge.belum{background:rgba(255,68,85,.08);border:1px solid rgba(255,68,85,.35);color:var(--danger);}
@@ -259,7 +292,7 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 .pc-tx-head h3{font-size:16px;font-weight:700;color:var(--text);}
 .pc-tx-head span{font-size:11.5px;color:var(--accent2);font-weight:600;cursor:pointer;}
 .pc-tx-list{display:flex;flex-direction:column;gap:10px;}
-.pc-tx-item{background:rgba(255,255,255,0.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:13px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:.3s;}
+.pc-tx-item{background:rgba(255,255,255,0.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:var(--card-radius,16px);padding:13px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:.3s;}
 .pc-tx-item:active{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);}
 .pc-tx-left{display:flex;align-items:center;gap:11px;min-width:0;}
 .pc-tx-ic{width:38px;height:38px;border-radius:12px;background:rgba(77,91,255,0.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--accent2);flex-shrink:0;}
@@ -512,7 +545,7 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 .pw-wrap{position:relative;}
 .pw-wrap input{padding-right:40px !important;}
 .pw-eye{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);padding:0;line-height:1;display:flex;align-items:center;justify-content:center;transition:color .2s;}.pw-eye:hover{color:var(--accent2);}
-.btn-auth{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px;margin-top:4px;}
+.btn-auth{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--btn-radius,10px);padding:12px;font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px;margin-top:4px;}
 .auth-err{font-size:12px;color:var(--danger);text-align:center;margin-bottom:8px;display:none;}
 
 /* ===== AUTH MODAL REDESIGN — bottom-sheet konsisten dgn .modal lain di app,
@@ -539,7 +572,7 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 .auth-brand-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:21px;letter-spacing:1.5px;color:#00daf3;text-shadow:0 0 18px rgba(0,218,243,.55);margin-bottom:6px;}
 .auth-brand-sub{font-size:12.5px;color:#bac9cc;letter-spacing:.3px;}
 
-.auth-glass-card{background:rgba(255,255,255,0.045);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:22px 18px;}
+.auth-glass-card{background:rgba(255,255,255,0.045);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:calc(var(--card-radius,16px) + 8px);padding:22px 18px;}
 .auth-card-head{margin-bottom:18px;text-align:left;}
 .auth-card-head h2{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;color:#e5e2e1;margin-bottom:4px;}
 .auth-card-head p{font-size:13px;color:#bac9cc;}
@@ -777,6 +810,12 @@ body.light-mode .ppob-nom.active{background:linear-gradient(160deg,#ffffff,#eef3
    gelap tipis biar tetap kelihatan di kedua tema. */
 body.light-mode .pgs-card{background:#ffffff;border:1px solid rgba(13,31,60,0.08);box-shadow:0 2px 10px rgba(13,31,60,0.06);}
 body.light-mode .pgs-item{border-top:1px solid rgba(13,31,60,0.08);}
+body.light-mode .vp-theme-mode-item{background:#ffffff;border-color:rgba(13,31,60,0.14);}
+body.light-mode .vp-theme-mode-item.active{background:rgba(0,88,188,0.06);border-color:#0058bc;}
+body.light-mode .vp-theme-mode-item.active .vp-tm-check{background:#0058bc;border-color:#0058bc;}
+body.light-mode .vp-seg-opt{background:#ffffff;border-color:rgba(13,31,60,0.14);}
+body.light-mode .vp-seg-opt.active{background:rgba(0,88,188,0.06);border-color:#0058bc;color:#0058bc;}
+body.light-mode .vp-swatch-custom{background:#ffffff;border-color:rgba(13,31,60,0.25);}
 body.light-mode .pgs-item:active{background:rgba(13,31,60,0.04);}
 body.light-mode .pc-tx-item:active{background:#eef3fb;border-color:rgba(26,111,255,0.25);}
 body.light-mode #profitSaldoCard{background:#fffdf5;border-color:rgba(200,160,0,0.3);box-shadow:0 2px 14px rgba(200,160,0,0.12);}
@@ -946,7 +985,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 .ppob-back:active{transform:scale(.92);}
 .ppob-topbar .tt{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;letter-spacing:2px;color:#fff;}
 .ppob-wrap{padding:20px 14px 6px;}
-.ppob-card{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 6px 20px rgba(0,0,0,0.25);}
+.ppob-card{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:calc(var(--card-radius,16px) + 2px);padding:16px;margin-bottom:14px;box-shadow:0 6px 20px rgba(0,0,0,0.25);}
 .ppob-card .pi-h{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;letter-spacing:1px;color:#fff;}
 .ppob-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
 .ppob-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:13px 14px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;outline:none;transition:.2s;margin-bottom:12px;}
@@ -987,7 +1026,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 .vgl-card.hidden{display:none;}
 .vgl-empty{grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);font-size:12.5px;}
 .ppob-nom-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
-.ppob-nom{position:relative;background:linear-gradient(160deg,var(--card2),rgba(19,19,24,.6));border:1.5px solid var(--border);border-radius:14px;padding:14px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;cursor:pointer;text-align:left;transition:.15s;overflow:hidden;}
+.ppob-nom{position:relative;background:linear-gradient(160deg,var(--card2),rgba(19,19,24,.6));border:1.5px solid var(--border);border-radius:var(--card-radius,16px);padding:14px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;cursor:pointer;text-align:left;transition:.15s;overflow:hidden;}
 .ppob-nom::before{content:"";position:absolute;inset:0;background:radial-gradient(120px 60px at 100% 0%,rgba(0,212,255,0.08),transparent 70%);opacity:0;transition:.15s;}
 .ppob-nom:active{transform:scale(.96);}
 .ppob-nom .pn-nominal{font-weight:800;font-size:15px;letter-spacing:.3px;color:var(--text);}
@@ -1824,10 +1863,10 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 
     <div class="ppob-card">
       <div class="ppob-label">ID / USER ID GAME</div>
-      <input type="text" id="voucherInput" class="ppob-input" placeholder="Contoh: 123456789 (ID) atau nickname" autocomplete="off" oninput="h2hAutoCheckGameAccount()">
+      <input type="tel" inputmode="numeric" id="voucherInput" class="ppob-input" placeholder="Contoh: 123456789" autocomplete="off" oninput="h2hAutoCheckGameAccount()">
       <div id="voucherZoneWrap" style="display:none;margin-top:10px;">
         <div class="ppob-label">ZONE ID</div>
-        <input type="text" id="voucherZoneInput" class="ppob-input" placeholder="Contoh: 1234" autocomplete="off" oninput="h2hAutoCheckGameAccount()">
+        <input type="tel" inputmode="numeric" id="voucherZoneInput" class="ppob-input" placeholder="Contoh: 1234" autocomplete="off" oninput="h2hAutoCheckGameAccount()">
       </div>
       <div id="voucherGameCheckResult" style="margin-top:8px;font-size:13px;"></div>
     </div>
@@ -1844,6 +1883,10 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
         <div class="ppob-chip" data-provider="Steam" data-h2hgame="steam" onclick="selectPpobProvider(this,'voucher')">Steam</div>
       </div>
       <div class="ppob-label" style="margin-top:8px;">PILIH NOMINAL</div>
+      <div class="vp-seg-row" id="voucherTypeTabs" style="margin-bottom:12px;">
+        <div class="vp-seg-opt active" data-tab="diamond" onclick="h2hSetVoucherTab('diamond')">💎 Diamond</div>
+        <div class="vp-seg-opt" data-tab="membership" onclick="h2hSetVoucherTab('membership')">🎫 Membership</div>
+      </div>
       <div class="ppob-nom-grid" id="voucherNominal">
         <div class="ppob-nom" data-nom="100 Diamonds" data-price="15000" onclick="selectPpobNom(this,'voucher')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">100 DM</div><div class="pn-harga">Rp 15.000</div></div>
         <div class="ppob-nom" data-nom="310 Diamonds" data-price="42000" onclick="selectPpobNom(this,'voucher')"><div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="pn-nominal">310 DM</div><div class="pn-harga">Rp 42.000</div></div>
@@ -2916,8 +2959,8 @@ window.apTestAdminEmail = apTestAdminEmail;
           <div class="pgs-item-left"><span class="pgs-ico">🌐</span><span class="pgs-label">Bahasa<span class="pgs-sub">Bahasa Indonesia</span></span></div>
           <span class="pgs-chevron">›</span>
         </div>
-        <div class="pgs-item" onclick="toggleTheme();pgsSyncTheme();">
-          <div class="pgs-item-left"><span class="pgs-ico">🌙</span><span class="pgs-label">Tema<span class="pgs-sub" id="pgsThemeSub">Gelap</span></span></div>
+        <div class="pgs-item" onclick="openTemaPage()">
+          <div class="pgs-item-left"><span class="pgs-ico">🎨</span><span class="pgs-label">Tema &amp; Tampilan<span class="pgs-sub" id="pgsThemeSub">Gelap</span></span></div>
           <span class="pgs-chevron">›</span>
         </div>
         <div class="pgs-item" onclick="showNotif('🔔 Pengaturan notifikasi segera hadir')">
@@ -3046,6 +3089,93 @@ window.apTestAdminEmail = apTestAdminEmail;
       </div>
       <button id="btnVerifyPhone" onclick="verifyPhoneChange()" style="width:100%;background:var(--success);color:#000;border:none;border-radius:10px;padding:11px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.8px;">VERIFIKASI &amp; SIMPAN NOMOR</button>
     </div>
+  </div>
+</div>
+
+<!-- ═══ HALAMAN TEMA & TAMPILAN (terpisah) ═══ -->
+<div id="temaPage">
+  <div class="pgs-topbar">
+    <button class="pgs-back" onclick="closeTemaPage()">&#8592;</button>
+    <div class="pgs-title">TEMA &amp; TAMPILAN</div>
+    <div style="width:34px;flex-shrink:0;"></div>
+  </div>
+  <div class="pgs-subpage-content">
+
+    <div class="pgs-field-label">Mode Tampilan (Appearance)</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Ini mengubah mode terang/gelap utama aplikasi.</div>
+    <div class="vp-theme-mode-list" id="vpThemeModeList">
+      <div class="vp-theme-mode-item" data-mode="system" onclick="vpSetThemeMode('system')">
+        <span class="vp-tm-ico">⚙️</span>
+        <div class="vp-tm-txt"><div class="vp-tm-title">Ikuti Sistem</div><div class="vp-tm-sub">Otomatis sesuai pengaturan HP kamu</div></div>
+        <span class="vp-tm-check">✓</span>
+      </div>
+      <div class="vp-theme-mode-item" data-mode="light" onclick="vpSetThemeMode('light')">
+        <span class="vp-tm-ico">☀️</span>
+        <div class="vp-tm-txt"><div class="vp-tm-title">Terang</div><div class="vp-tm-sub">Light mode</div></div>
+        <span class="vp-tm-check">✓</span>
+      </div>
+      <div class="vp-theme-mode-item" data-mode="dark" onclick="vpSetThemeMode('dark')">
+        <span class="vp-tm-ico">🌙</span>
+        <div class="vp-tm-txt"><div class="vp-tm-title">Gelap</div><div class="vp-tm-sub">Dark mode</div></div>
+        <span class="vp-tm-check">✓</span>
+      </div>
+    </div>
+
+    <div class="pgs-field-label" style="margin-top:24px;">Kustomisasi (Customization)</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Sesuaikan tampilan tanpa mengubah mode terang/gelap.</div>
+
+    <div class="pgs-card" style="padding:16px;margin-bottom:14px;">
+      <!-- Warna Utama -->
+      <div class="vp-cust-row-label">Warna Utama</div>
+      <div class="vp-swatch-row" id="vpAccentSwatches">
+        <div class="vp-swatch" data-preset="blue"   style="background:linear-gradient(135deg,#4d5bff,#00d4ff);" onclick="vpSetAccentPreset('blue')" title="Biru"></div>
+        <div class="vp-swatch" data-preset="green"  style="background:linear-gradient(135deg,#12b76a,#22e0a0);" onclick="vpSetAccentPreset('green')" title="Hijau"></div>
+        <div class="vp-swatch" data-preset="red"    style="background:linear-gradient(135deg,#ef4444,#ff8a8a);" onclick="vpSetAccentPreset('red')" title="Merah"></div>
+        <div class="vp-swatch" data-preset="purple" style="background:linear-gradient(135deg,#8b5cf6,#c084fc);" onclick="vpSetAccentPreset('purple')" title="Ungu"></div>
+        <div class="vp-swatch" data-preset="orange" style="background:linear-gradient(135deg,#f97316,#ffb454);" onclick="vpSetAccentPreset('orange')" title="Oranye"></div>
+        <div class="vp-swatch" data-preset="mono"   style="background:linear-gradient(135deg,#3a3a3a,#9a9a9a);" onclick="vpSetAccentPreset('mono')" title="Hitam / Netral"></div>
+        <label class="vp-swatch vp-swatch-custom" id="vpAccentCustomSwatch" title="Warna Kustom" style="display:flex;align-items:center;justify-content:center;font-size:16px;">
+          🎨
+          <input type="color" id="vpAccentCustomInput" style="position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;" oninput="vpSetAccentCustom(this.value)">
+        </label>
+      </div>
+      <div style="font-size:10.5px;color:var(--muted);margin-top:8px;" id="vpAccentHexLabel">Warna kode: #4d5bff</div>
+    </div>
+
+    <div class="pgs-card" style="padding:16px;margin-bottom:14px;">
+      <!-- Sudut Kartu -->
+      <div class="vp-cust-row-label">Sudut Kartu &amp; Tombol</div>
+      <div class="vp-seg-row" id="vpRadiusSeg">
+        <div class="vp-seg-opt" data-val="6" onclick="vpSetRadius(6)">
+          <div class="vp-seg-preview" style="border-radius:3px;"></div>Kotak
+        </div>
+        <div class="vp-seg-opt" data-val="16" onclick="vpSetRadius(16)">
+          <div class="vp-seg-preview" style="border-radius:8px;"></div>Sedang
+        </div>
+        <div class="vp-seg-opt" data-val="28" onclick="vpSetRadius(28)">
+          <div class="vp-seg-preview" style="border-radius:16px;"></div>Membulat
+        </div>
+      </div>
+    </div>
+
+    <div class="pgs-card" style="padding:16px;margin-bottom:14px;">
+      <!-- Ukuran Font -->
+      <div class="vp-cust-row-label">Ukuran Font</div>
+      <div class="vp-seg-row" id="vpFontSeg">
+        <div class="vp-seg-opt" data-val="0.92" onclick="vpSetFontScale(0.92)"><span style="font-size:12px;">A</span>Kecil</div>
+        <div class="vp-seg-opt" data-val="1" onclick="vpSetFontScale(1)"><span style="font-size:15px;">A</span>Sedang</div>
+        <div class="vp-seg-opt" data-val="1.12" onclick="vpSetFontScale(1.12)"><span style="font-size:18px;">A</span>Besar</div>
+      </div>
+    </div>
+
+    <div class="pgs-card" style="padding:2px;margin-bottom:14px;">
+      <div class="pgs-item" style="border-top:none;">
+        <div class="pgs-item-left"><span class="pgs-ico">🎬</span><span class="pgs-label">Animasi<span class="pgs-sub" id="vpAnimSub">Aktif</span></span></div>
+        <button type="button" class="pgs-toggle" id="vpAnimToggleBtn" onclick="vpToggleAnim()"><span class="pgs-toggle-knob"></span></button>
+      </div>
+    </div>
+
+    <button class="pgs-btn-outline" style="color:var(--danger);border-color:var(--danger);" onclick="vpResetThemeDefaults()">🔄 RESET KE DEFAULT</button>
   </div>
 </div>
 
@@ -6336,7 +6466,9 @@ async function pgsToggle2FA(){
 }
 function pgsSyncTheme(){
   const sub = document.getElementById('pgsThemeSub');
-  if (sub) sub.textContent = document.body.classList.contains('light-mode') ? 'Terang' : 'Gelap';
+  if (!sub) return;
+  const mode = (typeof vpGetThemeSettings === 'function') ? vpGetThemeSettings().mode : (document.body.classList.contains('light-mode') ? 'light' : 'dark');
+  sub.textContent = mode === 'system' ? 'Ikuti Sistem' : (mode === 'light' ? 'Terang' : 'Gelap');
 }
 
 async function pgsToggleBiometric(){
@@ -8133,23 +8265,197 @@ setTimeout(syncKeysFromCloud, 1500);
 setInterval(syncKeysFromCloud, 15000);
 </script>
 
+<!-- ===== POPUP CEK AKUN GAME (gaya TokoGame) ===== -->
+<div class="overlay" id="gameCheckOverlay" style="align-items:center;">
+  <div class="modal" style="border-radius:var(--card-radius,16px);text-align:center;padding:34px 26px;max-width:360px;">
+    <div id="gameCheckLoading">
+      <div style="font-family:'Orbitron',sans-serif;font-weight:800;font-size:19px;color:var(--text);margin-bottom:16px;">Mohon Menunggu</div>
+      <div style="font-size:42px;margin-bottom:14px;">😄🙏</div>
+      <div style="color:var(--muted);font-size:14px;">Mencari username Anda..</div>
+    </div>
+    <div id="gameCheckSuccess" style="display:none;">
+      <div style="width:76px;height:76px;border-radius:50%;border:3px solid #4ade80;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#4ade80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div style="font-size:13.5px;color:var(--muted);">Username:</div>
+      <div style="font-size:21px;font-weight:800;color:var(--text);margin:4px 0 16px;word-break:break-word;" id="gameCheckUsername"></div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:22px;">Mohon pastikan username sudah benar karena tidak dapat diubah atau dibatalkan setelah pembayaran.</div>
+      <button class="pgs-btn-primary" style="margin:0;" onclick="h2hCloseGameCheckModal()">OK 👍</button>
+    </div>
+    <div id="gameCheckFail" style="display:none;">
+      <div style="width:76px;height:76px;border-radius:50%;border:3px solid var(--danger);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:34px;">❌</div>
+      <div style="font-size:13.5px;color:var(--text);line-height:1.6;margin-bottom:22px;" id="gameCheckFailMsg"></div>
+      <button class="pgs-btn-outline" style="margin:0;" onclick="h2hCloseGameCheckModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== BUY NOTIF POPUP ===== -->
 <script>
-// ===== THEME TOGGLE =====
+// ===== TEMA & TAMPILAN (Appearance + Customization) =====
+const VP_ACCENT_PRESETS = {
+  blue:   { accent:'#4d5bff', accent2:'#00d4ff' },
+  green:  { accent:'#12b76a', accent2:'#22e0a0' },
+  red:    { accent:'#ef4444', accent2:'#ff8a8a' },
+  purple: { accent:'#8b5cf6', accent2:'#c084fc' },
+  orange: { accent:'#f97316', accent2:'#ffb454' },
+  mono:   { accent:'#3a3a3a', accent2:'#9a9a9a' },
+};
+const VP_THEME_DEFAULTS = { mode:'dark', accentPreset:'blue', accentCustom:null, radius:16, fontScale:1, anim:true };
+
+// Terangi/gelapin warna hex secukupnya buat dipakai sebagai --accent2 kalau
+// user pilih warna kustom sendiri (biar tetap ada 2 gradasi, bukan solid).
+function vpLightenHex(hex, amt){
+  try{
+    let c = hex.replace('#','');
+    if (c.length === 3) c = c.split('').map(x=>x+x).join('');
+    const num = parseInt(c,16);
+    let r = (num>>16)+amt, g = ((num>>8)&0xff)+amt, b = (num&0xff)+amt;
+    r = Math.max(0,Math.min(255,r)); g = Math.max(0,Math.min(255,g)); b = Math.max(0,Math.min(255,b));
+    return '#' + (0x1000000 + r*0x10000 + g*0x100 + b).toString(16).slice(1);
+  } catch(e){ return hex; }
+}
+
+function vpGetThemeSettings(){
+  let s = {};
+  try { s = JSON.parse(localStorage.getItem('vp_theme_settings') || '{}'); } catch(e){}
+  return Object.assign({}, VP_THEME_DEFAULTS, s);
+}
+function vpSaveThemeSettings(patch){
+  const s = Object.assign(vpGetThemeSettings(), patch);
+  try { localStorage.setItem('vp_theme_settings', JSON.stringify(s)); } catch(e){}
+  return s;
+}
+
+function vpApplyThemeSettings(){
+  const s = vpGetThemeSettings();
+
+  // 1) Mode terang/gelap/sistem
+  let isLight;
+  if (s.mode === 'system') {
+    isLight = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+  } else {
+    isLight = s.mode === 'light';
+  }
+  document.body.classList.toggle('light-mode', isLight);
+
+  // 2) Warna utama
+  let accent, accent2;
+  if (s.accentCustom) {
+    accent = s.accentCustom;
+    accent2 = vpLightenHex(s.accentCustom, 60);
+  } else {
+    const p = VP_ACCENT_PRESETS[s.accentPreset] || VP_ACCENT_PRESETS.blue;
+    accent = p.accent; accent2 = p.accent2;
+  }
+  document.documentElement.style.setProperty('--accent', accent);
+  document.documentElement.style.setProperty('--accent2', accent2);
+
+  // 3) Sudut kartu & tombol
+  document.documentElement.style.setProperty('--card-radius', s.radius + 'px');
+  document.documentElement.style.setProperty('--btn-radius', Math.round(s.radius * 0.6) + 'px');
+
+  // 4) Ukuran font — dipakai lewat "zoom" (bukan rem) karena hampir semua
+  // ukuran teks di app ini pakai satuan px tetap, bukan em/rem, jadi
+  // font-size di :root gak akan ke-cascade rapi. "zoom" ngescale layout +
+  // teks bareng secara proporsional tanpa merusak tata letak.
+  document.body.style.zoom = s.fontScale;
+
+  // 5) Animasi
+  document.body.classList.toggle('vp-no-anim', !s.anim);
+
+  return s;
+}
+
+// Sinkronkan tampilan UI halaman Tema (checkmark, swatch aktif, dst) sesuai
+// setting yang lagi kepakai.
+function vpSyncTemaPageUI(){
+  const s = vpGetThemeSettings();
+  document.querySelectorAll('.vp-theme-mode-item').forEach(el=>{
+    el.classList.toggle('active', el.dataset.mode === s.mode);
+  });
+  document.querySelectorAll('#vpAccentSwatches .vp-swatch[data-preset]').forEach(el=>{
+    el.classList.toggle('active', !s.accentCustom && el.dataset.preset === s.accentPreset);
+  });
+  const customSwatch = document.getElementById('vpAccentCustomSwatch');
+  if (customSwatch) customSwatch.classList.toggle('active', !!s.accentCustom);
+  const customInput = document.getElementById('vpAccentCustomInput');
+  if (customInput) customInput.value = s.accentCustom || (VP_ACCENT_PRESETS[s.accentPreset]||VP_ACCENT_PRESETS.blue).accent;
+  const hexEl = document.getElementById('vpAccentHexLabel');
+  if (hexEl) {
+    const hex = s.accentCustom || (VP_ACCENT_PRESETS[s.accentPreset]||VP_ACCENT_PRESETS.blue).accent;
+    hexEl.textContent = 'Warna kode: ' + hex;
+  }
+  document.querySelectorAll('#vpRadiusSeg .vp-seg-opt').forEach(el=>{
+    el.classList.toggle('active', Number(el.dataset.val) === Number(s.radius));
+  });
+  document.querySelectorAll('#vpFontSeg .vp-seg-opt').forEach(el=>{
+    el.classList.toggle('active', Math.abs(Number(el.dataset.val) - Number(s.fontScale)) < 0.001);
+  });
+  const animBtn = document.getElementById('vpAnimToggleBtn');
+  if (animBtn) animBtn.classList.toggle('on', s.anim);
+  const animSub = document.getElementById('vpAnimSub');
+  if (animSub) animSub.textContent = s.anim ? 'Aktif' : 'Nonaktif';
+}
+
+function vpSetThemeMode(mode){ vpSaveThemeSettings({ mode }); vpApplyThemeSettings(); vpSyncTemaPageUI(); pgsSyncTheme(); }
+function vpSetAccentPreset(preset){ vpSaveThemeSettings({ accentPreset: preset, accentCustom: null }); vpApplyThemeSettings(); vpSyncTemaPageUI(); }
+function vpSetAccentCustom(hex){ vpSaveThemeSettings({ accentCustom: hex }); vpApplyThemeSettings(); vpSyncTemaPageUI(); }
+function vpSetRadius(val){ vpSaveThemeSettings({ radius: val }); vpApplyThemeSettings(); vpSyncTemaPageUI(); }
+function vpSetFontScale(val){ vpSaveThemeSettings({ fontScale: val }); vpApplyThemeSettings(); vpSyncTemaPageUI(); }
+function vpToggleAnim(){
+  const s = vpGetThemeSettings();
+  vpSaveThemeSettings({ anim: !s.anim });
+  vpApplyThemeSettings(); vpSyncTemaPageUI();
+}
+function vpResetThemeDefaults(){
+  try { localStorage.removeItem('vp_theme_settings'); } catch(e){}
+  vpApplyThemeSettings(); vpSyncTemaPageUI(); pgsSyncTheme();
+  showNotif('🔄 Tema dikembalikan ke default!');
+}
+
+function openTemaPage(){
+  vpSyncTemaPageUI();
+  document.getElementById('temaPage').classList.add('open');
+  if (typeof pcSaveExtraPage === 'function') pcSaveExtraPage('temaPage');
+}
+function closeTemaPage(){
+  document.getElementById('temaPage').classList.remove('open');
+  if (typeof pcClearExtraPage === 'function') pcClearExtraPage('temaPage');
+}
+window.openTemaPage = openTemaPage;
+window.closeTemaPage = closeTemaPage;
+
+// Init paling awal (sebelum DOMContentLoaded kelar) biar gak keliatan
+// "kedip" tema lama sebelum tema tersimpan diterapkan.
+vpApplyThemeSettings();
+
+// Pantau perubahan preferensi sistem — kalau mode-nya "Ikuti Sistem", auto
+// nyesuain begitu HP-nya ganti tema (mis. jadwal malam otomatis di Android).
+try {
+  const mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)');
+  if (mq && mq.addEventListener) {
+    mq.addEventListener('change', () => {
+      if (vpGetThemeSettings().mode === 'system') vpApplyThemeSettings();
+    });
+  }
+} catch(e){}
+
+// toggleTheme() dipertahankan buat tombol ikon 🌙/☀️ cepat di header —
+// cuma flip terang/gelap langsung (gak lewat mode "Ikuti Sistem").
+function toggleTheme(){
+  const s = vpGetThemeSettings();
+  const nextMode = document.body.classList.contains('light-mode') ? 'dark' : 'light';
+  vpSaveThemeSettings({ mode: nextMode });
+  vpApplyThemeSettings();
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = nextMode === 'light' ? '☀️' : '🌙';
+}
 (function(){
-  try {
-    const saved = localStorage.getItem('vp_theme');
-    if (saved === 'light') document.body.classList.add('light-mode');
-  } catch(e){}
   const btn = document.getElementById('themeToggle');
   if (btn) btn.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
 })();
-function toggleTheme(){
-  const light = document.body.classList.toggle('light-mode');
-  try { localStorage.setItem('vp_theme', light ? 'light' : 'dark'); } catch(e){}
-  const btn = document.getElementById('themeToggle');
-  if (btn) btn.textContent = light ? '☀️' : '🌙';
-}
+
 
 // ===== BUY NOTIF POPUP =====
 // Blokir swipe/scroll ke atas di splashScreen dan authOverlay
@@ -11248,6 +11554,7 @@ function doPesan(){
     { id: 'successOverlay',  close: () => window.closeSuccess   && window.closeSuccess() },
     { id: 'authOverlay',     close: () => { if (typeof authGateActive!=='undefined' && authGateActive && !currentUser) return; const el=document.getElementById('authOverlay'); if(el) el.classList.remove('open'); } },
     { id: 'editProfilPage',  close: () => window.closeEditProfil && window.closeEditProfil() },
+    { id: 'temaPage',        close: () => window.closeTemaPage && window.closeTemaPage() },
     { id: 'ubahPasswordPage', close: () => window.closeUbahPassword && window.closeUbahPassword() },
     { id: 'verifikasiIdentitasPage', close: () => window.closeVerifikasiIdentitas && window.closeVerifikasiIdentitas() },
     { id: 'strukSettingsPage', close: () => window.closeStrukSettings && window.closeStrukSettings() },
@@ -11279,7 +11586,8 @@ function doPesan(){
     { id: 'lainnyaMenuPage',  close: () => window.closePpobPage && window.closePpobPage('lainnyaMenuPage') },
     { id: 'topUpPage',        close: () => window.closeTopUp && window.closeTopUp() },
     { id: 'topupDetailPage',  close: () => window.closeTopupDetail && window.closeTopupDetail() },
-    { id: 'qrisModal',        close: () => window.tutupQris && window.tutupQris() }
+    { id: 'qrisModal',        close: () => window.tutupQris && window.tutupQris() },
+    { id: 'gameCheckOverlay', close: () => window.h2hCloseGameCheckModal && window.h2hCloseGameCheckModal() }
   ];
 
   let stack = [];          // stack of panel ids yg sedang open (urutan dibuka)
@@ -14781,6 +15089,7 @@ window.tdpRefreshStatus = tdpRefreshStatus;
 #adminPanel.open ~ .bottom-nav,
 #editProfilPage.open ~ .bottom-nav,
 #ubahPasswordPage.open ~ .bottom-nav,
+#temaPage.open ~ .bottom-nav,
 #verifikasiIdentitasPage.open ~ .bottom-nav,
 #strukSettingsPage.open ~ .bottom-nav,
 #resellerMenuPage.open ~ .bottom-nav,
@@ -15054,6 +15363,7 @@ function pcRestoreExtraPage(){
   if (id === 'topUpPage' && typeof openTopUp === 'function') { openTopUp(); return; }
   if (id === 'agenResellerPage' && typeof window.openAgenReseller === 'function') { window.openAgenReseller(); return; }
   if (id === 'editProfilPage' && typeof openEditProfil === 'function') { openEditProfil(); return; }
+  if (id === 'temaPage' && typeof openTemaPage === 'function') { openTemaPage(); return; }
   if (id === 'ubahPasswordPage' && typeof openUbahPassword === 'function') { openUbahPassword(); return; }
   if (id === 'verifikasiIdentitasPage' && typeof openVerifikasiIdentitas === 'function') { openVerifikasiIdentitas(); return; }
   if (id === 'strukSettingsPage' && typeof openStrukSettings === 'function') { openStrukSettings(); return; }
@@ -15932,7 +16242,7 @@ function h2hRenderNomGrid(containerId, ppobType, rows){
   const wrap = document.getElementById(containerId);
   if (!wrap) return;
   if (!rows.length) {
-    wrap.innerHTML = '<div style="grid-column:1/-1;padding:16px;text-align:center;opacity:.6;font-size:13px;">Produk belum tersedia untuk pilihan ini.</div>';
+    wrap.innerHTML = '<div style="grid-column:1/-1;padding:16px;text-align:center;opacity:.6;font-size:13px;">Belum ada produk untuk pilihan ini.</div>';
     return;
   }
   const check = '<div class="pn-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
@@ -16036,10 +16346,32 @@ async function h2hLoadEwallet(provider){
   const rows = await h2hFetchProducts('e_wallet', provider);
   h2hRenderNomGrid('ewalletNominal', 'ewallet', rows);
 }
+// Voucher Game sekarang punya 2 tab: Diamond & Membership. Keduanya diambil
+// dari SATU query yang sama ke h2h_products (kategori voucher_game), lalu
+// dipisah di sisi client berdasarkan kata kunci di nama produknya — jadi
+// gak perlu 2x fetch, dan otomatis kepisah selama nama produknya jelas
+// (mis. "Weekly Membership", "Starlight Member", dst). Kalau toko belum
+// punya SKU membership buat game tertentu di data produknya, tab
+// Membership-nya bakal nampilin "belum tersedia" — itu normal, bukan bug,
+// artinya memang produknya belum diinput di sisi admin/katalog.
+let _voucherActiveTab = 'diamond';
+function h2hIsMembershipProduct(r){
+  return /member(ship)?|starlight|weekly|mingguan|bulanan|monthly|pass\b|langganan/i.test((r.name||'') + ' ' + (r.description||''));
+}
 async function h2hLoadVoucher(game){
   const rows = await h2hFetchProducts('voucher_game', game);
+  window._voucherDiamondRows = rows.filter(r => !h2hIsMembershipProduct(r));
+  window._voucherMembershipRows = rows.filter(h2hIsMembershipProduct);
+  h2hSetVoucherTab('diamond');
+}
+function h2hSetVoucherTab(tab){
+  _voucherActiveTab = tab;
+  const tabsWrap = document.getElementById('voucherTypeTabs');
+  if (tabsWrap) tabsWrap.querySelectorAll('.vp-seg-opt').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
+  const rows = tab === 'membership' ? (window._voucherMembershipRows || []) : (window._voucherDiamondRows || []);
   h2hRenderNomGrid('voucherNominal', 'voucher', rows);
 }
+window.h2hSetVoucherTab = h2hSetVoucherTab;
 async function h2hLoadPulsa(operator){
   const rows = operator ? await h2hFetchProducts('pulsa', operator) : [];
   h2hRenderNomGrid('pulsaNominal', 'pulsa', rows);
@@ -17895,44 +18227,68 @@ async function h2hPollOrderResult(refId, ctx){
 
 // ---------- Cek Akun Game OTOMATIS (validasi username sebelum bayar) ----------
 // User cukup ngetik ID/Zone ID, TANPA perlu pencet tombol "Cek" manual lagi.
-// Begitu user berhenti ngetik (jeda ±800ms), otomatis muncul notif "mohon
-// tunggu sedang mengecek...", lalu hasilnya (nama akun) muncul sendiri.
+// Begitu user berhenti ngetik ID beneran (bukan cuma jeda sebentar pas
+// mikir/baca), otomatis dicek ke server & hasilnya muncul di POPUP (gaya
+// TokoGame), bukan teks kecil di bawah input lagi.
+//
+// PERBAIKAN PENTING: sebelumnya pengecekan langsung jalan begitu user
+// jeda ngetik >800ms DAN ID udah >=3 digit — itu kepancing banget, orang
+// yang baca dulu / mikir sebentar di tengah ngetik ID 8-10 digit gampang
+// ke-trigger padahal ID-nya baru setengah jalan (mis. baru 4 digit),
+// hasilnya ketauan "gagal" padahal emang belum selesai ngetik. Sekarang:
+// jeda dinaikkan jadi 1100ms (jeda mikir sebentar biasanya <1 detik,
+// beda sama jeda "udah selesai & taruh jari") DAN minimal 6 digit dulu
+// baru boleh mulai dicek (ID game hampir gak ada yang di bawah 6 digit).
 window._voucherGameChecked = false;
 let _voucherAutoCheckTimer = null;
 
 function h2hClearGameCheck(){
   window._voucherGameChecked = false;
   clearTimeout(_voucherAutoCheckTimer);
-  const el = document.getElementById('voucherGameCheckResult');
-  if (el) el.innerHTML = '';
 }
 window.h2hClearGameCheck = h2hClearGameCheck;
+
+// Input ID game sekarang ANGKA SAJA (bukan lagi ID-atau-nickname) — rapikan
+// setiap kali user ngetik, baru jalanin auto-check-nya.
+function h2hSanitizeGameIdInput(el){
+  const cleaned = el.value.replace(/\D/g, '');
+  if (cleaned !== el.value) el.value = cleaned;
+}
 
 function h2hAutoCheckGameAccount(){
   window._voucherGameChecked = false;
   clearTimeout(_voucherAutoCheckTimer);
-  const resultEl = document.getElementById('voucherGameCheckResult');
+  const idEl = document.getElementById('voucherInput');
+  const zoneEl = document.getElementById('voucherZoneInput');
+  if (idEl) h2hSanitizeGameIdInput(idEl);
+  if (zoneEl) h2hSanitizeGameIdInput(zoneEl);
+
   const activeChip = document.querySelector('#voucherProvider .ppob-chip.active');
   const isML = activeChip && activeChip.getAttribute('data-provider') === 'Mobile Legends';
-  const userId = (document.getElementById('voucherInput')?.value || '').trim();
-  const zoneId = (document.getElementById('voucherZoneInput')?.value || '').trim();
+  const userId = (idEl?.value || '').trim();
+  const zoneId = (zoneEl?.value || '').trim();
 
-  // Belum cukup data buat dicek -> jangan cek dulu, kosongkan hasil lama.
-  if (!userId || userId.length < 3 || (isML && zoneId.length < 2)) {
-    if (resultEl) resultEl.innerHTML = '';
-    return;
-  }
+  // Belum cukup digit -> jangan cek dulu.
+  if (!userId || userId.length < 6 || (isML && zoneId.length < 3)) return;
 
-  if (resultEl) resultEl.innerHTML = '<span style="opacity:.7;">⏳ Mohon tunggu, sedang mengecek akun kamu...</span>';
   _voucherAutoCheckTimer = setTimeout(() => {
-    showNotif('⏳ Mohon tunggu, sedang mengecek akun game kamu...');
     h2hCheckGameAccount();
-  }, 800);
+  }, 1100);
 }
 window.h2hAutoCheckGameAccount = h2hAutoCheckGameAccount;
 
+function h2hOpenGameCheckModal(){
+  document.getElementById('gameCheckLoading').style.display = 'block';
+  document.getElementById('gameCheckSuccess').style.display = 'none';
+  document.getElementById('gameCheckFail').style.display = 'none';
+  document.getElementById('gameCheckOverlay').classList.add('open');
+}
+function h2hCloseGameCheckModal(){
+  document.getElementById('gameCheckOverlay').classList.remove('open');
+}
+window.h2hCloseGameCheckModal = h2hCloseGameCheckModal;
+
 async function h2hCheckGameAccount(){
-  const resultEl = document.getElementById('voucherGameCheckResult');
   const activeChip = document.querySelector('#voucherProvider .ppob-chip.active');
   const gameCode = activeChip ? activeChip.getAttribute('data-h2hgame') : null;
   const isML = activeChip && activeChip.getAttribute('data-provider') === 'Mobile Legends';
@@ -17940,11 +18296,11 @@ async function h2hCheckGameAccount(){
   const zoneId = (document.getElementById('voucherZoneInput')?.value || '').trim();
 
   if (!gameCode) return;
-  if (!userId) { if (resultEl) resultEl.innerHTML = '<span style="color:#ff6b6b;">⚠️ Isi User ID dulu.</span>'; return; }
-  if (isML && !zoneId) { if (resultEl) resultEl.innerHTML = '<span style="color:#ff6b6b;">⚠️ Isi Zone ID dulu (wajib untuk Mobile Legends).</span>'; return; }
+  if (!userId) { showNotif('⚠️ Isi User ID dulu.'); return; }
+  if (isML && !zoneId) { showNotif('⚠️ Isi Zone ID dulu (wajib untuk Mobile Legends).'); return; }
 
-  if (resultEl) resultEl.innerHTML = '<span style="opacity:.7;">🔄 Mengecek akun...</span>';
   window._voucherGameChecked = false;
+  h2hOpenGameCheckModal();
 
   try {
     const res = await fetch(`${H2H_WORKER_URL}/game/check`, {
@@ -17953,14 +18309,19 @@ async function h2hCheckGameAccount(){
       body: JSON.stringify({ game: gameCode, user_id: userId, zone_id: zoneId || undefined }),
     });
     const j = await res.json().catch(() => ({}));
+    document.getElementById('gameCheckLoading').style.display = 'none';
     if (j.success && j.data && j.data.username) {
-      if (resultEl) resultEl.innerHTML = '<span style="color:#4ade80;">✅ Akun ditemukan: <b>' + h2hEscapeHtml(j.data.username) + '</b></span>';
       window._voucherGameChecked = true;
+      document.getElementById('gameCheckUsername').textContent = j.data.username;
+      document.getElementById('gameCheckSuccess').style.display = 'block';
     } else {
-      if (resultEl) resultEl.innerHTML = '<span style="color:#ff6b6b;">❌ ' + h2hEscapeHtml(j.message || 'Akun tidak ditemukan, cek kembali ID/Zone ID kamu.') + '</span>';
+      document.getElementById('gameCheckFailMsg').textContent = j.message || 'Akun tidak ditemukan, cek kembali ID/Zone ID kamu.';
+      document.getElementById('gameCheckFail').style.display = 'block';
     }
   } catch (e) {
-    if (resultEl) resultEl.innerHTML = '<span style="color:#ff6b6b;">❌ Gagal cek akun, coba lagi.</span>';
+    document.getElementById('gameCheckLoading').style.display = 'none';
+    document.getElementById('gameCheckFailMsg').textContent = 'Gagal cek akun, coba lagi.';
+    document.getElementById('gameCheckFail').style.display = 'block';
   }
 }
 window.h2hCheckGameAccount = h2hCheckGameAccount;
