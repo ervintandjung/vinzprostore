@@ -586,6 +586,16 @@ header{background:linear-gradient(135deg,#040d1a,#081628);border-bottom:1.5px so
 .afi-icon{position:absolute;left:14px;color:#8a97a0;pointer-events:none;display:flex;align-items:center;}
 .afi-phone-wrap{display:flex;align-items:center;gap:10px;height:50px;background:rgba(14,14,14,.55);border:1px solid #3b494c;border-radius:12px;padding:0 14px;}
 .afi-phone-cc{color:#e5e2e1;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;flex-shrink:0;padding-right:10px;border-right:1px solid #3b494c;}
+/* Style DASAR buat input di dalam .afi-phone-wrap, supaya kepakai di mana
+   pun komponen ini dipasang (bukan cuma di dalam .auth-modal). Sebelumnya
+   cuma ada versi ".auth-modal .auth-field .afi-phone-wrap input" — jadi
+   begitu dipakai di halaman lain (mis. Edit Profil -> Tambah/Ganti Nomor
+   HP) inputnya jatuh ke tampilan default browser (kotak putih polos)
+   karena gak ada aturan CSS yang match sama sekali di situ. Versi umum
+   di bawah ini jalan di mana-mana; context yang lebih spesifik
+   (.auth-modal ...) tetap menang karena selector-nya lebih spesifik.*/
+.afi-phone-wrap input{flex:1;min-width:0;background:transparent;border:none;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;height:100%;padding:0;}
+.afi-phone-wrap input:focus{outline:none;border:none;box-shadow:none;}
 .auth-modal .auth-field .afi-phone-wrap input{flex:1;min-width:0;background:transparent;border:none;color:#e5e2e1;font-family:'Rajdhani',sans-serif;font-size:15px;height:100%;padding:0;}
 .auth-modal .auth-field .afi-phone-wrap input:focus{outline:none;border:none;box-shadow:none;}
 .afi-phone-wrap:focus-within{border-color:#00daf3;box-shadow:0 0 0 3px rgba(0,218,243,.15);}
@@ -5404,7 +5414,7 @@ async function doResetPassword() {
 // hasilnya didistribusi ke div display. Ini solusi terbaik untuk Android.
 
 function otpHiddenInput(prefix) {
-  const hidden = document.getElementById(prefix === 'otp' ? 'otpHidden' : prefix === 'rotp' ? 'rotpHidden' : 'setotpHidden');
+  const hidden = document.getElementById(prefix + 'Hidden');
   if (!hidden) return;
   // Bersihkan — hanya angka, max 6
   const digits = hidden.value.replace(/\D/g, '').slice(0, 6);
@@ -5437,7 +5447,7 @@ function otpHighlight(prefix, len) {
 }
 
 function otpClearBoxes(prefix) {
-  const hidden = document.getElementById(prefix === 'otp' ? 'otpHidden' : prefix === 'rotp' ? 'rotpHidden' : 'setotpHidden');
+  const hidden = document.getElementById(prefix + 'Hidden');
   if (hidden) hidden.value = '';
   for (let i = 0; i < 6; i++) {
     const box = document.getElementById(prefix + i);
@@ -5458,7 +5468,7 @@ function otpGetValue(prefix) {
 }
 
 function otpFocus(prefix) {
-  const hidden = document.getElementById(prefix === 'otp' ? 'otpHidden' : prefix === 'rotp' ? 'rotpHidden' : 'setotpHidden');
+  const hidden = document.getElementById(prefix + 'Hidden');
   if (hidden) hidden.focus();
 }
 
@@ -15598,6 +15608,15 @@ function fillPpobNumber(type, number){
 window.onContactPicked = function(phone){
   const type = window._pickPpobContactType;
   window._pickPpobContactType = null;
+  // Diagnostik sementara: biar kelihatan jelas apakah Kotlin-nya BENERAN
+  // manggil balik fungsi ini atau enggak, dan apa isi "phone" yang
+  // dikirim. Kalau notif ini gak pernah muncul sama sekali setelah pilih
+  // kontak, artinya sisi Kotlin belum manggil window.onContactPicked(...)
+  // sama sekali. Kalau muncul tapi isinya kosong/null, artinya Kotlin-nya
+  // manggil tapi nomornya gagal kebaca dari kontak yang dipilih.
+  if (typeof showNotif === 'function') {
+    showNotif('🔧 [debug] onContactPicked dipanggil, phone = ' + JSON.stringify(phone) + ', type = ' + JSON.stringify(type));
+  }
   if (!phone) return; // dibatalkan di sisi native, gak perlu notif error
   const inputId = type === 'pulsa' ? 'pulsaInput' : type === 'pascabayarhp' ? 'pascabayarhpInput' : 'dataInput';
   const input = document.getElementById(inputId);
