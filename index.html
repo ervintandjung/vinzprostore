@@ -242,7 +242,7 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 .saldo-label{font-size:11px;color:var(--muted);letter-spacing:1.5px;font-weight:700;margin-bottom:6px;}
 .saldo-amt{font-family:'Orbitron',sans-serif;font-weight:900;font-size:30px;color:#fff;display:flex;align-items:baseline;gap:8px;margin-bottom:20px;}
 .saldo-amt .cur{font-size:19px;color:var(--accent);}
-.btn-topup{width:100%;background:linear-gradient(90deg,#2563eb,#3b82f6);box-shadow:0 0 20px rgba(59,130,246,0.3),0 0 60px rgba(59,130,246,0.1);color:#fff;border:none;border-radius:14px;padding:15px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;}
+.btn-topup{width:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 20px rgba(77,91,255,0.3),0 0 60px rgba(77,91,255,0.1);color:#fff;border:none;border-radius:var(--btn-radius,14px);padding:15px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;}
 .btn-topup:active{opacity:.85;}
 
 /* SALDO PROFIT CARD (khusus admin/owner) — kartu ke-2, terpisah dari saldo H2H asli */
@@ -1113,7 +1113,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 .ppob-contact-card{background:#ffffff;border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,0.35);}
 .ppob-contact-row{display:flex;align-items:center;gap:12px;}
 .ppob-contact-main{flex:1;min-width:0;display:flex;align-items:center;gap:12px;background:#f4f5f8;border-radius:14px;padding:10px 12px;position:relative;}
-.ppob-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#4d5bff,#00d4ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;font-family:'Rajdhani',sans-serif;flex-shrink:0;}
+.ppob-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;font-family:'Rajdhani',sans-serif;flex-shrink:0;}
 .ppob-contact-text{flex:1;min-width:0;}
 .ppob-contact-text .lbl{font-size:11px;color:#8a8fa3;font-weight:600;margin-bottom:2px;}
 .ppob-contact-input{width:100%;border:none;background:transparent;outline:none;color:#141420;font-family:'Rajdhani',sans-serif;font-weight:800;font-size:17px;padding:0;}
@@ -1455,7 +1455,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       return;
     }
     wrap.innerHTML = imgs.map(src => `
-      <div class="promo-teaser-card" onclick="openPromo()">
+      <div class="promo-teaser-card" onclick="window.open('https://vinzprostore.web.id','_blank')">
         <img src="${src}" alt="Promo" loading="lazy" onerror="this.closest('.promo-teaser-card').style.display='none'">
       </div>
     `).join('');
@@ -4855,7 +4855,7 @@ function confirmAsync(message, yesLabel, noLabel) {
           <div id="vpConfirmMsg" style="color:var(--text,#e8ebf5);font-family:'Rajdhani',sans-serif;font-size:15px;line-height:1.5;white-space:pre-line;margin-bottom:18px;"></div>
           <div style="display:flex;gap:10px;">
             <button id="vpConfirmNo" style="flex:1;background:var(--card2,#1a1c33);color:var(--muted,#8a8fa3);border:1px solid var(--border,rgba(77,91,255,0.3));border-radius:9px;padding:11px 0;font-weight:700;font-family:'Rajdhani',sans-serif;font-size:14px;cursor:pointer;">Batal</button>
-            <button id="vpConfirmYes" style="flex:1;background:linear-gradient(135deg,#4d5bff,#00d4ff);color:#000;border:none;border-radius:9px;padding:11px 0;font-weight:800;font-family:'Rajdhani',sans-serif;font-size:14px;cursor:pointer;">Ya, Lanjutkan</button>
+            <button id="vpConfirmYes" style="flex:1;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border:none;border-radius:9px;padding:11px 0;font-weight:800;font-family:'Rajdhani',sans-serif;font-size:14px;cursor:pointer;">Ya, Lanjutkan</button>
           </div>
         </div>`;
       document.body.appendChild(overlay);
@@ -4893,7 +4893,7 @@ function showInfoModal(title, message) {
       <div style="width:100%;max-width:360px;background:linear-gradient(155deg,#12142b,#0b0d1f);border:1px solid var(--border, rgba(77,91,255,0.3));border-radius:16px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
         <div id="vpInfoTitle" style="color:var(--accent2,#00d4ff);font-family:'Orbitron',sans-serif;font-weight:800;font-size:14px;letter-spacing:.5px;margin-bottom:10px;"></div>
         <div id="vpInfoMsg" style="color:var(--text,#e8ebf5);font-family:'Rajdhani',sans-serif;font-size:15px;line-height:1.6;white-space:pre-line;word-break:break-word;margin-bottom:18px;max-height:50vh;overflow-y:auto;"></div>
-        <button id="vpInfoOk" style="width:100%;background:linear-gradient(135deg,#4d5bff,#00d4ff);color:#000;border:none;border-radius:9px;padding:12px 0;font-weight:800;font-family:'Rajdhani',sans-serif;font-size:14px;cursor:pointer;">Oke, Mengerti</button>
+        <button id="vpInfoOk" style="width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border:none;border-radius:9px;padding:12px 0;font-weight:800;font-family:'Rajdhani',sans-serif;font-size:14px;cursor:pointer;">Oke, Mengerti</button>
       </div>`;
     document.body.appendChild(overlay);
   }
@@ -10556,15 +10556,20 @@ function doPesan(){
     const mt = (t.method||'QRIS').toUpperCase();
     if (st === 'sukses') { window.__riwDetail(t); return; }
     if (st === 'menunggu') {
+      // 🔧 [debug sementara] biar kelihatan jelas apa isi method & isTopup
+      // pas kartu riwayat ini di-tap -- hapus baris showNotif ini kalau
+      // udah gak perlu lagi buat nge-debug.
+      if (typeof showNotif === 'function') {
+        showNotif('🔧 [debug] method=' + JSON.stringify(t.method) + ' isTopup=' + JSON.stringify(t.isTopup));
+      }
       // WA & QRIS lama masih punya alur khusus sendiri (buka chat WA /
-      // munculin lagi QR-nya). Top up lewat H2H (/topup/create) method-nya
-      // disimpan sebagai "H2H-qris"/"H2H-va"/dst (BUKAN cuma "QRIS" polos),
-      // jadi harus dicek pakai startsWith, bukan persamaan string persis --
-      // sebelumnya ini kelewat, jadi top up H2H yang masih pending selalu
-      // jatuh ke __riwDetail (halaman status generik, TIDAK BISA nampilin
-      // QR/VA sama sekali) alih-alih ke halaman detail top up yang benar.
+      // munculin lagi QR-nya). Top up lewat H2H (/topup/create) dicek pakai
+      // t.isTopup (ditandai eksplisit di _topupToRiwayat) SEKALIGUS
+      // format method "H2H-..." -- dua-duanya dicek (bukan cuma salah satu)
+      // biar tetap kena walau salah satu penanda kebetulan gak konsisten.
+      const isH2hTopup = t.isTopup === true || mt.startsWith('H2H-');
       if (mt === 'WA') { window.__riwOpenWa(t.id); }
-      else if (mt.startsWith('H2H-')) { window.__riwOpenH2hTopup(t.id); }
+      else if (isH2hTopup) { window.__riwOpenH2hTopup(t.id); }
       else if (mt === 'QRIS') { window.__riwBayarQris(String(t.id).replace(/^#/,'')); }
       else { window.__riwDetail(t); }
       return;
