@@ -1360,7 +1360,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       <div id="bannerSlider" style="display:flex;transition:transform .4s ease;will-change:transform;"></div>
       <div id="bannerDots" style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);display:flex;gap:3px;z-index:5;"></div>
     </div>
-    <button onclick="closeBannerSlider();openPromo();" style="display:block;width:100%;margin-top:6px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:8px;padding:6px 0;font-size:12px;font-weight:800;font-family:'Rajdhani',sans-serif;letter-spacing:.5px;cursor:pointer;box-shadow:0 4px 10px rgba(22,163,74,0.45);">Cek</button>
+    <button onclick="bannerCekClick()" style="display:block;width:100%;margin-top:6px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:8px;padding:6px 0;font-size:12px;font-weight:800;font-family:'Rajdhani',sans-serif;letter-spacing:.5px;cursor:pointer;box-shadow:0 4px 10px rgba(22,163,74,0.45);">Cek</button>
     <button id="bannerCloseBtn" onclick="closeBannerSlider()" aria-label="Tutup banner" style="position:absolute;top:-7px;right:-5px;z-index:6;width:19px;height:19px;border-radius:50%;background:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,0.4);padding:0;">
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
@@ -1368,7 +1368,57 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
   <script>
   window._bannerImages = [];
   window._bannerCur = 0;
+  window._bannerCurItems = [];
   window._bannerTimer = null;
+
+  // Ke halaman mana tombol "Cek" pada tiap banner harus mengarah. Dipakai
+  // dari sini (popup beranda) DAN dari Admin Panel (dropdown pilih target
+  // per-banner). Semua fungsi open*() ini didefinisikan di script block lain
+  // yang baru jalan belakangan — makanya di sini DIBUNGKUS di dalam function
+  // (bukan dipanggil langsung saat load), jadi baru dieksekusi pas user
+  // benar-benar tekan "Cek", saat semua script udah pasti selesai dimuat.
+  window.BANNER_TARGETS = {
+    promo:        { label: 'Halaman Promo',      fn: function(){ if (window.openPromo) window.openPromo(); } },
+    agen:         { label: 'Agen/Reseller',      fn: function(){ if (window.openAgenReseller) window.openAgenReseller(); } },
+    topup:        { label: 'Top Up Saldo',       fn: function(){ if (window.openTopUp) window.openTopUp(); } },
+    pulsa:        { label: 'Pulsa',              fn: function(){ if (window.openPulsaPage) window.openPulsaPage(); } },
+    data:         { label: 'Paket Data',         fn: function(){ if (window.openDataPage) window.openDataPage(); } },
+    pln:          { label: 'Token PLN',          fn: function(){ if (window.openPlnPage) window.openPlnPage(); } },
+    ewallet:      { label: 'Top Up E-Wallet',    fn: function(){ if (window.openEwalletPage) window.openEwalletPage(); } },
+    voucher:      { label: 'Voucher Game',       fn: function(){ if (window.openVoucherGamePage) window.openVoucherGamePage(); } },
+    pdam:         { label: 'PDAM',               fn: function(){ if (window.openPdamPage) window.openPdamPage(); } },
+    pascabayarhp: { label: 'PascaBayar HP',      fn: function(){ if (window.openPascabayarhpPage) window.openPascabayarhpPage(); } },
+    streaming:    { label: 'Streaming',          fn: function(){ if (window.openStreamingPage) window.openStreamingPage(); } },
+    telpsms:      { label: 'Paket Telp & SMS',   fn: function(){ if (window.openTelpsmsPage) window.openTelpsmsPage(); } },
+  };
+
+  // Terima format lama (banner cuma string URL) maupun format baru
+  // ({img, target}), supaya banner yang udah ada sebelum fitur ini gak
+  // rusak — otomatis dianggap target "promo" (perilaku lama).
+  function normalizeBanner(item){
+    if (typeof item === 'string') return { img: item, target: 'promo' };
+    if (item && typeof item === 'object') return { img: item.img || '', target: item.target || 'promo' };
+    return { img: '', target: 'promo' };
+  }
+  window.normalizeBanner = normalizeBanner;
+
+  function bannerGoToTarget(target){
+    const t = window.BANNER_TARGETS[target] || window.BANNER_TARGETS.promo;
+    try { t.fn(); } catch(err) {
+      console.error('bannerGoToTarget error:', err);
+      if (window.openPromo) window.openPromo();
+    }
+  }
+  window.bannerGoToTarget = bannerGoToTarget;
+
+  function bannerCekClick(){
+    const items = window._bannerCurItems || [];
+    const cur = items[window._bannerCur || 0];
+    closeBannerSlider();
+    bannerGoToTarget(cur ? cur.target : 'promo');
+  }
+  window.bannerCekClick = bannerCekClick;
+
   function showBannerPopup(){
     const pop = document.getElementById('bannerPopup');
     if (!pop) return;
@@ -1397,7 +1447,9 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     let closed = false;
     try { closed = sessionStorage.getItem('vp_banner_closed') === '1'; } catch(e){}
     if (closed) return;
-    const imgs = (window._bannerImages && window._bannerImages.length) ? window._bannerImages : [];
+    const rawImgs = (window._bannerImages && window._bannerImages.length) ? window._bannerImages : [];
+    const imgs = rawImgs.map(normalizeBanner);
+    window._bannerCurItems = imgs;
     if (!imgs.length){
       slider.innerHTML = '';
       dotsEl.innerHTML = '';
@@ -1406,7 +1458,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       if (pop) pop.style.display = 'none';
       return;
     }
-    slider.innerHTML = imgs.map(src => `<img src="${src}" style="min-width:100%;width:100%;display:block;object-fit:cover;height:60px;" alt="">`).join('');
+    slider.innerHTML = imgs.map(b => `<img src="${b.img}" style="min-width:100%;width:100%;display:block;object-fit:cover;height:60px;" alt="">`).join('');
     dotsEl.innerHTML = imgs.map((_,j)=>`<div data-i="${j}" style="width:${j===0?'20px':'8px'};height:8px;border-radius:4px;background:${j===0?'#fff':'rgba(255,255,255,0.4)'};transition:.25s;cursor:pointer;"></div>`).join('');
     Array.from(dotsEl.children).forEach((d,j)=>d.onclick=()=>bannerGoTo(j));
     window._bannerCur = 0;
@@ -2835,6 +2887,8 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       <div class="ap-card-body">
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Upload gambar banner (bisa lebih dari 1). Banner ini tampil di halaman utama untuk SEMUA pengunjung.</div>
       <div id="apBannerList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Tombol "Cek" pada banner baru akan membuka:</div>
+      <select id="apBannerNewTarget" class="ap-input" style="margin-bottom:8px;"></select>
       <input type="file" id="apBannerFile" accept="image/*" style="display:none;" onchange="apBannerUpload()">
       <label for="apBannerFile" style="display:block;width:100%;background:var(--secondary);border:1.5px dashed var(--border);color:var(--accent2);border-radius:9px;padding:10px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:6px;font-family:'Rajdhani',sans-serif;">📁 UPLOAD BANNER BARU</label>
       <input type="text" id="apBannerUrl" class="ap-input" placeholder="Atau paste URL gambar banner...">
@@ -7219,31 +7273,50 @@ document.addEventListener('DOMContentLoaded', function(){
 // ══════════════════════════════
 // BANNER ADMIN
 // ══════════════════════════════
+function apBannerTargetOptionsHtml(selected){
+  const targets = window.BANNER_TARGETS || {};
+  return Object.keys(targets).map(key =>
+    `<option value="${key}"${key === selected ? ' selected' : ''}>${targets[key].label}</option>`
+  ).join('');
+}
+function apBannerFillNewTargetSelect(){
+  const sel = document.getElementById('apBannerNewTarget');
+  if (!sel) return;
+  sel.innerHTML = apBannerTargetOptionsHtml('promo');
+}
 function renderApBanners(){
   const list = document.getElementById('apBannerList');
+  apBannerFillNewTargetSelect();
   if (!list) return;
   const arr = getBanners();
   if (!arr.length){
     list.innerHTML = '<div style="padding:12px;text-align:center;color:var(--muted);font-size:12px;background:var(--card2);border:1px dashed var(--border);border-radius:9px;">Belum ada banner. Upload dulu di bawah ⬇️</div>';
     return;
   }
-  list.innerHTML = arr.map((src, i) => `
-    <div style="display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:6px;">
-      <img src="${src}" style="width:56px;height:40px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.display='none'">
-      <span style="flex:1;font-size:11px;color:var(--muted);word-break:break-all;line-height:1.3;">Banner #${i+1}</span>
+  list.innerHTML = arr.map((raw, i) => {
+    const b = normalizeBanner(raw);
+    return `
+    <div style="display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:6px;flex-wrap:wrap;">
+      <img src="${b.img}" style="width:56px;height:40px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.display='none'">
+      <span style="font-size:11px;color:var(--muted);">Banner #${i+1}</span>
+      <select onchange="apBannerSetTarget(${i}, this.value)" style="flex:1;min-width:120px;background:var(--secondary);color:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:11px;">
+        ${apBannerTargetOptionsHtml(b.target)}
+      </select>
       <button onclick="apBannerRemove(${i})" style="background:var(--danger);color:#fff;border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:13px;flex-shrink:0;">✕</button>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 function apBannerUpload(){
   const file = document.getElementById('apBannerFile').files[0];
   if (!file) return;
+  const target = document.getElementById('apBannerNewTarget')?.value || 'promo';
   showNotif('⏳ Mengkompres banner...');
   const reader = new FileReader();
   reader.onload = e => {
     compressImage(e.target.result, 1600, 900, 0.95, dataUrl => {
       const arr = getBanners();
-      arr.push(dataUrl);
+      arr.push({ img: dataUrl, target });
       setBanners(arr);
       document.getElementById('apBannerFile').value = '';
       showNotif('✅ Banner diupload & disimpan global!');
@@ -7254,11 +7327,20 @@ function apBannerUpload(){
 function apBannerAddUrl(){
   const url = (document.getElementById('apBannerUrl').value || '').trim();
   if (!url){ showNotif('❌ Masukkan URL banner'); return; }
+  const target = document.getElementById('apBannerNewTarget')?.value || 'promo';
   const arr = getBanners();
-  arr.push(url);
+  arr.push({ img: url, target });
   setBanners(arr);
   document.getElementById('apBannerUrl').value = '';
   showNotif('✅ Banner ditambahkan!');
+}
+function apBannerSetTarget(i, target){
+  const arr = getBanners();
+  if (!arr[i]) return;
+  arr[i] = normalizeBanner(arr[i]);
+  arr[i].target = target;
+  setBanners(arr);
+  showNotif('✅ Tujuan banner #' + (i+1) + ' diubah ke "' + ((window.BANNER_TARGETS[target]||{}).label || target) + '"');
 }
 async function apBannerRemove(i){
   if (!(await confirmAsync('Hapus banner ini?'))) return;
