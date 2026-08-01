@@ -4188,21 +4188,21 @@ window.rmSaveMarkup = rmSaveMarkup;
 // ══════════════════════════════
 // Daftar di https://www.emailjs.com (free plan: 200 email/bulan)
 // Lalu isi 3 nilai ini:
-const EJS_PUBLIC_KEY  = 'L6iLHRiX5XQHIfJir';
-const EJS_SERVICE_ID  = 'service_cjmc5vr';
+const EJS_PUBLIC_KEY  = 'BArF6YtuyZwG5auHl';
+const EJS_SERVICE_ID  = 'service_se0ap1m';
 const EJS_TEMPLATE_ID = 'template_eh0gt7b';
 
-// Template KEDUA — buat notifikasi umum ke admin (bukan OTP), dipakai buat
-// kirim data pendaftaran Agen/Reseller & Verifikasi Identitas ke email admin.
-// WAJIB dibuatkan template baru di dashboard EmailJS (emailjs.com) dengan isi:
-//   To Email : {{to_email}}
-//   Subject  : {{subject}}
-//   Content  : {{message}}   (pakai <pre> atau white-space:pre-wrap biar rapi)
-// Lalu ganti nilai di bawah ini dengan Template ID yang baru dibuat.
+// Template & AKUN KEDUA (BEDA akun EmailJS dari yang di atas) — buat
+// notifikasi umum ke admin (bukan OTP), dipakai buat kirim data pendaftaran
+// Agen/Reseller & Verifikasi Identitas ke email admin. Karena akunnya beda,
+// publicKey & serviceID-nya juga harus dikirim terpisah per-request (bukan
+// lewat emailjs.init() global, biar gak bentrok sama akun OTP di atas).
+const EJS_PUBLIC_KEY_ADMIN  = 'L6iLHRiX5XQHIfJir';
+const EJS_SERVICE_ID_ADMIN  = 'service_cjmc5vr';
 const EJS_TEMPLATE_ID_ADMIN = 'template_bwnj0fp';
 const ADMIN_NOTIF_EMAIL = 'alpintandjung@gmail.com';
 
-// Inisialisasi EmailJS
+// Inisialisasi EmailJS (pakai akun OTP sebagai default global)
 (function() {
   try { emailjs.init({ publicKey: EJS_PUBLIC_KEY }); } catch(e) {}
 })();
@@ -4247,11 +4247,11 @@ async function sendAdminNotifEmail(subject, message) {
     return false;
   }
   try {
-    await emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID_ADMIN, {
+    await emailjs.send(EJS_SERVICE_ID_ADMIN, EJS_TEMPLATE_ID_ADMIN, {
       to_email: ADMIN_NOTIF_EMAIL,
       subject: subject,
       message: message,
-    });
+    }, EJS_PUBLIC_KEY_ADMIN);
     window._lastAdminEmailError = null;
     return true;
   } catch(err) {
