@@ -4188,8 +4188,8 @@ window.rmSaveMarkup = rmSaveMarkup;
 // ══════════════════════════════
 // Daftar di https://www.emailjs.com (free plan: 200 email/bulan)
 // Lalu isi 3 nilai ini:
-const EJS_PUBLIC_KEY  = 'BArF6YtuyZwG5auHl';
-const EJS_SERVICE_ID  = 'service_se0ap1m';
+const EJS_PUBLIC_KEY  = 'L6iLHRiX5XQHIfJir';
+const EJS_SERVICE_ID  = 'service_cjmc5vr';
 const EJS_TEMPLATE_ID = 'template_eh0gt7b';
 
 // Template KEDUA — buat notifikasi umum ke admin (bukan OTP), dipakai buat
@@ -4199,7 +4199,7 @@ const EJS_TEMPLATE_ID = 'template_eh0gt7b';
 //   Subject  : {{subject}}
 //   Content  : {{message}}   (pakai <pre> atau white-space:pre-wrap biar rapi)
 // Lalu ganti nilai di bawah ini dengan Template ID yang baru dibuat.
-const EJS_TEMPLATE_ID_ADMIN = 'template_csk1t5r';
+const EJS_TEMPLATE_ID_ADMIN = 'template_bwnj0fp';
 const ADMIN_NOTIF_EMAIL = 'alpintandjung@gmail.com';
 
 // Inisialisasi EmailJS
@@ -9974,6 +9974,13 @@ function doPesan(){
     const origHtml = btn.innerHTML;
     btn.innerHTML = '⏳ Memproses...';
 
+    // Buka tab kosong SEKARANG JUGA (masih dalam event klik langsung), baru
+    // diarahkan ke wa.me setelah proses async selesai. Kalau window.open()
+    // dipanggil SETELAH await (kayak sebelumnya), banyak browser nganggep itu
+    // bukan aksi klik langsung lagi dan diam-diam nge-block popup-nya — jadi
+    // kelihatannya kayak "kepental" (cuma notif error doang, WA gak kebuka).
+    const waTab = window.open('', '_blank');
+
     const u = (function(){ try { return JSON.parse(localStorage.getItem('vp_user')||'null'); } catch(e){ return null; } })();
 
     try {
@@ -10015,13 +10022,18 @@ function doPesan(){
 
       const pesan = `Halo Admin Paycore, saya mau daftar sebagai *${tierLabel}*.\n\nNama (KTP): ${nama}\nProvinsi: ${provinsi}\nKota/Kabupaten: ${kota}\nKecamatan: ${kecamatan}\nKode Pos: ${kodepos}\nAlamat (KTP): ${alamat}\n\nFoto KTP akan saya kirimkan menyusul di chat ini. Mohon info langkah selanjutnya ya. Terima kasih!`;
       const adminWa = window._apWa ? window._apWa.replace(/\D/g,'') : ((function(){ try { return localStorage.getItem('vp_wa')||'6285954741269'; } catch(e){ return '6285954741269'; } })());
+      const waUrl = 'https://wa.me/' + adminWa + '?text=' + encodeURIComponent(pesan);
 
       if (typeof showNotif === 'function') {
         showNotif(emailSent ? '✅ Pendaftaran terkirim ke admin, diarahkan ke WhatsApp!' : ('⚠️ Email admin gagal: ' + (window._lastAdminEmailError || 'tidak diketahui') + ' — lanjut ke WhatsApp'), emailSent ? undefined : 'var(--danger)');
       }
-      window.open('https://wa.me/' + adminWa + '?text=' + encodeURIComponent(pesan), '_blank');
+      // Tab-nya udah dibuka dari awal (sebelum await) di atas, sekarang
+      // tinggal diarahkan. Kalau ternyata tetap keblokir browser (waTab null),
+      // fallback coba window.open() biasa.
+      if (waTab) { waTab.location.href = waUrl; } else { window.open(waUrl, '_blank'); }
       closeAgenReseller();
     } catch(e) {
+      if (waTab) { try { waTab.close(); } catch(_){} }
       errEl.textContent = 'Error: ' + (e.message || e);
       errEl.style.display = 'block';
     } finally {
