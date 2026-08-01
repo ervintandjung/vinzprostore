@@ -1127,7 +1127,9 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 .ppob-contact-kontak:active .ck-ic{transform:scale(.92);}
 .ppob-freq-wrap{margin-top:14px;}
 .ppob-freq-wrap .lbl{font-size:11.5px;color:#54586a;font-weight:700;margin-bottom:9px;}
-.ppob-freq-item{display:inline-flex;align-items:center;gap:9px;background:#f4f5f8;border-radius:30px;padding:7px 14px 7px 7px;cursor:pointer;transition:.15s;}
+.ppob-freq-list{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;}
+.ppob-freq-list::-webkit-scrollbar{display:none;}
+.ppob-freq-item{display:inline-flex;align-items:center;gap:9px;background:#f4f5f8;border-radius:30px;padding:7px 14px 7px 7px;cursor:pointer;transition:.15s;flex-shrink:0;white-space:nowrap;}
 .ppob-freq-item:active{transform:scale(.96);background:#eaecf3;}
 .ppob-freq-item .fq-txt{font-size:12.5px;color:#141420;font-weight:700;}
 .ppob-freq-item .fq-txt b{font-weight:800;}
@@ -1679,7 +1681,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       </div>
       <div class="ppob-freq-wrap">
         <div class="lbl">Nomor yang sering dipakai</div>
-        <div id="pulsaFreqList"></div>
+        <div id="pulsaFreqList" class="ppob-freq-list"></div>
       </div>
     </div>
 
@@ -1721,7 +1723,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       </div>
       <div class="ppob-freq-wrap">
         <div class="lbl">Nomor yang sering dipakai</div>
-        <div id="dataFreqList"></div>
+        <div id="dataFreqList" class="ppob-freq-list"></div>
       </div>
     </div>
 
