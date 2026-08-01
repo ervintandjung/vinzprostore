@@ -1116,6 +1116,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 .ppob-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;font-family:'Rajdhani',sans-serif;flex-shrink:0;}
 .ppob-contact-text{flex:1;min-width:0;}
 .ppob-contact-text .lbl{font-size:11px;color:#8a8fa3;font-weight:600;margin-bottom:2px;}
+.ppob-contact-name{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:1px;display:flex;align-items:center;gap:4px;}
 .ppob-contact-input{width:100%;border:none;background:transparent;outline:none;color:#141420;font-family:'Rajdhani',sans-serif;font-weight:800;font-size:17px;padding:0;}
 .ppob-contact-input::placeholder{color:#a8adc0;font-weight:700;}
 .ppob-prov-logo{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:none;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:15px;font-family:'Orbitron',sans-serif;letter-spacing:.2px;box-shadow:0 3px 10px rgba(0,0,0,0.35);border:1.5px solid rgba(255,255,255,0.25);overflow:hidden;}
@@ -1608,7 +1609,8 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
         <div class="ppob-contact-main">
           <div class="ppob-contact-text">
             <div class="lbl">Nomor Handphone</div>
-            <input type="tel" id="pulsaInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" autocomplete="off" oninput="detectProvider('pulsa')">
+            <div id="pulsaContactName" class="ppob-contact-name" style="display:none;"></div>
+            <input type="tel" id="pulsaInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" autocomplete="off" oninput="detectProvider('pulsa');lookupContactNameDebounced('pulsa')">
           </div>
           <div class="ppob-prov-logo" id="pulsaProvBadge"></div>
         </div>
@@ -1649,7 +1651,8 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
         <div class="ppob-contact-main">
           <div class="ppob-contact-text">
             <div class="lbl">Nomor Handphone</div>
-            <input type="tel" id="dataInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" autocomplete="off" oninput="detectProvider('data')">
+            <div id="dataContactName" class="ppob-contact-name" style="display:none;"></div>
+            <input type="tel" id="dataInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" autocomplete="off" oninput="detectProvider('data');lookupContactNameDebounced('data')">
           </div>
           <div class="ppob-prov-logo" id="dataProvBadge"></div>
         </div>
@@ -2013,7 +2016,8 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
         <div class="ppob-contact-main">
           <div class="ppob-contact-text">
             <div class="lbl">Nomor HP Pascabayar</div>
-            <input type="tel" id="pascabayarhpInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" autocomplete="off" oninput="detectProvider('pascabayarhp')" onkeydown="if(event.key==='Enter'){h2hCekTagihanPascabayarhp();}">
+            <div id="pascabayarhpContactName" class="ppob-contact-name" style="display:none;"></div>
+            <input type="tel" id="pascabayarhpInput" class="ppob-contact-input" placeholder="Contoh: 08123456789" maxlength="15" autocomplete="off" oninput="detectProvider('pascabayarhp');lookupContactNameDebounced('pascabayarhp')" onkeydown="if(event.key==='Enter'){h2hCekTagihanPascabayarhp();}">
           </div>
           <div class="ppob-prov-logo" id="pascabayarhpProvBadge"></div>
         </div>
@@ -12042,8 +12046,15 @@ function doPesan(){
   // begitu lunas (dicek via polling ke h2h-gateway), saldo INTERNAL user
   // yang minta top up ditambah otomatis.
   // ============================================================
-  let _vpTopupPollTimer = null;
-  let _vpTopupCountdownTimer = null;
+  // PENTING soal scope: 2 variabel ini dipakai juga dari fungsi di blok
+  // <script> LAIN yang terpisah jauh di bawah (openTopupDetail dkk).
+  // "let"/"const" di top-level satu tag <script> TIDAK nembus ke tag
+  // <script> lain (beda sama "var", yang otomatis nempel ke window/global)
+  // -- sebelumnya ini dideklarasikan pakai "let", jadi begitu dipakai dari
+  // blok script lain langsung error "is not defined" dan seluruh proses
+  // nampilin detail top up (termasuk QR-nya) gagal diam-diam/keliatan error.
+  var _vpTopupPollTimer = null;
+  var _vpTopupCountdownTimer = null;
 
   async function vpOpenTopupMethodPicker(){
     const u = getCU();
@@ -15704,24 +15715,20 @@ function renderPpobFreqList(type){
 function fillPpobNumber(type, number){
   const inputId = type === 'pulsa' ? 'pulsaInput' : 'dataInput';
   const input = document.getElementById(inputId);
-  if (input){ input.value = number; detectProvider(type); }
+  if (input){ input.value = number; detectProvider(type); lookupContactNameDebounced(type); }
 }
 // Dipanggil NATIVE lewat evaluateJavascript setelah user milih kontak,
 // bawa nomor teleponnya (string, boleh masih ada format +62/spasi/dsb —
 // nanti dibersihkan di sini). Kalau user batal milih, panggil dengan
 // argumen kosong/null.
-window.onContactPicked = function(phone){
+// Dipanggil NATIVE lewat evaluateJavascript setelah user milih kontak,
+// bawa nomor teleponnya (string, boleh masih ada format +62/spasi/dsb —
+// nanti dibersihkan di sini) DAN nama kontaknya (opsional — kalau versi
+// Kotlin-nya belum ngirim nama, tetap jalan normal cuma gak nampilin nama).
+// Kalau user batal milih, panggil dengan argumen kosong/null.
+window.onContactPicked = function(phone, name){
   const type = window._pickPpobContactType;
   window._pickPpobContactType = null;
-  // Diagnostik sementara: biar kelihatan jelas apakah Kotlin-nya BENERAN
-  // manggil balik fungsi ini atau enggak, dan apa isi "phone" yang
-  // dikirim. Kalau notif ini gak pernah muncul sama sekali setelah pilih
-  // kontak, artinya sisi Kotlin belum manggil window.onContactPicked(...)
-  // sama sekali. Kalau muncul tapi isinya kosong/null, artinya Kotlin-nya
-  // manggil tapi nomornya gagal kebaca dari kontak yang dipilih.
-  if (typeof showNotif === 'function') {
-    showNotif('🔧 [debug] onContactPicked dipanggil, phone = ' + JSON.stringify(phone) + ', type = ' + JSON.stringify(type));
-  }
   if (!phone) return; // dibatalkan di sisi native, gak perlu notif error
   const inputId = type === 'pulsa' ? 'pulsaInput' : type === 'pascabayarhp' ? 'pascabayarhpInput' : 'dataInput';
   const input = document.getElementById(inputId);
@@ -15729,6 +15736,61 @@ window.onContactPicked = function(phone){
     input.value = String(phone).replace(/\D/g,'');
     detectProvider(type);
   }
+  showContactName(type, name);
+};
+
+// Nampilin/nyembunyiin badge nama kontak di atas field nomor (gaya GoPay:
+// nama kontak muncul kalau nomornya kenal, ilang kalau enggak).
+function showContactName(type, name){
+  const el = document.getElementById(type + 'ContactName');
+  if (!el) return;
+  if (name && String(name).trim()){
+    el.innerHTML = '👤 ' + h2hEscapeHtml(String(name).trim());
+    el.style.display = 'flex';
+  } else {
+    el.style.display = 'none';
+    el.textContent = '';
+  }
+}
+window.showContactName = showContactName;
+
+// Nomor yang diketik/ditempel MANUAL (bukan lewat tombol Kontak) tetap
+// dicek ke daftar kontak HP — kalau nomornya kenal, nama kontaknya
+// otomatis muncul juga (persis kayak GoPay). Ini butuh method Kotlin
+// TAMBAHAN (lookupContactName) yang beda dari pickContact() -- lihat
+// catatan buat developer di bawah fungsi ini.
+let _lookupContactTimers = {};
+function lookupContactNameDebounced(type){
+  clearTimeout(_lookupContactTimers[type]);
+  // Nomor lagi diubah -> sembunyiin dulu nama yang lama (basi) sambil
+  // nunggu hasil pencarian yang baru.
+  showContactName(type, null);
+  _lookupContactTimers[type] = setTimeout(() => lookupContactNameNow(type), 500);
+}
+window.lookupContactNameDebounced = lookupContactNameDebounced;
+
+function lookupContactNameNow(type){
+  if (!window.AndroidBridge || typeof window.AndroidBridge.lookupContactName !== 'function') return; // gak didukung di browser biasa / Kotlin belum ditambah
+  const inputId = type === 'pulsa' ? 'pulsaInput' : type === 'pascabayarhp' ? 'pascabayarhpInput' : 'dataInput';
+  const input = document.getElementById(inputId);
+  const digits = (input?.value || '').replace(/\D/g,'');
+  if (digits.length < 8) return;
+  window._lookupContactType = type;
+  window._lookupContactPhone = digits;
+  try { window.AndroidBridge.lookupContactName(digits); } catch(e){}
+}
+
+// Dipanggil NATIVE lewat evaluateJavascript setelah lookupContactName()
+// selesai nyari. name = null/"" kalau nomornya gak ketemu di kontak.
+window.onContactNameLookup = function(phone, name){
+  const type = window._lookupContactType;
+  // Pastiin hasil ini masih relevan (nomornya belum diubah lagi sama user
+  // sambil nunggu native selesai nyari).
+  const inputId = type === 'pulsa' ? 'pulsaInput' : type === 'pascabayarhp' ? 'pascabayarhpInput' : 'dataInput';
+  const input = document.getElementById(inputId);
+  const currentDigits = (input?.value || '').replace(/\D/g,'');
+  if (!type || currentDigits !== String(phone||'').replace(/\D/g,'')) return;
+  showContactName(type, name);
 };
 
 function pickPpobContact(type){
