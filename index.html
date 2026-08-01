@@ -1485,11 +1485,26 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       <div style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:26px;color:#fff;">Rp <span data-bal-amt>0</span></div>
     </div>
 
-    <!-- PILIH NOMINAL -->
-    <div class="pi-card">
+    <!-- STEP 1: PILIH METODE TOP UP -->
+    <div class="pi-card" id="tuStepMethod">
+      <div class="pi-head">
+        <div class="pi-icon green">💳</div>
+        <div class="pi-h">PILIH METODE TOP UP</div>
+      </div>
+      <div id="vpTopupMethodList" style="margin-top:4px;">
+        <div style="opacity:.7;padding:10px 0;font-size:13px;">🔄 Mengambil daftar metode...</div>
+      </div>
+    </div>
+
+    <!-- STEP 2: MASUKKAN NOMINAL (baru muncul setelah metode dipilih) -->
+    <div class="pi-card" id="tuStepAmount" style="display:none;">
       <div class="pi-head">
         <div class="pi-icon purple">💵</div>
-        <div class="pi-h">PILIH NOMINAL</div>
+        <div class="pi-h">MASUKKAN NOMINAL</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:12.5px;color:var(--muted);">
+        <span>Metode: <b id="tuSelectedMethodLabel" style="color:#fff;">-</b></span>
+        <span style="color:var(--accent2);cursor:pointer;text-decoration:underline;" onclick="vpBackToMethodStep()">Ganti</span>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
         <div class="tu-nom" onclick="tuSetAmt(10000,this)">10RB</div>
@@ -1501,16 +1516,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       </div>
       <div style="margin-bottom:8px;font-size:10.5px;color:var(--muted);letter-spacing:1.5px;font-weight:700;">ATAU MASUKKAN NOMINAL LAIN</div>
       <input type="number" id="topupAmt" class="tu-input" placeholder="Minimal Rp 10.000" oninput="tuClearActive()">
-    </div>
-
-    <!-- METODE TOP UP -->
-    <div class="pi-card">
-      <div class="pi-head">
-        <div class="pi-icon green">💳</div>
-        <div class="pi-h">METODE TOP UP</div>
-      </div>
-      <button class="btn-tu-alt" onclick="vpOpenTopupMethodPicker()">💳 Pilih Metode Top Up (QRIS / VA)</button>
-      <div id="vpTopupMethodList" style="margin-top:10px;"></div>
+      <button class="btn-tu-alt" id="tuPayBtn" style="margin-top:14px;" onclick="vpPayTopup()">💰 Bayar Sekarang</button>
     </div>
   </div>
 </section>
@@ -12053,16 +12059,28 @@ function doPesan(){
   // -- sebelumnya ini dideklarasikan pakai "let", jadi begitu dipakai dari
   // blok script lain langsung error "is not defined" dan seluruh proses
   // nampilin detail top up (termasuk QR-nya) gagal diam-diam/keliatan error.
-  var _vpTopupPollTimer = null;
-  var _vpTopupCountdownTimer = null;
+  // NOTE (fix): "var" di sini masih di dalam IIFE (function(){...})() yang
+  // membungkus SELURUH blok <script> ini (lihat baris paling atas file).
+  // var yang di-declare di dalam function TETAP scoped ke function itu,
+  // TIDAK otomatis nempel ke window walau bukan "let/const". Makanya
+  // openTopupDetail() di blok <script> lain masih dapet
+  // "_vpTopupCountdownTimer is not defined". Fix-nya: attach eksplisit ke window.
+  window._vpTopupPollTimer = null;
+  window._vpTopupCountdownTimer = null;
 
-  async function vpOpenTopupMethodPicker(){
+  // FLOW BARU: pilih metode dulu (step 1), baru masukin nominal (step 2),
+  // baru "Bayar Sekarang" -> vpCreateTopup(method, amount) seperti biasa.
+  // vpCreateTopup + openTopupDetail di bawah TIDAK berubah — mereka udah
+  // generic (nerima method+amount apa aja), yang berubah cuma URUTAN
+  // pengumpulan datanya di sisi UI.
+  async function vpLoadTopupMethods(){
     const u = getCU();
-    if (!u){ try{ showNotif('⚠️ Login dulu untuk top up'); }catch(e){ alert('Login dulu untuk top up'); } return; }
-    const amt = parseInt(document.getElementById('topupAmt').value||0)||0;
-    if (amt < 10000){ try{ showNotif('⚠️ Minimal top up Rp 10.000'); }catch(e){ alert('Minimal top up Rp 10.000'); } return; }
-
     const listEl = document.getElementById('vpTopupMethodList');
+    if (!u){
+      if (listEl) listEl.innerHTML = '<div style="color:#ff6b6b;font-size:13px;padding:10px 0;">⚠️ Login dulu untuk top up.</div>';
+      return;
+    }
+
     if (listEl) listEl.innerHTML = '<div style="opacity:.7;padding:10px 0;font-size:13px;">🔄 Mengambil daftar metode...</div>';
 
     let session = null;
@@ -12100,12 +12118,46 @@ function doPesan(){
         const label = m.name || m.nama || m.method || m.kode || ('Metode ' + (idx+1));
         const code = m.code || m.kode || m.method || label;
         const badge = type === 'qris' ? '🔲 QRIS' : type === 'va' ? '🏦 VA' : type === 'ewallet' ? '👛 E-Wallet' : type === 'bank_transfer' ? '🏛 Transfer Bank' : '💳';
-        return '<button class="btn-tu-alt" style="margin-top:6px;text-align:left;" onclick="vpCreateTopup(' +
-          JSON.stringify(code).replace(/"/g,'&quot;') + ',' + amt + ')">' + badge + ' ' + h2hEscapeHtml(label) + '</button>';
+        return '<button class="btn-tu-alt" style="margin-top:6px;text-align:left;" onclick="vpPickTopupMethod(' +
+          JSON.stringify(code).replace(/"/g,'&quot;') + ',' + JSON.stringify(label).replace(/"/g,'&quot;') + ')">' + badge + ' ' + h2hEscapeHtml(label) + '</button>';
       }).join('');
     }
   }
-  window.vpOpenTopupMethodPicker = vpOpenTopupMethodPicker;
+  window.vpLoadTopupMethods = vpLoadTopupMethods;
+  // nama lama tetap diarahkan ke sini, jaga-jaga ada pemanggil lain yang lupa di-update
+  window.vpOpenTopupMethodPicker = vpLoadTopupMethods;
+
+  function vpPickTopupMethod(code, label){
+    window._vpTopupSelectedMethod = { code, label };
+    const lbl = document.getElementById('tuSelectedMethodLabel');
+    if (lbl) lbl.textContent = label;
+    const stepMethod = document.getElementById('tuStepMethod');
+    const stepAmount = document.getElementById('tuStepAmount');
+    if (stepMethod) stepMethod.style.display = 'none';
+    if (stepAmount) stepAmount.style.display = '';
+    const input = document.getElementById('topupAmt');
+    if (input) { input.value = ''; input.focus(); }
+    tuClearActive();
+  }
+  window.vpPickTopupMethod = vpPickTopupMethod;
+
+  function vpBackToMethodStep(){
+    window._vpTopupSelectedMethod = null;
+    const stepMethod = document.getElementById('tuStepMethod');
+    const stepAmount = document.getElementById('tuStepAmount');
+    if (stepAmount) stepAmount.style.display = 'none';
+    if (stepMethod) stepMethod.style.display = '';
+  }
+  window.vpBackToMethodStep = vpBackToMethodStep;
+
+  async function vpPayTopup(){
+    const sel = window._vpTopupSelectedMethod;
+    if (!sel){ try{ showNotif('⚠️ Pilih metode top up dulu'); }catch(e){} vpBackToMethodStep(); return; }
+    const amt = parseInt(document.getElementById('topupAmt').value||0)||0;
+    if (amt < 10000){ try{ showNotif('⚠️ Minimal top up Rp 10.000'); }catch(e){ alert('Minimal top up Rp 10.000'); } return; }
+    await window.vpCreateTopup(sel.code, amt);
+  }
+  window.vpPayTopup = vpPayTopup;
 
   window.vpCreateTopup = async function(methodCode, amount){
     const u = getCU();
@@ -12138,15 +12190,24 @@ function doPesan(){
     }
     try { _topupToRiwayat({ id: t.invoice, email: u.email, amount: t.amount, method: 'H2H-' + (t.method||''), status:'menunggu', ts: Date.now() }); } catch(_){}
 
+    // FIX: openTopupDetail (render UI) dan vpPollTopupStatus (polling status
+    // asli ke server) sekarang dipisah ke try/catch masing-masing. Sebelumnya
+    // keduanya satu try block — begitu openTopupDetail() throw (misal gara-gara
+    // bug scope _vpTopupCountdownTimer), vpPollTopupStatus() ikut KE-SKIP dan
+    // TIDAK PERNAH JALAN SAMA SEKALI. Akibatnya status transaksi gak pernah
+    // di-cek ulang ke H2H, jadi biarpun sudah dibatalkan/kadaluwarsa di sisi
+    // H2H, di sini nyangkut "Pending" selamanya. Sekarang polling tetap jalan
+    // walau tampilan detailnya gagal dirender.
     try {
       openTopupDetail(t);
-      vpPollTopupStatus(t.invoice);
     } catch(err) {
-      // Sebelumnya kalau ada error di sini, gagalnya DIAM-DIAM (halaman QR
-      // gak pernah kebuka, user cuma keliatan "lempar balik" ke Beranda
-      // tanpa penjelasan). Sekarang minimal kelihatan jelas ada yang salah.
       try{ showNotif('❌ Gagal menampilkan detail top up: ' + err.message); }catch(_){}
       console.error('openTopupDetail error:', err);
+    }
+    try {
+      vpPollTopupStatus(t.invoice);
+    } catch(err) {
+      console.error('vpPollTopupStatus error:', err);
     }
   };
 
@@ -14363,6 +14424,11 @@ function openTopUp(){
   el.scrollTop=0;
   if (typeof window.vpReloadBalance==='function') window.vpReloadBalance();
   if (typeof pcSaveExtraPage === 'function') pcSaveExtraPage('topUpPage');
+  // Reset ke step 1 (pilih metode) tiap kali halaman ini dibuka, lalu langsung
+  // fetch daftar metode. Dibungkus try/catch masing-masing supaya kalau salah
+  // satu gagal, sisanya (buka halaman, reload saldo) tetap jalan.
+  try { if (typeof window.vpBackToMethodStep === 'function') window.vpBackToMethodStep(); } catch(err){ console.error('vpBackToMethodStep error:', err); }
+  try { if (typeof window.vpLoadTopupMethods === 'function') window.vpLoadTopupMethods(); } catch(err){ console.error('vpLoadTopupMethods error:', err); }
 }
 function closeTopUp(){
   const el=document.getElementById('topUpPage');
@@ -14419,6 +14485,15 @@ function openTopupDetail(t){
       '<div style="font-size:12px;color:var(--muted);">' + h2hEscapeHtml(t.bank_name||'') + '</div>' +
       '<div style="font-size:18px;font-weight:700;color:#fff;">' + h2hEscapeHtml(t.account_number) + '</div>' +
       '<div style="font-size:12px;color:var(--muted);">a.n. ' + h2hEscapeHtml(t.account_name||'') + '</div>' +
+      '</div>';
+  } else if (t.payment_url) {
+    // E-Wallet (OVO/ShopeePay dkk) yang cuma balikin link redirect, tanpa
+    // QR/VA/no rekening — tombol buka aplikasi e-wallet-nya langsung.
+    const methodLbl = h2hEscapeHtml((t.method || 'E-Wallet').toUpperCase());
+    qrWrap.innerHTML =
+      '<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;">' +
+      '<div style="font-size:13px;color:var(--muted);margin-bottom:14px;">👛 Lanjutkan pembayaran lewat aplikasi ' + methodLbl + '</div>' +
+      '<a href="' + t.payment_url + '" target="_blank" class="btn-tu-alt" style="display:inline-block;text-decoration:none;padding:10px 22px;">📲 Buka Aplikasi ' + methodLbl + '</a>' +
       '</div>';
   } else if (t.raw) {
     qrWrap.innerHTML =
