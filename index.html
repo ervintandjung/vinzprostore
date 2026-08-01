@@ -4251,7 +4251,7 @@ async function sendAdminNotifEmail(subject, message) {
       to_email: ADMIN_NOTIF_EMAIL,
       subject: subject,
       message: message,
-    }, EJS_PUBLIC_KEY_ADMIN);
+    }, { publicKey: EJS_PUBLIC_KEY_ADMIN });
     window._lastAdminEmailError = null;
     return true;
   } catch(err) {
