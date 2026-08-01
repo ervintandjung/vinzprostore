@@ -12214,7 +12214,7 @@ function doPesan(){
         const logo = tuGetMethodLogo(label, code, type);
         const minAmt = (m.min_amount != null ? m.min_amount : (m.min != null ? m.min : 10000));
         const maxAmt = (m.max_amount != null ? m.max_amount : (m.max != null ? m.max : 10000000));
-        const feeTxt = tuGetMethodFeeText(m);
+        const feeTxt = tuGetMethodFeeText(m, type);
         return '<div class="tu-method-item" onclick="vpPickTopupMethod(' +
           JSON.stringify(code).replace(/"/g,'&quot;') + ',' + JSON.stringify(label).replace(/"/g,'&quot;') + ')">' +
           '<div class="tu-method-logo">' + (logo ? ('<img src="' + logo + '" alt="' + h2hEscapeHtml(label) + '">') : ('<span class="tu-method-emoji">' + badge.split(' ')[0] + '</span>')) + '</div>' +
@@ -12258,10 +12258,11 @@ function doPesan(){
     if (s.includes('qris') || type === 'qris') return TU_METHOD_LOGO.qris;
     return null;
   }
-  // Fee/biaya beda-beda tiap metode. Diambil dari respons API /topup/methods
-  // (field fee / fee_percent / biaya / admin_fee, tergantung apa yang dikirim
-  // backend H2H), bukan angka tetap — karena tiap metode bisa beda biayanya.
-  function tuGetMethodFeeText(m){
+  // Fee/biaya beda-beda tiap metode. Prioritas: field fee dari respons API
+  // /topup/methods (fee / fee_percent / biaya / admin_fee) kalau backend
+  // mengirimnya. Kalau tidak ada, pakai default per jenis metode:
+  // QRIS 2%, E-Wallet (OVO/ShopeePay) Rp 3.000, Virtual Account Rp 5.000.
+  function tuGetMethodFeeText(m, type){
     if (m.fee_percent != null || m.feePercent != null) {
       const p = m.fee_percent != null ? m.fee_percent : m.feePercent;
       return Number(p) + '%';
@@ -12271,6 +12272,9 @@ function doPesan(){
       const n = Number(flat);
       return n > 0 ? h2hFormatRupiah(n) : 'Gratis';
     }
+    if (type === 'qris') return '2%';
+    if (type === 'ewallet') return h2hFormatRupiah(3000);
+    if (type === 'va') return h2hFormatRupiah(5000);
     return 'Menyesuaikan sistem';
   }
   window.vpLoadTopupMethods = vpLoadTopupMethods;
