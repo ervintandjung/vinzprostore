@@ -3443,6 +3443,13 @@ window.apTestAdminEmail = apTestAdminEmail;
         <div class="puh-txt">Klik untuk unggah foto KTP</div>
       </div>
 
+      <div class="pgs-field-label">Foto Selfie (buat cocokin wajah sama KTP)</div>
+      <input type="file" id="viSelfieInput" accept="image/*" capture="user" style="display:none;" onchange="viFileChange('viSelfieInput','viSelfieBox','viSelfieData')">
+      <div class="pgs-upload-box" id="viSelfieBox" onclick="document.getElementById('viSelfieInput').click()">
+        <div class="puh-ico">🤳</div>
+        <div class="puh-txt">Klik untuk unggah foto selfie kamu</div>
+      </div>
+
       <div id="viErr" class="pgs-err"></div>
       <button id="btnSubmitVerifikasi" class="pgs-btn-primary" onclick="submitVerifikasiIdentitas()">KIRIM UNTUK DIVERIFIKASI</button>
     </div>
@@ -6065,6 +6072,7 @@ async function submitUbahPassword(){
 
 // ── Halaman Verifikasi Identitas tersendiri ──
 let viKtpData = null;
+let viSelfieData = null;
 function _viStatusKey(){ return currentUser ? ('vp_identity_status_' + currentUser.email) : null; }
 function _viReasonKey(){ return currentUser ? ('vp_identity_reason_' + currentUser.email) : null; }
 function viGetStatus(){
@@ -6123,7 +6131,7 @@ function viFileChange(inputId, boxId, dataVar){
   const r = new FileReader();
   r.onload = e => {
     compressImage(e.target.result, 900, 900, 0.75, dataUrl => {
-      viKtpData = dataUrl;
+      window[dataVar] = dataUrl;
       box.innerHTML = `<img src="${dataUrl}"><div class="puh-txt" style="margin-top:8px;">✅ Foto terpilih, klik untuk ganti</div>`;
     });
   };
@@ -6131,6 +6139,7 @@ function viFileChange(inputId, boxId, dataVar){
 }
 function viResetForm(){
   viKtpData = null;
+  viSelfieData = null;
   const key = _viStatusKey();
   const rKey = _viReasonKey();
   if (key) { try { localStorage.removeItem(key); } catch(e){} }
@@ -6140,6 +6149,7 @@ function viResetForm(){
   document.getElementById('viNik').value = '';
   document.getElementById('viTgl').value = '';
   document.getElementById('viKtpBox').innerHTML = '<div class="puh-ico">🪪</div><div class="puh-txt">Klik untuk unggah foto KTP</div>';
+  document.getElementById('viSelfieBox').innerHTML = '<div class="puh-ico">🤳</div><div class="puh-txt">Klik untuk unggah foto selfie kamu</div>';
   document.getElementById('viErr').style.display = 'none';
   document.getElementById('viFormWrap').style.display = 'block';
   document.getElementById('viPendingWrap').style.display = 'none';
@@ -6152,6 +6162,56 @@ function viResetForm(){
 // manual admin (email notif), gak nyoba manggil AI sama sekali.
 const AI_VERIFICATION_ENABLED = false;
 
+// ── Face Match (KTP vs Selfie) pakai face-api.js, jalan di browser user ──
+// (client-side, gak nambah beban server). Modelnya di-load lazy (baru
+// didownload pas beneran dipakai), biar gak bikin app lambat buat semua
+// orang yang gak lagi verifikasi. Hasilnya CUMA rekomendasi tambahan buat
+// admin, sama kayak cek AI KTP — gak pernah auto-approve apapun.
+let _faceApiScriptLoaded = false;
+let _faceApiModelsLoaded = false;
+async function ensureFaceApiReady(onStatus){
+  if (_faceApiModelsLoaded) return true;
+  try {
+    if (!_faceApiScriptLoaded) {
+      if (onStatus) onStatus('Memuat AI pengenal wajah...');
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1/dist/face-api.js';
+        s.onload = resolve; s.onerror = () => reject(new Error('Gagal load library face-api.js'));
+        document.head.appendChild(s);
+      });
+      _faceApiScriptLoaded = true;
+    }
+    const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
+    await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+    await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+    await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+    _faceApiModelsLoaded = true;
+    return true;
+  } catch(e) {
+    console.error('Gagal load face-api', e);
+    return false;
+  }
+}
+async function compareFacesKtpSelfie(ktpDataUrl, selfieDataUrl, onStatus){
+  const ready = await ensureFaceApiReady(onStatus);
+  if (!ready) return { error: 'Model AI wajah gagal dimuat (cek koneksi internet kamu).' };
+  try {
+    if (onStatus) onStatus('Membandingkan wajah KTP & selfie...');
+    const imgKtp = await faceapi.fetchImage(ktpDataUrl);
+    const imgSelfie = await faceapi.fetchImage(selfieDataUrl);
+    const detKtp = await faceapi.detectSingleFace(imgKtp).withFaceLandmarks().withFaceDescriptor();
+    if (!detKtp) return { error: 'Wajah tidak terdeteksi di foto KTP.' };
+    const detSelfie = await faceapi.detectSingleFace(imgSelfie).withFaceLandmarks().withFaceDescriptor();
+    if (!detSelfie) return { error: 'Wajah tidak terdeteksi di foto selfie.' };
+    const distance = faceapi.euclideanDistance(detKtp.descriptor, detSelfie.descriptor);
+    const matchScore = Math.max(0, 1 - (distance / 0.6));
+    return { distance: Number(distance.toFixed(4)), score: Math.round(matchScore * 100), isMatch: distance < 0.6 };
+  } catch(e) {
+    return { error: 'Gagal memproses foto: ' + (e.message || e) };
+  }
+}
+
 async function submitVerifikasiIdentitas(){
   const errEl = document.getElementById('viErr');
   errEl.style.display = 'none';
@@ -6162,6 +6222,7 @@ async function submitVerifikasiIdentitas(){
   if (!/^\d{16}$/.test(nik)) { errEl.textContent = 'NIK harus 16 digit angka!'; errEl.style.display = 'block'; return; }
   if (!tgl) { errEl.textContent = 'Masukkan tanggal lahir!'; errEl.style.display = 'block'; return; }
   if (!viKtpData) { errEl.textContent = 'Unggah foto KTP terlebih dahulu!'; errEl.style.display = 'block'; return; }
+  if (!viSelfieData) { errEl.textContent = 'Unggah foto selfie kamu juga!'; errEl.style.display = 'block'; return; }
   const btn = document.getElementById('btnSubmitVerifikasi');
   btn.disabled = true; btn.textContent = '⏳ Mengirim...';
   try {
@@ -6171,7 +6232,7 @@ async function submitVerifikasiIdentitas(){
     let savedRow = null;
     try {
       const { data, error } = await _sb.from('identity_verifications')
-        .insert({ email: currentUser.email, nama, nik, tanggal_lahir: tgl, foto_ktp: viKtpData, status: 'pending' })
+        .insert({ email: currentUser.email, nama, nik, tanggal_lahir: tgl, foto_ktp: viKtpData, foto_selfie: viSelfieData, status: 'pending' })
         .select().single();
       if (error) throw error;
       savedRow = data;
@@ -6179,6 +6240,10 @@ async function submitVerifikasiIdentitas(){
 
     const key = _viStatusKey();
     const rKey = _viReasonKey();
+
+    // Face match (KTP vs Selfie) — jalan di browser user (client-side).
+    btn.textContent = '🤳 Mencocokkan wajah...';
+    const faceResult = await compareFacesKtpSelfie(viKtpData, viSelfieData, (s) => { btn.textContent = '🤳 ' + s; });
 
     // AI cek foto KTP (baca teks + cocokin sama form) lewat Cloudflare
     // Workers AI. Ini CUMA rekomendasi buat admin — status pengajuan TETAP
@@ -6197,12 +6262,14 @@ async function submitVerifikasiIdentitas(){
         if (j.success) aiVerdict = j.verdict;
       } catch(e) { /* AI gagal/gangguan → verdict tetap null, lanjut notif manual biasa */ }
     }
+    if (aiVerdict) aiVerdict.face_match = faceResult;
+    else aiVerdict = { face_match: faceResult };
 
     if (key) localStorage.setItem(key, 'pending');
     await notifyAdminVerifikasiManual(nama, nik, tgl, savedRow ? savedRow.id : null, aiVerdict);
-    showNotif(aiVerdict
-      ? (aiVerdict.valid ? '✅ AI: data terlihat valid. Menunggu ACC admin.' : '⚠️ AI: data perlu dicek lagi. Menunggu peninjauan admin.')
-      : '📨 Data verifikasi tersimpan, menunggu peninjauan!');
+    showNotif((aiVerdict.valid || (faceResult && faceResult.isMatch))
+      ? '✅ Data & wajah kamu terlihat cocok. Menunggu ACC admin.'
+      : '⚠️ Ada bagian yang perlu dicek lagi. Menunggu peninjauan admin.');
 
     viSyncStatusLabel();
     openVerifikasiIdentitas();
@@ -6211,9 +6278,15 @@ async function submitVerifikasiIdentitas(){
 }
 // Kirim notifikasi WA ke admin buat cek manual, dilengkapi hasil pengecekan AI (kalau ada).
 async function notifyAdminVerifikasiManual(nama, nik, tgl, rowId, aiVerdict){
-  const aiText = aiVerdict
+  const fm = aiVerdict && aiVerdict.face_match;
+  const faceText = fm
+    ? (fm.error
+        ? `\n\n🤳 Face Match (KTP vs Selfie): GAGAL DICEK — ${fm.error}`
+        : `\n\n🤳 Face Match (KTP vs Selfie): ${fm.isMatch ? '✅ COCOK' : '⚠️ TIDAK COCOK'} (skor kemiripan ${fm.score}%)`)
+    : '';
+  const aiText = (aiVerdict && aiVerdict.valid !== undefined)
     ? `\n\n🤖 Hasil cek AI (2 tahap, ketat):\n- Foto utuh (gak kepotong): ${aiVerdict.foto_utuh === true ? 'Ya' : aiVerdict.foto_utuh === false ? 'Tidak' : '?'}\n- Foto gak blur: ${aiVerdict.tidak_blur === true ? 'Ya' : aiVerdict.tidak_blur === false ? 'Tidak' : '?'}\n- Gak ada pantulan cahaya: ${aiVerdict.tidak_pantulan_cahaya === true ? 'Ya' : aiVerdict.tidak_pantulan_cahaya === false ? 'Tidak' : '?'}\n- Bukan foto dari layar/scan: ${aiVerdict.bukan_hasil_foto_layar === true ? 'Ya' : aiVerdict.bukan_hasil_foto_layar === false ? 'Tidak' : '?'}\n- NIK terbaca: ${aiVerdict.nik_terbaca || '(kosong)'}\n- Data cocok sama form: ${aiVerdict.data_cocok === true ? 'Ya' : aiVerdict.data_cocok === false ? 'Tidak' : '?'}\n- KESIMPULAN: ${aiVerdict.valid === true ? '✅ VALID' : '⚠️ TIDAK VALID / PERLU DICEK ULANG'}\n- Alasan: ${aiVerdict.alasan || '-'}`
-    : '\n\n🤖 AI belum sempat mengecek (gangguan/gagal) — tolong cek foto KTP manual.';
+    : '\n\n🤖 AI belum sempat mengecek foto KTP (gangguan/gagal) — tolong cek foto KTP manual.';
   const emailMsg =
     `Ada pengajuan verifikasi identitas baru!\n\n` +
     `Email akun: ${currentUser.email}\n` +
@@ -6221,8 +6294,9 @@ async function notifyAdminVerifikasiManual(nama, nik, tgl, rowId, aiVerdict){
     `NIK: ${nik}\n` +
     `Tanggal Lahir: ${tgl}\n` +
     (rowId ? `Row ID: ${rowId}\n` : '') +
-    `\nFoto KTP tersimpan di Supabase (tabel identity_verifications).` +
+    `\nFoto KTP & Selfie tersimpan di Supabase (tabel identity_verifications).` +
     aiText +
+    faceText +
     `\n\nCatatan: ini cuma rekomendasi AI, keputusan akhir tetap kamu yang ACC manual.`;
   try { return await sendAdminNotifEmail(`Verifikasi Identitas Baru — ${nama}`, emailMsg); } catch(e) { return false; }
 }
@@ -9817,6 +9891,13 @@ function doPesan(){
     </div>
     <input type="file" id="arKtpFile" accept="image/png,image/jpeg" style="display:none;" onchange="arKtpFileChange(event)">
 
+    <div class="pgs-field-label">Upload Selfie (buat cocokin wajah sama KTP)</div>
+    <div class="pgs-upload-box" id="arSelfieBox" onclick="document.getElementById('arSelfieFile').click()">
+      <div class="puh-ico">🤳</div>
+      <div class="puh-txt">Tap untuk unggah foto selfie kamu<br>PNG/JPG, maksimal 2MB</div>
+    </div>
+    <input type="file" id="arSelfieFile" accept="image/png,image/jpeg" capture="user" style="display:none;" onchange="arSelfieFileChange(event)">
+
     <div class="ar-form-hint">Setelah kirim, data kamu akan tersimpan dan otomatis diarahkan ke WhatsApp admin untuk proses aktivasi akun Agen/Reseller.</div>
 
     <button id="btnDaftarAgenReseller" class="ar-btn-submit" onclick="submitAgenReseller()">
@@ -9868,6 +9949,37 @@ function doPesan(){
       }
     };
     r.readAsDataURL(file);
+  };
+
+  let _arSelfieData = null;
+  window.arSelfieFileChange = function(event){
+    const file = event.target.files[0];
+    if (!file) return;
+    const box = document.getElementById('arSelfieBox');
+    if (!/^image\/(png|jpeg)$/.test(file.type)) {
+      showNotif && showNotif('❌ File harus PNG atau JPG.');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showNotif && showNotif('❌ Ukuran file maksimal 2MB.');
+      event.target.value = '';
+      return;
+    }
+    box.innerHTML = '<div class="puh-txt">⏳ Memproses foto...</div>';
+    const r2 = new FileReader();
+    r2.onload = e => {
+      const finish = (dataUrl) => {
+        _arSelfieData = dataUrl;
+        box.innerHTML = `<img src="${dataUrl}"><div class="puh-txt" style="margin-top:8px;">✅ Foto selfie terpilih, tap untuk ganti</div>`;
+      };
+      if (typeof compressImage === 'function') {
+        compressImage(e.target.result, 1000, 1000, 0.8, finish);
+      } else {
+        finish(e.target.result);
+      }
+    };
+    r2.readAsDataURL(file);
   };
 
   // ══════════════════════════════
@@ -10021,6 +10133,9 @@ function doPesan(){
     document.getElementById('arKtpBox').innerHTML = '<div class="puh-ico">🪪</div><div class="puh-txt">Tap untuk unggah foto KTP<br>PNG/JPG, maksimal 2MB</div>';
     document.getElementById('arKtpFile').value = '';
     _arKtpData = null;
+    document.getElementById('arSelfieBox').innerHTML = '<div class="puh-ico">🤳</div><div class="puh-txt">Tap untuk unggah foto selfie kamu<br>PNG/JPG, maksimal 2MB</div>';
+    document.getElementById('arSelfieFile').value = '';
+    _arSelfieData = null;
     document.getElementById('arErr').style.display = 'none';
     arSelectTier('reseller');
     document.getElementById('agenResellerPage').classList.add('open');
@@ -10048,6 +10163,7 @@ function doPesan(){
     if (!/^\d{5}$/.test(kodepos)) { errEl.textContent = 'Masukkan kode pos yang valid (5 digit)!'; errEl.style.display = 'block'; return; }
     if (!alamat) { errEl.textContent = 'Masukkan alamat sesuai KTP!'; errEl.style.display = 'block'; return; }
     if (!_arKtpData) { errEl.textContent = 'Unggah foto KTP kamu!'; errEl.style.display = 'block'; return; }
+    if (!_arSelfieData) { errEl.textContent = 'Unggah foto selfie kamu juga!'; errEl.style.display = 'block'; return; }
 
     const btn = document.getElementById('btnDaftarAgenReseller');
     btn.disabled = true;
@@ -10073,7 +10189,7 @@ function doPesan(){
       try {
         const { data, error } = await window._sb.from('reseller_applications').insert({
           email: u?.email || null, nama, provinsi, kota, kecamatan, kodepos, alamat,
-          ktp_photo: _arKtpData, tier: _arTier, status: 'pending'
+          ktp_photo: _arKtpData, selfie_photo: _arSelfieData, tier: _arTier, status: 'pending'
         }).select().single();
         if (error) throw error;
         savedResellerRow = data;
@@ -10081,11 +10197,21 @@ function doPesan(){
 
       const tierLabel = _arTier === 'agen' ? 'AGEN' : 'RESELLER';
 
+      // Face match (KTP vs Selfie) — jalan di browser user (client-side).
+      btn.innerHTML = '🤳 Mencocokkan wajah...';
+      const faceResult = await compareFacesKtpSelfie(_arKtpData, _arSelfieData);
+      const faceText = faceResult
+        ? (faceResult.error
+            ? `\n\n🤳 Face Match (KTP vs Selfie): GAGAL DICEK — ${faceResult.error}`
+            : `\n\n🤳 Face Match (KTP vs Selfie): ${faceResult.isMatch ? '✅ COCOK' : '⚠️ TIDAK COCOK'} (skor kemiripan ${faceResult.score}%)`)
+        : '';
+
       // AI cek foto KTP (baca teks + cocokin sama form) lewat Cloudflare
       // Workers AI. Ini CUMA rekomendasi buat admin — status pengajuan TETAP
       // "pending", role user TIDAK pernah diubah otomatis di sini.
       let aiVerdict = null;
       if (savedResellerRow && savedResellerRow.id) {
+        btn.innerHTML = '🤖 AI sedang memeriksa foto KTP...';
         try {
           const token = await h2hGetAccessToken();
           const resp = await fetch(H2H_WORKER_URL + '/ai-verify-ktp', {
@@ -10099,7 +10225,7 @@ function doPesan(){
       }
       const aiText = aiVerdict
         ? `\n\n🤖 Hasil cek AI (2 tahap, ketat):\n- Foto utuh (gak kepotong): ${aiVerdict.foto_utuh === true ? 'Ya' : aiVerdict.foto_utuh === false ? 'Tidak' : '?'}\n- Foto gak blur: ${aiVerdict.tidak_blur === true ? 'Ya' : aiVerdict.tidak_blur === false ? 'Tidak' : '?'}\n- Gak ada pantulan cahaya: ${aiVerdict.tidak_pantulan_cahaya === true ? 'Ya' : aiVerdict.tidak_pantulan_cahaya === false ? 'Tidak' : '?'}\n- Bukan foto dari layar/scan: ${aiVerdict.bukan_hasil_foto_layar === true ? 'Ya' : aiVerdict.bukan_hasil_foto_layar === false ? 'Tidak' : '?'}\n- NIK terbaca: ${aiVerdict.nik_terbaca || '(kosong)'}\n- Data cocok sama form: ${aiVerdict.data_cocok === true ? 'Ya' : aiVerdict.data_cocok === false ? 'Tidak' : '?'}\n- KESIMPULAN: ${aiVerdict.valid === true ? '✅ VALID' : '⚠️ TIDAK VALID / PERLU DICEK ULANG'}\n- Alasan: ${aiVerdict.alasan || '-'}\n\nCatatan: ini cuma rekomendasi AI, keputusan akhir tetap kamu yang ACC manual.`
-        : '\n\n🤖 AI belum sempat mengecek (gangguan/gagal) — tolong cek foto KTP manual.';
+        : '\n\n🤖 AI belum sempat mengecek foto KTP (gangguan/gagal) — tolong cek foto KTP manual.';
 
       // Kirim notif ke admin biar bisa dicek dulu sebelum di-ACC manual di
       // Admin Panel > Kelola Role Reseller/Agen. Foto KTP TIDAK disisipkan
@@ -10116,9 +10242,10 @@ function doPesan(){
         `Kode Pos: ${kodepos}\n` +
         `Alamat (KTP): ${alamat}\n\n` +
         (savedToDb
-          ? `Foto KTP tersimpan di Supabase (tabel reseller_applications, email: ${u?.email || '-'}).`
+          ? `Foto KTP & Selfie tersimpan di Supabase (tabel reseller_applications, email: ${u?.email || '-'}).`
           : `Foto KTP BELUM tersimpan otomatis (tabel reseller_applications belum ada di Supabase) — akan menyusul dikirim via WhatsApp.`) +
         aiText +
+        faceText +
         `\n\nSetelah dicek, ACC lewat Admin Panel > Kelola Role Reseller/Agen (masukkan email di atas, pilih role ${tierLabel.toLowerCase()}).`;
       const emailSent = await sendAdminNotifEmail(`Pendaftaran ${tierLabel} Baru — ${nama}`, emailMsg);
 
