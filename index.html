@@ -223,6 +223,16 @@ body.panel-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
 .pi-channels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
 .pi-ch{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:16px 8px;text-align:center;text-decoration:none;color:var(--text);transition:.2s;}
 .pi-ch:active{transform:scale(.97);background:rgba(26,111,255,0.18);}
+.pi-legal-updated{font-size:11px;color:var(--muted);margin-bottom:14px;letter-spacing:.3px;}
+.pi-legal-h{font-weight:800;font-size:13.5px;color:#fff;margin:18px 0 6px;letter-spacing:.3px;}
+.pi-legal-h:first-of-type{margin-top:0;}
+.pi-legal-sub{font-weight:700;font-size:12.5px;color:#c79bff;margin:10px 0 4px;letter-spacing:.3px;}
+.pi-legal-p{font-size:12.5px;color:var(--muted);line-height:1.7;margin-bottom:10px;}
+.pi-legal-p b{color:var(--text);}
+.pi-legal-list{margin:4px 0 12px 18px;padding:0;}
+.pi-legal-list li{font-size:12.5px;color:var(--muted);line-height:1.7;margin-bottom:5px;}
+.pi-legal-list li b{color:var(--text);}
+.pi-legal-note{margin-top:12px;padding:10px 12px;background:rgba(26,111,255,0.08);border:1px solid rgba(26,111,255,0.25);border-radius:10px;font-size:11px;color:var(--muted);line-height:1.6;}
 .pi-ch .ci{font-size:24px;margin-bottom:6px;}
 .pi-ch .cn{font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:var(--muted);}
 .pi-ch.wa .ci{color:var(--wa);}
@@ -2348,13 +2358,51 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       <div class="pi-icon gold">📄</div>
       <div class="pi-h">SYARAT &amp; KETENTUAN</div>
     </div>
-    <div class="pi-list">
-      <div class="it warn"><div class="ck">✓</div><p>Pastikan data akun benar sebelum melakukan pembayaran.</p></div>
-      <div class="it warn"><div class="ck">✓</div><p>Tidak ada refund untuk kesalahan input dari pembeli.</p></div>
-      <div class="it warn"><div class="ck">✓</div><p>Simpan bukti pembayaran sebagai arsip transaksi.</p></div>
-      <div class="it warn"><div class="ck">✓</div><p>Proses manual dilakukan jika sistem mengalami gangguan.</p></div>
-    </div>
+    <div class="pi-legal-updated">Terakhir diperbarui: <span id="piSyaratUpdated">1 Agustus 2026</span></div>
+    <div class="pi-legal-p">Mohon baca Syarat &amp; Ketentuan ini dengan saksama sebelum menggunakan aplikasi Paycore ("Aplikasi", "kami"). Dengan membuat akun atau menggunakan Aplikasi, kamu ("Pengguna") dianggap telah membaca, memahami, dan menyetujui seluruh isi dokumen ini.</div>
+
+    <div class="pi-legal-h">1. Definisi</div>
+    <ul class="pi-legal-list">
+      <li><b>Aplikasi</b> berarti Paycore, termasuk seluruh fitur di dalamnya (top up saldo, PPOB, program Agen/Reseller, dan layanan lain yang kami sediakan).</li>
+      <li><b>Pengguna</b> berarti setiap orang yang membuat akun dan/atau menggunakan Aplikasi.</li>
+      <li><b>Saldo</b> berarti nilai uang elektronik dalam akun Pengguna di Aplikasi, yang dapat digunakan untuk bertransaksi.</li>
+      <li><b>Produk PPOB</b> berarti produk digital yang dijual di Aplikasi (pulsa, paket data, token listrik, top up game, dan sejenisnya), yang sebagian diproses lewat penyedia pihak ketiga.</li>
+    </ul>
+
+    <div class="pi-legal-h">2. Akun Pengguna</div>
+    <ul class="pi-legal-list">
+      <li>Pengguna wajib mendaftar menggunakan data yang benar dan aktif (email, nomor HP) serta bertanggung jawab penuh atas kerahasiaan kode OTP dan akses akunnya.</li>
+      <li>Satu Pengguna hanya diperbolehkan memiliki satu akun, kecuali diizinkan lain oleh admin untuk keperluan bisnis (misal akun Agen/Reseller terpisah).</li>
+      <li>Kami berhak menangguhkan atau menonaktifkan akun yang terindikasi digunakan untuk kecurangan, penyalahgunaan sistem, atau pelanggaran Syarat &amp; Ketentuan ini.</li>
+    </ul>
+
+    <div class="pi-legal-h">3. Top Up Saldo &amp; Transaksi</div>
+    <ul class="pi-legal-list">
+      <li>Pengguna dapat mengisi Saldo melalui metode yang tersedia (QRIS, e-wallet, Virtual Account bank) dengan nominal dan biaya admin sesuai yang ditampilkan di Aplikasi saat transaksi berlangsung.</li>
+      <li>Pastikan data tujuan transaksi (nomor HP, ID pelanggan, dsb.) benar sebelum melakukan pembayaran — kami tidak bertanggung jawab atas kesalahan input dari Pengguna.</li>
+      <li>Transaksi yang berhasil namun produk tidak terkirim akan diproses ulang secara otomatis atau di-refund ke Saldo Pengguna; transaksi yang gagal total juga otomatis di-refund.</li>
+      <li>Tidak ada pengembalian dana (refund) untuk produk yang sudah berhasil terkirim ke tujuan yang benar.</li>
+    </ul>
+
+    <div class="pi-legal-h">4. Program Agen/Reseller &amp; Verifikasi Identitas</div>
+    <ul class="pi-legal-list">
+      <li>Pendaftaran sebagai Agen/Reseller mengharuskan Pengguna mengisi data pribadi (nama, alamat) dan mengunggah foto KTP untuk keperluan verifikasi.</li>
+      <li>Data dan foto KTP tersebut akan diperiksa kelayakannya (secara otomatis oleh sistem/AI dan/atau ditinjau ulang oleh admin) sebelum status Agen/Reseller disetujui. Persetujuan akhir tetap berada di tangan admin.</li>
+      <li>Kami berhak menolak pengajuan yang datanya tidak lengkap, tidak jelas, atau diragukan keasliannya.</li>
+    </ul>
+
+    <div class="pi-legal-h">5. Larangan Penggunaan</div>
+    <div class="pi-legal-p">Pengguna dilarang: menggunakan Aplikasi untuk aktivitas ilegal; mencoba meretas, mengeksploitasi celah sistem, atau membebani server secara berlebihan (abuse); menyalahgunakan fitur AI (Tanya AI/verifikasi otomatis) untuk tujuan di luar penggunaan wajar; serta memalsukan identitas atau dokumen pada proses verifikasi.</div>
+
+    <div class="pi-legal-h">6. Batasan Tanggung Jawab</div>
+    <div class="pi-legal-p">Aplikasi disediakan "sebagaimana adanya". Kami berupaya menjaga layanan tetap berjalan lancar, namun tidak bertanggung jawab atas kerugian yang timbul dari gangguan pihak ketiga (penyedia produk PPOB, payment gateway, jaringan telekomunikasi) di luar kendali kami.</div>
+
+    <div class="pi-legal-h">7. Perubahan Syarat &amp; Ketentuan</div>
+    <div class="pi-legal-p">Kami dapat memperbarui dokumen ini sewaktu-waktu. Perubahan berlaku sejak dipublikasikan di Aplikasi. Penggunaan Aplikasi setelah perubahan berarti Pengguna menyetujui versi terbaru.</div>
+
+    <div class="pi-legal-note">📌 Kalau ada pertanyaan soal Syarat &amp; Ketentuan ini, hubungi kami lewat menu "Hubungi Kami" di bawah.</div>
   </div>
+
 
   <!-- KEBIJAKAN PRIVASI -->
   <div class="pi-card" id="pi-privasi">
@@ -2362,11 +2410,45 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       <div class="pi-icon green">🔒</div>
       <div class="pi-h">KEBIJAKAN PRIVASI</div>
     </div>
-    <div class="pi-list">
-      <div class="it ok"><div class="ck">✓</div><p>Data akun hanya digunakan untuk proses transaksi.</p></div>
-      <div class="it ok"><div class="ck">✓</div><p>Kami tidak menyimpan data sensitif seperti password.</p></div>
-      <div class="it ok"><div class="ck">✓</div><p>Data pelanggan aman dan tidak dibagikan ke pihak ketiga.</p></div>
-    </div>
+    <div class="pi-legal-updated">Terakhir diperbarui: <span id="piPrivasiUpdated">1 Agustus 2026</span></div>
+    <div class="pi-legal-p">Kebijakan Privasi ini menjelaskan bagaimana Paycore mengumpulkan, menggunakan, dan melindungi data pribadi Pengguna. Dengan menggunakan Aplikasi, kamu menyetujui praktik yang dijelaskan di bawah ini.</div>
+
+    <div class="pi-legal-h">1. Data yang Kami Kumpulkan</div>
+    <ul class="pi-legal-list">
+      <li><b>Data akun:</b> nama, email, nomor HP, kata sandi (terenkripsi).</li>
+      <li><b>Data transaksi:</b> riwayat top up, riwayat pembelian produk PPOB, nominal, status transaksi.</li>
+      <li><b>Data verifikasi (khusus Verifikasi Identitas &amp; pendaftaran Agen/Reseller):</b> NIK, tanggal lahir, alamat, dan foto KTP.</li>
+      <li><b>Data percakapan:</b> isi chat kalau Pengguna menggunakan fitur "Tanya AI".</li>
+    </ul>
+
+    <div class="pi-legal-h">2. Cara Kami Menggunakan Data</div>
+    <ul class="pi-legal-list">
+      <li>Memproses transaksi top up &amp; pembelian produk PPOB.</li>
+      <li>Memverifikasi identitas untuk keperluan pendaftaran Verifikasi Identitas dan program Agen/Reseller.</li>
+      <li>Mengirim notifikasi terkait akun/transaksi (OTP, status pendaftaran) melalui email atau WhatsApp.</li>
+      <li>Menjawab pertanyaan Pengguna melalui fitur "Tanya AI".</li>
+    </ul>
+
+    <div class="pi-legal-h">3. Penggunaan Kecerdasan Buatan (AI)</div>
+    <div class="pi-legal-p">Paycore menggunakan sistem AI (berjalan di infrastruktur Cloudflare Workers AI) untuk dua hal: <b>(a)</b> menjawab pertanyaan Pengguna di fitur "Tanya AI" — data yang dipakai sebagai konteks jawaban terbatas pada data akun &amp; transaksi milik Pengguna itu sendiri, dan <b>(b)</b> membantu memeriksa kelengkapan &amp; kejelasan foto KTP pada proses Verifikasi Identitas/pendaftaran Agen/Reseller. Hasil pemeriksaan AI hanya berupa rekomendasi — <b>keputusan akhir persetujuan tetap dilakukan oleh admin manusia</b>, AI tidak pernah mengubah status akun secara otomatis.</div>
+
+    <div class="pi-legal-h">4. Pembagian Data ke Pihak Ketiga</div>
+    <div class="pi-legal-p">Kami membagikan data ke pihak ketiga <b>hanya sebatas yang diperlukan</b> untuk menjalankan layanan, yaitu: penyedia produk PPOB (untuk memproses pesanan pulsa/token/dsb.), penyedia payment gateway (untuk memproses pembayaran QRIS/VA/e-wallet), dan penyedia layanan notifikasi (email/WhatsApp). Kami <b>tidak menjual</b> data pribadi Pengguna kepada pihak manapun untuk tujuan pemasaran.</div>
+
+    <div class="pi-legal-h">5. Penyimpanan &amp; Keamanan Data</div>
+    <div class="pi-legal-p">Data disimpan di server basis data (Supabase) dengan akses dibatasi. Kata sandi disimpan dalam bentuk terenkripsi dan tidak pernah kami lihat dalam bentuk asli. Kami berupaya menjaga data tetap aman, namun tidak ada sistem yang 100% bebas risiko — Pengguna disarankan menjaga kerahasiaan akunnya sendiri.</div>
+
+    <div class="pi-legal-h">6. Hak Pengguna</div>
+    <ul class="pi-legal-list">
+      <li>Pengguna berhak meminta salinan data pribadinya yang kami simpan.</li>
+      <li>Pengguna berhak meminta penghapusan akun &amp; data pribadinya, kecuali data yang wajib disimpan untuk kepatuhan hukum (misal riwayat transaksi keuangan).</li>
+      <li>Permintaan di atas dapat diajukan melalui menu "Hubungi Kami".</li>
+    </ul>
+
+    <div class="pi-legal-h">7. Perubahan Kebijakan</div>
+    <div class="pi-legal-p">Kebijakan ini dapat diperbarui sewaktu-waktu mengikuti perkembangan fitur Aplikasi. Perubahan penting akan diinformasikan melalui Aplikasi.</div>
+
+    <div class="pi-legal-note">📌 Kalau ada pertanyaan soal Kebijakan Privasi ini atau ingin mengajukan permintaan terkait datamu, hubungi kami lewat menu "Hubungi Kami" di bawah.</div>
   </div>
 
   <!-- HUBUNGI KAMI -->
@@ -2624,7 +2706,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
     <div class="aw-sub">Semua pembayaran, top up, dan layanan PPOB dalam satu aplikasi mudah.</div>
     <button class="aw-btn-primary" onclick="closeAuthWelcome();openAuth('daftar');">Get Started</button>
     <button class="aw-btn-secondary" onclick="closeAuthWelcome();openAuth('masuk');">Log In</button>
-    <div class="aw-tos">Dengan menggunakan aplikasi ini, kamu setuju dengan <span onclick="event.stopPropagation();showInfoModal('📄 Kebijakan Privasi','Hubungi CS untuk info lebih lanjut mengenai kebijakan privasi kami.')">Kebijakan Privasi</span> dan <span onclick="event.stopPropagation();showInfoModal('📄 Syarat &amp; Ketentuan','Hubungi CS untuk info lebih lanjut mengenai syarat &amp; ketentuan kami.')">Syarat &amp; Ketentuan</span> kami.</div>
+    <div class="aw-tos">Dengan menggunakan aplikasi ini, kamu setuju dengan <span onclick="event.stopPropagation();openPusatInfo('privasi');">Kebijakan Privasi</span> dan <span onclick="event.stopPropagation();openPusatInfo('syarat');">Syarat &amp; Ketentuan</span> kami.</div>
   </div>
 </div>
 
@@ -2741,7 +2823,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
           </div>
           <div class="auth-terms-row">
             <input type="checkbox" id="agreeTerms">
-            <span>Saya menyetujui <a>Syarat &amp; Ketentuan</a> serta <a>Kebijakan Privasi</a> Vinzprostore.</span>
+            <span>Saya menyetujui <a onclick="event.preventDefault();event.stopPropagation();openPusatInfo('syarat');" href="#" style="text-decoration:underline;">Syarat &amp; Ketentuan</a> serta <a onclick="event.preventDefault();event.stopPropagation();openPusatInfo('privasi');" href="#" style="text-decoration:underline;">Kebijakan Privasi</a> Vinzprostore.</span>
           </div>
           <button class="btn-auth" id="btnRegister" onclick="doRegister()">DAFTAR SEKARANG</button>
         </div>
@@ -2981,16 +3063,16 @@ async function apTestAdminEmail(btn){
   const resEl = document.getElementById('apTestEmailResult');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Mengirim...'; }
   resEl.style.color = 'var(--muted)';
-  resEl.textContent = 'Mengirim email test, tunggu sebentar...';
+  resEl.textContent = 'Mengirim notifikasi WA test, tunggu sebentar...';
   const now = new Date().toLocaleString('id-ID');
-  const ok = await sendAdminNotifEmail('🧪 Test Email Admin — ' + now, 'Ini email percobaan dari Admin Panel VinzPro.\nKalau kamu terima email ini, konfigurasi EmailJS-nya sudah beres.\n\nWaktu kirim: ' + now);
+  const ok = await sendAdminNotifEmail('🧪 Test Notifikasi Admin — ' + now, 'Ini pesan percobaan dari Admin Panel VinzPro.\nKalau kamu terima pesan WA ini, konfigurasinya sudah beres.\n\nWaktu kirim: ' + now);
   if (ok) {
     resEl.style.color = 'var(--success)';
-    resEl.textContent = '✅ Berhasil terkirim! Cek inbox (atau folder Spam) di email admin.';
-    showNotif('✅ Email test berhasil dikirim!');
+    resEl.textContent = '✅ Berhasil terkirim! Cek WhatsApp admin.';
+    showNotif('✅ Notifikasi WA test berhasil dikirim!');
   } else {
     resEl.style.color = 'var(--danger)';
-    resEl.textContent = '❌ Gagal kirim.\nAlasan: ' + (window._lastAdminEmailError || 'tidak diketahui') + '\n\nCek lagi di dashboard EmailJS: apakah Template ID sudah dibuat, dan field "To Email" di template diisi {{to_email}}?';
+    resEl.textContent = '❌ Gagal kirim.\nAlasan: ' + (window._lastAdminEmailError || 'tidak diketahui') + '\n\nCek lagi apakah LOGINWA_API_KEY sudah di-set di environment worker (Cloudflare dashboard).';
   }
   if (btn) { btn.disabled = false; btn.textContent = '📧 KIRIM EMAIL TEST'; }
 }
@@ -3093,6 +3175,10 @@ window.apTestAdminEmail = apTestAdminEmail;
       <div class="pgs-card">
         <div class="pgs-item" onclick="openStrukSettings()">
           <div class="pgs-item-left"><span class="pgs-ico">🖨️</span><span>Cetak Struk</span></div>
+          <span class="pgs-chevron">›</span>
+        </div>
+        <div class="pgs-item" onclick="aiChatOpen()">
+          <div class="pgs-item-left"><span class="pgs-ico">🤖</span><span>Tanya AI</span></div>
           <span class="pgs-chevron">›</span>
         </div>
       </div>
@@ -4235,29 +4321,32 @@ async function sendOTPEmail(toEmail, toName, code, subject) {
   }
 }
 
-// Kirim notifikasi umum ke email admin (BUKAN OTP) — dipakai buat kabarin
+// Kirim notifikasi ke WhatsApp admin (BUKAN email lagi — EmailJS sering
+// gagal/ribet konfigurasi templatenya, jadi diganti ke WA pakai LoginWA,
+// sistem yang sama yang dipakai buat kirim OTP). Dipakai buat kabarin
 // pendaftaran Agen/Reseller & Verifikasi Identitas biar admin bisa cek dulu
 // sebelum di-ACC manual di Admin Panel (bagian "Kelola Role Reseller/Agen").
-// Return true/false (bukan selalu true kayak sendOTPEmail) supaya pemanggil
-// bisa kasih tau user kalau emailnya gagal terkirim.
+// Nama fungsi tetap "sendAdminNotifEmail" biar gak perlu ubah semua tempat
+// yang manggil dia — isinya aja yang diganti ke WA.
+// Return true/false supaya pemanggil bisa kasih tau user kalau gagal terkirim.
 async function sendAdminNotifEmail(subject, message) {
-  if (EJS_TEMPLATE_ID_ADMIN === 'GANTI_TEMPLATE_ADMIN_KAMU') {
-    window._lastAdminEmailError = 'Template email admin (EJS_TEMPLATE_ID_ADMIN) belum dikonfigurasi.';
-    console.warn('[DEV MODE] Template email admin belum dikonfigurasi.\nSubjek: ' + subject + '\n\n' + message);
-    return false;
-  }
   try {
-    await emailjs.send(EJS_SERVICE_ID_ADMIN, EJS_TEMPLATE_ID_ADMIN, {
-      to_email: ADMIN_NOTIF_EMAIL,
-      subject: subject,
-      message: message,
-    }, { publicKey: EJS_PUBLIC_KEY_ADMIN });
+    const res = await fetch(H2H_WORKER_URL + '/admin-notify-wa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, message }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok || !j.success) {
+      window._lastAdminEmailError = j.message || ('HTTP ' + res.status);
+      console.error('sendAdminNotifEmail (WA) error:', window._lastAdminEmailError);
+      return false;
+    }
     window._lastAdminEmailError = null;
     return true;
   } catch(err) {
-    const detail = err?.text || err?.message || JSON.stringify(err) || 'unknown error';
-    window._lastAdminEmailError = detail;
-    console.error('sendAdminNotifEmail error:', detail, err);
+    window._lastAdminEmailError = err?.message || 'unknown error';
+    console.error('sendAdminNotifEmail (WA) error:', err);
     return false;
   }
 }
@@ -6091,59 +6180,50 @@ async function submitVerifikasiIdentitas(){
     const key = _viStatusKey();
     const rKey = _viReasonKey();
 
-    if (savedRow && savedRow.id && AI_VERIFICATION_ENABLED) {
-      // Minta AI cek otomatis lewat Supabase Edge Function verify-identity.
-      btn.textContent = '🤖 AI sedang memeriksa...';
+    // AI cek foto KTP (baca teks + cocokin sama form) lewat Cloudflare
+    // Workers AI. Ini CUMA rekomendasi buat admin — status pengajuan TETAP
+    // "pending", currentUser.verified TIDAK pernah diubah otomatis di sini.
+    let aiVerdict = null;
+    if (savedRow && savedRow.id) {
+      btn.textContent = '🤖 AI sedang memeriksa foto KTP...';
       try {
-        const resp = await fetch(SUPABASE_VERIFY_IDENTITY_URL, {
+        const token = await h2hGetAccessToken();
+        const resp = await fetch(H2H_WORKER_URL + '/ai-verify-ktp', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON, 'apikey': SUPABASE_ANON },
-          body: JSON.stringify({ id: savedRow.id })
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+          body: JSON.stringify({ type: 'identity', id: savedRow.id, foto_ktp: viKtpData, form: { nama, nik, tanggal_lahir: tgl } }),
         });
-        const result = await resp.json();
-        if (resp.ok && result && result.approved === true) {
-          if (key) localStorage.setItem(key, 'verified');
-          if (rKey) localStorage.removeItem(rKey);
-          if (currentUser) currentUser.verified = true;
-          showNotif('✅ Identitas kamu langsung terverifikasi otomatis!');
-        } else if (resp.ok && result && result.approved === false) {
-          if (key) localStorage.setItem(key, 'ditolak');
-          if (rKey) localStorage.setItem(rKey, result.reason || 'Data/foto KTP tidak sesuai.');
-          showNotif('❌ Pengajuan ditolak sistem, cek alasannya di halaman verifikasi.');
-        } else {
-          // Edge function belum siap / error → fallback ke antrian manual admin.
-          if (key) localStorage.setItem(key, 'pending');
-          await notifyAdminVerifikasiManual(nama, nik, tgl, savedRow.id);
-          showNotif('📨 Pemeriksaan otomatis belum tersedia, data dikirim ke admin.');
-        }
-      } catch(e) {
-        // Edge function gak bisa dihubungi → fallback ke antrian manual admin.
-        if (key) localStorage.setItem(key, 'pending');
-        await notifyAdminVerifikasiManual(nama, nik, tgl, savedRow.id);
-        showNotif('📨 Pemeriksaan otomatis belum tersedia, data dikirim ke admin.');
-      }
-    } else {
-      // Gagal simpan ke Supabase sama sekali → tetep kasih tau admin manual.
-      if (key) localStorage.setItem(key, 'pending');
-      await notifyAdminVerifikasiManual(nama, nik, tgl, null);
-      showNotif('📨 Data verifikasi tersimpan, menunggu peninjauan!');
+        const j = await resp.json().catch(() => ({}));
+        if (j.success) aiVerdict = j.verdict;
+      } catch(e) { /* AI gagal/gangguan → verdict tetap null, lanjut notif manual biasa */ }
     }
+
+    if (key) localStorage.setItem(key, 'pending');
+    await notifyAdminVerifikasiManual(nama, nik, tgl, savedRow ? savedRow.id : null, aiVerdict);
+    showNotif(aiVerdict
+      ? (aiVerdict.valid ? '✅ AI: data terlihat valid. Menunggu ACC admin.' : '⚠️ AI: data perlu dicek lagi. Menunggu peninjauan admin.')
+      : '📨 Data verifikasi tersimpan, menunggu peninjauan!');
 
     viSyncStatusLabel();
     openVerifikasiIdentitas();
   } catch(e) { errEl.textContent = 'Error: ' + (e.message||e); errEl.style.display = 'block'; }
   finally { btn.disabled = false; btn.textContent = 'KIRIM UNTUK DIVERIFIKASI'; }
 }
-// Fallback: kirim email ke admin buat cek manual, dipakai kalau AI gagal/belum di-deploy.
-async function notifyAdminVerifikasiManual(nama, nik, tgl, rowId){
+// Kirim notifikasi WA ke admin buat cek manual, dilengkapi hasil pengecekan AI (kalau ada).
+async function notifyAdminVerifikasiManual(nama, nik, tgl, rowId, aiVerdict){
+  const aiText = aiVerdict
+    ? `\n\n🤖 Hasil cek AI (2 tahap, ketat):\n- Foto utuh (gak kepotong): ${aiVerdict.foto_utuh === true ? 'Ya' : aiVerdict.foto_utuh === false ? 'Tidak' : '?'}\n- Foto gak blur: ${aiVerdict.tidak_blur === true ? 'Ya' : aiVerdict.tidak_blur === false ? 'Tidak' : '?'}\n- Gak ada pantulan cahaya: ${aiVerdict.tidak_pantulan_cahaya === true ? 'Ya' : aiVerdict.tidak_pantulan_cahaya === false ? 'Tidak' : '?'}\n- Bukan foto dari layar/scan: ${aiVerdict.bukan_hasil_foto_layar === true ? 'Ya' : aiVerdict.bukan_hasil_foto_layar === false ? 'Tidak' : '?'}\n- NIK terbaca: ${aiVerdict.nik_terbaca || '(kosong)'}\n- Data cocok sama form: ${aiVerdict.data_cocok === true ? 'Ya' : aiVerdict.data_cocok === false ? 'Tidak' : '?'}\n- KESIMPULAN: ${aiVerdict.valid === true ? '✅ VALID' : '⚠️ TIDAK VALID / PERLU DICEK ULANG'}\n- Alasan: ${aiVerdict.alasan || '-'}`
+    : '\n\n🤖 AI belum sempat mengecek (gangguan/gagal) — tolong cek foto KTP manual.';
   const emailMsg =
-    `Ada pengajuan verifikasi identitas baru (AI GAGAL/BELUM AKTIF — perlu cek manual)!<br><br>` +
-    `Email akun: ${currentUser.email}<br>` +
-    `Nama (KTP): ${nama}<br>` +
-    `NIK: ${nik}<br>` +
-    `Tanggal Lahir: ${tgl}<br>` +
-    (rowId ? `Row ID: ${rowId}<br>` : '') + `<br>` +
-    `Foto KTP tersimpan di Supabase (tabel identity_verifications).`;
+    `Ada pengajuan verifikasi identitas baru!\n\n` +
+    `Email akun: ${currentUser.email}\n` +
+    `Nama (KTP): ${nama}\n` +
+    `NIK: ${nik}\n` +
+    `Tanggal Lahir: ${tgl}\n` +
+    (rowId ? `Row ID: ${rowId}\n` : '') +
+    `\nFoto KTP tersimpan di Supabase (tabel identity_verifications).` +
+    aiText +
+    `\n\nCatatan: ini cuma rekomendasi AI, keputusan akhir tetap kamu yang ACC manual.`;
   try { return await sendAdminNotifEmail(`Verifikasi Identitas Baru — ${nama}`, emailMsg); } catch(e) { return false; }
 }
 
@@ -9987,37 +10067,59 @@ function doPesan(){
       // Simpan ke Supabase (tabel reseller_applications, buat dulu di SQL
       // Editor kalau perlu) — ini yang jadi sumber data lengkap termasuk
       // foto KTP (base64), supaya admin bisa lihat di Supabase kalau perlu.
+      // .select().single() biar dapet id row-nya balik buat dikirim ke AI.
       let savedToDb = true;
+      let savedResellerRow = null;
       try {
-        await window._sb.from('reseller_applications').insert({
+        const { data, error } = await window._sb.from('reseller_applications').insert({
           email: u?.email || null, nama, provinsi, kota, kecamatan, kodepos, alamat,
           ktp_photo: _arKtpData, tier: _arTier, status: 'pending'
-        });
+        }).select().single();
+        if (error) throw error;
+        savedResellerRow = data;
       } catch(e) { savedToDb = false; /* tabel belum ada, tetap lanjut kirim email & WA */ }
 
       const tierLabel = _arTier === 'agen' ? 'AGEN' : 'RESELLER';
 
-      // Kirim email ke admin biar bisa dicek dulu sebelum di-ACC manual di
+      // AI cek foto KTP (baca teks + cocokin sama form) lewat Cloudflare
+      // Workers AI. Ini CUMA rekomendasi buat admin — status pengajuan TETAP
+      // "pending", role user TIDAK pernah diubah otomatis di sini.
+      let aiVerdict = null;
+      if (savedResellerRow && savedResellerRow.id) {
+        try {
+          const token = await h2hGetAccessToken();
+          const resp = await fetch(H2H_WORKER_URL + '/ai-verify-ktp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+            body: JSON.stringify({ type: 'reseller', id: savedResellerRow.id, foto_ktp: _arKtpData, form: { nama, provinsi, kota, kecamatan, kodepos, alamat, tier: tierLabel } }),
+          });
+          const j = await resp.json().catch(() => ({}));
+          if (j.success) aiVerdict = j.verdict;
+        } catch(e) { /* AI gagal/gangguan → verdict tetap null, lanjut notif manual biasa */ }
+      }
+      const aiText = aiVerdict
+        ? `\n\n🤖 Hasil cek AI (2 tahap, ketat):\n- Foto utuh (gak kepotong): ${aiVerdict.foto_utuh === true ? 'Ya' : aiVerdict.foto_utuh === false ? 'Tidak' : '?'}\n- Foto gak blur: ${aiVerdict.tidak_blur === true ? 'Ya' : aiVerdict.tidak_blur === false ? 'Tidak' : '?'}\n- Gak ada pantulan cahaya: ${aiVerdict.tidak_pantulan_cahaya === true ? 'Ya' : aiVerdict.tidak_pantulan_cahaya === false ? 'Tidak' : '?'}\n- Bukan foto dari layar/scan: ${aiVerdict.bukan_hasil_foto_layar === true ? 'Ya' : aiVerdict.bukan_hasil_foto_layar === false ? 'Tidak' : '?'}\n- NIK terbaca: ${aiVerdict.nik_terbaca || '(kosong)'}\n- Data cocok sama form: ${aiVerdict.data_cocok === true ? 'Ya' : aiVerdict.data_cocok === false ? 'Tidak' : '?'}\n- KESIMPULAN: ${aiVerdict.valid === true ? '✅ VALID' : '⚠️ TIDAK VALID / PERLU DICEK ULANG'}\n- Alasan: ${aiVerdict.alasan || '-'}\n\nCatatan: ini cuma rekomendasi AI, keputusan akhir tetap kamu yang ACC manual.`
+        : '\n\n🤖 AI belum sempat mengecek (gangguan/gagal) — tolong cek foto KTP manual.';
+
+      // Kirim notif ke admin biar bisa dicek dulu sebelum di-ACC manual di
       // Admin Panel > Kelola Role Reseller/Agen. Foto KTP TIDAK disisipkan
-      // di badan email (base64-nya kegedean buat EmailJS free plan) — sudah
-      // aman tersimpan di Supabase (tabel reseller_applications) kalau mau
-      // dicek langsung, atau menyusul dikirim manual via WhatsApp.
-      // Pakai <br> (bukan \n) karena isi {{message}} ini nanti ditempel
-      // sebagai HTML mentah di template EmailJS, bukan teks polos.
+      // di badan pesan (base64-nya kegedean) — sudah aman tersimpan di
+      // Supabase (tabel reseller_applications) kalau mau dicek langsung.
       const emailMsg =
-        `Pendaftaran ${tierLabel} baru masuk!<br><br>` +
-        `Email akun: ${u?.email || '(belum login)'}<br>` +
-        `Nama (KTP): ${nama}<br>` +
-        `Tier dipilih: ${tierLabel}<br>` +
-        `Provinsi: ${provinsi}<br>` +
-        `Kota/Kabupaten: ${kota}<br>` +
-        `Kecamatan: ${kecamatan}<br>` +
-        `Kode Pos: ${kodepos}<br>` +
-        `Alamat (KTP): ${alamat}<br><br>` +
+        `Pendaftaran ${tierLabel} baru masuk!\n\n` +
+        `Email akun: ${u?.email || '(belum login)'}\n` +
+        `Nama (KTP): ${nama}\n` +
+        `Tier dipilih: ${tierLabel}\n` +
+        `Provinsi: ${provinsi}\n` +
+        `Kota/Kabupaten: ${kota}\n` +
+        `Kecamatan: ${kecamatan}\n` +
+        `Kode Pos: ${kodepos}\n` +
+        `Alamat (KTP): ${alamat}\n\n` +
         (savedToDb
           ? `Foto KTP tersimpan di Supabase (tabel reseller_applications, email: ${u?.email || '-'}).`
           : `Foto KTP BELUM tersimpan otomatis (tabel reseller_applications belum ada di Supabase) — akan menyusul dikirim via WhatsApp.`) +
-        `<br><br>Setelah dicek, ACC lewat Admin Panel &gt; Kelola Role Reseller/Agen (masukkan email di atas, pilih role ${tierLabel.toLowerCase()}).`;
+        aiText +
+        `\n\nSetelah dicek, ACC lewat Admin Panel > Kelola Role Reseller/Agen (masukkan email di atas, pilih role ${tierLabel.toLowerCase()}).`;
       const emailSent = await sendAdminNotifEmail(`Pendaftaran ${tierLabel} Baru — ${nama}`, emailMsg);
 
       const pesan = `Halo Admin Paycore, saya mau daftar sebagai *${tierLabel}*.\n\nNama (KTP): ${nama}\nProvinsi: ${provinsi}\nKota/Kabupaten: ${kota}\nKecamatan: ${kecamatan}\nKode Pos: ${kodepos}\nAlamat (KTP): ${alamat}\n\nFoto KTP akan saya kirimkan menyusul di chat ini. Mohon info langkah selanjutnya ya. Terima kasih!`;
@@ -19009,6 +19111,119 @@ document.addEventListener('DOMContentLoaded', () => {
   styleTag.textContent = '@keyframes ptrSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}';
   document.head.appendChild(styleTag);
 })();
+</script>
+
+<!-- ===================== TANYA AI (Paycore Assistant) ===================== -->
+<style>
+#aiChatPanel{display:none;position:fixed;inset:0;background:#0a0a0f;z-index:500;flex-direction:column;}
+#aiChatPanel.open{display:flex;}
+.aic-header{display:flex;align-items:center;gap:12px;padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;}
+.aic-header-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.aic-header-title{font-family:'Rajdhani',sans-serif;font-weight:800;font-size:18px;color:#fff;line-height:1.2;}
+.aic-header-sub{font-size:12px;color:rgba(255,255,255,.5);}
+.aic-close{margin-left:auto;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:transparent;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.aic-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
+.aic-msg{max-width:82%;padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word;}
+.aic-msg.user{align-self:flex-end;background:#3b82f6;color:#fff;border-bottom-right-radius:4px;}
+.aic-msg.ai{align-self:flex-start;background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.08);border-bottom-left-radius:4px;}
+.aic-msg.ai.loading{color:rgba(255,255,255,.5);font-style:italic;}
+.aic-quick{display:flex;gap:8px;overflow-x:auto;padding:0 16px 12px;flex-shrink:0;}
+.aic-quick::-webkit-scrollbar{display:none;}
+.aic-quick-btn{flex-shrink:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.8);font-size:12.5px;padding:8px 14px;border-radius:20px;white-space:nowrap;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:600;}
+.aic-quick-btn:active{background:rgba(255,255,255,.12);}
+.aic-inputbar{display:flex;gap:10px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0;padding-bottom:calc(12px + env(safe-area-inset-bottom));}
+.aic-inputbar input{flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:12px 16px;color:#fff;font-size:14px;outline:none;}
+.aic-inputbar input::placeholder{color:rgba(255,255,255,.35);}
+.aic-send{width:44px;height:44px;border-radius:50%;background:#3b82f6;border:none;color:#fff;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.aic-send:disabled{opacity:.5;}
+</style>
+
+<div id="aiChatPanel">
+  <div class="aic-header">
+    <div class="aic-header-avatar">🤖</div>
+    <div>
+      <div class="aic-header-title">Tanya AI Paycore</div>
+      <div class="aic-header-sub">Siap bantu soal top up & transaksi kamu</div>
+    </div>
+    <button class="aic-close" onclick="aiChatClose()">✕</button>
+  </div>
+  <div class="aic-body" id="aiChatBody"></div>
+  <div class="aic-quick" id="aiChatQuick">
+    <button class="aic-quick-btn" onclick="aiChatQuickAsk('Cara top up saldo gimana?')">Cara top up</button>
+    <button class="aic-quick-btn" onclick="aiChatQuickAsk('Kenapa transaksi saya gagal?')">Transaksi gagal</button>
+    <button class="aic-quick-btn" onclick="aiChatQuickAsk('Cara daftar Agen/Reseller gimana?')">Daftar Reseller</button>
+    <button class="aic-quick-btn" onclick="aiChatQuickAsk('Biaya admin top up berapa?')">Biaya admin</button>
+  </div>
+  <div class="aic-inputbar">
+    <input id="aiChatInput" type="text" placeholder="Tulis pertanyaan kamu..." onkeydown="if(event.key==='Enter')aiChatSend();">
+    <button class="aic-send" id="aiChatSendBtn" onclick="aiChatSend()">➤</button>
+  </div>
+</div>
+
+<script>
+let aiChatHistory = [];
+let aiChatBusy = false;
+
+function aiChatOpen(){
+  document.getElementById('aiChatPanel').classList.add('open');
+  if (!aiChatHistory.length) {
+    aiChatAppendMsg('ai', 'Halo! 👋 Saya asisten Paycore. Ada yang bisa saya bantu soal top up saldo, transaksi, atau pendaftaran Agen/Reseller?');
+  }
+}
+function aiChatClose(){
+  document.getElementById('aiChatPanel').classList.remove('open');
+}
+function aiChatQuickAsk(text){
+  document.getElementById('aiChatInput').value = text;
+  aiChatSend();
+}
+function aiChatAppendMsg(role, text, loading){
+  const body = document.getElementById('aiChatBody');
+  const div = document.createElement('div');
+  div.className = 'aic-msg ' + (role === 'user' ? 'user' : 'ai') + (loading ? ' loading' : '');
+  div.textContent = text;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+  return div;
+}
+async function aiChatSend(){
+  if (aiChatBusy) return;
+  const input = document.getElementById('aiChatInput');
+  const message = input.value.trim();
+  if (!message) return;
+  if (typeof currentUser === 'undefined' || !currentUser) {
+    aiChatAppendMsg('ai', 'Kamu perlu login dulu buat pakai fitur Tanya AI ya.');
+    return;
+  }
+  input.value = '';
+  aiChatBusy = true;
+  document.getElementById('aiChatSendBtn').disabled = true;
+  aiChatAppendMsg('user', message);
+  const loadingEl = aiChatAppendMsg('ai', 'Sedang mengetik...', true);
+  try {
+    const token = await h2hGetAccessToken();
+    const res = await fetch(H2H_WORKER_URL + '/ai-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ message, history: aiChatHistory }),
+    });
+    const j = await res.json().catch(() => ({}));
+    loadingEl.remove();
+    if (j.success && j.reply) {
+      aiChatAppendMsg('ai', j.reply);
+      aiChatHistory.push({ role: 'user', content: message });
+      aiChatHistory.push({ role: 'assistant', content: j.reply });
+      if (aiChatHistory.length > 10) aiChatHistory = aiChatHistory.slice(-10);
+    } else {
+      aiChatAppendMsg('ai', 'Maaf, gagal dapat jawaban (' + (j.message || 'error') + '). Coba lagi atau hubungi CS via WhatsApp.');
+    }
+  } catch(e) {
+    loadingEl.remove();
+    aiChatAppendMsg('ai', 'Koneksi bermasalah, coba lagi ya.');
+  }
+  aiChatBusy = false;
+  document.getElementById('aiChatSendBtn').disabled = false;
+}
 </script>
 </body>
 </html>
