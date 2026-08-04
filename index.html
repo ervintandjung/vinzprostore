@@ -2202,6 +2202,14 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 <!-- SMM ORDER PAGE (generik untuk semua platform: Instagram/Tiktok/Youtube/dst) -->
 <style>
 .smm-svc-list{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;}
+.smm-cat-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+.smm-cat-item{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--border);border-radius:12px;padding:13px 14px;cursor:pointer;background:var(--card2);}
+.smm-cat-item:active{background:rgba(0,212,255,0.08);}
+.smm-cat-item-name{font-weight:700;font-size:13.5px;color:#fff;}
+.smm-cat-item-count{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.smm-cat-item-chevron{color:var(--muted);font-size:18px;flex-shrink:0;}
+.smm-empty{padding:24px 16px;text-align:center;opacity:.6;font-size:13px;}
+.smm-svc-min{font-size:11px;color:var(--muted);margin-top:1px;}
 .smm-svc-item{border:1px solid var(--border);border-radius:12px;padding:11px 13px;cursor:pointer;transition:.15s;background:var(--card2);}
 .smm-svc-item.active{border-color:var(--accent);background:rgba(0,212,255,0.08);}
 .smm-svc-name{font-weight:700;font-size:13.5px;color:#fff;margin-bottom:2px;}
@@ -2215,39 +2223,51 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 </style>
 <section id="smmOrderPage" class="ppob-page">
   <div class="ppob-topbar">
-    <div class="ppob-back" onclick="closePpobPage('smmOrderPage')">←</div>
-    <div class="tt" id="smmPageTitle">SMM</div>
+    <div class="ppob-back" onclick="smmGoBack()">←</div>
+    <div>
+      <div class="tt" id="smmPageTitle">SMM</div>
+      <div style="font-size:11px;color:var(--muted);" id="smmPageSubTitle"></div>
+    </div>
   </div>
   <div class="ppob-wrap">
-    <div class="pi-badge">SMM</div>
-    <div class="pi-title">LAYANAN <span id="smmPageTitleBig">SMM</span></div>
-    <div class="pi-sub">Pilih layanan, masukkan target, tentukan jumlah</div>
 
-    <div class="ppob-card">
-      <div class="ppob-label">TARGET (LINK / USERNAME)</div>
-      <input type="text" id="smmTargetInput" class="ppob-input" placeholder="Contoh: https://instagram.com/username" maxlength="200" autocomplete="off">
+    <!-- STEP 1: KATEGORI -->
+    <div id="smmStepKategori">
+      <input type="text" id="smmKategoriSearch" class="ppob-input" placeholder="Cari kategori..." oninput="smmRenderKategoriList()" autocomplete="off">
+      <div class="smm-cat-list" id="smmKategoriList"></div>
     </div>
 
-    <div class="ppob-card">
-      <div class="ppob-label">PILIH LAYANAN</div>
-      <div class="smm-svc-list" id="smmServiceList">
-        <div style="padding:16px;text-align:center;opacity:.6;font-size:13px;">Memuat layanan...</div>
-      </div>
+    <!-- STEP 2: LAYANAN (di dalam kategori terpilih) -->
+    <div id="smmStepLayanan" style="display:none;">
+      <input type="text" id="smmLayananSearch" class="ppob-input" placeholder="Cari layanan..." oninput="smmRenderLayananList()" autocomplete="off">
+      <div class="smm-svc-list" id="smmLayananList"></div>
     </div>
 
-    <div class="ppob-card" id="smmQtyCard" style="display:none;">
-      <div class="ppob-label" id="smmQtyLabel">JUMLAH</div>
-      <div class="smm-qty-row">
-        <input type="number" id="smmQtyInput" class="ppob-input" style="margin-bottom:0;" oninput="smmComputePrice()">
+    <!-- STEP 3: FORM ORDER -->
+    <div id="smmStepOrder" style="display:none;">
+      <div class="ppob-card" id="smmSelectedSvcCard"></div>
+
+      <div class="ppob-card">
+        <div class="ppob-label">TARGET (LINK / USERNAME)</div>
+        <input type="text" id="smmTargetInput" class="ppob-input" placeholder="Contoh: https://tiktok.com/@username" maxlength="200" autocomplete="off">
       </div>
-      <div class="smm-total-box">
-        <div class="smm-total-label">Total Harga</div>
-        <div class="smm-total-val" id="smmTotalVal">Rp0</div>
+
+      <div class="ppob-card">
+        <div class="ppob-label" id="smmQtyLabel">JUMLAH</div>
+        <div class="smm-qty-row">
+          <input type="number" id="smmQtyInput" class="ppob-input" style="margin-bottom:0;" oninput="smmComputePrice()">
+        </div>
+        <div class="smm-total-box">
+          <div class="smm-total-label">Total Harga</div>
+          <div class="smm-total-val" id="smmTotalVal">Rp0</div>
+        </div>
       </div>
+
+      <button class="ppob-btn" id="smmOrderBtn" onclick="smmOrder()" style="margin-top:6px;">Pesan Sekarang</button>
     </div>
 
-    <button class="ppob-btn" id="smmOrderBtn" onclick="smmOrder()" style="margin-top:6px;">Pesan Sekarang</button>
   </div>
+</section>
 </section>
 
 <!-- KONFIRMASI PEMBAYARAN PAGE (generic, dipakai semua layanan PPOB) -->
@@ -12291,7 +12311,7 @@ window.closePromoAll = closePromoAll;
     { id: 'pascabayarhpPage', close: () => window.closePpobPage && window.closePpobPage('pascabayarhpPage') },
     { id: 'streamingPage',    close: () => window.closePpobPage && window.closePpobPage('streamingPage') },
     { id: 'telpsmsPage',      close: () => window.closePpobPage && window.closePpobPage('telpsmsPage') },
-    { id: 'smmOrderPage',     close: () => window.closePpobPage && window.closePpobPage('smmOrderPage') },
+    { id: 'smmOrderPage',     close: () => window.smmGoBack ? window.smmGoBack() : (window.closePpobPage && window.closePpobPage('smmOrderPage')) },
     { id: 'lainnyaMenuPage',  close: () => window.closePpobPage && window.closePpobPage('lainnyaMenuPage') },
     { id: 'topUpPage',        close: () => window.closeTopUp && window.closeTopUp() },
     { id: 'topupDetailPage',  close: () => window.closeTopupDetail && window.closeTopupDetail() },
@@ -17334,7 +17354,12 @@ async function h2hLoadStreaming(){
 // ============================================================
 let _smmPlatform = null;
 let _smmServices = [];
-let _smmSelectedIdx = -1;
+let _smmGroups = {};
+let _smmGroupKeysSorted = [];
+let _smmCurrentGroupKey = null;
+let _smmCurrentGroupServices = [];
+let _smmSelectedSvc = null;
+let _smmStep = 1;
 
 async function h2hFetchSmmServices(platformKeyword){
   try {
@@ -17363,65 +17388,146 @@ async function h2hFetchSmmServices(platformKeyword){
   }
 }
 
+// Kelompokkan layanan berdasarkan sub-kategori (field description, yang
+// isinya kategori dari H2H, misal "TikTok Followers", "TikTok Views" dst)
+// — biar tampilannya 2 tingkat kayak H2H.id: pilih kategori dulu, baru
+// pilih layanan spesifik di dalamnya.
+function smmGroupServices(services){
+  const groups = {};
+  for (const s of services) {
+    const key = (s.description && String(s.description).trim()) || (_smmPlatform ? (_smmPlatform + ' Lainnya') : 'Lainnya');
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(s);
+  }
+  return groups;
+}
+
 function openSmmPlatform(platformLabel){
   _smmPlatform = platformLabel;
   _smmServices = [];
-  _smmSelectedIdx = -1;
+  _smmGroups = {};
+  _smmGroupKeysSorted = [];
+  _smmCurrentGroupKey = null;
+  _smmCurrentGroupServices = [];
+  _smmSelectedSvc = null;
   document.getElementById('smmPageTitle').textContent = platformLabel.toUpperCase();
-  document.getElementById('smmPageTitleBig').textContent = platformLabel.toUpperCase();
-  document.getElementById('smmTargetInput').value = '';
-  document.getElementById('smmQtyCard').style.display = 'none';
-  document.getElementById('smmServiceList').innerHTML = '<div style="padding:16px;text-align:center;opacity:.6;font-size:13px;">Memuat layanan...</div>';
+  document.getElementById('smmKategoriSearch').value = '';
+  document.getElementById('smmKategoriList').innerHTML = '<div class="smm-empty">Memuat kategori...</div>';
+  smmShowStep(1);
   openPpobPage('smmOrderPage');
 
   h2hFetchSmmServices(platformLabel).then(rows => {
     _smmServices = rows;
-    renderSmmServiceList();
+    _smmGroups = smmGroupServices(rows);
+    smmRenderKategoriList();
   });
 }
 window.openSmmPlatform = openSmmPlatform;
 
-function renderSmmServiceList(){
-  const wrap = document.getElementById('smmServiceList');
+function smmShowStep(step){
+  _smmStep = step;
+  document.getElementById('smmStepKategori').style.display = step === 1 ? 'block' : 'none';
+  document.getElementById('smmStepLayanan').style.display = step === 2 ? 'block' : 'none';
+  document.getElementById('smmStepOrder').style.display = step === 3 ? 'block' : 'none';
+  const sub = document.getElementById('smmPageSubTitle');
+  sub.textContent = step === 1 ? '' : step === 2 ? _smmCurrentGroupKey : (_smmSelectedSvc ? _smmSelectedSvc.name : '');
+}
+
+// Back button: mundur 1 langkah dulu (bukan langsung nutup halaman), biar
+// user gak kepental keluar cuma gara-gara salah pilih kategori/layanan.
+function smmGoBack(){
+  if (_smmStep === 3) { smmShowStep(2); return; }
+  if (_smmStep === 2) { smmShowStep(1); return; }
+  closePpobPage('smmOrderPage');
+}
+window.smmGoBack = smmGoBack;
+
+function smmRenderKategoriList(){
+  const wrap = document.getElementById('smmKategoriList');
   if (!wrap) return;
-  if (!_smmServices.length) {
-    wrap.innerHTML = '<div style="padding:16px;text-align:center;opacity:.6;font-size:13px;">Belum ada layanan ' + h2hEscapeHtml(_smmPlatform || '') + ' yang tersedia saat ini.</div>';
+  _smmGroupKeysSorted = Object.keys(_smmGroups).sort((a, b) => a.localeCompare(b));
+  if (!_smmGroupKeysSorted.length) {
+    wrap.innerHTML = '<div class="smm-empty">Belum ada layanan ' + h2hEscapeHtml(_smmPlatform || '') + ' yang tersedia saat ini.</div>';
     return;
   }
-  wrap.innerHTML = _smmServices.map((r, i) => {
-    const per1k = Number(r.price_per_1k || 0);
-    const minQ = r.min_qty ? Number(r.min_qty) : 1;
-    const maxQ = r.max_qty ? Number(r.max_qty) : 100000;
-    return '<div class="smm-svc-item" data-idx="' + i + '" onclick="selectSmmService(' + i + ')">' +
-      '<div class="smm-svc-name">' + h2hEscapeHtml(r.name || r.product_code) + '</div>' +
-      '<div class="smm-svc-meta">Min ' + minQ.toLocaleString('id-ID') + ' · Maks ' + maxQ.toLocaleString('id-ID') + '</div>' +
-      '<div class="smm-svc-price">Rp' + per1k.toLocaleString('id-ID') + ' / 1000</div>' +
+  const q = h2hNormalize(document.getElementById('smmKategoriSearch').value || '');
+  const filteredKeys = q ? _smmGroupKeysSorted.filter(k => h2hNormalize(k).includes(q)) : _smmGroupKeysSorted;
+  if (!filteredKeys.length) {
+    wrap.innerHTML = '<div class="smm-empty">Kategori "' + h2hEscapeHtml(document.getElementById('smmKategoriSearch').value) + '" gak ketemu.</div>';
+    return;
+  }
+  wrap.innerHTML = filteredKeys.map((k) => {
+    const idx = _smmGroupKeysSorted.indexOf(k);
+    const count = _smmGroups[k].length;
+    return '<div class="smm-cat-item" onclick="smmOpenKategori(' + idx + ')">' +
+      '<div><div class="smm-cat-item-name">' + h2hEscapeHtml(k) + '</div><div class="smm-cat-item-count">' + count + ' layanan</div></div>' +
+      '<div class="smm-cat-item-chevron">›</div>' +
       '</div>';
   }).join('');
 }
-window.renderSmmServiceList = renderSmmServiceList;
+window.smmRenderKategoriList = smmRenderKategoriList;
 
-function selectSmmService(idx){
-  _smmSelectedIdx = idx;
-  document.querySelectorAll('#smmServiceList .smm-svc-item').forEach(el => {
-    el.classList.toggle('active', Number(el.getAttribute('data-idx')) === idx);
-  });
-  const svc = _smmServices[idx];
+function smmOpenKategori(idx){
+  const key = _smmGroupKeysSorted[idx];
+  if (!key) return;
+  _smmCurrentGroupKey = key;
+  _smmCurrentGroupServices = _smmGroups[key] || [];
+  document.getElementById('smmLayananSearch').value = '';
+  smmShowStep(2);
+  smmRenderLayananList();
+}
+window.smmOpenKategori = smmOpenKategori;
+
+function smmRenderLayananList(){
+  const wrap = document.getElementById('smmLayananList');
+  if (!wrap) return;
+  const q = h2hNormalize(document.getElementById('smmLayananSearch').value || '');
+  const list = q ? _smmCurrentGroupServices.filter(r => h2hNormalize(r.name || r.product_code || '').includes(q)) : _smmCurrentGroupServices;
+  if (!list.length) {
+    wrap.innerHTML = '<div class="smm-empty">Layanan gak ketemu.</div>';
+    return;
+  }
+  wrap.innerHTML = list.map((r) => {
+    const per1k = Number(r.price_per_1k || 0);
+    const minQ = r.min_qty ? Number(r.min_qty) : 1;
+    const maxQ = r.max_qty ? Number(r.max_qty) : 100000;
+    const realIdx = _smmCurrentGroupServices.indexOf(r);
+    return '<div class="smm-svc-item" onclick="smmSelectService(' + realIdx + ')">' +
+      '<div class="smm-svc-name">' + h2hEscapeHtml(r.name || r.product_code) + '</div>' +
+      '<div class="smm-svc-price">Rp' + per1k.toLocaleString('id-ID') + ' / 1000</div>' +
+      '<div class="smm-svc-min">Min ' + minQ.toLocaleString('id-ID') + ' — Max ' + maxQ.toLocaleString('id-ID') + '</div>' +
+      '</div>';
+  }).join('');
+}
+window.smmRenderLayananList = smmRenderLayananList;
+
+function smmSelectService(idx){
+  const svc = _smmCurrentGroupServices[idx];
   if (!svc) return;
+  _smmSelectedSvc = svc;
+  const per1k = Number(svc.price_per_1k || 0);
   const minQ = svc.min_qty ? Number(svc.min_qty) : 1;
   const maxQ = svc.max_qty ? Number(svc.max_qty) : 100000;
+
+  document.getElementById('smmSelectedSvcCard').innerHTML =
+    '<div class="smm-svc-name" style="font-size:15px;">' + h2hEscapeHtml(svc.name || svc.product_code) + '</div>' +
+    '<div class="smm-svc-price" style="font-size:15px;margin-top:4px;">Rp' + per1k.toLocaleString('id-ID') + ' / 1000</div>' +
+    '<div class="smm-svc-min">Min ' + minQ.toLocaleString('id-ID') + ' — Max ' + maxQ.toLocaleString('id-ID') + '</div>';
+
+  document.getElementById('smmQtyLabel').textContent = 'JUMLAH (Min ' + minQ.toLocaleString('id-ID') + ' · Maks ' + maxQ.toLocaleString('id-ID') + ')';
   const qtyInput = document.getElementById('smmQtyInput');
   qtyInput.min = minQ;
   qtyInput.max = maxQ;
-  qtyInput.value = minQ;
-  document.getElementById('smmQtyLabel').textContent = 'JUMLAH (Min ' + minQ.toLocaleString('id-ID') + ' · Maks ' + maxQ.toLocaleString('id-ID') + ')';
-  document.getElementById('smmQtyCard').style.display = 'block';
-  smmComputePrice();
+  qtyInput.value = '';
+  document.getElementById('smmTargetInput').value = '';
+  document.getElementById('smmTotalVal').textContent = 'Rp0';
+
+  smmShowStep(3);
 }
-window.selectSmmService = selectSmmService;
+window.smmSelectService = smmSelectService;
 
 function smmComputePrice(){
-  const svc = _smmServices[_smmSelectedIdx];
+  const svc = _smmSelectedSvc;
   const totalEl = document.getElementById('smmTotalVal');
   if (!svc) { if (totalEl) totalEl.textContent = 'Rp0'; return; }
   const qty = Number(document.getElementById('smmQtyInput').value) || 0;
@@ -17432,7 +17538,7 @@ function smmComputePrice(){
 window.smmComputePrice = smmComputePrice;
 
 function smmOrder(){
-  const svc = _smmServices[_smmSelectedIdx];
+  const svc = _smmSelectedSvc;
   const target = (document.getElementById('smmTargetInput').value || '').trim();
   const qty = Number(document.getElementById('smmQtyInput').value) || 0;
 
@@ -17447,6 +17553,13 @@ function smmOrder(){
 
   const per1k = Number(svc.price_per_1k || 0);
   const total = Math.ceil((per1k * qty) / 1000);
+
+  const u = (typeof getCU === 'function') ? getCU() : (typeof currentUser !== 'undefined' ? currentUser : null);
+  const saldoSaatIni = Number(u?.balance || 0);
+  if (saldoSaatIni < total) {
+    showNotif('⚠️ Saldo kamu (Rp' + saldoSaatIni.toLocaleString('id-ID') + ') tidak cukup buat pembelian ini (Rp' + total.toLocaleString('id-ID') + '). Silakan top up dulu.');
+    return;
+  }
 
   h2hCheckout({
     category: 'smm',
