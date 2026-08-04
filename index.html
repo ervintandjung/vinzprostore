@@ -3033,6 +3033,14 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       </div>
     </div>
     <div class="ap-card">
+      <h3 onclick="toggleApCard(this)">SYNC PRODUK H2H<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Tarik ulang daftar & harga produk dari H2H.id ke database Paycore — pulsa, PLN, e-wallet, voucher game, dan <b>SMM</b> (Instagram/Tiktok/Youtube/dll). Kalau ada layanan yang "belum tersedia" padahal harusnya ada, coba sync di sini dulu.</div>
+      <button class="ap-save" onclick="apSyncProducts()" id="apSyncProductsBtn" style="background:var(--accent2);color:#000;">🔄 SYNC PRODUK SEKARANG</button>
+      <div id="apSyncProductsResult" style="font-size:11.5px;margin-top:10px;white-space:pre-line;line-height:1.6;color:var(--muted);"></div>
+      </div>
+    </div>
+    <div class="ap-card">
       <h3 onclick="toggleApCard(this)">TINGKAT HARGA PRODUK<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
       <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Tiap nominal produk (pulsa, paket data, dll) biasanya punya beberapa SKU dari supplier H2H berbeda dengan harga beda-beda. Pilih SKU mana yang dipakai — ini berlaku LANGSUNG buat SEMUA pengunjung di mana pun, bukan cuma di HP kamu.</div>
@@ -7887,6 +7895,44 @@ async function apSetPriceTier(tier) {
 }
 window.apSetPriceTier = apSetPriceTier;
 window.apLoadPriceTierUI = apLoadPriceTierUI;
+
+// ══════════════════════════════
+// SYNC PRODUK H2H — Admin Panel > Sync Produk H2H. Narik ulang katalog
+// produk (termasuk SMM) dari H2H.id ke Supabase (h2h_products), biar
+// layanan yang belum ke-sync ("belum tersedia" di halaman produk) muncul.
+// ══════════════════════════════
+async function apSyncProducts() {
+  const btn = document.getElementById('apSyncProductsBtn');
+  const resEl = document.getElementById('apSyncProductsResult');
+  btn.disabled = true; btn.textContent = '⏳ Sinkronisasi... (bisa 10-30 detik)';
+  resEl.textContent = '';
+  try {
+    const token = await h2hGetAccessToken();
+    const res = await fetch(H2H_WORKER_URL + '/sync-products', {
+      headers: { Authorization: 'Bearer ' + token },
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok || !j.success) {
+      resEl.style.color = 'var(--danger)';
+      resEl.textContent = '❌ Gagal sync: ' + (j.message || ('HTTP ' + res.status));
+    } else {
+      resEl.style.color = 'var(--success)';
+      const s = j.summary || {};
+      const lines = Object.entries(s)
+        .filter(([k]) => !k.startsWith('_sample'))
+        .map(([k, v]) => `- ${k}: ${v} produk`);
+      resEl.textContent = '✅ Sync selesai!\n' + lines.join('\n');
+      if ((s.smm || 0) === 0) {
+        resEl.textContent += '\n\n⚠️ SMM = 0 produk. Kemungkinan H2H.id kamu memang belum punya katalog SMM aktif — cek ke H2H.id langsung.';
+      }
+    }
+  } catch (e) {
+    resEl.style.color = 'var(--danger)';
+    resEl.textContent = '❌ Error: ' + (e.message || e);
+  }
+  btn.disabled = false; btn.textContent = '🔄 SYNC PRODUK SEKARANG';
+}
+window.apSyncProducts = apSyncProducts;
 
 async function apLoadMarkup() {
   try {
