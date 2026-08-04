@@ -1536,7 +1536,7 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
         <div class="promo-teaser-title">Promo &amp; Penawaran</div>
         <div class="promo-teaser-sub">Info promo terbaru dan penawaran menarik</div>
       </div>
-      <div class="promo-teaser-more" onclick="openPromo()">Lihat semua</div>
+      <div class="promo-teaser-more" onclick="openPromoAll()">Lihat semua</div>
     </div>
     <div class="promo-teaser-scroll" id="promoTeaserScroll"></div>
   </div>
@@ -9701,6 +9701,16 @@ function doPesan(){
 .riw-search-box input::placeholder{color:rgba(255,255,255,0.3);}
 .riw-periode-btn{display:flex;align-items:center;gap:8px;width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:13px 14px;color:rgba(255,255,255,0.55);font-size:13.5px;font-weight:600;cursor:pointer;font-family:'Rajdhani',sans-serif;margin-bottom:14px;text-align:left;}
 .riw-periode-btn:active{color:#fff;border-color:rgba(255,255,255,0.2);}
+.riw-periode-btn.riw-periode-active{color:#3b82f6;border-color:#3b82f6;background:rgba(59,130,246,0.1);}
+.riw-periode-panel{display:none;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px;margin-bottom:14px;}
+.riw-periode-panel.open{display:block;}
+.riw-periode-row{display:flex;gap:10px;margin-bottom:12px;}
+.riw-periode-row > div{flex:1;min-width:0;}
+.riw-periode-field-label{font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:5px;}
+.riw-periode-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:9px;padding:9px 8px;color:#fff;font-size:12.5px;font-family:'Rajdhani',sans-serif;}
+.riw-periode-actions{display:flex;gap:8px;}
+.riw-periode-clear{flex:1;background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);border-radius:9px;padding:9px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;}
+.riw-periode-apply{flex:1;background:#3b82f6;border:none;color:#fff;border-radius:9px;padding:9px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Rajdhani',sans-serif;}
 .riw-tabs{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;padding-bottom:2px;margin:0 -18px;padding-left:18px;padding-right:18px;}
 .riw-tabs::-webkit-scrollbar{display:none;}
 .riw-tabs::-webkit-scrollbar{display:none;}
@@ -9774,12 +9784,29 @@ function doPesan(){
         <span class="riw-search-ic">🔍</span>
         <input type="text" id="riwSearchInput" placeholder="Cari transaksi..." oninput="window.riwOnSearchInput()">
       </div>
-      <button class="riw-periode-btn" onclick="showNotif('📅 Filter periode segera hadir.')">
+      <button class="riw-periode-btn" onclick="window.riwOpenPeriodePicker()" id="riwPeriodeBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" style="flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Periode
+        <span id="riwPeriodeLabel">Periode</span>
       </button>
+      <div id="riwPeriodePanel" class="riw-periode-panel">
+        <div class="riw-periode-row">
+          <div>
+            <div class="riw-periode-field-label">Dari</div>
+            <input type="date" id="riwPeriodeFrom" class="riw-periode-input">
+          </div>
+          <div>
+            <div class="riw-periode-field-label">Sampai</div>
+            <input type="date" id="riwPeriodeTo" class="riw-periode-input">
+          </div>
+        </div>
+        <div class="riw-periode-actions">
+          <button class="riw-periode-clear" onclick="window.riwClearPeriode()">Hapus Filter</button>
+          <button class="riw-periode-apply" onclick="window.riwApplyPeriode()">Terapkan</button>
+        </div>
+      </div>
       <div class="riw-tabs">
         <button class="riw-tab active" onclick="window.setRiwFilter('semua',this)">Semua</button>
+        <button class="riw-tab" onclick="window.setRiwFilter('topup',this)">Top Up</button>
         <button class="riw-tab" onclick="window.setRiwFilter('pulsa',this)">Pulsa</button>
         <button class="riw-tab" onclick="window.setRiwFilter('pln',this)">PLN</button>
         <button class="riw-tab" onclick="window.setRiwFilter('game',this)">Game</button>
@@ -9789,6 +9816,48 @@ function doPesan(){
     <div id="riwList"></div>
   </div>
 </div>
+
+<!-- ════════════════════════════════════════════
+     SEMUA PROMO — halaman KHUSUS daftar banner promo dari Beranda,
+     TERPISAH dari #promoPanel (yang isinya juga ada kartu ajakan Agen/
+     Reseller). "Lihat semua" di Beranda pindah ke sini biar user gak
+     ketuker/ngerasa kelempar ke halaman Agen/Reseller.
+     ════════════════════════════════════════════ -->
+<style>
+#promoAllPage{display:none;position:fixed;inset:0;background:var(--primary);z-index:380;overflow-y:auto;max-width:480px;margin:0 auto;}
+#promoAllPage.open{display:block;animation:fsSlideIn .3s ease;}
+.promoall-list{display:flex;flex-direction:column;gap:14px;padding:0 18px 30px;}
+.promoall-card{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.035);}
+.promoall-card img{width:100%;display:block;aspect-ratio:16/7;object-fit:cover;}
+</style>
+<div id="promoAllPage">
+  <div class="riw-header">
+    <div class="riw-header-left">
+      <button class="pgs-back" onclick="closePromoAll()" style="margin-right:6px;">&#8592;</button>
+      <div class="pc-brand-title" style="font-size:20px;">Semua Promo</div>
+    </div>
+  </div>
+  <div class="riw-body">
+    <div class="promoall-list" id="promoAllList"></div>
+  </div>
+</div>
+<script>
+function openPromoAll(){
+  const imgs = (window._homePromoBannerImages && window._homePromoBannerImages.length) ? window._homePromoBannerImages : [];
+  const list = document.getElementById('promoAllList');
+  list.innerHTML = imgs.length
+    ? imgs.map(src => `<div class="promoall-card" onclick="window.open('https://vinzprostore.web.id','_blank')"><img src="${src}" alt="Promo" loading="lazy" onerror="this.closest('.promoall-card').style.display='none'"></div>`).join('')
+    : `<div class="promo-empty"><div class="promo-empty-ic">🎁</div><div>Belum ada promo saat ini</div><div class="promo-empty-sub">Cek lagi nanti ya, promo baru bakal muncul di sini.</div></div>`;
+  document.getElementById('promoAllPage').classList.add('open');
+  document.body.classList.add('panel-lock');
+}
+function closePromoAll(){
+  document.getElementById('promoAllPage').classList.remove('open');
+  document.body.classList.remove('panel-lock');
+}
+window.openPromoAll = openPromoAll;
+window.closePromoAll = closePromoAll;
+</script>
 
 <!-- ════════════════════════════════════════════
      PROMO & PENAWARAN PANEL
@@ -10756,7 +10825,40 @@ function doPesan(){
   }
   function rp(n){ return 'Rp '+Number(n||0).toLocaleString('id-ID'); }
 
+  function riwOpenPeriodePicker(){
+    const panel = document.getElementById('riwPeriodePanel');
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open') && window.__riwPeriode) {
+      document.getElementById('riwPeriodeFrom').value = window.__riwPeriode.from || '';
+      document.getElementById('riwPeriodeTo').value = window.__riwPeriode.to || '';
+    }
+  }
+  function riwApplyPeriode(){
+    const from = document.getElementById('riwPeriodeFrom').value;
+    const to = document.getElementById('riwPeriodeTo').value;
+    if (!from && !to) { showNotif('⚠️ Pilih tanggal dulu ya.'); return; }
+    window.__riwPeriode = { from: from || null, to: to || null };
+    const label = document.getElementById('riwPeriodeLabel');
+    label.textContent = from && to ? (from + ' s/d ' + to) : from ? ('Sejak ' + from) : ('Sampai ' + to);
+    document.getElementById('riwPeriodeBtn').classList.add('riw-periode-active');
+    document.getElementById('riwPeriodePanel').classList.remove('open');
+    renderRiwayat();
+  }
+  function riwClearPeriode(){
+    window.__riwPeriode = null;
+    document.getElementById('riwPeriodeFrom').value = '';
+    document.getElementById('riwPeriodeTo').value = '';
+    document.getElementById('riwPeriodeLabel').textContent = 'Periode';
+    document.getElementById('riwPeriodeBtn').classList.remove('riw-periode-active');
+    document.getElementById('riwPeriodePanel').classList.remove('open');
+    renderRiwayat();
+  }
+  window.riwOpenPeriodePicker = riwOpenPeriodePicker;
+  window.riwApplyPeriode = riwApplyPeriode;
+  window.riwClearPeriode = riwClearPeriode;
+
   function riwCategoryOf(t){
+    if (t.isTopup) return 'topup';
     const s = ((t.productName||'')+' '+(t.variantName||'')+' '+(t.prod||'')).toLowerCase();
     if (/pulsa|telkomsel|\bxl\b|indosat|\btri\b|axis|smartfren/.test(s)) return 'pulsa';
     if (/pln|token listrik|listrik/.test(s)) return 'pln';
@@ -10794,11 +10896,23 @@ function doPesan(){
     }
     const searchVal = (document.getElementById('riwSearchInput')?.value || '').toLowerCase().trim();
     const activeFilter = window.__riwFilter || 'semua';
+    const periode = window.__riwPeriode;
     const filtered = list.filter(t => {
       const hay = ((t.productName||'')+' '+(t.variantName||'')+' '+(t.prod||'')).toLowerCase();
       const matchesSearch = !searchVal || hay.includes(searchVal);
       const matchesFilter = activeFilter === 'semua' || riwCategoryOf(t) === activeFilter;
-      return matchesSearch && matchesFilter;
+      let matchesPeriode = true;
+      if (periode && (periode.from || periode.to)) {
+        const ts = t.ts || Date.parse(t.time) || 0;
+        const d = new Date(ts);
+        const dayStr = isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+        if (!dayStr) matchesPeriode = false;
+        else {
+          if (periode.from && dayStr < periode.from) matchesPeriode = false;
+          if (periode.to && dayStr > periode.to) matchesPeriode = false;
+        }
+      }
+      return matchesSearch && matchesFilter && matchesPeriode;
     });
     if (!filtered.length){
       el.innerHTML = `<div class="riw-empty">
