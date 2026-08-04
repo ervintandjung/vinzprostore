@@ -713,6 +713,8 @@ body.light-mode .auth-switch-footer a{color:#0058bc;}
 .btn-close-ap{background:var(--danger);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer;}
 .ap-body{max-width:480px;margin:0 auto;padding:16px 14px 60px;}
 .ap-card{background:var(--card);border-radius:14px;padding:0;margin-bottom:14px;border:1px solid var(--border);overflow:hidden;}
+.ap-price-tier-opt{border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;background:var(--secondary);}
+.ap-price-tier-opt.active{border-color:var(--success);background:rgba(34,197,94,0.1);}
 .ap-card h3{font-size:12px;font-weight:700;color:var(--accent2);margin:0;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:6px;padding:14px 16px;cursor:pointer;user-select:none;justify-content:space-between;}
 .ap-card h3 .ac-arrow{font-size:10px;color:var(--muted);transition:transform .25s;margin-left:auto;flex-shrink:0;}
 .ap-card.ac-open h3 .ac-arrow{transform:rotate(180deg);}
@@ -1184,6 +1186,16 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 .ssbt-item{display:flex;align-items:center;gap:10px;padding:12px 10px;border-radius:10px;background:var(--card2);border:1px solid var(--border);margin-bottom:8px;cursor:pointer;}
 .ssbt-item:active{background:rgba(77,91,255,.15);}
 
+/* ===== BOOT GATE — nutupin layar dari awal (langsung ke-render browser,
+   SEBELUM JS sempat jalan), biar konten Beranda gak pernah "kelip" sebentar
+   sebelum app mutusin perlu nampilin gerbang 2FA atau nggak. Z-index-nya
+   sengaja LEBIH TINGGI dari #appLockOverlay (9999), jadi baru dilepas pas
+   sudah pasti aman: baik pas appLockOverlay sudah nongol GANTIin dia,
+   ATAUPUN pas ternyata gak perlu gerbang sama sekali. ===== */
+#bootGate{position:fixed;inset:0;background:#ffffff;z-index:10000;display:flex;align-items:center;justify-content:center;}#bootGate.hidden{display:none;}
+#bootGate .boot-spinner{width:34px;height:34px;border-radius:50%;border:3px solid #e2e5ec;border-top-color:#3ea6ff;animation:bootSpin .7s linear infinite;}
+@keyframes bootSpin{to{transform:rotate(360deg);}}
+
 /* ===== APP LOCK (gaya LazimPay) — muncul saat 2FA ON, sebelum Beranda ===== */
 #appLockOverlay{position:fixed;inset:0;background:#ffffff;z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding:0 24px;overflow:hidden;}
 #appLockOverlay.open{display:flex;}
@@ -1208,6 +1220,16 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
 
 </head>
 <body class="has-bottom-nav">
+
+<div id="bootGate"><div class="boot-spinner"></div></div>
+<script>
+  // Failsafe: kalau initApp() gagal/error sebelum sempat manggil hideBootGate(),
+  // jangan sampai layar putih ini nyangkut selamanya nutupin app.
+  setTimeout(function(){
+    var el = document.getElementById('bootGate');
+    if (el) el.classList.add('hidden');
+  }, 6000);
+</script>
 
 <!-- ===== TOP LOADING BAR (kayak GoPay) — muncul otomatis pas app baru
      dibuka / lagi refresh data Beranda ===== -->
@@ -3011,6 +3033,27 @@ body.light-mode .riw-bell-dot{box-shadow:0 0 0 2px var(--primary);}
       </div>
     </div>
     <div class="ap-card">
+      <h3 onclick="toggleApCard(this)">TINGKAT HARGA PRODUK<span class="ac-arrow">▼</span></h3>
+      <div class="ap-card-body">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Tiap nominal produk (pulsa, paket data, dll) biasanya punya beberapa SKU dari supplier H2H berbeda dengan harga beda-beda. Pilih SKU mana yang dipakai — ini berlaku LANGSUNG buat SEMUA pengunjung di mana pun, bukan cuma di HP kamu.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;" id="apPriceTierOptions">
+        <div class="ap-price-tier-opt" data-tier="murah" onclick="apSetPriceTier('murah')">
+          <div style="font-weight:800;">💸 Murah</div>
+          <div style="font-size:11px;color:var(--muted);">SKU termurah per nominal. Untung tertipis, tapi kadang lebih sering gagal/gangguan kalau supplier lagi bermasalah.</div>
+        </div>
+        <div class="ap-price-tier-opt" data-tier="medium" onclick="apSetPriceTier('medium')">
+          <div style="font-weight:800;">⚖️ Medium</div>
+          <div style="font-size:11px;color:var(--muted);">SKU harga tengah-tengah. Keseimbangan antara harga & keandalan transaksi.</div>
+        </div>
+        <div class="ap-price-tier-opt" data-tier="tinggi" onclick="apSetPriceTier('tinggi')">
+          <div style="font-weight:800;">🛡️ Tinggi</div>
+          <div style="font-size:11px;color:var(--muted);">SKU termahal per nominal. Biasanya paling stabil/jarang gagal, tapi untungnya lebih tipis atau harga jual ke user lebih mahal.</div>
+        </div>
+      </div>
+      <div id="apPriceTierStatus" style="font-size:11.5px;color:var(--muted);"></div>
+      </div>
+    </div>
+    <div class="ap-card">
       <h3 onclick="toggleApCard(this)">MARKUP HARGA H2H/PPOB<span class="ac-arrow">▼</span></h3>
       <div class="ap-card-body">
       <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Atur markup di atas harga modal H2H, per kategori (persen atau nominal Rp). Berlaku untuk SEMUA produk PPOB/H2H (Pulsa, Paket Data, E-Wallet, Voucher Game, PLN, PascaBayar HP, Paket Telp & SMS, Streaming, SMM) dan tampil ke SEMUA pengunjung.</div>
@@ -4679,6 +4722,7 @@ async function loadMarkupSettings() {
         if (s.key === 'wa' && s.value) waNum = s.value;
         if (s.key === 'ticker' && s.value) { const t = document.getElementById('tickerTxt'); if (t) t.textContent = s.value; }
         if (s.key === 'markup' && s.value) { markupConfig = vpParseJsonSetting(s.value) || {}; window._adminMarkupConfig = { ...markupConfig }; gotMarkup = true; }
+        if (s.key === 'price_tier' && s.value) window._priceTier = s.value;
       }
       window._markupLoadDiag = { ok: true, rowCount: settings.length, gotMarkup };
       if (!gotMarkup) console.warn('[markup] Tabel settings kebaca (' + settings.length + ' baris) tapi gak ada row key="markup". Cek udah pernah disimpan admin belum.');
@@ -4693,6 +4737,7 @@ async function loadMarkupSettings() {
     }
   } catch (e) { console.warn('Settings load error:', e); window._markupLoadDiag = { ok: false, reason: String(e) }; }
 }
+window._priceTier = window._priceTier || 'murah'; // default aman kalau settings belum sempat/gagal ke-load
 window._markupReadyPromise = loadMarkupSettings();
 
 // ══════════════════════════════
@@ -6183,15 +6228,30 @@ async function ensureFaceApiReady(onStatus){
       _faceApiScriptLoaded = true;
     }
     const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
-    await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
-    await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-    await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+    // Load 2 detektor wajah — SSD (akurat tapi kadang gagal di foto kualitas
+    // rendah kayak scan KTP) DAN TinyFaceDetector (lebih toleran/ringan) —
+    // biar kalau satu gagal deteksi wajah, masih ada cadangan sebelum nyerah.
+    await Promise.all([
+      faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+    ]);
     _faceApiModelsLoaded = true;
     return true;
   } catch(e) {
     console.error('Gagal load face-api', e);
     return false;
   }
+}
+async function detectFaceWithFallback(img){
+  // Coba SSD dulu (minConfidence diturunin dari default 0.5 → 0.3 biar
+  // gak gampang nolak foto KTP yang agak kurang tajam), kalau gagal baru
+  // coba TinyFaceDetector sebagai cadangan.
+  let det = await faceapi.detectSingleFace(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.3 })).withFaceLandmarks().withFaceDescriptor();
+  if (det) return det;
+  det = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.3 })).withFaceLandmarks().withFaceDescriptor();
+  return det || null;
 }
 async function compareFacesKtpSelfie(ktpDataUrl, selfieDataUrl, onStatus){
   const ready = await ensureFaceApiReady(onStatus);
@@ -6200,10 +6260,10 @@ async function compareFacesKtpSelfie(ktpDataUrl, selfieDataUrl, onStatus){
     if (onStatus) onStatus('Membandingkan wajah KTP & selfie...');
     const imgKtp = await faceapi.fetchImage(ktpDataUrl);
     const imgSelfie = await faceapi.fetchImage(selfieDataUrl);
-    const detKtp = await faceapi.detectSingleFace(imgKtp).withFaceLandmarks().withFaceDescriptor();
-    if (!detKtp) return { error: 'Wajah tidak terdeteksi di foto KTP.' };
-    const detSelfie = await faceapi.detectSingleFace(imgSelfie).withFaceLandmarks().withFaceDescriptor();
-    if (!detSelfie) return { error: 'Wajah tidak terdeteksi di foto selfie.' };
+    const detKtp = await detectFaceWithFallback(imgKtp);
+    if (!detKtp) return { error: 'Wajah tidak terdeteksi di foto KTP. Coba foto ulang dengan pencahayaan lebih terang & KTP gak miring.' };
+    const detSelfie = await detectFaceWithFallback(imgSelfie);
+    if (!detSelfie) return { error: 'Wajah tidak terdeteksi di foto selfie. Coba foto ulang menghadap kamera dengan pencahayaan cukup.' };
     const distance = faceapi.euclideanDistance(detKtp.descriptor, detSelfie.descriptor);
     const matchScore = Math.max(0, 1 - (distance / 0.6));
     return { distance: Number(distance.toFixed(4)), score: Math.round(matchScore * 100), isMatch: distance < 0.6 };
@@ -6245,10 +6305,12 @@ async function submitVerifikasiIdentitas(){
     btn.textContent = '🤳 Mencocokkan wajah...';
     const faceResult = await compareFacesKtpSelfie(viKtpData, viSelfieData, (s) => { btn.textContent = '🤳 ' + s; });
 
-    // AI cek foto KTP (baca teks + cocokin sama form) lewat Cloudflare
-    // Workers AI. Ini CUMA rekomendasi buat admin — status pengajuan TETAP
-    // "pending", currentUser.verified TIDAK pernah diubah otomatis di sini.
+    // AI cek foto KTP (baca teks + cocokin sama form) + kirim hasil face
+    // match sekalian, biar server yang mutusin final: approved (langsung
+    // ACC) / rejected (langsung tolak) / inconclusive (AI gagal mutusin →
+    // baru dikirim ke WA admin buat dicek manual).
     let aiVerdict = null;
+    let decision = 'inconclusive';
     if (savedRow && savedRow.id) {
       btn.textContent = '🤖 AI sedang memeriksa foto KTP...';
       try {
@@ -6256,20 +6318,30 @@ async function submitVerifikasiIdentitas(){
         const resp = await fetch(H2H_WORKER_URL + '/ai-verify-ktp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-          body: JSON.stringify({ type: 'identity', id: savedRow.id, foto_ktp: viKtpData, form: { nama, nik, tanggal_lahir: tgl } }),
+          body: JSON.stringify({ type: 'identity', id: savedRow.id, foto_ktp: viKtpData, form: { nama, nik, tanggal_lahir: tgl }, face_match: faceResult }),
         });
         const j = await resp.json().catch(() => ({}));
-        if (j.success) aiVerdict = j.verdict;
-      } catch(e) { /* AI gagal/gangguan → verdict tetap null, lanjut notif manual biasa */ }
+        if (j.success) { aiVerdict = j.verdict; decision = j.decision || 'inconclusive'; }
+      } catch(e) { /* AI gagal/gangguan → tetap inconclusive, lanjut notif manual biasa */ }
     }
     if (aiVerdict) aiVerdict.face_match = faceResult;
     else aiVerdict = { face_match: faceResult };
 
-    if (key) localStorage.setItem(key, 'pending');
-    await notifyAdminVerifikasiManual(nama, nik, tgl, savedRow ? savedRow.id : null, aiVerdict);
-    showNotif((aiVerdict.valid || (faceResult && faceResult.isMatch))
-      ? '✅ Data & wajah kamu terlihat cocok. Menunggu ACC admin.'
-      : '⚠️ Ada bagian yang perlu dicek lagi. Menunggu peninjauan admin.');
+    if (decision === 'approved') {
+      if (key) localStorage.setItem(key, 'verified');
+      if (rKey) localStorage.removeItem(rKey);
+      if (currentUser) currentUser.verified = true;
+      showNotif('✅ Verifikasi identitas kamu langsung disetujui otomatis!');
+    } else if (decision === 'rejected') {
+      if (key) localStorage.setItem(key, 'ditolak');
+      if (rKey) localStorage.setItem(rKey, aiVerdict.alasan || 'Data/foto tidak cocok/valid.');
+      showNotif('❌ Pengajuan ditolak sistem — cek alasannya di halaman ini, lalu coba lagi.');
+    } else {
+      // inconclusive → AI gak bisa mutusin (gangguan teknis/gak yakin), baru di sini kirim ke admin.
+      if (key) localStorage.setItem(key, 'pending');
+      await notifyAdminVerifikasiManual(nama, nik, tgl, savedRow ? savedRow.id : null, aiVerdict);
+      showNotif('📨 AI belum bisa mutusin otomatis, data dikirim ke admin buat dicek manual.');
+    }
 
     viSyncStatusLabel();
     openVerifikasiIdentitas();
@@ -7358,6 +7430,7 @@ function _openAdminPanelNow(){
   document.body.style.overflow = 'hidden';
   if (typeof renderApBanners === 'function') renderApBanners();
   if (typeof apLoadMarkup === 'function') apLoadMarkup();
+  if (typeof apLoadPriceTierUI === 'function') apLoadPriceTierUI();
   setTimeout(wrapApCardBodies, 100);
 }
 
@@ -7775,6 +7848,46 @@ function renderApMarkup() {
   }).join('');
 }
 
+// ══════════════════════════════
+// TINGKAT HARGA PRODUK (murah/medium/tinggi) — Admin Panel > Tingkat Harga
+// Produk. Disimpan di tabel settings (key: price_tier), berlaku GLOBAL buat
+// SEMUA pengunjung (bukan per-device), dibaca lewat window._priceTier di
+// h2hDedupeByNominal().
+// ══════════════════════════════
+function apRenderPriceTierUI(tier) {
+  document.querySelectorAll('.ap-price-tier-opt').forEach((el) => {
+    el.classList.toggle('active', el.dataset.tier === tier);
+  });
+  const label = tier === 'tinggi' ? 'Tinggi' : tier === 'medium' ? 'Medium' : 'Murah';
+  const statusEl = document.getElementById('apPriceTierStatus');
+  if (statusEl) statusEl.textContent = 'Tingkat harga aktif sekarang: ' + label;
+}
+async function apLoadPriceTierUI() {
+  try {
+    const { data, error } = await _sb.from('settings').select('value').eq('key', 'price_tier').maybeSingle();
+    const tier = (!error && data && data.value) ? data.value : (window._priceTier || 'murah');
+    window._priceTier = tier;
+    apRenderPriceTierUI(tier);
+  } catch (e) { apRenderPriceTierUI(window._priceTier || 'murah'); }
+}
+async function apSetPriceTier(tier) {
+  apRenderPriceTierUI(tier); // langsung kelihatan responsif, gak nunggu network
+  const statusEl = document.getElementById('apPriceTierStatus');
+  if (statusEl) statusEl.textContent = '⏳ Menyimpan...';
+  try {
+    const { error } = await _sb.from('settings').upsert({ key: 'price_tier', value: tier });
+    if (error) throw error;
+    window._priceTier = tier;
+    const label = tier === 'tinggi' ? 'Tinggi' : tier === 'medium' ? 'Medium' : 'Murah';
+    if (statusEl) statusEl.textContent = '✅ Tersimpan! Semua user sekarang pakai harga ' + label + '.';
+    showNotif && showNotif('✅ Tingkat harga diubah ke ' + label + ' — berlaku buat semua user.');
+  } catch (e) {
+    if (statusEl) statusEl.textContent = '❌ Gagal menyimpan: ' + (e.message || e);
+  }
+}
+window.apSetPriceTier = apSetPriceTier;
+window.apLoadPriceTierUI = apLoadPriceTierUI;
+
 async function apLoadMarkup() {
   try {
     const { data, error } = await _sb.from('settings').select('value').eq('key', 'markup').maybeSingle();
@@ -8075,6 +8188,7 @@ async function initApp() {
     if (!currentUser) {
       authGateActive = true;
       openAuthWelcome();
+      hideBootGate();
     } else {
       // Udah login dari sesi sebelumnya (gak perlu login ulang) — tapi kalau
       // user aktifin "Autentikasi Dua Faktor" di Pengaturan, wajib verifikasi
@@ -10200,16 +10314,13 @@ function doPesan(){
       // Face match (KTP vs Selfie) — jalan di browser user (client-side).
       btn.innerHTML = '🤳 Mencocokkan wajah...';
       const faceResult = await compareFacesKtpSelfie(_arKtpData, _arSelfieData);
-      const faceText = faceResult
-        ? (faceResult.error
-            ? `\n\n🤳 Face Match (KTP vs Selfie): GAGAL DICEK — ${faceResult.error}`
-            : `\n\n🤳 Face Match (KTP vs Selfie): ${faceResult.isMatch ? '✅ COCOK' : '⚠️ TIDAK COCOK'} (skor kemiripan ${faceResult.score}%)`)
-        : '';
 
-      // AI cek foto KTP (baca teks + cocokin sama form) lewat Cloudflare
-      // Workers AI. Ini CUMA rekomendasi buat admin — status pengajuan TETAP
-      // "pending", role user TIDAK pernah diubah otomatis di sini.
+      // AI cek foto KTP (baca teks + cocokin sama form) + kirim face match
+      // sekalian, biar server yang mutusin final: approved (langsung ACC
+      // jadi Agen/Reseller) / rejected (langsung tolak) / inconclusive (AI
+      // gagal mutusin → baru di sini dikirim ke WA admin buat cek manual).
       let aiVerdict = null;
+      let decision = 'inconclusive';
       if (savedResellerRow && savedResellerRow.id) {
         btn.innerHTML = '🤖 AI sedang memeriksa foto KTP...';
         try {
@@ -10217,14 +10328,38 @@ function doPesan(){
           const resp = await fetch(H2H_WORKER_URL + '/ai-verify-ktp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-            body: JSON.stringify({ type: 'reseller', id: savedResellerRow.id, foto_ktp: _arKtpData, form: { nama, provinsi, kota, kecamatan, kodepos, alamat, tier: tierLabel } }),
+            body: JSON.stringify({ type: 'reseller', id: savedResellerRow.id, foto_ktp: _arKtpData, form: { nama, provinsi, kota, kecamatan, kodepos, alamat, tier: tierLabel }, face_match: faceResult }),
           });
           const j = await resp.json().catch(() => ({}));
-          if (j.success) aiVerdict = j.verdict;
-        } catch(e) { /* AI gagal/gangguan → verdict tetap null, lanjut notif manual biasa */ }
+          if (j.success) { aiVerdict = j.verdict; decision = j.decision || 'inconclusive'; }
+        } catch(e) { /* AI gagal/gangguan → tetap inconclusive, lanjut notif manual biasa */ }
       }
+
+      if (decision === 'approved') {
+        if (currentUser) currentUser.role = _arTier;
+        try { localStorage.setItem('vp_user', JSON.stringify({ ...(u||{}), role: _arTier })); } catch(e){}
+        if (waTab) { try { waTab.close(); } catch(_){} }
+        showNotif('✅ Pengajuan ' + tierLabel + ' kamu langsung disetujui otomatis! Silakan buka ulang halaman buat lihat harga khusus kamu.');
+        closeAgenReseller();
+        return;
+      }
+      if (decision === 'rejected') {
+        if (waTab) { try { waTab.close(); } catch(_){} }
+        errEl.textContent = '❌ Pengajuan ditolak sistem: ' + (aiVerdict?.alasan || 'Data/foto tidak valid.') + ' — silakan perbaiki foto/data lalu coba lagi.';
+        errEl.style.display = 'block';
+        btn.disabled = false; btn.innerHTML = origHtml;
+        return;
+      }
+
+      // ── inconclusive: AI gak bisa mutusin (gangguan teknis/gak yakin) →
+      // baru di sini kirim notif ke admin buat ditinjau manual. ──
+      const faceText = faceResult
+        ? (faceResult.error
+            ? `\n\n🤳 Face Match (KTP vs Selfie): GAGAL DICEK — ${faceResult.error}`
+            : `\n\n🤳 Face Match (KTP vs Selfie): ${faceResult.isMatch ? '✅ COCOK' : '⚠️ TIDAK COCOK'} (skor kemiripan ${faceResult.score}%)`)
+        : '';
       const aiText = aiVerdict
-        ? `\n\n🤖 Hasil cek AI (2 tahap, ketat):\n- Foto utuh (gak kepotong): ${aiVerdict.foto_utuh === true ? 'Ya' : aiVerdict.foto_utuh === false ? 'Tidak' : '?'}\n- Foto gak blur: ${aiVerdict.tidak_blur === true ? 'Ya' : aiVerdict.tidak_blur === false ? 'Tidak' : '?'}\n- Gak ada pantulan cahaya: ${aiVerdict.tidak_pantulan_cahaya === true ? 'Ya' : aiVerdict.tidak_pantulan_cahaya === false ? 'Tidak' : '?'}\n- Bukan foto dari layar/scan: ${aiVerdict.bukan_hasil_foto_layar === true ? 'Ya' : aiVerdict.bukan_hasil_foto_layar === false ? 'Tidak' : '?'}\n- NIK terbaca: ${aiVerdict.nik_terbaca || '(kosong)'}\n- Data cocok sama form: ${aiVerdict.data_cocok === true ? 'Ya' : aiVerdict.data_cocok === false ? 'Tidak' : '?'}\n- KESIMPULAN: ${aiVerdict.valid === true ? '✅ VALID' : '⚠️ TIDAK VALID / PERLU DICEK ULANG'}\n- Alasan: ${aiVerdict.alasan || '-'}\n\nCatatan: ini cuma rekomendasi AI, keputusan akhir tetap kamu yang ACC manual.`
+        ? `\n\n🤖 Hasil cek AI (2 tahap, ketat):\n- Foto utuh (gak kepotong): ${aiVerdict.foto_utuh === true ? 'Ya' : aiVerdict.foto_utuh === false ? 'Tidak' : '?'}\n- Foto gak blur: ${aiVerdict.tidak_blur === true ? 'Ya' : aiVerdict.tidak_blur === false ? 'Tidak' : '?'}\n- Gak ada pantulan cahaya: ${aiVerdict.tidak_pantulan_cahaya === true ? 'Ya' : aiVerdict.tidak_pantulan_cahaya === false ? 'Tidak' : '?'}\n- Bukan foto dari layar/scan: ${aiVerdict.bukan_hasil_foto_layar === true ? 'Ya' : aiVerdict.bukan_hasil_foto_layar === false ? 'Tidak' : '?'}\n- NIK terbaca: ${aiVerdict.nik_terbaca || '(kosong)'}\n- Data cocok sama form: ${aiVerdict.data_cocok === true ? 'Ya' : aiVerdict.data_cocok === false ? 'Tidak' : '?'}\n- KESIMPULAN: ${aiVerdict.valid === true ? '✅ VALID' : '⚠️ TIDAK VALID / PERLU DICEK ULANG'}\n- Alasan: ${aiVerdict.alasan || '-'}\n\nCatatan: AI gagal mutusin otomatis, tolong tinjau manual.`
         : '\n\n🤖 AI belum sempat mengecek foto KTP (gangguan/gagal) — tolong cek foto KTP manual.';
 
       // Kirim notif ke admin biar bisa dicek dulu sebelum di-ACC manual di
@@ -16780,11 +16915,20 @@ function h2hDedupeByNominal(rows){
     groups.get(key).push({ ...r, _nominal: nominal });
   }
 
+  // Tingkat harga dipilih admin (Admin Panel > Tingkat Harga Produk),
+  // berlaku GLOBAL buat semua pengunjung (bukan per-device) karena diambil
+  // dari tabel settings (key: price_tier). Default 'murah' kalau belum
+  // pernah diatur.
+  const tier = window._priceTier || 'murah';
+
   const result = [];
   for (const list of groups.values()) {
     list.sort((a, b) => Number(a.price) - Number(b.price));
-    // Harga termurah: SKU pertama setelah di-sort ascending.
-    result.push(list[0]);
+    let pick;
+    if (tier === 'tinggi') pick = list[list.length - 1];
+    else if (tier === 'medium') pick = list[Math.floor((list.length - 1) / 2)];
+    else pick = list[0]; // 'murah' (default) — SKU termurah
+    result.push(pick);
   }
 
   if (freeRows.length) {
@@ -17329,11 +17473,16 @@ let _pinEnrollBiometricResolve = null; // resolve promise pgsToggleBiometric, di
 let _appGateActive = false;   // true selagi overlay ini nge-block akses ke Beranda
 let _appGateBioFails = 0;     // hitung kegagalan sidik jari khusus di gate ini
 
+function hideBootGate(){
+  const el = document.getElementById('bootGate');
+  if (el) el.classList.add('hidden');
+}
+
 async function appSecurityGateCheck(){
-  if (!currentUser) return; // gak ada sesi -> alur login biasa yang urus
+  if (!currentUser) { hideBootGate(); return; } // gak ada sesi -> alur login biasa yang urus
 
   const twoFAOn = localStorage.getItem('vp_2fa_' + currentUser.email) === '1';
-  if (!twoFAOn) return; // 2FA mati -> langsung ke Beranda seperti biasa
+  if (!twoFAOn) { hideBootGate(); return; } // 2FA mati -> langsung ke Beranda seperti biasa
 
   // Udah pernah verifikasi di sesi app yang sama (belum bener-bener ditutup)
   // -> jangan minta verifikasi lagi. sessionStorage ini ke-reset otomatis
@@ -17341,11 +17490,11 @@ async function appSecurityGateCheck(){
   // kebawa kalau cuma refresh/reload di dalam app -> jadi gate gak lagi
   // muncul berulang cuma gara-gara refresh.
   try {
-    if (sessionStorage.getItem('appgate_ok_' + currentUser.email) === '1') return;
+    if (sessionStorage.getItem('appgate_ok_' + currentUser.email) === '1') { hideBootGate(); return; }
   } catch(e) {}
 
   const sudahAdaPin = await pinHasPin();
-  if (!sudahAdaPin) return; // gak ada PIN buat diverifikasi, gak mungkin nge-lock
+  if (!sudahAdaPin) { hideBootGate(); return; } // gak ada PIN buat diverifikasi, gak mungkin nge-lock
 
   await new Promise((resolve) => {
     _appGateActive = true;
@@ -17370,6 +17519,7 @@ async function appSecurityGateCheck(){
     const bioBisa = bioAktif && window.AndroidBridge && typeof window.AndroidBridge.authenticateBiometric === 'function';
 
     appLockShow({ closable: false, bioAvailable: bioBisa });
+    hideBootGate();
 
     if (bioBisa) {
       setTimeout(() => window.AndroidBridge.authenticateBiometric(), 300);
